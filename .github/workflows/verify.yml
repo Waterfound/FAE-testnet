@@ -64,3 +64,6 @@ jobs:
 
       - name: Verify Authoritative P2P security primitives
         run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
+
+      - name: Verify Authoritative coordinator signer and codec
+        run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
