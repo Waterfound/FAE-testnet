@@ -61,3 +61,6 @@ jobs:
 
       - name: Verify three-node partition recovery
         run: node sovereign-forge/tests/partition-recovery-3node.mjs
+
+      - name: Verify Authoritative P2P security primitives
+        run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
