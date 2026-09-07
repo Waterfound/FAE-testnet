@@ -76,17 +76,20 @@ async function miningLoop(){
       attemptsTotal+=result.attempts||0;
       if(!mining)break;
       try{
+        const submission={
+          header:template.header,
+          nonce:result.nonce,
+          hash:result.hash,
+          txids:template.txids||[]
+        };
+        if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
         const accepted=await api('/submit-block',{
           method:'POST',
           headers:{'content-type':'application/json'},
-          body:JSON.stringify({
-            header:template.header,
-            nonce:result.nonce,
-            hash:result.hash,
-            txids:template.txids||[]
-          })
+          body:JSON.stringify(submission)
         });
-        setStatus('mstate','Won block '+accepted.height+' · reward sent directly to '+short(rewardAddress,13,7)+' · continuing…','ok');
+        const rewardLabel=template.header.fee_atoms===undefined?'reward':'block reward + transaction fees';
+        setStatus('mstate','Won block '+accepted.height+' · '+rewardLabel+' sent directly to '+short(rewardAddress,13,7)+' · continuing…','ok');
         await refresh();
       }catch(error){
         const errorCode=error.data?.error;
