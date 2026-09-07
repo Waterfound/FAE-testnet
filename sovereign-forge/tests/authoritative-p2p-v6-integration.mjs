@@ -59,7 +59,9 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery, authen
 
   const finalBlock=await mine(a.baseUrl(),miner.address);assert.ok(finalBlock.txids.includes(txid));assert.equal(a.status().height,15);assert.equal(findTx(a.getState(),txid)?.confirmed_height,15);
 
-  const bCatchup=await b.syncPeer(a.baseUrl()),cCatchup=await c.syncPeer(a.baseUrl());assert.equal(bCatchup.adopted,true);assert.equal(cCatchup.adopted,true);
+  const bCatchup=await b.syncPeer(a.baseUrl()),cCatchup=await c.syncPeer(a.baseUrl());
+  assert.ok(bCatchup.adopted||['already_current','already_adopted'].includes(bCatchup.reason),`B must either adopt or already have relayed tip: ${JSON.stringify(bCatchup)}`);
+  assert.equal(cCatchup.adopted,true,'C was two blocks behind and must validate/adopt the winning chain');
   for(const node of[a,b,c]){assert.equal(node.status().height,15);assert.equal(node.status().tip_hash,a.status().tip_hash);const record=findTx(node.getState(),txid);assert.equal(record?.status,'confirmed');assert.equal(record?.confirmed_height,15)}
 
   const fresh=createAuthoritativeV4PeerNode({dataFile:join(dir,'fresh-state.json'),identityFile:join(dir,'fresh-id.json'),peerTrustFile:join(dir,'fresh-trust.json')});await fresh.start();context.after(()=>fresh.close());
@@ -71,6 +73,14 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery, authen
   assert.equal(restarted.identity.id,aIdentity);assert.equal(restarted.status().tip_hash,b.status().tip_hash);assert.equal(restarted.trust.list().peers[b.baseUrl()].identityId,b.identity.id);
 
   console.log(JSON.stringify({ok:true,protocol:6,nodes:4,height:15,headers_first:true,common_ancestor:12,fresh_bootstrap:true,canonical_genesis:CANONICAL_GENESIS_HASH,authenticated_descriptor_discovery:true,peer_diversity_integrated:true,recovered_txid:txid,repropagated:true,reconfirmed_height:15,persistent_identity:true,tofu_continuity:true}));
+});
+
+test('protocol 6 evaluates equal-work forks through deterministic tip tie-break instead of early-returning',async context=>{
+  const baseState=legacyState(),miner=wallet(),left=createAuthoritativeV4PeerNode({initialState:baseState}),right=createAuthoritativeV4PeerNode({initialState:baseState});await left.start();await right.start();context.after(()=>left.close());context.after(()=>right.close());
+  const leftBlock=await mine(left.baseUrl(),miner.address),rightBlock=await mine(right.baseUrl(),miner.address);assert.equal(left.status().height,12);assert.equal(right.status().height,12);assert.notEqual(leftBlock.hash,rightBlock.hash);
+  const winner=leftBlock.hash<rightBlock.hash?left:right,loser=winner===left?right:left,winnerHash=winner.status().tip_hash;
+  const result=await loser.syncPeer(winner.baseUrl());assert.equal(result.adopted,true,`lower-hash equal-work fork must win: ${JSON.stringify(result)}`);assert.equal(loser.status().tip_hash,winnerHash);
+  const stable=await winner.syncPeer(loser.baseUrl());assert.equal(stable.adopted,false);assert.equal(stable.reason,'already_current');
 });
 
 test('fresh node rejects an authenticated peer that advertises a non-canonical genesis before opening the secure bootstrap channel',async context=>{
