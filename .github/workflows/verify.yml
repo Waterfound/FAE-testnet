@@ -70,3 +70,6 @@ jobs:
 
       - name: Verify reconciled v4 consensus core and activation boundary
         run: node --test sovereign-forge/tests/authoritative-v4-core.mjs
+
+      - name: Verify Authoritative protocol 6 headers-first integration
+        run: node --test sovereign-forge/tests/authoritative-p2p-v6-integration.mjs
