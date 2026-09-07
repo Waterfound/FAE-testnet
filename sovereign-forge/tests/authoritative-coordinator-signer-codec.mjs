@@ -51,6 +51,22 @@ test('Authoritative coordinator executes share-only then full-target PPLNS round
   const second=await coordinator.createWork(bob.address);assert.equal(second.payouts.length,1);assert.equal(second.payouts[0].address,alice.address,'prior PPLNS window controls direct payout');const full=findNonce(second,second.blockDifficultyBits);const blockResult=await coordinator.submitShare({jobId:second.jobId,nonce:full.nonce,hash:full.hash});assert.equal(blockResult.block.height,12);assert.ok(submitted);assert.equal(submitted.payouts[0].address,alice.address);
 });
 
+test('Authoritative PPLNS payout equals scheduled subsidy plus transaction fees',async()=>{
+  const alice=makeWallet(),status={network:NETWORK,height:11,tip_hash:'d'.repeat(64),difficulty_bits:8};
+  const good=new ShareCoordinator({
+    networkId:NETWORK,multiOutputCoinbaseActive:true,statusProvider:async()=>status,
+    distributedTemplateProvider:async({weights})=>({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:'e'.repeat(64),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1037n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
+    candidateHasher:async(candidate,nonce)=>hashHex({...candidate.header,nonce})
+  });
+  const work=await good.createWork(alice.address);assert.equal(work.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n),1037n);assert.equal(work.header.reward_atoms,'1000');assert.equal(work.header.fee_atoms,'37');
+  const bad=new ShareCoordinator({
+    networkId:NETWORK,multiOutputCoinbaseActive:true,statusProvider:async()=>status,
+    distributedTemplateProvider:async({weights})=>({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:'e'.repeat(64),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1000n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
+    candidateHasher:async(candidate,nonce)=>hashHex({...candidate.header,nonce})
+  });
+  await assert.rejects(bad.createWork(alice.address),/subsidy plus transaction fees/);
+});
+
 test('Sovereign signer signs current FAIRYELF_TX_V2 only after exact preview commitment approval',async()=>{
   const alice=makeWallet(),bob=makeWallet(),utxo={outpoint:`${'d'.repeat(64)}:0`,amount_atoms:'200000000'};let broadcasted=null;
   const signer=new SovereignSignerCore({wallet:alice,network:NETWORK,spendableProvider:async()=>({utxos:[utxo]}),broadcastProvider:async tx=>{broadcasted=tx;return{ok:true,txid:tx.txid}}});
