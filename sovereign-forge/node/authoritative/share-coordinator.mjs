@@ -61,7 +61,7 @@ export class ShareCoordinator{
     this.pruneJobs();const weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()}));const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
-    const expectedTotal=BigInt(candidate.header.reward_atoms),actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block reward');
+    const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts);
     this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment});
     return{...candidate,jobId,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
