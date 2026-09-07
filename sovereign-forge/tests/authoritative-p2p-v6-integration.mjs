@@ -12,6 +12,7 @@ import {encodeAddress} from '../node/authoritative/address.mjs';
 import {hashHex,leadingZeroBits,sha256} from '../node/authoritative/crypto.mjs';
 import {stableStringify} from '../node/authoritative/canonical.mjs';
 import {generateNodeIdentity,signEnvelope} from '../node/authoritative/node-identity.mjs';
+import {createPeerDescriptor} from '../node/authoritative/peer-directory.mjs';
 
 function wallet(){const{privateKey,publicKey}=generateKeyPairSync('ed25519'),spki=publicKey.export({type:'spki',format:'der'});return{privateKey,pub:spki.toString('base64'),address:encodeAddress(sha256(spki).subarray(0,20),'faet')}}
 function signedTx(from,inputs,outputs){const unsigned={version:2,network:NETWORK,inputs,outputs,public_key_spki:from.pub},payload={domain:'FAIRYELF_TX_V2',network:NETWORK,inputs,outputs,public_key_spki:from.pub},signature=nodeSign(null,Buffer.from(stableStringify(payload)),from.privateKey).toString('base64');return{...unsigned,signature}}
@@ -22,7 +23,7 @@ async function submitTx(base,tx){return json(`${base}/submit-tx`,{method:'POST',
 function legacyState(){let state=emptyState();for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});return state}
 function findTx(state,txid){return state.transactions[txid]??null}
 
-test('Authoritative protocol 6 performs encrypted headers-first recovery and repropagates detached transactions',async context=>{
+test('Authoritative protocol 6 performs encrypted headers-first recovery, authenticated discovery and repropagates detached transactions',async context=>{
   const dir=await mkdtemp(join(tmpdir(),'fae-p2pv6-'));context.after(()=>rm(dir,{recursive:true,force:true}));
   const baseState=legacyState(),miner=wallet(),recipient=wallet();
   const b=createAuthoritativeV4PeerNode({initialState:baseState,dataFile:join(dir,'b-state.json'),identityFile:join(dir,'b-id.json'),peerTrustFile:join(dir,'b-trust.json')});
@@ -39,11 +40,19 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery and rep
 
   await mine(b.baseUrl(),miner.address);await mine(b.baseUrl(),miner.address);assert.equal(b.status().height,14);assert.notEqual(a.status().tip_hash,b.status().tip_hash);
 
+  const cDescriptor=createPeerDescriptor(c.identity,{networkId:NETWORK,endpoint:c.baseUrl(),capabilities:['headers-first','encrypted-peer-channel-v1']});
+  b.directory.register(cDescriptor,{source:'integration-test'});
+
   const recovery=await a.syncPeer(b.baseUrl());
   assert.equal(recovery.adopted,true);assert.equal(recovery.headers_validated,2);assert.equal(recovery.blocks_downloaded,2);assert.equal(recovery.reaccepted,1);assert.equal(recovery.repropagated,1);
   assert.equal(a.status().height,14);assert.equal(a.status().tip_hash,b.status().tip_hash);assert.equal(a.status().mempool_size,1);assert.equal(findTx(a.getState(),txid)?.status,'pending');
   assert.equal(b.status().mempool_size,1,'recovered transaction must be repropagated to the winning peer');assert.equal(findTx(b.getState(),txid)?.status,'pending');
   const trustAfterFirst=a.trust.list().peers[b.baseUrl()];assert.equal(trustAfterFirst.identityId,b.identity.id);assert.ok(trustAfterFirst.observations>=1);
+
+  const discovered=a.directory.observations().find(row=>row.identityId===c.identity.id);assert.ok(discovered,'signed peer descriptor should gossip through the secure peer channel');assert.equal(discovered.descriptorOnly,true);assert.equal(a.authenticatedPeerObservations().some(row=>row.identityId===c.identity.id),false,'descriptor must not count as authenticated before hello');
+  await a.syncPeers();
+  assert.equal(a.authenticatedPeerObservations().some(row=>row.identityId===c.identity.id),true,'descriptor candidate must enter authenticated set only after matching signed hello');
+  assert.equal(a.status().peer_diversity.distinctIdentities,2);assert.equal(a.status().peer_diversity.distinctNetworkGroups,1);assert.equal(a.status().peer_diversity.ready,false,'two loopback peers in one /24 must not claim eclipse diversity readiness');
 
   const finalBlock=await mine(a.baseUrl(),miner.address);assert.ok(finalBlock.txids.includes(txid));assert.equal(a.status().height,15);assert.equal(findTx(a.getState(),txid)?.confirmed_height,15);
 
@@ -58,7 +67,7 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery and rep
   const restarted=createAuthoritativeV4PeerNode({dataFile:join(dir,'a-state.json'),identityFile:join(dir,'a-id.json'),peerTrustFile:join(dir,'a-trust.json'),peers:[b.baseUrl()]});await restarted.start();context.after(()=>restarted.close());
   assert.equal(restarted.identity.id,aIdentity);assert.equal(restarted.status().tip_hash,b.status().tip_hash);assert.equal(restarted.trust.list().peers[b.baseUrl()].identityId,b.identity.id);
 
-  console.log(JSON.stringify({ok:true,protocol:6,nodes:4,height:15,headers_first:true,common_ancestor:12,fresh_bootstrap:true,canonical_genesis:CANONICAL_GENESIS_HASH,recovered_txid:txid,repropagated:true,reconfirmed_height:15,persistent_identity:true,tofu_continuity:true}));
+  console.log(JSON.stringify({ok:true,protocol:6,nodes:4,height:15,headers_first:true,common_ancestor:12,fresh_bootstrap:true,canonical_genesis:CANONICAL_GENESIS_HASH,authenticated_descriptor_discovery:true,peer_diversity_integrated:true,recovered_txid:txid,repropagated:true,reconfirmed_height:15,persistent_identity:true,tofu_continuity:true}));
 });
 
 test('fresh node rejects an authenticated peer that advertises a non-canonical genesis before opening the secure bootstrap channel',async context=>{
