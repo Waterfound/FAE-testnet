@@ -22,6 +22,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Report reference-node SHA-256
+        run: sha256sum sovereign-forge/node/fae-node.mjs
+
       - name: Verify imported Sovereign Forge snapshot
         run: sha256sum -c FAE_FORGE_MAIN.sha256
 
@@ -52,3 +55,9 @@ jobs:
 
       - name: Mine and validate isolated smoke block
         run: node sovereign-forge/tests/smoke-independent-node.mjs
+
+      - name: Verify historical bootstrap boundary
+        run: node sovereign-forge/tests/sync-legacy-bootstrap.mjs
+
+      - name: Verify three-node partition recovery
+        run: node sovereign-forge/tests/partition-recovery-3node.mjs
