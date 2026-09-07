@@ -76,3 +76,6 @@ jobs:
 
       - name: Verify peer diversity and deterministic eclipse simulations
         run: node --test sovereign-forge/tests/authoritative-peer-diversity.mjs
+
+      - name: Verify candidate PPLNS coinbase migration on PostgreSQL 16
+        run: bash sovereign-forge/tests/verify-pplns-sql-migration.sh
