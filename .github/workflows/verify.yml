@@ -22,8 +22,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Report reference-node SHA-256
-        run: sha256sum sovereign-forge/node/fae-node.mjs
+      - name: Report protected-source SHA-256
+        run: |
+          sha256sum sovereign-forge/node/fae-node.mjs
+          sha256sum sovereign-forge/browser/mining.js
 
       - name: Verify imported Sovereign Forge snapshot
         run: sha256sum -c FAE_FORGE_MAIN.sha256
@@ -31,13 +33,15 @@ jobs:
       - name: Verify exported Supabase source
         run: cd supabase && sha256sum -c SOURCE_MANIFEST.sha256
 
-      - name: Check browser source syntax
+      - name: Check browser and candidate Edge source syntax
         run: |
           node --check core.js
           node --check wallet-crypto.js
           node --check wallet.js
           node --check mining.js
           node --check network-status.js
+          node --check sovereign-forge/supabase/functions/fae-public-testnet-v4-authoritative-candidate/index.ts
+          node --check sovereign-forge/supabase/functions/fae-chain-feed-v2-authoritative-candidate/index.ts
 
       - name: Verify browser wallet and client flows
         run: |
