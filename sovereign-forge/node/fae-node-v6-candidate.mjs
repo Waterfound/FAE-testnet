@@ -23,7 +23,7 @@ const syncIntervalMs=syncEnabled?integer(process.env.FAE_SYNC_MS,15000,{min:5000
 const peerDiversityOptions={
   minDistinctIdentities:integer(process.env.FAE_MIN_DISTINCT_PEER_IDENTITIES,3,{min:0,max:64}),
   minDistinctNetworkGroups:integer(process.env.FAE_MIN_DISTINCT_NETWORK_GROUPS,3,{min:0,max:64}),
-  minPinnedIdentities:integer(process.env.FAE_MIN_PINNED_PEER_IDENTITIES,pinnedPeerIdentityIds.length?1:0,{min:0,max:64}),
+  minPinnedIdentities:integer(process.env.FAE_MIN_PINNED_PEER_IDENTITIES,1,{min:0,max:64}),
   maxPerNetworkGroup:integer(process.env.FAE_MAX_PEERS_PER_NETWORK_GROUP,2,{min:1,max:64})
 };
 
