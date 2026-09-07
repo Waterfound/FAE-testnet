@@ -67,3 +67,6 @@ jobs:
 
       - name: Verify Authoritative coordinator signer and codec
         run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+
+      - name: Verify reconciled v4 consensus core and activation boundary
+        run: node --test sovereign-forge/tests/authoritative-v4-core.mjs
