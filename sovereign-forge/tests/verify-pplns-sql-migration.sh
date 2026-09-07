@@ -4,17 +4,33 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="$ROOT/supabase/migrations/20260903_fae_v4_canonical.sql"
 CANDIDATE="$ROOT/supabase/migrations/20260907_fae_v4_pplns_coinbase_candidate.sql"
-NAME="fae-pplns-pg-${RANDOM}-${RANDOM}"
+NAME="fae-pplns-pg-${GITHUB_RUN_ID:-local}-${RANDOM}-${RANDOM}"
 
 cleanup(){ docker rm -f "$NAME" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-docker run -d --name "$NAME" -e POSTGRES_PASSWORD=fae-test postgres:16-alpine >/dev/null
-for _ in $(seq 1 60); do
-  if docker exec "$NAME" pg_isready -U postgres >/dev/null 2>&1; then break; fi
+if ! docker run -d --name "$NAME" -e POSTGRES_PASSWORD=fae-test postgres:16-alpine >/dev/null; then
+  echo 'postgres_container_start_failed' >&2
+  docker info >&2 || true
+  exit 2
+fi
+
+READY=0
+for _ in $(seq 1 80); do
+  if docker exec "$NAME" pg_isready -U postgres >/dev/null 2>&1; then READY=1; break; fi
+  if ! docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null | grep -qx true; then
+    echo 'postgres_container_exited_before_ready' >&2
+    docker logs "$NAME" >&2 || true
+    exit 2
+  fi
   sleep 0.25
 done
-docker exec "$NAME" pg_isready -U postgres >/dev/null
+if [[ "$READY" != 1 ]]; then
+  echo 'postgres_readiness_timeout' >&2
+  docker ps -a --filter "name=$NAME" >&2 || true
+  docker logs "$NAME" >&2 || true
+  exit 2
+fi
 
 docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
 create role anon;
@@ -55,7 +71,6 @@ begin
 end
 $$;
 
--- A malformed coinbase must fail before mutating block state.
 DO $$
 declare r jsonb;
 begin
@@ -65,9 +80,6 @@ begin
 end
 $$;
 
--- Build a parent/child mempool dependency, then deliberately put the child first.
--- Prevalidation sees both reservations, but materialization must fail and roll the
--- entire RPC back, including the already-attempted block insert.
 insert into public.fae_v4_transactions(txid,network,from_address,public_key_spki,signature,inputs,outputs,fee_atoms,status)
 values('tx2','fairyelf-public-testnet-v4','bob','pk2','sig2','["tx1:0"]'::jsonb,'[{"address":"carol","amount_atoms":"900"}]'::jsonb,63,'pending');
 insert into public.fae_v4_mempool_spends(outpoint,txid) values('tx1:0','tx2');
