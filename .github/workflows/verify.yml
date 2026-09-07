@@ -73,3 +73,6 @@ jobs:
 
       - name: Verify Authoritative protocol 6 headers-first integration
         run: node --test sovereign-forge/tests/authoritative-p2p-v6-integration.mjs
+
+      - name: Verify peer diversity and deterministic eclipse simulations
+        run: node --test sovereign-forge/tests/authoritative-peer-diversity.mjs
