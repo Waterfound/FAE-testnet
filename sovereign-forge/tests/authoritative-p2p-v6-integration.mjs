@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import http from 'node:http';
 import {generateKeyPairSync,sign as nodeSign} from 'node:crypto';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {legacyBlocks} from './legacy-testnet-fixture.mjs';
-import {createAuthoritativeV4PeerNode} from '../node/authoritative/fae-v4-peer-node.mjs';
+import {CANONICAL_GENESIS_HASH,createAuthoritativeV4PeerNode} from '../node/authoritative/fae-v4-peer-node.mjs';
 import {emptyState,appendBlockFromFeed,NETWORK} from '../node/authoritative/fae-v4-core.mjs';
 import {encodeAddress} from '../node/authoritative/address.mjs';
 import {hashHex,leadingZeroBits,sha256} from '../node/authoritative/crypto.mjs';
 import {stableStringify} from '../node/authoritative/canonical.mjs';
+import {generateNodeIdentity,signEnvelope} from '../node/authoritative/node-identity.mjs';
 
 function wallet(){const{privateKey,publicKey}=generateKeyPairSync('ed25519'),spki=publicKey.export({type:'spki',format:'der'});return{privateKey,pub:spki.toString('base64'),address:encodeAddress(sha256(spki).subarray(0,20),'faet')}}
 function signedTx(from,inputs,outputs){const unsigned={version:2,network:NETWORK,inputs,outputs,public_key_spki:from.pub},payload={domain:'FAIRYELF_TX_V2',network:NETWORK,inputs,outputs,public_key_spki:from.pub},signature=nodeSign(null,Buffer.from(stableStringify(payload)),from.privateKey).toString('base64');return{...unsigned,signature}}
@@ -48,9 +50,22 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery and rep
   const bCatchup=await b.syncPeer(a.baseUrl()),cCatchup=await c.syncPeer(a.baseUrl());assert.equal(bCatchup.adopted,true);assert.equal(cCatchup.adopted,true);
   for(const node of[a,b,c]){assert.equal(node.status().height,15);assert.equal(node.status().tip_hash,a.status().tip_hash);const record=findTx(node.getState(),txid);assert.equal(record?.status,'confirmed');assert.equal(record?.confirmed_height,15)}
 
+  const fresh=createAuthoritativeV4PeerNode({dataFile:join(dir,'fresh-state.json'),identityFile:join(dir,'fresh-id.json'),peerTrustFile:join(dir,'fresh-trust.json')});await fresh.start();context.after(()=>fresh.close());
+  assert.equal(fresh.status().height,0);assert.equal(fresh.status().genesis_hash,CANONICAL_GENESIS_HASH);
+  const bootstrap=await fresh.syncPeer(a.baseUrl());assert.equal(bootstrap.adopted,true);assert.equal(bootstrap.headers_validated,15);assert.equal(bootstrap.blocks_downloaded,15);assert.equal(fresh.status().height,15);assert.equal(fresh.status().tip_hash,a.status().tip_hash);assert.equal(findTx(fresh.getState(),txid)?.confirmed_height,15);
+
   const aIdentity=a.identity.id;await a.close();
   const restarted=createAuthoritativeV4PeerNode({dataFile:join(dir,'a-state.json'),identityFile:join(dir,'a-id.json'),peerTrustFile:join(dir,'a-trust.json'),peers:[b.baseUrl()]});await restarted.start();context.after(()=>restarted.close());
   assert.equal(restarted.identity.id,aIdentity);assert.equal(restarted.status().tip_hash,b.status().tip_hash);assert.equal(restarted.trust.list().peers[b.baseUrl()].identityId,b.identity.id);
 
-  console.log(JSON.stringify({ok:true,protocol:6,nodes:3,height:15,headers_first:true,common_ancestor:12,recovered_txid:txid,repropagated:true,reconfirmed_height:15,persistent_identity:true,tofu_continuity:true}));
+  console.log(JSON.stringify({ok:true,protocol:6,nodes:4,height:15,headers_first:true,common_ancestor:12,fresh_bootstrap:true,canonical_genesis:CANONICAL_GENESIS_HASH,recovered_txid:txid,repropagated:true,reconfirmed_height:15,persistent_identity:true,tofu_continuity:true}));
+});
+
+test('fresh node rejects an authenticated peer that advertises a non-canonical genesis before opening the secure bootstrap channel',async context=>{
+  const identity=generateNodeIdentity(),wrongGenesis='f'.repeat(64);
+  const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost');if(req.method==='GET'&&url.pathname==='/peer/hello'){const challenge=url.searchParams.get('challenge')||'';const envelope=signEnvelope(identity,'peer-hello',{challenge,software:'fairyelf',protocol_version:6,network:NETWORK,genesis:wrongGenesis,height:11,tip_hash:'e'.repeat(64),chain_work:'2883584',capabilities:['headers-first']});res.writeHead(200,{'content-type':'application/json'});return res.end(JSON.stringify(envelope))}res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({error:'secure_channel_should_not_be_reached'}))});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));context.after(()=>new Promise(resolve=>server.close(resolve)));
+  const address=server.address(),base=`http://127.0.0.1:${address.port}`;
+  const fresh=createAuthoritativeV4PeerNode();await fresh.start();context.after(()=>fresh.close());
+  await assert.rejects(fresh.syncPeer(base),/peer_genesis_mismatch/);assert.equal(fresh.status().height,0);assert.equal(fresh.trust.list().peers[base],undefined,'wrong-genesis peer must not enter TOFU trust store');
 });
