@@ -22,8 +22,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Report reference-node SHA-256
-        run: sha256sum sovereign-forge/node/fae-node.mjs
+      - name: Report protected-source SHA-256
+        run: |
+          sha256sum sovereign-forge/node/fae-node.mjs
+          sha256sum sovereign-forge/browser/mining.js
 
       - name: Verify imported Sovereign Forge snapshot
         run: sha256sum -c FAE_FORGE_MAIN.sha256
@@ -31,13 +33,19 @@ jobs:
       - name: Verify exported Supabase source
         run: cd supabase && sha256sum -c SOURCE_MANIFEST.sha256
 
-      - name: Check browser source syntax
+      - name: Check browser, P2P v6 and candidate Edge source syntax
         run: |
           node --check core.js
           node --check wallet-crypto.js
           node --check wallet.js
           node --check mining.js
           node --check network-status.js
+          node --check sovereign-forge/node/fae-node-v6-candidate.mjs
+          node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          node --check sovereign-forge/node/authoritative/peer-diversity.mjs
+          node --check sovereign-forge/node/authoritative/peer-directory.mjs
+          node --check sovereign-forge/supabase/functions/fae-public-testnet-v4-authoritative-candidate/index.ts
+          node --check sovereign-forge/supabase/functions/fae-chain-feed-v2-authoritative-candidate/index.ts
 
       - name: Verify browser wallet and client flows
         run: |
@@ -61,3 +69,27 @@ jobs:
 
       - name: Verify three-node partition recovery
         run: node sovereign-forge/tests/partition-recovery-3node.mjs
+
+      - name: Verify Authoritative P2P security primitives
+        run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
+
+      - name: Verify Authoritative coordinator signer and codec
+        run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+
+      - name: Verify reconciled v4 consensus core and activation boundary
+        run: node --test sovereign-forge/tests/authoritative-v4-core.mjs
+
+      - name: Verify Authoritative protocol 6 headers-first integration
+        run: node --test sovereign-forge/tests/authoritative-p2p-v6-integration.mjs
+
+      - name: Verify peer diversity and deterministic eclipse simulations
+        run: node --test sovereign-forge/tests/authoritative-peer-diversity.mjs
+
+      - name: Verify executable P2P v6 candidate entrypoint
+        run: node --test sovereign-forge/tests/authoritative-v6-entrypoint.mjs
+
+      - name: Build deployable P2P v6 candidate image
+        run: docker build -f sovereign-forge/node/Dockerfile.v6-candidate sovereign-forge/node
+
+      - name: Verify candidate PPLNS coinbase migration on PostgreSQL 16
+        run: bash sovereign-forge/tests/verify-pplns-sql-migration.sh
