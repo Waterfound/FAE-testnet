@@ -1,0 +1,54 @@
+name: verify-canonical-source
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify imported Sovereign Forge snapshot
+        run: sha256sum -c FAE_FORGE_MAIN.sha256
+
+      - name: Verify exported Supabase source
+        run: cd supabase && sha256sum -c SOURCE_MANIFEST.sha256
+
+      - name: Check browser source syntax
+        run: |
+          node --check core.js
+          node --check wallet-crypto.js
+          node --check wallet.js
+          node --check mining.js
+          node --check network-status.js
+
+      - name: Verify browser wallet and client flows
+        run: |
+          node tests/crypto-compat.mjs
+          node tests/client-smoke.mjs
+
+      - name: Verify deployed miner matches Forge snapshot
+        run: cmp mining.js sovereign-forge/browser/mining.js
+
+      - name: Install locked reference-node package
+        run: npm ci --prefix sovereign-forge/node
+
+      - name: Check independent reference node
+        run: npm run --prefix sovereign-forge/node check
+
+      - name: Mine and validate isolated smoke block
+        run: node sovereign-forge/tests/smoke-independent-node.mjs

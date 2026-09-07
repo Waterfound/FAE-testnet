@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07100b">
+<title>Fairyelf FAE Public Testnet</title>
+<style>
+:root{color-scheme:dark;--bg:#07100b;--surface:#0e1a13;--surface-2:#07110b;--line:#294733;--line-strong:#527e5f;--text:#edf8ef;--muted:#9eb3a4;--accent:#b8ffc8;--accent-ink:#061108;--danger:#ff9d9d;--warning:#ffd58a;--focus:#70ff91}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:980px;margin:auto;padding:20px 15px 64px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.08;margin:18px 0 6px;letter-spacing:-.035em}
+h2{font-size:20px;margin:0 0 12px}
+h3{font-size:16px;margin:0 0 7px}
+p{margin:7px 0 12px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.network-status,.pill{display:inline-flex;align-items:center;gap:6px;background:#0d2114;color:#caffd5;border:1px solid #376947;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:750;line-height:1.2}
+.pill.warn{color:var(--warning);border-color:#685731;background:#1c180d}
+.network-status[data-state="connecting"]{color:var(--warning);border-color:#685731;background:#1c180d}
+.network-status[data-state="online"]{color:#caffd5;border-color:#376947;background:#0d2114}
+.network-status[data-state="offline"]{color:var(--danger);border-color:#674040;background:#261313}
+.network-dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor;animation:networkPulse 1.8s ease-out infinite}
+@keyframes networkPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.78)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:16px}
+.metrics-card{margin:20px 0 14px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metrics div,.status{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px}
+.metrics b{display:block;margin-top:2px}
+.status{margin-top:10px}
+.small{color:var(--muted);font-size:13px}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.balance{font-size:clamp(29px,6vw,38px);font-weight:820;letter-spacing:-.03em;margin:4px 0}
+.ok{color:var(--accent)}
+.bad{color:var(--danger)}
+.warn{color:var(--warning)}
+.hidden,[hidden]{display:none!important}
+.environment-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0;padding:5px;background:#0a160f;border:1px solid var(--line);border-radius:15px;position:sticky;top:8px;z-index:5;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+button,input,textarea{font:inherit}
+button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:var(--accent-ink);font-weight:760;cursor:pointer}
+button:hover:not(:disabled){filter:brightness(1.05)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button.alt{background:#24392b;color:var(--text);border:1px solid #395744}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+button.danger{background:#3a2020;color:#ffd4d4;border:1px solid #674040}
+button:disabled{opacity:.45;cursor:not-allowed}
+.environment-tab{background:transparent;color:var(--muted);border:1px solid transparent;font-size:16px}
+.environment-tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.panel-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.95fr);gap:12px}
+.stack{display:grid;gap:12px}
+.wide{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+.actions button{margin:0}
+.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.wallet-action[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.action-panel{margin-top:12px;padding-top:14px;border-top:1px solid var(--line)}
+.field{display:block;margin:12px 0 5px;color:var(--muted);font-size:13px}
+textarea,input{width:100%;background:#06100a;border:1px solid #355942;border-radius:10px;color:var(--text);padding:11px}
+textarea{min-height:72px;resize:vertical}
+.seed{min-height:118px;line-height:1.65}
+.active-address{min-height:77px}
+.address-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.address-list{display:grid;gap:7px;margin-top:10px}
+.address-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;background:#0a150e;color:var(--text);border:1px solid var(--line);padding:10px}
+.address-row:hover{border-color:var(--line-strong)}
+.address-row[aria-pressed="true"]{border-color:var(--accent);background:#102319}
+.address-number{color:var(--muted);font-size:12px;white-space:nowrap}
+.address-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.active-mark{color:var(--accent);font-size:11px;font-weight:800;text-transform:uppercase}
+.notice{padding:11px 12px;border:1px solid #5d512e;background:#19170d;border-radius:11px;color:#ffe09d;font-size:13px}
+.backup{margin-top:12px;padding:13px;border:1px solid var(--line-strong);border-radius:13px;background:#0a1710}
+.transaction-list,.block-list{display:grid;gap:7px;margin-top:10px}
+.transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+.transaction-title{font-weight:720}
+.transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}
+.right{text-align:right}
+.empty{color:var(--muted);padding:12px 2px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
+.section-head button{flex:0 0 auto}
+.divider{border:0;border-top:1px solid var(--line);margin:15px 0}
+.passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}
+.footer-note{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:760px){.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.metrics{grid-template-columns:1fr 1fr}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:5px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
+@media(max-width:420px){main{padding-inline:11px}.metrics{grid-template-columns:1fr 1fr}.card{padding:13px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <div id="netstatus" class="network-status is-connecting" data-state="connecting" role="status" aria-live="polite"><span class="network-dot" aria-hidden="true"></span><span data-network-label>Connecting…</span></div>
+    <span class="pill warn">Valueless testnet coins</span>
+  </div>
+  <h1>Fairyelf Public Testnet</h1>
+  <p class="small">Device-local browser PoW · public shared network · Ed25519 wallets</p>
+
+  <section class="card metrics-card" aria-label="Network status">
+    <div class="metrics">
+      <div><span class="small">Blocks</span><b id="height">—</b></div>
+      <div><span class="small">Supply</span><b id="issued">—</b></div>
+      <div><span class="small">Reward</span><b id="reward">—</b></div>
+      <div><span class="small">Difficulty</span><b id="difficulty">—</b></div>
+    </div>
+    <div id="runtime" class="status">Connecting…</div>
+  </section>
+
+  <nav class="environment-tabs" role="tablist" aria-label="Testnet environments">
+    <button id="tab-mining" class="environment-tab" role="tab" aria-selected="false" aria-controls="panel-mining" tabindex="-1">Mining</button>
+    <button id="tab-wallet" class="environment-tab" role="tab" aria-selected="true" aria-controls="panel-wallet">Wallet</button>
+  </nav>
+
+  <section id="panel-mining" role="tabpanel" aria-labelledby="tab-mining" hidden>
+    <div class="panel-grid">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Mine FAE</h2>
+            <div class="small">Proof of Work runs only on this device.</div>
+          </div>
+          <span id="mining-wallet-kind" class="pill">No address</span>
+        </div>
+        <label class="field" for="miningaddr">Reward address</label>
+        <textarea id="miningaddr" class="mono active-address" readonly placeholder="Select or create a wallet address"></textarea>
+        <div class="actions">
+          <button id="mine" disabled>Start mining</button>
+          <button id="stop" class="alt" disabled>Stop</button>
+          <button id="copyminingaddr" class="alt" disabled>Copy address</button>
+          <button id="openwallet" class="ghost">Open Wallet</button>
+        </div>
+        <div id="mstate" class="status">Select a reward address in Wallet, or insert a public address below.</div>
+
+        <hr class="divider">
+        <h3>Mine to a paper or cold wallet</h3>
+        <p class="small">Only the public <span class="mono">faet1…</span> address enters this browser. No private key is required.</p>
+        <label class="field" for="existingaddr">External public address</label>
+        <textarea id="existingaddr" class="mono" placeholder="faet1…"></textarea>
+        <div class="actions">
+          <button id="useaddr" class="alt">Use public address</button>
+          <button id="usesaved" class="ghost" hidden>Return to saved wallet</button>
+        </div>
+        <div id="watchstate" class="small"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Recent transactions</h2>
+            <div class="small">Transfers included in the latest network blocks.</div>
+          </div>
+          <button id="refreshnetwork" class="ghost">Refresh</button>
+        </div>
+        <div id="recenttx" class="transaction-list" aria-live="polite"><div class="empty">Loading recent transactions…</div></div>
+        <hr class="divider">
+        <h3>Latest blocks</h3>
+        <div id="recentblocks" class="block-list"><div class="empty">Loading blocks…</div></div>
+      </section>
+    </div>
+  </section>
+
+  <section id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
+    <div class="stack">
+      <section class="card">
+        <h2>Wallet actions</h2>
+        <div class="wallet-actions" role="group" aria-label="Wallet actions">
+          <button id="action-create" class="wallet-action alt" aria-pressed="false">Create wallet</button>
+          <button id="action-recovery" class="wallet-action alt" aria-pressed="false">Recovery Wallet</button>
+          <button id="action-insert" class="wallet-action alt" aria-pressed="false">Insert Wallet</button>
+        </div>
+
+        <div id="create-panel" class="action-panel" hidden>
+          <h3>Create a new browser wallet</h3>
+          <p class="small">Generates 24 recovery words and five deterministic FAE addresses on this device.</p>
+          <button id="createwallet">Generate new wallet</button>
+        </div>
+
+        <div id="recovery-panel" class="action-panel" hidden>
+          <h3>Restore a recovery backup</h3>
+          <p class="small">Paste an FAE recovery JSON package, or choose one from this device. Legacy V1/V2 packages remain supported.</p>
+          <label class="field" for="recovery">Recovery package</label>
+          <textarea id="recovery" class="mono" placeholder="Paste the recovery JSON package"></textarea>
+          <label class="field" for="recoveryfile">Or choose a .json file</label>
+          <input id="recoveryfile" type="file" accept="application/json,.json">
+          <div class="actions"><button id="importwallet">Restore wallet</button></div>
+        </div>
+
+        <div id="insert-panel" class="action-panel" hidden>
+          <h3>Insert a wallet from its seed phrase</h3>
+          <label class="field" for="insertseed">24-word seed phrase</label>
+          <textarea id="insertseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter the 24 FAE recovery words in order"></textarea>
+          <label class="field" for="insertpassphrase">Passphrase <span class="small">(optional)</span></label>
+          <input id="insertpassphrase" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank for the ordinary wallet">
+          <div class="passphrase-note">Trezor-style behavior: every different passphrase opens a different valid wallet. A typo will not show an error. The passphrase is never saved.</div>
+          <p class="small">This changes FAE derivation only; it does not make this testnet wallet compatible with Trezor, and it does not encrypt keys saved in this browser.</p>
+          <button id="insertwallet">Insert wallet</button>
+        </div>
+        <div id="recoverystate" class="status">Wallet creation and recovery happen locally in this browser.</div>
+      </section>
+
+      <div class="panel-grid">
+        <section class="card">
+          <div class="address-head">
+            <div>
+              <h2>Active wallet</h2>
+              <span id="wallet-kind" class="pill">No wallet</span>
+            </div>
+            <div id="bal" class="balance">0 FAE</div>
+          </div>
+          <label class="field" for="addr">Active receiving address</label>
+          <textarea id="addr" class="mono active-address" readonly placeholder="No address selected"></textarea>
+          <div class="actions">
+            <button id="receive" disabled>Receive · copy address</button>
+            <button id="exportwallet" class="alt" disabled>Wallet backup</button>
+            <button id="refresh" class="ghost">Refresh</button>
+          </div>
+          <div id="wstate" class="status">No wallet selected.</div>
+          <div id="ustate" class="small">Select or create a wallet.</div>
+
+          <div id="backup" class="backup" hidden>
+            <h3>Private recovery material</h3>
+            <p id="backupnote" class="small"></p>
+            <label class="field" for="seedwords">24-word FAE recovery phrase</label>
+            <textarea id="seedwords" class="mono seed" readonly></textarea>
+            <div class="actions">
+              <button id="copyseed" class="alt">Copy 24 words</button>
+              <button id="downloadbackup" class="alt">Download recovery JSON</button>
+              <button id="closebackup" class="ghost">Hide</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Send FAE</h2>
+          <label class="field" for="sendto">Destination address</label>
+          <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
+          <label class="field" for="sendamt">Amount</label>
+          <input id="sendamt" inputmode="decimal" value="1">
+          <div class="actions">
+            <button id="send" disabled>Sign & send FAE</button>
+            <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
+          </div>
+          <div id="sendstate" class="status">Create, insert, or recover a full wallet to send.</div>
+          <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
+        </section>
+      </div>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Wallet addresses</h2>
+            <div class="small">Choose an address to receive, send, view balance, or mine to it.</div>
+          </div>
+        </div>
+        <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Transactions</h2>
+            <div class="small">History follows the active address.</div>
+          </div>
+          <button id="togglehistory" class="alt" disabled aria-expanded="false" aria-controls="history-panel">Transaction history</button>
+        </div>
+        <div id="history-panel" hidden>
+          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">No transactions.</div></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <p class="footer-note">FAE public testnet · private keys and Proof of Work stay on your device · test coins have no monetary value</p>
+</main>
+<script src="/bip39-en.js"></script>
+<script src="/network-status.js"></script>
+<script src="/core.js"></script>
+<script src="/wallet-crypto.js"></script>
+<script src="/wallet.js"></script>
+<script src="/mining.js"></script>
+</body>
+</html>

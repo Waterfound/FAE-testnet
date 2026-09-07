@@ -1,0 +1,19 @@
+project_id = "fae-testnet"
+
+[functions.fae-health]
+verify_jwt = false
+
+[functions.fairyelf-testnet]
+verify_jwt = false
+
+[functions.fae-public-testnet-v4]
+verify_jwt = false
+
+[functions.fae-chain-feed-v1]
+verify_jwt = false
+
+[functions.fae-consensus-audit-v1]
+verify_jwt = false
+
+[functions.fae-sovereign-forge-v1]
+verify_jwt = false

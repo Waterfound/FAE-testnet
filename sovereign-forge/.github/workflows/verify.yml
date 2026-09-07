@@ -1,0 +1,25 @@
+name: verify-canonical-source
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: node/package-lock.json
+      - name: Install locked node package
+        run: npm ci --prefix node
+      - name: Syntax check reference node
+        run: npm run --prefix node check
+      - name: Mine and validate isolated smoke block
+        run: node tests/smoke-independent-node.mjs
