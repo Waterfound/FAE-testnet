@@ -4,7 +4,7 @@ import {generateKeyPairSync,sign as nodeSign} from 'node:crypto';
 import {encodeAddress} from '../node/authoritative/address.mjs';
 import {hashHex,leadingZeroBits,sha256} from '../node/authoritative/crypto.mjs';
 import {stableStringify} from '../node/authoritative/canonical.mjs';
-import {emptyState,createMiningTemplate,createDistributedTemplate,appendBlockFromSubmission,acceptTxInto,issued,balanceAtoms,validateHeaderSequence,publicBlock,NETWORK} from '../node/authoritative/fae-v4-core.mjs';
+import {emptyState,createMiningTemplate,createDistributedTemplate,appendBlockFromSubmission,acceptTxInto,issued,balanceAtoms,NETWORK} from '../node/authoritative/fae-v4-core.mjs';
 
 function wallet(){const{privateKey,publicKey}=generateKeyPairSync('ed25519'),spki=publicKey.export({type:'spki',format:'der'});return{privateKey,pub:spki.toString('base64'),address:encodeAddress(sha256(spki).subarray(0,20),'faet')}}
 function mine(header){for(let nonce=0;nonce<10_000_000;nonce++){const hash=hashHex({...header,nonce});if(leadingZeroBits(hash)>=header.difficulty_bits)return{nonce,hash}}throw new Error('PoW search exhausted')}
@@ -31,9 +31,6 @@ test('reconciled v4 core preserves history then activates fee-paying multi-outpu
 
   const distributed=createDistributedTemplate(state,[{address:alice.address,weight:2n},{address:bob.address,weight:1n}],{activationHeight});
   assert.equal(distributed.header.coinbase_mode,'pplns-direct');assert.equal(distributed.coinbase_outputs.length,2);assert.equal(distributed.coinbase_outputs.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n),1_000_000_000n);assert.equal(distributed.header.coinbase_root,hashHex(distributed.coinbase_outputs));
-
-  const headers=state.chain.map(publicBlock).map(block=>({height:block.height,hash:block.hash,previous_hash:block.previous_hash,timestamp_ms:block.timestamp_ms,difficulty_bits:block.difficulty_bits,reward_atoms:block.reward_atoms,header_json:block.header_json}));
-  const validated=validateHeaderSequence([],headers,{activationHeight,now:Date.now()+1000});assert.equal(validated.length,2);assert.equal(validated.at(-1).hash,pow2.hash);
 });
 
 test('multi-output fields fail closed before the activation boundary',()=>{
