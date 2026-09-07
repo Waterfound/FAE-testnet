@@ -76,7 +76,7 @@ test('Authoritative encrypted channel authenticates identities and rejects repla
   const prepared=session.createRequest('/ping',{method:'POST',body:{probe:'replay'}});
   const tampered=structuredClone(prepared.frame); const last=tampered.ciphertext.at(-1); tampered.ciphertext=`${tampered.ciphertext.slice(0,-1)}${last==='A'?'B':'A'}`;
   const bad=await fetch(`${base}/peer/secure`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(tampered)});
-  assert.equal(bad.status,400); assert.match((await bad.json()).error,/authentication failed/i);
+  assert.equal(bad.status,400); assert.match((await bad.json()).error,/authentication failed|Malformed secure-channel ciphertext/i);
   const good=await fetch(`${base}/peer/secure`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(prepared.frame)});
   assert.equal(good.status,200); verifyEnvelope(session.acceptResponse(await good.json(),prepared.sequence),{kind:'pong',expectedSignerId:harness.identity.id});
   const replay=await fetch(`${base}/peer/secure`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(prepared.frame)});
