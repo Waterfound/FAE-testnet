@@ -50,8 +50,11 @@ test('Authoritative protocol 6 performs encrypted headers-first recovery, authen
   const trustAfterFirst=a.trust.list().peers[b.baseUrl()];assert.equal(trustAfterFirst.identityId,b.identity.id);assert.ok(trustAfterFirst.observations>=1);
 
   const discovered=a.directory.observations().find(row=>row.identityId===c.identity.id);assert.ok(discovered,'signed peer descriptor should gossip through the secure peer channel');assert.equal(discovered.descriptorOnly,true);assert.equal(a.authenticatedPeerObservations().some(row=>row.identityId===c.identity.id),false,'descriptor must not count as authenticated before hello');
-  await a.syncPeers();
-  assert.equal(a.authenticatedPeerObservations().some(row=>row.identityId===c.identity.id),true,'descriptor candidate must enter authenticated set only after matching signed hello');
+  const syncCycle=await a.syncPeers();
+  if(!a.authenticatedPeerObservations().some(row=>row.identityId===c.identity.id)){
+    let directResult=null,directError=null;try{directResult=await a.syncPeer(discovered.endpoint,{source:'diagnostic-descriptor',expectedIdentityId:discovered.identityId})}catch(error){directError=error.message}
+    assert.fail(`automatic descriptor authentication failed: ${JSON.stringify({discovered,syncCycle,directResult,directError,authenticated:a.authenticatedPeerObservations(),directory:a.directory.observations()})}`);
+  }
   assert.equal(a.status().peer_diversity.distinctIdentities,2);assert.equal(a.status().peer_diversity.distinctNetworkGroups,1);assert.equal(a.status().peer_diversity.ready,false,'two loopback peers in one /24 must not claim eclipse diversity readiness');
 
   const finalBlock=await mine(a.baseUrl(),miner.address);assert.ok(finalBlock.txids.includes(txid));assert.equal(a.status().height,15);assert.equal(findTx(a.getState(),txid)?.confirmed_height,15);
