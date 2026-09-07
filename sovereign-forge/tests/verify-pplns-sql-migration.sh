@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="$ROOT/supabase/migrations/20260903_fae_v4_canonical.sql"
 CANDIDATE="$ROOT/supabase/migrations/20260907_fae_v4_pplns_coinbase_candidate.sql"
+LOCK="$ROOT/supabase/migrations/20260907_fae_v4_accept_block_v3_rpc_lock.sql"
 NAME="fae-pplns-pg-${GITHUB_RUN_ID:-local}-${RANDOM}-${RANDOM}"
 
 cleanup(){ docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -40,8 +41,23 @@ SQL
 
 docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$BASE" >/dev/null
 docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$CANDIDATE" >/dev/null
+docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$LOCK" >/dev/null
 
 docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
+DO $$
+begin
+  if has_function_privilege('anon','public.fae_v4_accept_block_v3(bigint,text,text,bigint,integer,bigint,text,numeric,numeric,jsonb,text,jsonb,jsonb)','EXECUTE') then
+    raise exception 'anon must not execute fae_v4_accept_block_v3';
+  end if;
+  if has_function_privilege('authenticated','public.fae_v4_accept_block_v3(bigint,text,text,bigint,integer,bigint,text,numeric,numeric,jsonb,text,jsonb,jsonb)','EXECUTE') then
+    raise exception 'authenticated must not execute fae_v4_accept_block_v3';
+  end if;
+  if not has_function_privilege('service_role','public.fae_v4_accept_block_v3(bigint,text,text,bigint,integer,bigint,text,numeric,numeric,jsonb,text,jsonb,jsonb)','EXECUTE') then
+    raise exception 'service_role must execute fae_v4_accept_block_v3';
+  end if;
+end
+$$;
+
 insert into public.fae_v4_blocks(height,hash,previous_hash,timestamp_ms,difficulty_bits,nonce,miner_address,reward_atoms,header_json,txids)
 values(1,repeat('a',64),repeat('0',64),1000,18,1,'alice',1000,'{}'::jsonb,'[]'::jsonb);
 insert into public.fae_v4_utxos(outpoint,address,amount_atoms,created_height,spent)
@@ -107,4 +123,4 @@ end
 $$;
 SQL
 
-echo '{"ok":true,"postgres":16,"migration":"pplns_coinbase_candidate","subsidy_plus_fees":true,"issuance_excludes_fees":true,"atomic_rollback":true}'
+echo '{"ok":true,"postgres":16,"migration":"pplns_coinbase_candidate","subsidy_plus_fees":true,"issuance_excludes_fees":true,"atomic_rollback":true,"rpc_service_role_only":true}'
