@@ -1,0 +1,74 @@
+name: fae-coordinator-candidate
+
+services:
+  coordinator:
+    build:
+      context: ../../node
+      dockerfile: Dockerfile.coordinator-candidate
+    restart: unless-stopped
+    init: true
+    environment:
+      FAE_COORDINATOR_HOST: 0.0.0.0
+      FAE_COORDINATOR_PORT: 3190
+      FAE_COORDINATOR_DATA_DIR: /data
+      FAE_CANDIDATE_API_URL: ${FAE_CANDIDATE_API_URL:?FAE_CANDIDATE_API_URL is required}
+      FAE_COORDINATOR_PUBLIC_URL: https://${FAE_COORDINATOR_DOMAIN:?FAE_COORDINATOR_DOMAIN is required}
+      FAE_NETWORK: fairyelf-public-testnet-v4
+      FAE_COORDINATOR_WINDOW: ${FAE_COORDINATOR_WINDOW:-2048}
+      FAE_SHARE_DIFFICULTY_DELTA: ${FAE_SHARE_DIFFICULTY_DELTA:-6}
+      FAE_COORDINATOR_TRUST_PROXY: "1"
+    volumes:
+      - coordinator-data:/data
+    expose:
+      - "3190"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - backend
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      coordinator:
+        condition: service_healthy
+    environment:
+      FAE_COORDINATOR_DOMAIN: ${FAE_COORDINATOR_DOMAIN:?FAE_COORDINATOR_DOMAIN is required}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+      - backend
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  coordinator-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  edge:
+  backend:
+    internal: true
