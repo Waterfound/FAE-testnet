@@ -28,6 +28,7 @@ const SHARE_COORDINATORS=configuredShareCoordinators();
 function protocolError(message,code='COORDINATOR_PROTOCOL'){const error=new Error(message);error.code=code;return error}
 function bytesHex(bytes){return[...new Uint8Array(bytes)].map(byte=>byte.toString(16).padStart(2,'0')).join('')}
 async function hashCanonicalHex(value){const first=await sh(E.encode(stable(value))),second=await sh(first);return bytesHex(second)}
+function leadingZeroBitsHex(hash){let count=0;if(typeof hash!=='string'||!/^[0-9a-f]{64}$/.test(hash))return-1;for(const character of hash){const value=parseInt(character,16);if(value===0){count+=4;continue}if(value<2)count+=3;else if(value<4)count+=2;else if(value<8)count++;break}return count}
 function coordinatorState(base){if(!coordinatorHealth.has(base))coordinatorHealth.set(base,{failures:0,retryAt:0,lastError:null});return coordinatorHealth.get(base)}
 function coordinatorAvailable(base){return Date.now()>=coordinatorState(base).retryAt}
 function markCoordinatorSuccess(base){coordinatorHealth.set(base,{failures:0,retryAt:0,lastError:null})}
@@ -173,7 +174,9 @@ async function mineCoordinatorIteration(base,rewardAddress){
   const accepted=await coordinatorApi(base,'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:pow.nonce,hash:pow.hash})});
   if(accepted.accepted!==true||!accepted.share)throw protocolError('Coordinator did not accept the share');
   if(accepted.payoutCommitment!==work.payoutCommitment||accepted.weightsCommitment!==work.weightsCommitment||accepted.templateCommitment!==work.templateCommitment)throw protocolError('Coordinator share receipt commitment mismatch');
-  if(!Number.isSafeInteger(Number(accepted.share.seq))||Number(accepted.share.seq)<1||!/^[0-9a-f]{64}$/.test(String(accepted.share.entryHash||''))||Number(accepted.share.targetDifficultyBits)!==Number(work.targetDifficultyBits)||Number(accepted.share.zeroBits)<Number(work.targetDifficultyBits))throw protocolError('Coordinator share receipt is invalid');
+  const actualZeroBits=leadingZeroBitsHex(pow.hash),claimedZeroBits=Number(accepted.share.zeroBits),blockSolved=actualZeroBits>=Number(work.blockDifficultyBits);
+  if(actualZeroBits<Number(work.targetDifficultyBits)||claimedZeroBits!==actualZeroBits||!Number.isSafeInteger(Number(accepted.share.seq))||Number(accepted.share.seq)<1||!/^[0-9a-f]{64}$/.test(String(accepted.share.entryHash||''))||Number(accepted.share.targetDifficultyBits)!==Number(work.targetDifficultyBits))throw protocolError('Coordinator share receipt is invalid');
+  if(Boolean(accepted.block)!==blockSolved)throw protocolError('Coordinator share/block result does not match local Proof of Work');
   await verifyCoordinatorShareReceipt(accepted,work,pow);
   return{mode:accepted.block?'share-block':'share',coordinator:base,work,pow,accepted,attempts:pow.attempts||0};
 }
