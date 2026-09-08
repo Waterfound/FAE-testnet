@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import http from 'node:http';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,appendFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {generateKeyPairSync} from 'node:crypto';
 import {encodeAddress} from '../node/authoritative/address.mjs';
 import {sha256,hashHex,leadingZeroBits} from '../node/authoritative/crypto.mjs';
-import {allocatePplnsOutputs} from '../node/authoritative/share-coordinator.mjs';
+import {allocatePplnsOutputs,ShareLedger} from '../node/authoritative/share-coordinator.mjs';
+import {verifyEnvelope} from '../node/authoritative/node-identity.mjs';
 import {CANDIDATE_FUNCTION_PATH} from '../node/authoritative/pplns-http-adapter.mjs';
 import {createShareCoordinatorRuntime} from '../node/fae-share-coordinator-v1-candidate.mjs';
 
@@ -44,7 +45,9 @@ test('standalone coordinator persists identity and share ledger while staying fa
   const health=(await jsonFetch(first.baseUrl()+'/health')).payload;assert.equal(health.ok,true);assert.equal(health.mining_enabled,false);assert.equal(health.holds_payout_private_key,false);const identity=health.coordinator_id;
   const pre=await jsonFetch(first.baseUrl()+'/work',{method:'POST',body:JSON.stringify({address:wallet()})});assert.equal(pre.response.status,409);assert.match(pre.payload.error,/activation required/);
   backend.state.activation=344;const miner=wallet(),work=(await jsonFetch(first.baseUrl()+'/work',{method:'POST',body:JSON.stringify({address:miner})})).payload;assert.equal(work.ok,true);assert.equal(work.targetDifficultyBits,4);assert.equal(work.blockDifficultyBits,8);assert.equal(work.header.fee_atoms,'37');
-  const shareOnly=findNonce(work,work.targetDifficultyBits,work.blockDifficultyBits),accepted=(await jsonFetch(first.baseUrl()+'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:shareOnly.nonce,hash:shareOnly.hash})})).payload;assert.equal(accepted.ok,true);assert.equal(accepted.share.seq,1);assert.equal(accepted.block,null);
+  assert.equal(work.coordinatorId,identity);assert.equal(work.weightsCommitment,hashHex(work.pplnsWeights));assert.equal(work.payoutCommitment,hashHex(work.payouts));assert.equal(work.templateCommitment,hashHex({header:work.header,txids:work.txids,payouts:work.payouts,coinbase_outputs:work.coinbase_outputs}));
+  const proof=verifyEnvelope(work.workProof,{kind:'coordinator-work',expectedSignerId:identity});assert.equal(proof.jobId,work.jobId);assert.equal(proof.weightsCommitment,work.weightsCommitment);assert.equal(proof.templateCommitment,work.templateCommitment);assert.equal(proof.payoutCommitment,work.payoutCommitment);assert.equal(proof.ledgerState.totalShares,0);
+  const shareOnly=findNonce(work,work.targetDifficultyBits,work.blockDifficultyBits),accepted=(await jsonFetch(first.baseUrl()+'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:shareOnly.nonce,hash:shareOnly.hash})})).payload;assert.equal(accepted.ok,true);assert.equal(accepted.share.seq,1);assert.equal(accepted.block,null);assert.equal(accepted.weightsCommitment,work.weightsCommitment);assert.equal(accepted.templateCommitment,work.templateCommitment);
   const beforeRestart=(await jsonFetch(first.baseUrl()+'/shares?limit=10')).payload;assert.equal(beforeRestart.summary.totalShares,1);const ledgerHash=beforeRestart.summary.lastEntryHash;await first.close();
 
   const second=createShareCoordinatorRuntime({host:'127.0.0.1',port:0,dataDir,candidateApiUrl,publicUrl:'https://coordinator.example.test'});await second.start();t.after(()=>second.close());const status=(await jsonFetch(second.baseUrl()+'/status')).payload;assert.equal(status.coordinator_id,identity);assert.equal(status.totalShares,1);assert.equal(status.lastEntryHash,ledgerHash);assert.equal(status.holds_payout_private_key,false);
@@ -56,4 +59,17 @@ test('coordinator rejects stale jobs and oversized JSON without mutating the sha
   const backend=fakeBackend(),candidateApiUrl=await backend.start(),dataDir=await mkdtemp(join(tmpdir(),'fae-coordinator-'));backend.state.activation=344;const runtime=createShareCoordinatorRuntime({host:'127.0.0.1',port:0,dataDir,candidateApiUrl});await runtime.start();t.after(async()=>{await runtime.close();await backend.close();await rm(dataDir,{recursive:true,force:true})});
   const work=(await jsonFetch(runtime.baseUrl()+'/work',{method:'POST',body:JSON.stringify({address:wallet()})})).payload,share=findNonce(work,work.targetDifficultyBits);backend.state.height=344;backend.state.tip_hash='b'.repeat(64);const stale=await jsonFetch(runtime.baseUrl()+'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:share.nonce,hash:share.hash})});assert.equal(stale.response.status,409);assert.match(stale.payload.error,/Stale share job/);assert.equal((await jsonFetch(runtime.baseUrl()+'/shares')).payload.summary.totalShares,0);
   const huge=await jsonFetch(runtime.baseUrl()+'/work',{method:'POST',body:JSON.stringify({address:'x'.repeat(70_000)})});assert.equal(huge.response.status,413);assert.equal(huge.payload.error,'body_too_large');assert.equal((await jsonFetch(runtime.baseUrl()+'/shares')).payload.summary.totalShares,0);
+});
+
+test('share ledger commits to memory only after durable storage succeeds',async t=>{
+  const dataDir=await mkdtemp(join(tmpdir(),'fae-ledger-durability-'));t.after(()=>rm(dataDir,{recursive:true,force:true}));
+  const blocker=join(dataDir,'not-a-directory');await writeFile(blocker,'block');const ledger=new ShareLedger({logFile:join(blocker,'shares.ndjson'),windowSize:8}),before=ledger.summary();
+  assert.throws(()=>ledger.append({jobId:'job-durable',address:wallet(),nonce:1,hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:344,previousBlockHash:'a'.repeat(64)}));
+  assert.deepEqual(ledger.summary(),before);assert.equal(ledger.shares.length,0);assert.equal(ledger.seen.size,0);assert.equal(ledger.lastHash,'0'.repeat(64));
+});
+
+test('share ledger fails closed on truncated or corrupted persisted history',async t=>{
+  const dataDir=await mkdtemp(join(tmpdir(),'fae-ledger-corruption-'));t.after(()=>rm(dataDir,{recursive:true,force:true}));const logFile=join(dataDir,'shares.ndjson'),ledger=new ShareLedger({logFile,windowSize:8});
+  ledger.append({jobId:'job-one',address:wallet(),nonce:1,hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:344,previousBlockHash:'a'.repeat(64)});await appendFile(logFile,'{"version":1,"seq":2');
+  assert.throws(()=>new ShareLedger({logFile,windowSize:8}));
 });

@@ -1,4 +1,4 @@
-import {appendFileSync,existsSync,mkdirSync,readFileSync} from 'node:fs';
+import {existsSync,mkdirSync,readFileSync,openSync,writeSync,fsyncSync,closeSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {hashHex,leadingZeroBits} from './crypto.mjs';
@@ -12,6 +12,15 @@ const MAX_JOBS=1024;
 const MAX_LOG_REPLAY=1_000_000;
 
 function entryHash(entry){const {entryHash:_ignored,...withoutHash}=entry;return hashHex(withoutHash)}
+function durableAppendLine(path,line){
+  mkdirSync(dirname(path),{recursive:true});
+  const fd=openSync(path,'a',0o600);
+  try{
+    const bytes=Buffer.from(line);let offset=0;
+    while(offset<bytes.length){const written=writeSync(fd,bytes,offset,bytes.length-offset);if(written<=0)throw new Error('Share log durable write made no progress');offset+=written}
+    fsyncSync(fd);
+  }finally{closeSync(fd)}
+}
 
 export class ShareLedger{
   constructor({logFile=null,windowSize=DEFAULT_WINDOW}={}){
@@ -27,8 +36,8 @@ export class ShareLedger{
   append({jobId,address,nonce,hash,shareDifficultyBits,blockDifficultyBits,height,previousBlockHash}){
     const duplicateKey=`${jobId}:${nonce}`;if(this.seen.has(duplicateKey))throw new Error('Duplicate share');
     const entry={version:1,seq:this.shares.length+1,jobId,address,nonce,hash,shareDifficultyBits,blockDifficultyBits,height,previousBlockHash,previousEntryHash:this.lastHash};entry.entryHash=entryHash(entry);
+    if(this.logFile)durableAppendLine(this.logFile,`${JSON.stringify(entry)}\n`);
     this.shares.push(entry);this.seen.add(duplicateKey);this.lastHash=entry.entryHash;
-    if(this.logFile){mkdirSync(dirname(this.logFile),{recursive:true});appendFileSync(this.logFile,`${JSON.stringify(entry)}\n`,{mode:0o600})}
     return entry;
   }
   window(){return this.shares.slice(-this.windowSize)}
@@ -58,13 +67,17 @@ export class ShareCoordinator{
     if(!isValidAddress(address,this.addressHrp))throw new Error('Invalid mining address');
     if(!this.multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
     if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
-    this.pruneJobs();const weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()}));const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
+    this.pruneJobs();
+    const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
+    const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
-    const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts);
-    this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment});
-    return{...candidate,jobId,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
+    const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
+    const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
+    const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
+    this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment,weightsCommitment,templateCommitment});
+    return{...candidate,jobId,coordinatorId:this.identity.id,requestAddress:address,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,expiresAt:new Date(expiresAt).toISOString(),workProof};
   }
   async submitShare({jobId,nonce,hash}){
     this.pruneJobs();const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
@@ -72,6 +85,6 @@ export class ShareCoordinator{
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
     let block=null;if(zeroBits>=Number(job.candidate.header.difficulty_bits)){if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');block=await this.blockSubmitter({...job.candidate,nonce,hash});this.jobs.clear()}
-    return{accepted:true,share:{seq:entry.seq,entryHash:entry.entryHash,zeroBits,targetDifficultyBits:job.shareDifficultyBits},block,payoutCommitment:job.payoutCommitment};
+    return{accepted:true,share:{seq:entry.seq,entryHash:entry.entryHash,zeroBits,targetDifficultyBits:job.shareDifficultyBits},block,payoutCommitment:job.payoutCommitment,weightsCommitment:job.weightsCommitment,templateCommitment:job.templateCommitment};
   }
 }
