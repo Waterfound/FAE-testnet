@@ -100,6 +100,9 @@ jobs:
       - name: Verify executable Authoritative coordinator runtime
         run: node --test sovereign-forge/tests/authoritative-coordinator-runtime.mjs
 
+      - name: Verify signed durable coordinator share receipts
+        run: node --test sovereign-forge/tests/authoritative-share-receipt.mjs
+
       - name: Verify reconciled v4 consensus core and activation boundary
         run: node --test sovereign-forge/tests/authoritative-v4-core.mjs
 

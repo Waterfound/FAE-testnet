@@ -3,10 +3,10 @@ import {mkdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {AuthoritativePplnsHttpAdapter} from './authoritative/pplns-http-adapter.mjs';
-import {loadOrCreateNodeIdentity} from './authoritative/node-identity.mjs';
+import {loadOrCreateNodeIdentity,signEnvelope} from './authoritative/node-identity.mjs';
 import {PeerGuard} from './authoritative/peer-guard.mjs';
 
-export const COORDINATOR_VERSION='share-coordinator-1.0.0-candidate';
+export const COORDINATOR_VERSION='share-coordinator-1.1.0-candidate';
 export const DEFAULT_NETWORK='fairyelf-public-testnet-v4';
 const MAX_JSON_BODY=64*1024;
 const MAX_SHARE_PAGE=100;
@@ -18,6 +18,30 @@ function send(res,status,payload){res.writeHead(status,headers());res.end(status
 async function readJson(req,maxBytes=MAX_JSON_BODY){let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>maxBytes){const error=new Error('body_too_large');error.status=413;throw error}}if(!text)return{};try{return JSON.parse(text)}catch{const error=new Error('invalid_json');error.status=400;throw error}}
 function classify(error){const message=String(error?.message||error||'coordinator_error');if(error?.status)return Number(error.status);if(/activation required|activation height .* not reached|Stale share job|Stale or unknown share job|chain-tip change/i.test(message))return 409;if(/fetch failed|ECONN|ENOTFOUND|upstream|http_5\d\d/i.test(message))return 502;if(/Invalid|missing|mismatch|below target|Duplicate share|not configured/i.test(message))return 400;return 500}
 function requestIdentity(req,{trustProxy=false}={}){if(trustProxy){const forwarded=String(req.headers['x-forwarded-for']||'').split(',')[0].trim();if(forwarded)return forwarded}return req.socket.remoteAddress||'unknown'}
+
+function makeShareReceipt(identity,networkId,entry,result){
+  if(!entry||entry.seq!==Number(result?.share?.seq)||entry.entryHash!==result?.share?.entryHash)throw new Error('Persisted share/receipt mismatch');
+  return signEnvelope(identity,'coordinator-share-acceptance',{
+    receiptVersion:1,
+    coordinatorId:identity.id,
+    network:networkId,
+    jobId:entry.jobId,
+    address:entry.address,
+    nonce:entry.nonce,
+    hash:entry.hash,
+    seq:entry.seq,
+    entryHash:entry.entryHash,
+    zeroBits:Number(result.share.zeroBits),
+    targetDifficultyBits:Number(result.share.targetDifficultyBits),
+    blockDifficultyBits:Number(entry.blockDifficultyBits),
+    height:Number(entry.height),
+    previousBlockHash:entry.previousBlockHash,
+    payoutCommitment:result.payoutCommitment,
+    weightsCommitment:result.weightsCommitment,
+    templateCommitment:result.templateCommitment,
+    blockAccepted:Boolean(result.block)
+  });
+}
 
 export function createShareCoordinatorRuntime({
   host='127.0.0.1',port=3190,dataDir='.fairyelf/coordinator',candidateApiUrl,
@@ -52,7 +76,9 @@ export function createShareCoordinatorRuntime({
         const body=await readJson(req);const work=await c.createWork(String(body.address||''));guard.forgive(remote,1);return send(res,200,{ok:true,...work});
       }
       if(req.method==='POST'&&url.pathname==='/share'){
-        const body=await readJson(req);const result=await c.submitShare({jobId:String(body.jobId||''),nonce:Number(body.nonce),hash:String(body.hash||'')});guard.forgive(remote,1);return send(res,200,{ok:true,...result});
+        const body=await readJson(req),jobId=String(body.jobId||''),nonce=Number(body.nonce),hash=String(body.hash||''),result=await c.submitShare({jobId,nonce,hash});
+        const seq=Number(result.share?.seq),entry=Number.isSafeInteger(seq)&&seq>=1?c.ledger.shares[seq-1]:null,shareReceipt=makeShareReceipt(identity,networkId,entry,result);
+        guard.forgive(remote,1);return send(res,200,{ok:true,...result,shareReceipt});
       }
       return send(res,404,{ok:false,error:'not_found'});
     }catch(error){guard.penalize(remote,1);return send(res,classify(error),{ok:false,error:error?.message||String(error)})}

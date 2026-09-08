@@ -23,6 +23,7 @@ let goodMode='active',directTemplates=0,directSubmissions=0;
 const workCalls=new Map(),shareCalls=new Map();
 const increment=(map,key)=>map.set(key,(map.get(key)||0)+1);
 const ledgerEmpty={totalShares:0,windowShares:0,uniqueMinersInWindow:0,lastEntryHash:'0'.repeat(64),windowSize:2048};
+const SHARE_HASH='000f'+'f'.repeat(60),SHARE_ZERO_BITS=12;
 
 function buildWork(base,requestAddress,{identity=identities.get(base),weights=null,ledgerState=ledgerEmpty,jobId=null,tamperPayout=false}={}){
   const pplnsWeights=(weights??[{address:requestAddress,weight:'1'}]).map(row=>({address:String(row.address),weight:String(row.weight)})).sort((a,b)=>a.address.localeCompare(b.address));
@@ -34,6 +35,12 @@ function buildWork(base,requestAddress,{identity=identities.get(base),weights=nu
   return work;
 }
 
+function buildShareResponse(base,work,submission,{tamperReceipt=false}={}){
+  const identity=identities.get(base),share={seq:1,entryHash:'d'.repeat(64),zeroBits:SHARE_ZERO_BITS,targetDifficultyBits:work.targetDifficultyBits};
+  const payload={receiptVersion:1,coordinatorId:identity.id,network:NETWORK,jobId:work.jobId,address:work.requestAddress,nonce:tamperReceipt?Number(submission.nonce)+1:Number(submission.nonce),hash:String(submission.hash),seq:share.seq,entryHash:share.entryHash,zeroBits:share.zeroBits,targetDifficultyBits:work.targetDifficultyBits,blockDifficultyBits:work.blockDifficultyBits,height:work.header.height,previousBlockHash:work.header.previous_hash,payoutCommitment:work.payoutCommitment,weightsCommitment:work.weightsCommitment,templateCommitment:work.templateCommitment,blockAccepted:false};
+  return{ok:true,accepted:true,share,block:null,payoutCommitment:work.payoutCommitment,weightsCommitment:work.weightsCommitment,templateCommitment:work.templateCommitment,shareReceipt:signEnvelope(identity,'coordinator-share-acceptance',payload)};
+}
+
 const fetch=async(url,options={})=>{
   const text=String(url),method=options.method||'GET',base=[MALICIOUS,OFFLINE,GOOD].find(candidate=>text.startsWith(candidate));
   if(base){
@@ -43,8 +50,8 @@ const fetch=async(url,options={})=>{
       const requestAddress=JSON.parse(options.body).address,work=buildWork(base,requestAddress,{tamperPayout:base===MALICIOUS});latestWork.set(base,work);return new Response(JSON.stringify(work),{status:200,headers:{'content-type':'application/json'}});
     }
     if(text.endsWith('/share')&&method==='POST'){
-      increment(shareCalls,base);const work=latestWork.get(base);if(base===GOOD&&goodMode==='stale')return new Response(JSON.stringify({ok:false,error:'Stale share job after chain-tip change'}),{status:409,headers:{'content-type':'application/json'}});
-      return new Response(JSON.stringify({ok:true,accepted:true,share:{seq:1,entryHash:'d'.repeat(64),zeroBits:64,targetDifficultyBits:work.targetDifficultyBits},block:null,payoutCommitment:work.payoutCommitment,weightsCommitment:work.weightsCommitment,templateCommitment:work.templateCommitment}),{status:200,headers:{'content-type':'application/json'}});
+      increment(shareCalls,base);const work=latestWork.get(base),submission=JSON.parse(options.body);if(base===GOOD&&goodMode==='stale')return new Response(JSON.stringify({ok:false,error:'Stale share job after chain-tip change'}),{status:409,headers:{'content-type':'application/json'}});
+      const response=buildShareResponse(base,work,submission,{tamperReceipt:base===GOOD&&goodMode==='bad-receipt'});return new Response(JSON.stringify(response),{status:200,headers:{'content-type':'application/json'}});
     }
   }
   const path=text.split(ACTIVE)[1]||'';let body={};
@@ -61,12 +68,15 @@ const fetch=async(url,options={})=>{
 let clipboard='';const context={window:null,document,localStorage,fetch,crypto:webcrypto,TextEncoder,TextDecoder,Uint8Array,Array,Map,Set,BigInt,Blob,URL,Response,Error,String,Number,Object,JSON,Date,Math,Promise,console,atob,btoa,AbortController,navigator:{clipboard:{writeText:async value=>{clipboard=value}}},setTimeout,clearTimeout,setInterval:()=>0,clearInterval,confirm:()=>true,FAE_SHARE_COORDINATORS:[MALICIOUS,OFFLINE,GOOD],powCalls:0};context.window=context;vm.createContext(context);
 for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js'])vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 await new Promise(resolve=>setTimeout(resolve,25));await vm.runInContext('createNewWallet()',context);const address=vm.runInContext('wallet.address',context);context.address=address;context.goodBase=GOOD;
-vm.runInContext("localPow=async()=>{powCalls++;return{nonce:7,hash:'0'.repeat(64),attempts:1}}",context);
+vm.runInContext(`localPow=async()=>{powCalls++;return{nonce:7,hash:'${SHARE_HASH}',attempts:1}}`,context);
 
 const multi=await vm.runInContext('mineOneIteration(address)',context);assert.equal(multi.mode,'share');assert.equal(multi.coordinator,GOOD);assert.equal(workCalls.get(MALICIOUS),1);assert.equal(workCalls.get(GOOD),1);assert.equal(shareCalls.get(MALICIOUS)||0,0);assert.equal(shareCalls.get(GOOD),1);assert.equal(context.powCalls,1);assert.equal(directTemplates,0);assert.equal(directSubmissions,0);
+const storedReceipts=JSON.parse(localStorage.getItem('fae-share-receipts-v1')||'[]');assert.equal(storedReceipts.length,1);assert.equal(storedReceipts[0].kind,'coordinator-share-acceptance');assert.equal(storedReceipts[0].payload.jobId,multi.work.jobId);assert.equal(storedReceipts[0].payload.hash,SHARE_HASH);
 const maliciousState=vm.runInContext('coordinatorState(FAE_SHARE_COORDINATORS[0])',context);assert.ok(maliciousState.retryAt-Date.now()>4*60_000);assert.match(maliciousState.lastError,/payout|commitment/i);
 
-goodMode='inactive';const fallback=await vm.runInContext('mineOneIteration(address)',context);assert.equal(fallback.mode,'direct');assert.equal(fallback.fallbackFailures,3);assert.equal(directTemplates,1);assert.equal(directSubmissions,1);assert.equal(context.powCalls,2);
+goodMode='bad-receipt';let badReceiptError=null;try{await vm.runInContext('mineCoordinatorIteration(goodBase,address)',context)}catch(error){badReceiptError=error}assert.match(badReceiptError?.message||'',/share receipt work binding mismatch/i);assert.equal(JSON.parse(localStorage.getItem('fae-share-receipts-v1')||'[]').length,1);
+
+goodMode='inactive';const fallback=await vm.runInContext('mineOneIteration(address)',context);assert.equal(fallback.mode,'direct');assert.equal(fallback.fallbackFailures,3);assert.equal(directTemplates,1);assert.equal(directSubmissions,1);assert.equal(context.powCalls,3);
 
 const secondary=encodeAddress(randomBytes(20),'faet'),pair=[address,secondary].sort(),ledgerState={totalShares:5,windowShares:5,uniqueMinersInWindow:2,lastEntryHash:'e'.repeat(64),windowSize:2048};
 const equivocationA=buildWork(GOOD,address,{weights:[{address:pair[0],weight:'2'},{address:pair[1],weight:'3'}],ledgerState,jobId:'job-equivocation-a'}),equivocationB=buildWork(GOOD,address,{weights:[{address:pair[0],weight:'3'},{address:pair[1],weight:'2'}],ledgerState,jobId:'job-equivocation-b'});context.equivocationA=equivocationA;context.equivocationB=equivocationB;
@@ -75,4 +85,4 @@ const evidence=JSON.parse(localStorage.getItem('fae-coordinator-equivocation-v1'
 
 const otherIdentity=generateNodeIdentity(),identityFlip=buildWork(GOOD,address,{identity:otherIdentity,ledgerState:{...ledgerEmpty,lastEntryHash:'f'.repeat(64)},jobId:'job-identity-flip'});context.identityFlip=identityFlip;let identityError=null;try{await vm.runInContext('validateShareWork(identityFlip,goodBase,address)',context)}catch(error){identityError=error}assert.match(identityError?.message||'',/identity changed/i);
 
-assert.equal(vm.runInContext('SHARE_COORDINATORS.length',context),3);assert.equal(clipboard,'');console.log('FAE browser multi-coordinator failover, malicious payout rejection, signed-work verification and equivocation checks passed.');
+assert.equal(vm.runInContext('SHARE_COORDINATORS.length',context),3);assert.equal(clipboard,'');console.log('FAE browser multi-coordinator, signed work/share receipts, malicious payout rejection and equivocation checks passed.');

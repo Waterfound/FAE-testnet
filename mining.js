@@ -28,6 +28,7 @@ const SHARE_COORDINATORS=configuredShareCoordinators();
 function protocolError(message,code='COORDINATOR_PROTOCOL'){const error=new Error(message);error.code=code;return error}
 function bytesHex(bytes){return[...new Uint8Array(bytes)].map(byte=>byte.toString(16).padStart(2,'0')).join('')}
 async function hashCanonicalHex(value){const first=await sh(E.encode(stable(value))),second=await sh(first);return bytesHex(second)}
+function leadingZeroBitsHex(hash){let count=0;if(typeof hash!=='string'||!/^[0-9a-f]{64}$/.test(hash))return-1;for(const character of hash){const value=parseInt(character,16);if(value===0){count+=4;continue}if(value<2)count+=3;else if(value<4)count+=2;else if(value<8)count++;break}return count}
 function coordinatorState(base){if(!coordinatorHealth.has(base))coordinatorHealth.set(base,{failures:0,retryAt:0,lastError:null});return coordinatorHealth.get(base)}
 function coordinatorAvailable(base){return Date.now()>=coordinatorState(base).retryAt}
 function markCoordinatorSuccess(base){coordinatorHealth.set(base,{failures:0,retryAt:0,lastError:null})}
@@ -41,6 +42,11 @@ function markCoordinatorFailure(base,error){
 function saveEquivocationEvidence(evidence){
   try{
     const key='fae-coordinator-equivocation-v1',current=JSON.parse(localStorage.getItem(key)||'[]'),next=[...current,evidence].slice(-4);localStorage.setItem(key,JSON.stringify(next));
+  }catch{}
+}
+function saveShareReceipt(receipt){
+  try{
+    const key='fae-share-receipts-v1',current=JSON.parse(localStorage.getItem(key)||'[]'),next=[...current,receipt].slice(-32);localStorage.setItem(key,JSON.stringify(next));
   }catch{}
 }
 
@@ -144,13 +150,34 @@ async function validateShareWork(work,base,expectedAddress){
   const verified=await verifyCoordinatorWorkProof(work);rememberCoordinatorProof(base,work,verified);return work;
 }
 
+async function verifyCoordinatorShareReceipt(accepted,work,pow){
+  const envelope=accepted?.shareReceipt;
+  if(!envelope||envelope.domain!=='FAIRYELF_AUTH_V1'||envelope.version!==1||envelope.kind!=='coordinator-share-acceptance')throw protocolError('Coordinator share acceptance is missing a signed receipt');
+  if(!envelope.signer?.id||!envelope.signer?.publicKey||!envelope.signature||envelope.signer.id!==work.coordinatorId||envelope.signer.publicKey!==work.workProof?.signer?.publicKey)throw protocolError('Coordinator share receipt signer mismatch');
+  let publicKeyBytes,signatureBytes,key;
+  try{publicKeyBytes=fb(envelope.signer.publicKey);signatureBytes=fb(envelope.signature);const derivedId=bytesHex(await sh(publicKeyBytes));if(derivedId!==envelope.signer.id)throw protocolError('Coordinator share receipt signer id mismatch');key=await crypto.subtle.importKey('spki',publicKeyBytes,{name:'Ed25519'},false,['verify'])}catch(error){if(error?.code)throw error;throw protocolError('Coordinator share receipt signer key is invalid')}
+  const issued=Date.parse(envelope.issuedAt),age=Date.now()-issued;if(!Number.isFinite(issued)||age>10*60_000||age<-60_000)throw protocolError('Coordinator share receipt timestamp is invalid');
+  const {signature,...signed}=envelope,verified=await crypto.subtle.verify({name:'Ed25519'},key,signatureBytes,E.encode(stable(signed)));if(!verified)throw protocolError('Coordinator share receipt signature is invalid');
+  const payload=envelope.payload,share=accepted.share;
+  if(!payload||payload.receiptVersion!==1||payload.coordinatorId!==work.coordinatorId||payload.network!==NETWORK)throw protocolError('Coordinator share receipt identity/network mismatch');
+  if(payload.jobId!==work.jobId||payload.address!==work.requestAddress||Number(payload.nonce)!==Number(pow.nonce)||payload.hash!==pow.hash)throw protocolError('Coordinator share receipt work binding mismatch');
+  if(Number(payload.seq)!==Number(share.seq)||payload.entryHash!==share.entryHash||Number(payload.zeroBits)!==Number(share.zeroBits)||Number(payload.targetDifficultyBits)!==Number(work.targetDifficultyBits)||Number(payload.blockDifficultyBits)!==Number(work.blockDifficultyBits))throw protocolError('Coordinator share receipt ledger/target mismatch');
+  if(Number(payload.height)!==Number(work.header.height)||payload.previousBlockHash!==work.header.previous_hash)throw protocolError('Coordinator share receipt chain binding mismatch');
+  if(payload.payoutCommitment!==work.payoutCommitment||payload.weightsCommitment!==work.weightsCommitment||payload.templateCommitment!==work.templateCommitment)throw protocolError('Coordinator share receipt commitment mismatch');
+  if(Boolean(payload.blockAccepted)!==Boolean(accepted.block))throw protocolError('Coordinator share receipt block-result mismatch');
+  saveShareReceipt(envelope);return payload;
+}
+
 async function mineCoordinatorIteration(base,rewardAddress){
   const work=await validateShareWork(await coordinatorApi(base,'/work',{method:'POST',body:JSON.stringify({address:rewardAddress})}),base,rewardAddress);
   const pow=await localPow(work.header,Number(work.targetDifficultyBits),'PPLNS share');
   const accepted=await coordinatorApi(base,'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:pow.nonce,hash:pow.hash})});
   if(accepted.accepted!==true||!accepted.share)throw protocolError('Coordinator did not accept the share');
   if(accepted.payoutCommitment!==work.payoutCommitment||accepted.weightsCommitment!==work.weightsCommitment||accepted.templateCommitment!==work.templateCommitment)throw protocolError('Coordinator share receipt commitment mismatch');
-  if(!Number.isSafeInteger(Number(accepted.share.seq))||Number(accepted.share.seq)<1||!/^[0-9a-f]{64}$/.test(String(accepted.share.entryHash||''))||Number(accepted.share.targetDifficultyBits)!==Number(work.targetDifficultyBits)||Number(accepted.share.zeroBits)<Number(work.targetDifficultyBits))throw protocolError('Coordinator share receipt is invalid');
+  const actualZeroBits=leadingZeroBitsHex(pow.hash),claimedZeroBits=Number(accepted.share.zeroBits),blockSolved=actualZeroBits>=Number(work.blockDifficultyBits);
+  if(actualZeroBits<Number(work.targetDifficultyBits)||claimedZeroBits!==actualZeroBits||!Number.isSafeInteger(Number(accepted.share.seq))||Number(accepted.share.seq)<1||!/^[0-9a-f]{64}$/.test(String(accepted.share.entryHash||''))||Number(accepted.share.targetDifficultyBits)!==Number(work.targetDifficultyBits))throw protocolError('Coordinator share receipt is invalid');
+  if(Boolean(accepted.block)!==blockSolved)throw protocolError('Coordinator share/block result does not match local Proof of Work');
+  await verifyCoordinatorShareReceipt(accepted,work,pow);
   return{mode:accepted.block?'share-block':'share',coordinator:base,work,pow,accepted,attempts:pow.attempts||0};
 }
 
@@ -187,9 +214,9 @@ async function miningLoop(){
       try{
         const cycle=await mineOneIteration(rewardAddress);attemptsTotal+=cycle.attempts||0;if(!mining)break;
         if(cycle.mode==='share'){
-          setStatus('mstate','Verified share accepted · delayed PPLNS window updated · continuing…','ok');
+          setStatus('mstate','Verified share accepted · signed receipt stored locally · continuing…','ok');
         }else if(cycle.mode==='share-block'){
-          setStatus('mstate','Won block '+cycle.accepted.block.height+' through verified PPLNS · block subsidy + transaction fees paid directly by coinbase · continuing…','ok');await refresh();
+          setStatus('mstate','Won block '+cycle.accepted.block.height+' through verified PPLNS · signed share receipt stored · block subsidy + transaction fees paid directly by coinbase · continuing…','ok');await refresh();
         }else{
           const rewardLabel=cycle.template.header.fee_atoms===undefined?'reward':'block reward + transaction fees',fallback=cycle.fallbackFailures?'Coordinator path unavailable · direct PoW fallback · ':'';
           setStatus('mstate',fallback+'Won block '+cycle.accepted.height+' · '+rewardLabel+' sent directly to '+short(rewardAddress,13,7)+' · continuing…','ok');await refresh();
