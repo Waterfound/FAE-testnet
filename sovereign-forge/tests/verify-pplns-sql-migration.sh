@@ -37,8 +37,9 @@ wait_ready(){
 
 is_transient_connection_error(){
   local file="$1"
-  # Never retry a PostgreSQL/PLpgSQL assertion or migration error.
-  if grep -Eqi '(^|[[:space:]])ERROR:' "$file"; then return 1; fi
+  # PostgreSQL/PLpgSQL emits uppercase ERROR:. Keep this case-sensitive so
+  # psql's lowercase transport prefix ("psql: error: connection...") can retry.
+  if grep -Eq '(^|[[:space:]])ERROR:' "$file"; then return 1; fi
   grep -Eqi \
     'connection to server .* failed|server closed the connection unexpectedly|No such file or directory|could not connect to server|the database system is starting up|terminating connection due to administrator command' \
     "$file"
