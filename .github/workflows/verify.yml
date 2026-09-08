@@ -44,6 +44,7 @@ jobs:
           node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           node --check sovereign-forge/node/authoritative/peer-diversity.mjs
           node --check sovereign-forge/node/authoritative/peer-directory.mjs
+          node --check sovereign-forge/node/authoritative/pplns-http-adapter.mjs
           node --check sovereign-forge/supabase/functions/fae-public-testnet-v4-authoritative-candidate/index.ts
           node --check sovereign-forge/supabase/functions/fae-chain-feed-v2-authoritative-candidate/index.ts
 
@@ -75,6 +76,9 @@ jobs:
 
       - name: Verify Authoritative coordinator signer and codec
         run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+
+      - name: Verify Authoritative PPLNS HTTP candidate adapter
+        run: node --test sovereign-forge/tests/authoritative-pplns-http-adapter.mjs
 
       - name: Verify reconciled v4 consensus core and activation boundary
         run: node --test sovereign-forge/tests/authoritative-v4-core.mjs

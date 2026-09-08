@@ -6,44 +6,96 @@ BASE="$ROOT/supabase/migrations/20260903_fae_v4_canonical.sql"
 CANDIDATE="$ROOT/supabase/migrations/20260907_fae_v4_pplns_coinbase_candidate.sql"
 LOCK="$ROOT/supabase/migrations/20260907_fae_v4_accept_block_v3_rpc_lock.sql"
 NAME="fae-pplns-pg-${GITHUB_RUN_ID:-local}-${RANDOM}-${RANDOM}"
+TMP="$(mktemp -d)"
 
-cleanup(){ docker rm -f "$NAME" >/dev/null 2>&1 || true; }
+cleanup(){ docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$TMP"; }
 trap cleanup EXIT
+
+container_running(){ docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null | grep -qx true; }
+
+wait_ready(){
+  local ready=0
+  for _ in $(seq 1 120); do
+    if ! container_running; then
+      echo 'postgres_container_exited_before_ready' >&2
+      docker logs "$NAME" >&2 || true
+      return 2
+    fi
+    if docker exec "$NAME" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    sleep 0.25
+  done
+  if [[ "$ready" != 1 ]]; then
+    echo 'postgres_readiness_timeout' >&2
+    docker ps -a --filter "name=$NAME" >&2 || true
+    docker logs "$NAME" >&2 || true
+    return 2
+  fi
+}
+
+is_transient_connection_error(){
+  local file="$1"
+  # Never retry a PostgreSQL/PLpgSQL assertion or migration error.
+  if grep -Eqi '(^|[[:space:]])ERROR:' "$file"; then return 1; fi
+  grep -Eqi \
+    'connection to server .* failed|server closed the connection unexpectedly|No such file or directory|could not connect to server|the database system is starting up|terminating connection due to administrator command' \
+    "$file"
+}
+
+run_psql_file(){
+  local label="$1" file="$2" attempt err rc
+  for attempt in 1 2 3 4; do
+    err="$TMP/${label//[^A-Za-z0-9_.-]/_}.${attempt}.err"
+    set +e
+    docker exec -i "$NAME" psql -X -1 -v ON_ERROR_STOP=1 -U postgres -d postgres < "$file" 2>"$err"
+    rc=$?
+    set -e
+    if [[ $rc -eq 0 ]]; then
+      rm -f "$err"
+      return 0
+    fi
+    if ! is_transient_connection_error "$err"; then
+      echo "postgres_stage_failed label=$label attempt=$attempt rc=$rc" >&2
+      cat "$err" >&2
+      return "$rc"
+    fi
+    echo "postgres_transient_connection_retry label=$label attempt=$attempt" >&2
+    cat "$err" >&2
+    if ! container_running; then
+      echo 'postgres_container_exited_during_retry' >&2
+      docker logs "$NAME" >&2 || true
+      return 2
+    fi
+    if [[ $attempt -ge 4 ]]; then
+      echo "postgres_connection_retry_exhausted label=$label" >&2
+      docker logs "$NAME" >&2 || true
+      return "$rc"
+    fi
+    wait_ready
+    sleep 0.5
+  done
+}
 
 if ! docker run -d --name "$NAME" -e POSTGRES_PASSWORD=fae-test postgres:16-alpine >/dev/null; then
   echo 'postgres_container_start_failed' >&2
   docker info >&2 || true
   exit 2
 fi
+wait_ready
 
-READY=0
-for _ in $(seq 1 80); do
-  if docker exec "$NAME" pg_isready -U postgres >/dev/null 2>&1; then READY=1; break; fi
-  if ! docker inspect -f '{{.State.Running}}' "$NAME" 2>/dev/null | grep -qx true; then
-    echo 'postgres_container_exited_before_ready' >&2
-    docker logs "$NAME" >&2 || true
-    exit 2
-  fi
-  sleep 0.25
-done
-if [[ "$READY" != 1 ]]; then
-  echo 'postgres_readiness_timeout' >&2
-  docker ps -a --filter "name=$NAME" >&2 || true
-  docker logs "$NAME" >&2 || true
-  exit 2
-fi
-
-docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
+cat > "$TMP/roles.sql" <<'SQL'
 create role anon;
 create role authenticated;
 create role service_role;
 SQL
+run_psql_file roles "$TMP/roles.sql"
+run_psql_file canonical_v4 "$BASE"
+run_psql_file pplns_candidate "$CANDIDATE"
+run_psql_file rpc_lock "$LOCK"
 
-docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$BASE" >/dev/null
-docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$CANDIDATE" >/dev/null
-docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$LOCK" >/dev/null
-
-docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
+cat > "$TMP/assertions.sql" <<'SQL'
 DO $$
 begin
   if has_function_privilege('anon','public.fae_v4_accept_block_v3(bigint,text,text,bigint,integer,bigint,text,numeric,numeric,jsonb,text,jsonb,jsonb)','EXECUTE') then
@@ -122,5 +174,6 @@ begin
 end
 $$;
 SQL
+run_psql_file consensus_assertions "$TMP/assertions.sql"
 
-echo '{"ok":true,"postgres":16,"migration":"pplns_coinbase_candidate","subsidy_plus_fees":true,"issuance_excludes_fees":true,"atomic_rollback":true,"rpc_service_role_only":true}'
+echo '{"ok":true,"postgres":16,"migration":"pplns_coinbase_candidate","subsidy_plus_fees":true,"issuance_excludes_fees":true,"atomic_rollback":true,"rpc_service_role_only":true,"connection_retry_fail_closed":true}'
