@@ -48,6 +48,21 @@ jobs:
           node --check sovereign-forge/node/authoritative/pplns-http-adapter.mjs
           node --check sovereign-forge/supabase/functions/fae-public-testnet-v4-authoritative-candidate/index.ts
           node --check sovereign-forge/supabase/functions/fae-chain-feed-v2-authoritative-candidate/index.ts
+          node --check sovereign-forge/deploy/coordinator-dedicated/canary.mjs
+
+      - name: Verify dedicated coordinator deployment manifest
+        env:
+          FAE_COORDINATOR_DOMAIN: coordinator.test.invalid
+          FAE_CANDIDATE_API_URL: https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4-authoritative-candidate
+        run: |
+          docker compose -f sovereign-forge/deploy/coordinator-dedicated/compose.yaml config > /tmp/fae-coordinator-compose.yml
+          grep -q 'fae-public-testnet-v4-authoritative-candidate' /tmp/fae-coordinator-compose.yml
+          grep -q 'coordinator-data' /tmp/fae-coordinator-compose.yml
+          grep -q '/data' /tmp/fae-coordinator-compose.yml
+          if grep -Eq 'published:[[:space:]]*"?3190"?' /tmp/fae-coordinator-compose.yml; then
+            echo 'Coordinator port 3190 must not be published on the host' >&2
+            exit 1
+          fi
 
       - name: Verify browser wallet, client and coordinator fallback flows
         run: |
