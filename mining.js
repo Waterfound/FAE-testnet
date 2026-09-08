@@ -107,7 +107,7 @@ async function verifyCoordinatorWorkProof(work){
   const {signature,...signed}=envelope,verified=await crypto.subtle.verify({name:'Ed25519'},key,signatureBytes,E.encode(stable(signed)));if(!verified)throw protocolError('Coordinator work receipt signature is invalid');
   const payload=envelope.payload;
   if(!payload||payload.proofVersion!==1||payload.coordinatorId!==envelope.signer.id||payload.coordinatorId!==work.coordinatorId)throw protocolError('Coordinator work receipt identity mismatch');
-  if(payload.network!==NETWORK||payload.jobId!==work.jobId||Number(payload.height)!==Number(work.header?.height)||payload.previousHash!==work.header?.previous_hash)throw protocolError('Coordinator work receipt chain binding mismatch');
+  if(payload.network!==NETWORK||payload.jobId!==work.jobId||payload.requestAddress!==work.requestAddress||Number(payload.height)!==Number(work.header?.height)||payload.previousHash!==work.header?.previous_hash)throw protocolError('Coordinator work receipt chain binding mismatch');
   if(Number(payload.blockDifficultyBits)!==Number(work.blockDifficultyBits)||Number(payload.targetDifficultyBits)!==Number(work.targetDifficultyBits)||payload.payoutCommitment!==work.payoutCommitment)throw protocolError('Coordinator work receipt target binding mismatch');
   if(payload.expiresAt!==work.expiresAt||stable(payload.ledgerState)!==stable(work.ledgerState)||stable(payload.pplnsWeights)!==stable(work.pplnsWeights))throw protocolError('Coordinator work receipt ledger binding mismatch');
   if(payload.weightsCommitment!==work.weightsCommitment||payload.templateCommitment!==work.templateCommitment)throw protocolError('Coordinator work receipt commitment mismatch');
@@ -116,14 +116,15 @@ async function verifyCoordinatorWorkProof(work){
 
 function rememberCoordinatorProof(base,work,verified){
   const priorIdentity=coordinatorIdentityByBase.get(base);if(priorIdentity&&priorIdentity!==verified.signerId)throw protocolError('Coordinator identity changed during this mining session');coordinatorIdentityByBase.set(base,verified.signerId);
-  const ledger=work.ledgerState||{},key=[verified.signerId,NETWORK,work.header.height,work.header.previous_hash,ledger.totalShares,ledger.lastEntryHash].join('|'),existing=coordinatorProofHistory.get(key);
+  const ledger=work.ledgerState||{},key=[verified.signerId,NETWORK,work.header.height,work.header.previous_hash,work.requestAddress,ledger.totalShares,ledger.lastEntryHash].join('|'),existing=coordinatorProofHistory.get(key);
   if(existing&&existing.payload.weightsCommitment!==verified.payload.weightsCommitment){const evidence={detectedAt:new Date().toISOString(),base,key,first:existing.envelope,second:verified.envelope};saveEquivocationEvidence(evidence);const error=protocolError('Coordinator ledger-weight equivocation detected','COORDINATOR_EQUIVOCATION');error.evidence=evidence;throw error}
   coordinatorProofHistory.set(key,verified);
 }
 
-async function validateShareWork(work,base){
+async function validateShareWork(work,base,expectedAddress){
   if(!work||work.ok!==true||work.workMode!=='share')throw protocolError('Coordinator returned invalid work mode');
   if(typeof work.jobId!=='string'||work.jobId.length<8)throw protocolError('Coordinator returned invalid job id');
+  if(!validAddr(work.requestAddress)||work.requestAddress!==expectedAddress)throw protocolError('Coordinator work reward-address binding mismatch');
   const header=work.header;if(!header||header.network!==NETWORK)throw protocolError('Coordinator work network mismatch');
   const blockBits=Number(work.blockDifficultyBits),targetBits=Number(work.targetDifficultyBits);
   if(!Number.isInteger(blockBits)||!Number.isInteger(targetBits)||blockBits!==Number(header.difficulty_bits)||targetBits<4||targetBits>blockBits)throw protocolError('Coordinator work difficulty mismatch');
@@ -132,6 +133,8 @@ async function validateShareWork(work,base){
   if(header.coinbase_mode!=='pplns-direct')throw protocolError('Coordinator payout mode is invalid');
   const payouts=Array.isArray(work.payouts)?work.payouts:null,outputs=Array.isArray(work.coinbase_outputs)?work.coinbase_outputs:null;if(!payouts||!outputs||!payouts.length||payouts.length>256||stable(payouts)!==stable(outputs))throw protocolError('Coordinator payout/output mismatch');
   const weights=normalizeWeights(work.pplnsWeights),weightsForHash=weights.map(row=>({address:row.address,weight:row.weight.toString()})),weightsCommitment=await hashCanonicalHex(weightsForHash);if(weightsCommitment!==work.weightsCommitment)throw protocolError('Coordinator weight commitment mismatch');
+  const ledger=work.ledgerState;if(!ledger||!Number.isSafeInteger(Number(ledger.totalShares))||Number(ledger.totalShares)<0||!/^[0-9a-f]{64}$/.test(String(ledger.lastEntryHash||'')))throw protocolError('Coordinator ledger state is invalid');
+  if(Number(ledger.totalShares)===0&&(weightsForHash.length!==1||weightsForHash[0].address!==expectedAddress||weightsForHash[0].weight!=='1'))throw protocolError('Coordinator empty-ledger fallback weight is invalid');
   let subsidy,fees;try{subsidy=BigInt(header.reward_atoms);fees=BigInt(header.fee_atoms??0)}catch{throw protocolError('Coordinator reward/fee values are invalid')}if(subsidy<0n||fees<0n)throw protocolError('Coordinator reward/fee values are invalid');
   const expected=allocateExpectedPayouts(subsidy+fees,weights);if(stable(expected)!==stable(payouts))throw protocolError('Coordinator payout does not match signed PPLNS weights');
   let payoutTotal=0n,previousAddress='';for(const [index,row] of payouts.entries()){const address=String(row?.address||''),amount=String(row?.amount_atoms??'');if(!validAddr(address)||!/^\d+$/.test(amount)||BigInt(amount)<=0n)throw protocolError('Coordinator payout output is invalid');if(index&&address<=previousAddress)throw protocolError('Coordinator payout outputs are not uniquely sorted');previousAddress=address;payoutTotal+=BigInt(amount)}if(payoutTotal!==subsidy+fees)throw protocolError('Coordinator payout total is not subsidy plus fees');
@@ -142,7 +145,7 @@ async function validateShareWork(work,base){
 }
 
 async function mineCoordinatorIteration(base,rewardAddress){
-  const work=await validateShareWork(await coordinatorApi(base,'/work',{method:'POST',body:JSON.stringify({address:rewardAddress})}),base);
+  const work=await validateShareWork(await coordinatorApi(base,'/work',{method:'POST',body:JSON.stringify({address:rewardAddress})}),base,rewardAddress);
   const pow=await localPow(work.header,Number(work.targetDifficultyBits),'PPLNS share');
   const accepted=await coordinatorApi(base,'/share',{method:'POST',body:JSON.stringify({jobId:work.jobId,nonce:pow.nonce,hash:pow.hash})});
   if(accepted.accepted!==true||!accepted.share)throw protocolError('Coordinator did not accept the share');
