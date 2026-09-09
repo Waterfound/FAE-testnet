@@ -21,12 +21,12 @@ function classify(error){const message=String(error?.message||error||'coordinato
 function requestIdentity(req,{trustProxy=false}={}){if(trustProxy){const forwarded=String(req.headers['x-forwarded-for']||'').split(',')[0].trim();if(forwarded)return forwarded}return req.socket.remoteAddress||'unknown'}
 function loadRotationChainFile(path){if(!path)return[];const parsed=JSON.parse(readFileSync(resolve(path),'utf8')),chain=Array.isArray(parsed)?parsed:(parsed?.rotation_chain??parsed?.chain);if(!Array.isArray(chain))throw new Error('Coordinator rotation chain file must contain an array');return chain}
 function validatePublishedRotationChain(chain,{identity,networkId,publicUrl}){
-  if(chain==null||chain.length===0)return[];
+  if(chain==null||chain.length===0)return{chain:[],sequence:0};
   if(!Array.isArray(chain))throw new Error('Coordinator rotation chain must be an array');
   if(!publicUrl)throw new Error('Coordinator public URL is required when publishing a rotation chain');
   const first=chain[0],firstSequence=Number(first?.payload?.sequence);if(!first?.signer?.id||!first?.signer?.publicKey||!Number.isSafeInteger(firstSequence)||firstSequence<1)throw new Error('Coordinator rotation chain first certificate is malformed');
-  verifyCoordinatorRotationChain(chain,{fromCoordinatorId:first.signer.id,fromPublicKey:first.signer.publicKey,networkId,endpoint:publicUrl,startSequence:firstSequence-1,targetCoordinatorId:identity.id,targetPublicKey:identity.publicKeyBase64});
-  return structuredClone(chain);
+  const verified=verifyCoordinatorRotationChain(chain,{fromCoordinatorId:first.signer.id,fromPublicKey:first.signer.publicKey,networkId,endpoint:publicUrl,startSequence:firstSequence-1,targetCoordinatorId:identity.id,targetPublicKey:identity.publicKeyBase64});
+  return{chain:structuredClone(chain),sequence:verified.sequence};
 }
 
 function makeShareReceipt(identity,networkId,entry,result){
@@ -61,9 +61,9 @@ export function createShareCoordinatorRuntime({
   if(!candidateApiUrl)throw new Error('FAE candidate API URL is required');
   const root=resolve(dataDir);mkdirSync(root,{recursive:true});
   const identityPath=join(root,'coordinator-identity.json'),logFile=join(root,'shares.ndjson');
-  const identity=loadOrCreateNodeIdentity(identityPath),adapter=new AuthoritativePplnsHttpAdapter({baseUrl:candidateApiUrl,networkId}),guard=new PeerGuard(guardOptions),normalizedPublicUrl=cleanUrl(publicUrl),publishedRotationChain=validatePublishedRotationChain(rotationChain,{identity,networkId,publicUrl:normalizedPublicUrl});
+  const identity=loadOrCreateNodeIdentity(identityPath),adapter=new AuthoritativePplnsHttpAdapter({baseUrl:candidateApiUrl,networkId}),guard=new PeerGuard(guardOptions),normalizedPublicUrl=cleanUrl(publicUrl),rotationState=validatePublishedRotationChain(rotationChain,{identity,networkId,publicUrl:normalizedPublicUrl}),publishedRotationChain=rotationState.chain,rotationSequence=rotationState.sequence;
   let coordinatorPromise=null;
-  const coordinator=async()=>coordinatorPromise??=(adapter.createCoordinator({identity,publicUrl:normalizedPublicUrl,logFile,windowSize,shareDifficultyDelta}));
+  const coordinator=async()=>coordinatorPromise??=(adapter.createCoordinator({identity,publicUrl:normalizedPublicUrl,rotationSequence,logFile,windowSize,shareDifficultyDelta}));
 
   const server=http.createServer(async(req,res)=>{
     const remote=requestIdentity(req,{trustProxy});
@@ -73,10 +73,10 @@ export function createShareCoordinatorRuntime({
       const cost=url.pathname==='/work'?3:url.pathname==='/share'?2:1,access=guard.allow(remote,cost);if(!access.allowed)return send(res,429,{ok:false,error:access.reason,retry_after_ms:access.retryAfterMs});
       const c=await coordinator();
       if(req.method==='GET'&&url.pathname==='/health'){
-        const upstream=await adapter.status();return send(res,200,{ok:true,service:COORDINATOR_VERSION,network:networkId,coordinator_id:identity.id,upstream_ok:true,upstream_height:upstream.height,pplns_coinbase_activation_height:upstream.pplns_coinbase_activation_height,mining_enabled:await adapter.activationReady(upstream),holds_payout_private_key:false,rotation_chain_length:publishedRotationChain.length});
+        const upstream=await adapter.status();return send(res,200,{ok:true,service:COORDINATOR_VERSION,network:networkId,coordinator_id:identity.id,upstream_ok:true,upstream_height:upstream.height,pplns_coinbase_activation_height:upstream.pplns_coinbase_activation_height,mining_enabled:await adapter.activationReady(upstream),holds_payout_private_key:false,rotation_sequence:rotationSequence,rotation_chain_length:publishedRotationChain.length});
       }
       if(req.method==='GET'&&url.pathname==='/status'){
-        const status=await c.status();return send(res,200,{ok:true,service:COORDINATOR_VERSION,network:networkId,coordinator_id:identity.id,public_url:normalizedPublicUrl,holds_payout_private_key:false,rotation_chain_length:publishedRotationChain.length,...status});
+        const status=await c.status();return send(res,200,{ok:true,service:COORDINATOR_VERSION,network:networkId,coordinator_id:identity.id,public_url:normalizedPublicUrl,holds_payout_private_key:false,rotation_sequence:rotationSequence,rotation_chain_length:publishedRotationChain.length,...status});
       }
       if(req.method==='GET'&&url.pathname==='/descriptor')return send(res,200,{ok:true,descriptor:await c.descriptor(),rotation_chain:structuredClone(publishedRotationChain)});
       if(req.method==='GET'&&url.pathname==='/shares'){
@@ -97,7 +97,7 @@ export function createShareCoordinatorRuntime({
   async function start(){if(server.listening)return api();await new Promise((resolveStart,reject)=>{server.once('error',reject);server.listen(port,host,()=>{server.off('error',reject);resolveStart()})});return api()}
   async function close(){if(server.listening)await new Promise(resolveClose=>server.close(resolveClose))}
   function baseUrl(){const address=server.address();if(!address||typeof address==='string')return null;return `http://${host}:${address.port}`}
-  function api(){return{server,start,close,baseUrl,identity,adapter,guard,getCoordinator:coordinator,dataDir:root,identityPath,logFile,rotationChain:structuredClone(publishedRotationChain)}}
+  function api(){return{server,start,close,baseUrl,identity,adapter,guard,getCoordinator:coordinator,dataDir:root,identityPath,logFile,rotationSequence,rotationChain:structuredClone(publishedRotationChain)}}
   return api();
 }
 
@@ -117,7 +117,7 @@ export async function startShareCoordinatorFromEnv(env=process.env){
   });
   await runtime.start();
   const status=await runtime.adapter.status();
-  console.log(JSON.stringify({ok:true,service:COORDINATOR_VERSION,url:runtime.baseUrl(),coordinator_id:runtime.identity.id,network:status.network,height:status.height,pplns_coinbase_activation_height:status.pplns_coinbase_activation_height,mining_enabled:await runtime.adapter.activationReady(status),holds_payout_private_key:false,rotation_chain_length:runtime.rotationChain.length}));
+  console.log(JSON.stringify({ok:true,service:COORDINATOR_VERSION,url:runtime.baseUrl(),coordinator_id:runtime.identity.id,network:status.network,height:status.height,pplns_coinbase_activation_height:status.pplns_coinbase_activation_height,mining_enabled:await runtime.adapter.activationReady(status),holds_payout_private_key:false,rotation_sequence:runtime.rotationSequence,rotation_chain_length:runtime.rotationChain.length}));
   const stop=async()=>{await runtime.close();process.exit(0)};process.once('SIGINT',stop);process.once('SIGTERM',stop);return runtime;
 }
 
