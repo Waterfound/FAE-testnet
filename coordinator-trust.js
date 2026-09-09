@@ -50,13 +50,14 @@
     if(!payload||payload.descriptorVersion!==1||payload.type!=='fairyelf-share-coordinator'||payload.coordinatorId!==envelope.signer.id)throw trustError('Coordinator descriptor identity is invalid');
     if(payload.network!==NETWORK||payload.mode!=='pplns-direct-pay')throw trustError('Coordinator descriptor network or mode mismatch');
     const endpoint=normalizeCoordinatorUrl(payload.endpoint);if(endpoint!==base)throw trustError('Coordinator descriptor endpoint mismatch');
+    const rotationSequence=payload.rotationSequence==null?0:Number(payload.rotationSequence);if(!Number.isSafeInteger(rotationSequence)||rotationSequence<0)throw trustError('Coordinator descriptor rotation sequence is invalid');
     const payloadIssued=Date.parse(payload.issuedAt),validUntil=Date.parse(payload.validUntil);
     if(!Number.isFinite(payloadIssued)||!Number.isFinite(validUntil)||payloadIssued>Date.now()+60_000||validUntil<=Date.now()||validUntil-payloadIssued<=0||validUntil-payloadIssued>DESCRIPTOR_MAX_LIFETIME_MS)throw trustError('Coordinator descriptor validity window is invalid');
     if(Math.abs(payloadIssued-issued)>5_000)throw trustError('Coordinator descriptor issuance times are inconsistent');
     if(!Number.isSafeInteger(Number(payload.windowSize))||Number(payload.windowSize)<1||Number(payload.windowSize)>100_000)throw trustError('Coordinator descriptor window size is invalid');
     if(!Number.isSafeInteger(Number(payload.shareDifficultyDelta))||Number(payload.shareDifficultyDelta)<1||Number(payload.shareDifficultyDelta)>20)throw trustError('Coordinator descriptor share difficulty is invalid');
     if(payload.upstreamNodeIdentity!=null&&!/^[0-9a-f]{64}$/.test(String(payload.upstreamNodeIdentity)))throw trustError('Coordinator descriptor upstream identity is invalid');
-    return{coordinatorId:envelope.signer.id,publicKey:envelope.signer.publicKey,endpoint:base,payload,envelope};
+    return{coordinatorId:envelope.signer.id,publicKey:envelope.signer.publicKey,endpoint:base,rotationSequence,payload,envelope};
   }
   async function verifyRotationCertificate(base,certificate,{fromCoordinatorId,fromPublicKey,sequence}){
     if(!certificate||certificate.domain!=='FAIRYELF_AUTH_V1'||certificate.version!==1||certificate.kind!=='coordinator-rotation')throw trustError('Coordinator rotation certificate envelope is invalid');
@@ -85,16 +86,19 @@
       history=history.slice(-MAX_ROTATION_CHAIN);currentId=verified.toCoordinatorId;currentPublicKey=verified.toPublicKey;sequence=verified.sequence;
     }
     if(currentId!==target.coordinatorId||currentPublicKey!==target.publicKey)throw trustError('Coordinator rotation chain does not reach the presented descriptor identity');
+    if(sequence!==target.rotationSequence)throw trustError('Coordinator rotation chain/descriptor sequence mismatch');
     return{...pin,coordinatorId:currentId,publicKey:currentPublicKey,rotationSequence:sequence,rotations:history,lastSeenAt:new Date().toISOString()};
   }
   async function pinDescriptor(base,verified,rotationChain=[]){
     const store=readTrustStore(),existing=store[base];
     if(existing){
       const pin=validateStoredPin(base,existing);
-      if(pin.coordinatorId===verified.coordinatorId&&pin.publicKey===verified.publicKey){store[base]={...pin,lastSeenAt:new Date().toISOString()}}
-      else store[base]=await authorizeRotationChain(base,pin,rotationChain,verified);
+      if(pin.coordinatorId===verified.coordinatorId&&pin.publicKey===verified.publicKey){
+        if(verified.rotationSequence<pin.rotationSequence)throw trustError('Coordinator descriptor rotation sequence rollback detected');
+        store[base]={...pin,rotationSequence:verified.rotationSequence,lastSeenAt:new Date().toISOString()};
+      }else store[base]=await authorizeRotationChain(base,pin,rotationChain,verified);
     }else{
-      const now=new Date().toISOString();store[base]={version:1,endpoint:base,coordinatorId:verified.coordinatorId,publicKey:verified.publicKey,firstSeenAt:now,lastSeenAt:now,rotationSequence:0,rotations:[]};
+      const now=new Date().toISOString();store[base]={version:1,endpoint:base,coordinatorId:verified.coordinatorId,publicKey:verified.publicKey,firstSeenAt:now,lastSeenAt:now,rotationSequence:verified.rotationSequence,rotations:[]};
     }
     writeTrustStore(store);coordinatorIdentityByBase.set(base,store[base].coordinatorId);return store[base];
   }
