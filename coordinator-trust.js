@@ -94,8 +94,8 @@
     if(existing){
       const pin=validateStoredPin(base,existing);
       if(pin.coordinatorId===verified.coordinatorId&&pin.publicKey===verified.publicKey){
-        if(verified.rotationSequence<pin.rotationSequence)throw trustError('Coordinator descriptor rotation sequence rollback detected');
-        store[base]={...pin,rotationSequence:verified.rotationSequence,lastSeenAt:new Date().toISOString()};
+        if(verified.rotationSequence!==pin.rotationSequence)throw trustError('Coordinator descriptor rotation sequence changed without an identity rotation');
+        store[base]={...pin,lastSeenAt:new Date().toISOString()};
       }else store[base]=await authorizeRotationChain(base,pin,rotationChain,verified);
     }else{
       const now=new Date().toISOString();store[base]={version:1,endpoint:base,coordinatorId:verified.coordinatorId,publicKey:verified.publicKey,firstSeenAt:now,lastSeenAt:now,rotationSequence:verified.rotationSequence,rotations:[]};
