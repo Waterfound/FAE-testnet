@@ -26,6 +26,7 @@ jobs:
         run: |
           sha256sum sovereign-forge/node/fae-node.mjs
           sha256sum sovereign-forge/browser/mining.js
+          sha256sum sovereign-forge/browser/coordinator-trust.js
 
       - name: Verify imported Sovereign Forge snapshot
         run: sha256sum -c FAE_FORGE_MAIN.sha256
@@ -39,7 +40,9 @@ jobs:
           node --check wallet-crypto.js
           node --check wallet.js
           node --check mining.js
+          node --check coordinator-trust.js
           node --check network-status.js
+          node --check sovereign-forge/browser/coordinator-trust.js
           node --check sovereign-forge/node/fae-node-v6-candidate.mjs
           node --check sovereign-forge/node/fae-share-coordinator-v1-candidate.mjs
           node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
@@ -64,14 +67,17 @@ jobs:
             exit 1
           fi
 
-      - name: Verify browser wallet, client and coordinator fallback flows
+      - name: Verify browser wallet, client, coordinator fallback and persistent trust flows
         run: |
           node tests/crypto-compat.mjs
           node tests/client-smoke.mjs
           node tests/mining-coordinator-smoke.mjs
+          node tests/coordinator-trust-smoke.mjs
 
-      - name: Verify deployed miner matches Forge snapshot
-        run: cmp mining.js sovereign-forge/browser/mining.js
+      - name: Verify deployed browser security sources match Forge snapshot
+        run: |
+          cmp mining.js sovereign-forge/browser/mining.js
+          cmp coordinator-trust.js sovereign-forge/browser/coordinator-trust.js
 
       - name: Install locked reference-node package
         run: npm ci --prefix sovereign-forge/node
