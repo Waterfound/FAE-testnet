@@ -44,8 +44,8 @@ const stored=JSON.parse(sharedStorage.get('fae-coordinator-trust-v1'));assert.eq
 // A new browser session accepts the same cryptographic identity.
 const reloadA=makeSession(identityA);const reloadedWork=await reloadA.context.coordinatorApi(BASE,'/work');assert.equal(reloadedWork.coordinatorId,identityA.id);assert.equal(reloadA.calls.work,1);
 
-// A validly signed but different identity on the same endpoint is rejected before /work.
-const swapped=makeSession(identityB);let swapError=null;try{await swapped.context.coordinatorApi(BASE,'/work')}catch(error){swapError=error}assert.equal(swapError?.code,'COORDINATOR_TRUST');assert.match(swapError?.message||'',/identity changed since first trusted contact/i);assert.equal(swapped.calls.descriptor,1);assert.equal(swapped.calls.work,0);
+// A validly signed but different identity on the same endpoint is rejected before /work unless an explicit bounded rotation chain exists.
+const swapped=makeSession(identityB);let swapError=null;try{await swapped.context.coordinatorApi(BASE,'/work')}catch(error){swapError=error}assert.equal(swapError?.code,'COORDINATOR_TRUST');assert.match(swapError?.message||'',/identity changed without a bounded rotation chain/i);assert.equal(swapped.calls.descriptor,1);assert.equal(swapped.calls.work,0);
 const afterSwap=JSON.parse(sharedStorage.get('fae-coordinator-trust-v1'));assert.equal(afterSwap[BASE].coordinatorId,identityA.id);
 
 // Even the pinned identity cannot sign a descriptor for another endpoint and use it here.
