@@ -45,6 +45,7 @@ jobs:
           node --check sovereign-forge/browser/coordinator-trust.js
           node --check sovereign-forge/node/fae-node-v6-candidate.mjs
           node --check sovereign-forge/node/fae-share-coordinator-v1-candidate.mjs
+          node --check sovereign-forge/node/authoritative/coordinator-rotation.mjs
           node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           node --check sovereign-forge/node/authoritative/peer-diversity.mjs
           node --check sovereign-forge/node/authoritative/peer-directory.mjs
@@ -67,12 +68,13 @@ jobs:
             exit 1
           fi
 
-      - name: Verify browser wallet, client, coordinator fallback and persistent trust flows
+      - name: Verify browser wallet, client, coordinator fallback, trust and rotation flows
         run: |
           node tests/crypto-compat.mjs
           node tests/client-smoke.mjs
           node tests/mining-coordinator-smoke.mjs
           node tests/coordinator-trust-smoke.mjs
+          node tests/coordinator-rotation-smoke.mjs
 
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
@@ -105,6 +107,9 @@ jobs:
 
       - name: Verify executable Authoritative coordinator runtime
         run: node --test sovereign-forge/tests/authoritative-coordinator-runtime.mjs
+
+      - name: Verify cryptographic coordinator rotation certificates and runtime publication
+        run: node --test sovereign-forge/tests/authoritative-coordinator-rotation.mjs
 
       - name: Verify signed durable coordinator share receipts
         run: node --test sovereign-forge/tests/authoritative-share-receipt.mjs
