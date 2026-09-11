@@ -46,6 +46,33 @@ jobs:
         run: node sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs
       - name: Build isolated validation image
         run: docker build -f sovereign-forge/node/Dockerfile.full-target-shadow-validation -t fae-shadow-validation:ci sovereign-forge/node
+      - name: Boot validation image with persistent volume and clean shutdown
+        run: |
+          set -euo pipefail
+          docker volume create fae-shadow-validation-ci-data >/dev/null
+          cleanup() {
+            docker rm -f fae-shadow-validation-ci >/dev/null 2>&1 || true
+            docker volume rm -f fae-shadow-validation-ci-data >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker run -d --name fae-shadow-validation-ci \
+            -p 127.0.0.1:18788:8788 \
+            -v fae-shadow-validation-ci-data:/data \
+            -e FAE_SHADOW_LABEL=container-ci \
+            -e FAE_SHADOW_PROFILE=trusted \
+            -e FAE_SHADOW_SYNC=0 \
+            fae-shadow-validation:ci >/dev/null
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18788/status > /tmp/fae-shadow-status.json; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" = 1
+          node -e "const fs=require('fs');const s=JSON.parse(fs.readFileSync('/tmp/fae-shadow-status.json'));if(s.status!=='lab-only-no-consensus-authority'||s.height!==12||s.policy_id!==s.secure_context_binding)process.exit(1)"
+          docker stop --time 10 fae-shadow-validation-ci >/dev/null
+          docker wait fae-shadow-validation-ci >/dev/null
+          docker run --rm --user root -v fae-shadow-validation-ci-data:/data --entrypoint sh fae-shadow-validation:ci -c \
+            "grep -q '\"event\":\"online\"' /data/full-target-shadow-evidence.jsonl && grep -q '\"event\":\"shutdown\"' /data/full-target-shadow-evidence.jsonl"
       - name: Preserve strict authority isolation
         run: |
           ! grep -q "shadow-validation-fixtures" sovereign-forge/node/authoritative/fae-v4-core.mjs
