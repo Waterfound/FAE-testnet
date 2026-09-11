@@ -1,46 +1,14 @@
 import {asertTargetCandidate,targetFromLeadingZeroBits,targetFromHex,targetHex,POW_LIMIT,TARGET_SECONDS,TESTNET_CANDIDATE_HALF_LIFE_SECONDS} from './difficulty-timestamp-candidate.mjs';
-import {legacyWorkFromBits,targetWork} from './full-target-activation-candidate.mjs';
+import {legacyBitsWork,workFromTarget} from './full-target-migration-candidate.mjs';
 
 export const ACTIVATION_BOUNDARY_STATUS='candidate-not-active-consensus';
-
 function int(v,label){const n=Number(v);if(!Number.isSafeInteger(n))throw new Error(`${label}_must_be_safe_integer`);return n}
 function pos(v,label){const n=int(v,label);if(n<=0)throw new Error(`${label}_must_be_positive`);return n}
 function hash64(v,label){if(typeof v!=='string'||!/^[0-9a-f]{64}$/i.test(v))throw new Error(`${label}_invalid`);return v.toLowerCase()}
-
-export function freezeActivationBoundary({activationHeight,anchorHeight,anchorHash,anchorDifficultyBits,anchorParentTimeSeconds,halfLifeSeconds=TESTNET_CANDIDATE_HALF_LIFE_SECONDS,targetSeconds=TARGET_SECONDS,powLimit=POW_LIMIT}){
-  const activation=pos(activationHeight,'activation_height'),anchor=pos(anchorHeight,'anchor_height');
-  if(anchor!==activation)throw new Error('activation_anchor_height_mismatch');
-  const bits=int(anchorDifficultyBits,'anchor_difficulty_bits');
-  return Object.freeze({status:ACTIVATION_BOUNDARY_STATUS,activation_height:activation,anchor_height:anchor,anchor_hash:hash64(anchorHash,'anchor_hash'),anchor_difficulty_bits:bits,anchor_target_hex:targetHex(targetFromLeadingZeroBits(bits)),anchor_parent_time_seconds:int(anchorParentTimeSeconds,'anchor_parent_time_seconds'),half_life_seconds:pos(halfLifeSeconds,'half_life_seconds'),target_seconds:pos(targetSeconds,'target_seconds'),pow_limit_hex:targetHex(BigInt(powLimit))});
-}
-
+export function freezeActivationBoundary({activationHeight,anchorHeight,anchorHash,anchorDifficultyBits,anchorParentTimeSeconds,halfLifeSeconds=TESTNET_CANDIDATE_HALF_LIFE_SECONDS,targetSeconds=TARGET_SECONDS,powLimit=POW_LIMIT}){const activation=pos(activationHeight,'activation_height'),anchor=pos(anchorHeight,'anchor_height');if(anchor!==activation)throw new Error('activation_anchor_height_mismatch');const bits=int(anchorDifficultyBits,'anchor_difficulty_bits');return Object.freeze({status:ACTIVATION_BOUNDARY_STATUS,activation_height:activation,anchor_height:anchor,anchor_hash:hash64(anchorHash,'anchor_hash'),anchor_difficulty_bits:bits,anchor_target_hex:targetHex(targetFromLeadingZeroBits(bits)),anchor_parent_time_seconds:int(anchorParentTimeSeconds,'anchor_parent_time_seconds'),half_life_seconds:pos(halfLifeSeconds,'half_life_seconds'),target_seconds:pos(targetSeconds,'target_seconds'),pow_limit_hex:targetHex(BigInt(powLimit))});}
 export function regimeForHeight(height,boundary){const h=pos(height,'height');if(!boundary)throw new Error('boundary_required');return h<boundary.activation_height?'legacy':'full-target';}
-
-export function expectedTargetAtHeight({height,timestampMs,boundary}){
-  const h=pos(height,'height');if(regimeForHeight(h,boundary)==='legacy')return null;
-  return asertTargetCandidate({anchorTarget:targetFromHex(boundary.anchor_target_hex),anchorHeight:boundary.anchor_height,anchorParentTimeSeconds:boundary.anchor_parent_time_seconds,evaluationHeight:h,evaluationTimeSeconds:Math.floor(int(timestampMs,'timestamp_ms')/1000),targetSeconds:boundary.target_seconds,halfLifeSeconds:boundary.half_life_seconds,powLimit:targetFromHex(boundary.pow_limit_hex)});
-}
-
-export function validateBoundaryBlock(block,boundary){
-  const h=pos(block?.height,'height'),regime=regimeForHeight(h,boundary);
-  if(regime==='legacy'){
-    if(block.target_hex!==undefined&&block.target_hex!==null)return{ok:false,error:'pre_activation_target_forbidden',regime};
-    if(!Number.isSafeInteger(Number(block.difficulty_bits)))return{ok:false,error:'legacy_bits_required',regime};
-    return{ok:true,regime,work:legacyWorkFromBits(Number(block.difficulty_bits))};
-  }
-  if(block.difficulty_bits!==undefined&&block.difficulty_bits!==null)return{ok:false,error:'post_activation_legacy_bits_forbidden',regime};
-  let target;try{target=targetFromHex(block.target_hex)}catch{return{ok:false,error:'full_target_required',regime};}
-  const expected=expectedTargetAtHeight({height:h,timestampMs:block.timestamp_ms,boundary});
-  if(target!==expected)return{ok:false,error:'unexpected_activation_target',regime,expected_target_hex:targetHex(expected)};
-  return{ok:true,regime,work:targetWork(target)};
-}
-
-export function cumulativeMixedWork(blocks,boundary){
-  if(!Array.isArray(blocks))throw new Error('blocks_required');let total=0n,last=0;
-  for(const block of blocks){const h=pos(block?.height,'height');if(last&&h!==last+1)throw new Error('noncontiguous_chain');const verdict=validateBoundaryBlock(block,boundary);if(!verdict.ok)throw Object.assign(new Error(verdict.error),{verdict});total+=verdict.work;last=h;}
-  return total;
-}
-
+export function expectedTargetAtHeight({height,timestampMs,boundary}){const h=pos(height,'height');if(regimeForHeight(h,boundary)==='legacy')return null;return asertTargetCandidate({anchorTarget:targetFromHex(boundary.anchor_target_hex),anchorHeight:boundary.anchor_height,anchorParentTimeSeconds:boundary.anchor_parent_time_seconds,evaluationHeight:h,evaluationTimeSeconds:Math.floor(int(timestampMs,'timestamp_ms')/1000),targetSeconds:boundary.target_seconds,halfLifeSeconds:boundary.half_life_seconds,powLimit:targetFromHex(boundary.pow_limit_hex)});}
+export function validateBoundaryBlock(block,boundary){const h=pos(block?.height,'height'),regime=regimeForHeight(h,boundary);if(regime==='legacy'){if(block.target_hex!==undefined&&block.target_hex!==null)return{ok:false,error:'pre_activation_target_forbidden',regime};if(!Number.isSafeInteger(Number(block.difficulty_bits)))return{ok:false,error:'legacy_bits_required',regime};return{ok:true,regime,work:legacyBitsWork(Number(block.difficulty_bits))};}if(block.difficulty_bits!==undefined&&block.difficulty_bits!==null)return{ok:false,error:'post_activation_legacy_bits_forbidden',regime};let target;try{target=targetFromHex(block.target_hex)}catch{return{ok:false,error:'full_target_required',regime};}const expected=expectedTargetAtHeight({height:h,timestampMs:block.timestamp_ms,boundary});if(target!==expected)return{ok:false,error:'unexpected_activation_target',regime,expected_target_hex:targetHex(expected)};return{ok:true,regime,work:workFromTarget(target)};}
+export function cumulativeMixedWork(blocks,boundary){if(!Array.isArray(blocks))throw new Error('blocks_required');let total=0n,last=0;for(const block of blocks){const h=pos(block?.height,'height');if(last&&h!==last+1)throw new Error('noncontiguous_chain');const verdict=validateBoundaryBlock(block,boundary);if(!verdict.ok)throw Object.assign(new Error(verdict.error),{verdict});total+=verdict.work;last=h;}return total;}
 export function compareBoundaryForks(a,b,boundary){const aw=cumulativeMixedWork(a,boundary),bw=cumulativeMixedWork(b,boundary);return{winner:aw===bw?'tie':aw>bw?'a':'b',a_work:aw,b_work:bw};}
-
 export function rollbackCrossesActivation({oldTipHeight,newTipHeight,boundary}){const oldTip=pos(oldTipHeight,'old_tip_height'),newTip=pos(newTipHeight,'new_tip_height');if(newTip>=oldTip)throw new Error('rollback_requires_lower_tip');return{crosses:oldTip>=boundary.activation_height&&newTip<boundary.activation_height,old_regime:regimeForHeight(oldTip,boundary),new_regime:regimeForHeight(newTip,boundary)};}
