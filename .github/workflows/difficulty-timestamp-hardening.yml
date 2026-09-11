@@ -2,23 +2,29 @@ name: difficulty-timestamp-hardening
 
 on:
   push:
-    branches: [difficulty-timestamp-hardening]
+    branches: [difficulty-timestamp-hardening, difficulty-timestamp-redteam]
     paths:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-hardening.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-redteam.mjs'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_VECTORS.json'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_HARDENING.md'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_REDTEAM.md'
       - '.github/workflows/difficulty-timestamp-hardening.yml'
   pull_request:
     paths:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-hardening.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-redteam.mjs'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_VECTORS.json'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_HARDENING.md'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_REDTEAM.md'
       - '.github/workflows/difficulty-timestamp-hardening.yml'
   workflow_dispatch:
 
@@ -39,12 +45,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Syntax check candidate, shadow observer and suites
+      - name: Syntax check candidate, shadow observer and red-team suites
         run: |
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs
+          node --check sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-hardening.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+          node --check sovereign-forge/tests/difficulty-timestamp-redteam.mjs
 
       - name: Run deterministic and adversarial vectors
         run: node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
@@ -52,21 +60,28 @@ jobs:
       - name: Run observer-only shadow bridge tests
         run: node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
 
+      - name: Run seeded stochastic and clock-skew red-team
+        run: node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+
       - name: Assert integer-only candidate target arithmetic
         run: |
           ! grep -Eq 'Math\.(log|log2|exp|pow)' sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
           grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
           grep -q '"candidate-not-active-consensus"' sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_VECTORS.json
           grep -q "observer-only-not-consensus" sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs
+          grep -q "activation-plumbing-candidate-not-consensus" sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs
 
       - name: Assert current v4 consensus authority is untouched
         run: |
           ! grep -q "difficulty-timestamp-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "difficulty-timestamp-template-policy" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "difficulty-timestamp-candidate" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "difficulty-timestamp-template-policy" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "difficulty-timestamp-candidate" sovereign-forge/node/fae-node-v6-candidate.mjs
           ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "difficulty-timestamp-template-policy" sovereign-forge/node/fae-node-v6-candidate.mjs
           grep -q "export const RETARGET_INTERVAL=20" sovereign-forge/node/authoritative/fae-v4-core.mjs
 
       - name: Preserve Independent Node v1.1 and consensus-v3 shadow gates
