@@ -3,6 +3,7 @@ import {mkdir,readFile,rename,writeFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {NETWORK,ZERO_HASH} from '../authoritative/fae-v4-core.mjs';
+import {stableStringify} from '../authoritative/canonical.mjs';
 import {loadOrCreateNodeIdentity,signEnvelope,verifyEnvelope} from '../authoritative/node-identity.mjs';
 import {SecureChannelHub,establishSecurePeerSession} from '../authoritative/secure-channel.mjs';
 import {activationPolicyDescriptor,assertActivationPolicyCompatible} from '../authoritative/activation-policy-identity-candidate.mjs';
@@ -24,7 +25,7 @@ function send(res,status,payload){res.writeHead(status,{'content-type':'applicat
 function blockAt(chain,height){return height===0?{height:0,hash:ZERO_HASH}:chain[height-1]??null}
 function headerRecord(block){if(!block?.header_json||typeof block.header_json!=='object')throw new Error('shadow_block_header_json_required');const base={height:Number(block.height),hash:String(block.hash),previous_hash:String(block.previous_hash),timestamp_ms:Number(block.timestamp_ms),reward_atoms:String(block.reward_atoms),header_json:jsonClone(block.header_json)};if(block.difficulty_bits!==undefined)base.difficulty_bits=Number(block.difficulty_bits);if(block.target_hex!==undefined)base.target_hex=String(block.target_hex);return base}
 function page(chain,from,limit){return chain.slice(Math.max(0,from-1),Math.max(0,from-1)+limit)}
-function trustedPrefixMatches(chain,trusted){if(chain.length<trusted.length)return false;for(let i=0;i<trusted.length;i++)if(JSON.stringify(chain[i])!==JSON.stringify(trusted[i]))return false;return true}
+function trustedPrefixMatches(chain,trusted){if(chain.length<trusted.length)return false;for(let i=0;i<trusted.length;i++)if(stableStringify(chain[i])!==stableStringify(trusted[i]))return false;return true}
 function chainWork(chain,policy){return validateBranchChain(chain,policy,{enforceFutureDrift:false}).work}
 function locator(chain){const result=[];for(let h=chain.length;h>=0&&result.length<128;h--)result.push({height:h,hash:h===0?ZERO_HASH:String(chain[h-1].hash)});return result}
 function commonAncestor(chain,remoteLocator){if(!Array.isArray(remoteLocator))throw new Error('shadow_locator_required');for(const entry of remoteLocator){const h=Number(entry?.height),hash=String(entry?.hash??'');if(!Number.isSafeInteger(h)||h<0||h>chain.length||!/^[0-9a-f]{64}$/.test(hash))continue;const local=blockAt(chain,h);if(local&&String(local.hash)===hash)return{height:h,hash}}return null}
