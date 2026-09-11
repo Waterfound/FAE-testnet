@@ -17,20 +17,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Syntax check
         run: |
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+          python -m py_compile sovereign-forge/tests/difficulty_timestamp_reference.py
       - name: Existing deterministic gate
         run: node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
+      - name: Independent Python vector parity
+        run: python sovereign-forge/tests/difficulty_timestamp_reference.py
       - name: Existing shadow gate
         run: node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
       - name: Seeded stochastic and clock-skew red-team
         run: node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
-      - name: Authority fences
+      - name: Independence and authority fences
         run: |
+          ! grep -q "difficulty-timestamp-candidate" sovereign-forge/tests/difficulty_timestamp_reference.py
           ! grep -q "difficulty-timestamp-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "difficulty-timestamp-template-policy" sovereign-forge/node/authoritative/fae-v4-core.mjs
