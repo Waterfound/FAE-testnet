@@ -50,6 +50,9 @@ jobs:
           node --check sovereign-forge/node/authoritative/peer-diversity.mjs
           node --check sovereign-forge/node/authoritative/peer-directory.mjs
           node --check sovereign-forge/node/authoritative/pplns-http-adapter.mjs
+          node --check sovereign-forge/node/authoritative/consensus-v3-shadow-codec.mjs
+          node --check sovereign-forge/node/authoritative/consensus-v3-shadow-harness.mjs
+          node --check sovereign-forge/tests/consensus-v3-shadow-activation.mjs
           node --check sovereign-forge/supabase/functions/fae-public-testnet-v4-authoritative-candidate/index.ts
           node --check sovereign-forge/supabase/functions/fae-chain-feed-v2-authoritative-candidate/index.ts
           node --check sovereign-forge/deploy/coordinator-dedicated/canary.mjs
@@ -101,6 +104,13 @@ jobs:
 
       - name: Verify Authoritative coordinator signer and codec
         run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+
+      - name: Verify non-authoritative consensus v3 shadow parity
+        run: |
+          node --test sovereign-forge/tests/consensus-v3-shadow-activation.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/consensus-codec-v3.mjs
+          grep -q "shadow-only-not-consensus" sovereign-forge/node/authoritative/consensus-v3-shadow-codec.mjs
+          grep -q "dual-validation-observer-only" sovereign-forge/node/authoritative/consensus-v3-shadow-harness.mjs
 
       - name: Verify Authoritative PPLNS HTTP candidate adapter
         run: node --test sovereign-forge/tests/authoritative-pplns-http-adapter.mjs
