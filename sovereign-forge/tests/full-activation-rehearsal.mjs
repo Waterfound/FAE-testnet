@@ -35,7 +35,7 @@ assert.deepEqual(decodeFullTargetBlockCandidate(encodeFullTargetBlockCandidate(m
 const reorderedHeader=Object.fromEntries(Object.entries(mined4.candidate.header).reverse());
 const reorderedCandidate={txids:[...mined4.candidate.txids],hash:mined4.candidate.hash,nonce:mined4.candidate.nonce,header:reorderedHeader};
 const reorderedVerdict=validateFullActivationCandidate(prefix,reorderedCandidate,policy,{nowMs:activationTimestamp});
-assert.equal(reorderedVerdict.ok,true,`semantic key-order variant rejected: ${JSON.stringify(reorderedVerdict)}`);
+assert.equal(reorderedVerdict.ok,true,`semantic key-order variant rejected: ${reorderedVerdict.error??'unknown'} at ${reorderedVerdict.stage??'unknown'}`);
 
 let chainA=appendRehearsedCandidate(prefix,mined4.candidate,policy,{nowMs:activationTimestamp});
 
