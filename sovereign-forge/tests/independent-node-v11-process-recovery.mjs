@@ -24,7 +24,15 @@ function startProcess({port,dataFile,durableFile,identityFile,trustFile}){
   const child=spawn(process.execPath,[entrypoint],{env:{...process.env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),FAE_DATA_FILE:dataFile,FAE_DURABLE_STATE_FILE:durableFile,FAE_IDENTITY_FILE:identityFile,FAE_PEER_TRUST_FILE:trustFile,FAE_SYNC:'0',FAE_DURABLE_CHECKPOINT_MS:'1000'},stdio:['ignore','pipe','pipe']});
   let stdout='',stderr='';child.stdout.on('data',chunk=>stdout+=chunk);child.stderr.on('data',chunk=>stderr+=chunk);child.logs=()=>({stdout,stderr});return child;
 }
-async function hardStop(child){if(!child||child.exitCode!==null)return;child.kill('SIGKILL');await Promise.race([new Promise(resolve=>child.once('exit',resolve)),delay(2000)]);if(child.exitCode===null)throw new Error('child did not exit after SIGKILL')}
+async function hardStop(child){
+  if(!child||child.exitCode!==null||child.signalCode!==null)return;
+  const exited=new Promise(resolve=>child.once('exit',(code,signal)=>resolve({code,signal})));
+  if(!child.kill('SIGKILL'))throw new Error('failed to send SIGKILL to child');
+  const result=await Promise.race([exited,delay(2000).then(()=>null)]);
+  if(!result)throw new Error('child did not emit exit after SIGKILL');
+  if(result.code!==null&&result.code!==0)throw new Error(`child exited unexpectedly with code ${result.code}`);
+  assert.equal(result.signal,'SIGKILL');
+}
 
 test('P2P v6 candidate survives hard crash and recovers corrupted raw state from durable snapshot',async context=>{
   const dir=await mkdtemp(join(tmpdir(),'fae-v11-process-'));context.after(()=>rm(dir,{recursive:true,force:true}));
