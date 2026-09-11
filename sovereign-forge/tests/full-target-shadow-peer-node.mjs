@@ -24,24 +24,17 @@ try{
   const a=createFullTargetShadowPeerNode(options('a')),b=createFullTargetShadowPeerNode(options('b')),c=createFullTargetShadowPeerNode(options('c')),wrong=createFullTargetShadowPeerNode(options('wrong',wrongPolicy));nodes.push(a,b,c,wrong);for(const node of nodes)await node.start();
   assert.equal(a.status().status,FULL_TARGET_SHADOW_NODE_STATUS);assert.equal(a.status().height,12);assert.equal(a.status().policy_id,b.status().policy_id);
 
-  // Partition phase: A and B evolve independently from the same H12 checkpoint.
   const h13Time=trusted.at(-1).timestamp_ms+180_000;
   const branchA=await extend(a,{minerAddress:minerA,legacyTimestamp:h13Time,activationDelayMs:48*60*60_000,label:'a'});
   const branchB=await extend(b,{minerAddress:minerB,legacyTimestamp:h13Time+1_000,activationDelayMs:6*60*60_000,label:'b'});
   assert.equal(a.status().height,15);assert.equal(b.status().height,15);assert.notEqual(a.status().tip_hash,b.status().tip_hash);assert.ok(BigInt(b.status().chain_work)>BigInt(a.status().chain_work),'B should carry more cumulative work');
 
-  // Reconnect C first to weaker A, then to stronger B. The second sync must
-  // discover H12 below activation and reorg through H13 -> H14 activation.
-  const first=await c.syncPeer(a.baseUrl());assert.equal(first.adopted,true);assert.equal(c.status().tip_hash,a.status().tip_hash);
-  const second=await c.syncPeer(b.baseUrl());assert.equal(second.adopted,true);assert.equal(c.status().tip_hash,b.status().tip_hash);assert.equal(second.headers_validated,3);assert.equal(second.blocks_validated,3);
+  const first=await c.syncPeer(a.baseUrl());assert.equal(first.adopted,true,`first sync: ${JSON.stringify(first)}`);assert.equal(c.status().tip_hash,a.status().tip_hash);
+  const second=await c.syncPeer(b.baseUrl());assert.equal(second.adopted,true,`second sync: ${JSON.stringify(second)}`);assert.equal(c.status().tip_hash,b.status().tip_hash);assert.equal(second.headers_validated,3);assert.equal(second.blocks_validated,3);
 
-  // Same-height lower-work branch is validated but not adopted after convergence.
-  const back=await c.syncPeer(a.baseUrl());assert.equal(back.adopted,false);assert.equal(back.reason,'validated_but_not_preferred');
-
-  // Mismatched activation policy fails during signed hello, before secure sync.
+  const back=await c.syncPeer(a.baseUrl());assert.equal(back.adopted,false);assert.equal(back.reason,'validated_but_not_preferred',`back sync: ${JSON.stringify(back)}`);
   await assert.rejects(()=>c.syncPeer(wrong.baseUrl()),/activation_policy_mismatch/);
 
-  // Restart from atomically persisted state and re-validate the whole suffix.
   await c.close();nodes.splice(nodes.indexOf(c),1);
   const restarted=createFullTargetShadowPeerNode(options('c'));nodes.push(restarted);await restarted.start();
   assert.equal(restarted.status().height,15);assert.equal(restarted.status().tip_hash,b.status().tip_hash);assert.equal(restarted.status().chain_work,b.status().chain_work);assert.equal(restarted.status().secure_context_binding,restarted.status().policy_id);
