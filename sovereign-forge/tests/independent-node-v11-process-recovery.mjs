@@ -19,6 +19,7 @@ async function freePort(){const server=net.createServer();await new Promise((res
 async function json(url,options={}){const response=await fetch(url,options),body=await response.json();if(!response.ok)throw new Error(`${response.status} ${url}: ${JSON.stringify(body)}`);return body}
 async function waitStatus(base,height){let lastError=null;for(let i=0;i<200;i++){try{const status=await json(`${base}/status`);if(status.height===height)return status;lastError=new Error(`height=${status.height}`)}catch(error){lastError=error}await delay(50)}throw new Error(`node did not reach height ${height}: ${lastError?.message||'timeout'}`)}
 async function waitDurableHeight(path,height){let last=null;for(let i=0;i<120;i++){try{const envelope=JSON.parse(await readFile(path,'utf8'));last=envelope?.state?.chain?.length;if(last===height)return envelope}catch{}await delay(50)}throw new Error(`durable snapshot did not reach height ${height}; last=${last}`)}
+async function waitLog(child,pattern,{timeoutMs=3000}={}){const deadline=Date.now()+timeoutMs;while(Date.now()<deadline){const logs=child.logs();if(pattern.test(logs.stdout))return logs;if(child.exitCode!==null||child.signalCode!==null)throw new Error(`child exited before log ${pattern}: ${JSON.stringify(logs)}`);await delay(20)}throw new Error(`timed out waiting for log ${pattern}: ${JSON.stringify(child.logs())}`)}
 async function mine(base,address){const template=await json(`${base}/template?address=${encodeURIComponent(address)}`);let nonce=0,hash='';for(;nonce<12_000_000;nonce++){hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)break}if(nonce>=12_000_000)throw new Error('PoW search exhausted');await json(`${base}/submit-block`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({header:template.header,nonce,hash,txids:template.txids||[],coinbase_outputs:template.coinbase_outputs??null})});return hash}
 function startProcess({port,dataFile,durableFile,identityFile,trustFile}){
   const child=spawn(process.execPath,[entrypoint],{env:{...process.env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),FAE_DATA_FILE:dataFile,FAE_DURABLE_STATE_FILE:durableFile,FAE_IDENTITY_FILE:identityFile,FAE_PEER_TRUST_FILE:trustFile,FAE_SYNC:'0',FAE_DURABLE_CHECKPOINT_MS:'1000'},stdio:['ignore','pipe','pipe']});
@@ -41,18 +42,18 @@ test('P2P v6 candidate survives hard crash and recovers corrupted raw state from
   let child=null;context.after(()=>hardStop(child).catch(()=>{}));
 
   child=startProcess({port,dataFile,durableFile,identityFile,trustFile});
-  await waitStatus(base,11);
+  await waitStatus(base,11);await waitLog(child,/fae-node-online/);
   await mine(base,address);await waitStatus(base,12);await waitDurableHeight(durableFile,12);
   await hardStop(child);
 
   child=startProcess({port,dataFile,durableFile,identityFile,trustFile});
-  const afterCrash=await waitStatus(base,12);assert.equal(afterCrash.height,12);
+  const afterCrash=await waitStatus(base,12);assert.equal(afterCrash.height,12);await waitLog(child,/fae-node-online/);
   await waitDurableHeight(durableFile,12);await hardStop(child);
 
   await writeFile(dataFile,'{"torn-write":');
   child=startProcess({port,dataFile,durableFile,identityFile,trustFile});
   const afterCorruption=await waitStatus(base,12);assert.equal(afterCorruption.height,12);
+  const logs=await waitLog(child,/fae-node-online/);
   const repaired=JSON.parse(await readFile(dataFile,'utf8'));assert.equal(repaired.chain.length,12,'raw state must be healed before node startup');
-
-  const logs=child.logs();assert.match(logs.stdout,/fae-node-online/);assert.doesNotMatch(logs.stderr,/unrecoverable|uncaught/i);
+  assert.doesNotMatch(logs.stderr,/unrecoverable|uncaught/i);
 });
