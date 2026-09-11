@@ -40,6 +40,21 @@ test('Independent Node v1.1 recovers a corrupted raw state and durable primary f
   assert.equal(verified.chain.length,legacyBlocks.length);assert.equal(verified.chain.at(-1).hash,legacyBlocks.at(-1).hash);
 });
 
+test('Independent Node v1.1 fails closed when raw, durable primary and durable backup are all invalid',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-v11-failclosed-'));context.after(()=>rm(dir,{recursive:true,force:true}));
+  const dataFile=join(dir,'state.json'),durableFile=`${dataFile}.durable`,base=legacyState();
+  await writeFile(dataFile,`${JSON.stringify(base,null,2)}\n`);
+  const controller=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  await controller.checkpoint(base);
+  await writeFile(dataFile,'{"broken":');
+  await writeFile(durableFile,'{"broken":');
+  await writeFile(`${durableFile}.bak`,'{"broken":');
+  await assert.rejects(
+    prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null}),
+    error=>error?.code==='independent_node_state_unrecoverable'
+  );
+});
+
 test('Independent Node v1.1 peer guard stays memory-bounded and escalates repeat bans',()=>{
   const guard=new PeerGuard({windowMs:1000,maxCostPerWindow:3,banScore:4,banMs:100,maxBanMs:1000,maxRecords:64});
   for(let i=0;i<200;i++)assert.equal(guard.allow(`peer-${i}`,1,i).allowed,true);
