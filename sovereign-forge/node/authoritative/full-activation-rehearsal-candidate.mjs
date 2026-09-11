@@ -1,6 +1,7 @@
 import {NETWORK,subsidy} from './fae-v4-core.mjs';
 import {isValidAddress} from './address.mjs';
 import {hashHex} from './crypto.mjs';
+import {stableStringify} from './canonical.mjs';
 import {hashMeetsTarget,targetFromHex,targetHex} from './difficulty-timestamp-candidate.mjs';
 import {deriveBranchActivationContext,expectedBranchTarget,validateBranchBlock,validateBranchChain,compareBranchForks,ACTIVATION_REORG_STATUS} from './activation-reorg-candidate.mjs';
 import {assertActivationPolicyCompatible,activationPolicyDescriptor} from './activation-policy-identity-candidate.mjs';
@@ -12,7 +13,7 @@ export const FULL_ACTIVATION_REHEARSAL_MODE='end-to-end-shadow-rehearsal';
 function integer(value,label,{min=0}={}){const n=Number(value);if(!Number.isSafeInteger(n)||n<min)throw new Error(`${label}_invalid`);return n}
 function hash64(value,label){const s=String(value??'').toLowerCase();if(!/^[0-9a-f]{64}$/.test(s))throw new Error(`${label}_invalid`);return s}
 function recordFromCandidate(candidate){const h=candidate?.header;if(!h)throw new Error('candidate_header_required');return{height:Number(h.height),hash:String(candidate.hash),previous_hash:String(h.previous_hash),timestamp_ms:Number(h.timestamp_ms),target_hex:String(h.target_hex),reward_atoms:String(h.reward_atoms)};}
-function sameJson(a,b){return JSON.stringify(a)===JSON.stringify(b)}
+function sameJson(a,b){return stableStringify(a)===stableStringify(b)}
 
 export function validateFullActivationCandidate(chain,candidate,policy,{remotePolicyDescriptor=activationPolicyDescriptor(policy),nowMs=Date.now(),enforceFutureDrift=true}={}){
   if(!Array.isArray(chain))throw new Error('chain_required');if(!policy||policy.status!==ACTIVATION_REORG_STATUS)throw new Error('activation_policy_required');

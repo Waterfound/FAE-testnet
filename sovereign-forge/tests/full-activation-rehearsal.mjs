@@ -29,6 +29,14 @@ assert.equal(template.header.height,4);assert.equal(template.header.difficulty_b
 const mined4=mineFullActivationCandidate(prefix,policy,{minerAddress:miner,timestampMs:activationTimestamp,maxNonce:5_000_000});
 assert.equal(mined4.verdict.ok,true);assert.ok(mined4.attempts>0);
 assert.deepEqual(decodeFullTargetBlockCandidate(encodeFullTargetBlockCandidate(mined4.candidate)),mined4.candidate);
+
+// JSON object key order is transport syntax, not block semantics. Reordering all
+// header keys must preserve hash/PoW and must not fail the binary-codec parity gate.
+const reorderedHeader=Object.fromEntries(Object.entries(mined4.candidate.header).reverse());
+const reorderedCandidate={txids:[...mined4.candidate.txids],hash:mined4.candidate.hash,nonce:mined4.candidate.nonce,header:reorderedHeader};
+const reorderedVerdict=validateFullActivationCandidate(prefix,reorderedCandidate,policy,{nowMs:activationTimestamp});
+assert.equal(reorderedVerdict.ok,true,`semantic key-order variant rejected: ${reorderedVerdict.error??'unknown'} at ${reorderedVerdict.stage??'unknown'}`);
+
 let chainA=appendRehearsedCandidate(prefix,mined4.candidate,policy,{nowMs:activationTimestamp});
 
 const t5=activationTimestamp+180_000;
@@ -64,4 +72,4 @@ const slow5=mineFullActivationCandidate(chainB,policy,{minerAddress:miner,timest
 chainB=appendRehearsedCandidate(chainB,slow5.candidate,policy,{nowMs:slowT5});
 const fork=compareRehearsedForks(chainA,chainB,policy);assert.equal(fork.winner,'a');assert.ok(fork.a_work>fork.b_work);
 
-console.log(JSON.stringify({status:'PASS',activation_height:policy.activation_height,tip_height:chainA.at(-1).height,policy_guard:true,codec_roundtrip:true,pow_verified:true,replay:true,fork_choice:'a',attempts:mined4.attempts+mined5.attempts+slow4.attempts+slow5.attempts}));
+console.log(JSON.stringify({status:'PASS',activation_height:policy.activation_height,tip_height:chainA.at(-1).height,policy_guard:true,codec_roundtrip:true,codec_key_order_invariant:true,pow_verified:true,replay:true,fork_choice:'a',attempts:mined4.attempts+mined5.attempts+slow4.attempts+slow5.attempts}));
