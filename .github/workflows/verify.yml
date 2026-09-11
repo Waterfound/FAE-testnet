@@ -111,6 +111,9 @@ jobs:
           grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/consensus-codec-v3.mjs
           grep -q "shadow-only-not-consensus" sovereign-forge/node/authoritative/consensus-v3-shadow-codec.mjs
           grep -q "dual-validation-observer-only" sovereign-forge/node/authoritative/consensus-v3-shadow-harness.mjs
+          ! grep -q "consensus-v3-shadow" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "consensus-v3-shadow" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "consensus-v3-shadow" sovereign-forge/node/fae-node-v6-candidate.mjs
 
       - name: Verify Authoritative PPLNS HTTP candidate adapter
         run: node --test sovereign-forge/tests/authoritative-pplns-http-adapter.mjs
