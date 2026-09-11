@@ -26,6 +26,8 @@ This is an activation precondition, not a claim that arbitrary unsynchronised cl
 
 The 6-hour testnet candidate intentionally trades more ordinary target movement for much faster recovery from abrupt browser-hash exits. The stochastic gate does not ratify 6 h for mainnet. It asks a narrower question: does ordinary Poisson noise or a severe daily hash cycle make the candidate pathological? The test thresholds are intentionally broad failure fences, not optimization targets.
 
+The final branch head must pass the dedicated red-team CI together with the original deterministic vectors, shadow-observer tests, Independent Node v1.1 hardening and consensus-v3 shadow activation regression gates. A green simulation result is evidence for continued shadow evaluation, not permission to activate consensus.
+
 ## Remaining gates before activation
 
 - independent second implementation reproducing frozen full-target vectors;
