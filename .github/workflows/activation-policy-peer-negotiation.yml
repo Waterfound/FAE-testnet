@@ -2,9 +2,10 @@ name: Activation Policy Peer Negotiation
 
 on:
   push:
-    branches: [main, activation-policy-peer-negotiation]
+    branches: [main, activation-policy-peer-negotiation, activation-policy-secure-binding]
     paths:
       - 'sovereign-forge/node/authoritative/fae-v4-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/secure-channel.mjs'
       - 'sovereign-forge/node/fae-node-v6-candidate.mjs'
       - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
       - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - 'sovereign-forge/node/authoritative/fae-v4-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/secure-channel.mjs'
       - 'sovereign-forge/node/fae-node-v6-candidate.mjs'
       - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
       - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
@@ -35,11 +37,13 @@ jobs:
       - name: Syntax-check P2P negotiation surfaces
         run: |
           node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          node --check sovereign-forge/node/authoritative/secure-channel.mjs
           node --check sovereign-forge/node/fae-node-v6-candidate.mjs
-      - name: Match, mismatch, missing and tampered policy negotiation
+      - name: Match, mismatch, missing, tampered and channel-bound policy negotiation
         run: node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
       - name: Preserve active-consensus fence
         run: |
           ! grep -q "activation-policy-identity-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "activation-reorg-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
           grep -q "FAE_DAA_CANDIDATE_ACTIVATION_HEIGHT" sovereign-forge/node/fae-node-v6-candidate.mjs
+          grep -q "contextBinding:daaCandidateDescriptor?.policy_id" sovereign-forge/node/fae-node-v6-candidate.mjs
