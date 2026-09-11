@@ -26,7 +26,6 @@ function extendActivated(prefix,policy,count=3){
   return chain;
 }
 
-// Deterministic identity: same parameters -> same id, any consensus-relevant change -> mismatch.
 const base=freezeActivationPolicy({activationHeight:21});
 const clone=freezeActivationPolicy({activationHeight:21});
 assert.equal(activationPolicyId(base),activationPolicyId(clone));
@@ -42,16 +41,17 @@ for(const changed of [
   const verdict=assertActivationPolicyCompatible(base,activationPolicyDescriptor(changed));
   assert.equal(verdict.ok,false);assert.equal(verdict.error,'activation_policy_mismatch');
 }
-assert.equal(assertActivationPolicyCompatible(base,{status:'candidate-not-active-consensus',policy_id:'xyz'}).error,'activation_policy_descriptor_required');
+assert.equal(assertActivationPolicyCompatible(base,{status:'candidate-not-active-consensus',policy_id:'xyz'}).error,'activation_policy_id_invalid');
+const tampered={...baseDescriptor,target_seconds:181};
+assert.equal(assertActivationPolicyCompatible(base,tampered).error,'activation_policy_descriptor_tampered');
+const missing={...baseDescriptor};delete missing.mtp_window;
+assert.equal(assertActivationPolicyCompatible(base,missing).error,'activation_policy_descriptor_invalid');
 
-// Retarget-boundary rehearsal. The 90s legacy cadence causes the legacy batch DAA
-// to increase bits at height 21. Activation before/on/after that boundary must
-// derive the correct branch-local anchor difficulty.
 const prefix22=legacyPrefix(22,{spacingMs:90_000});
-assert.equal(prefix22[18].difficulty_bits,18); // h19
-assert.equal(prefix22[19].difficulty_bits,18); // h20
-assert.equal(prefix22[20].difficulty_bits,19); // h21 retargeted
-assert.equal(prefix22[21].difficulty_bits,19); // h22 inherits
+assert.equal(prefix22[18].difficulty_bits,18);
+assert.equal(prefix22[19].difficulty_bits,18);
+assert.equal(prefix22[20].difficulty_bits,19);
+assert.equal(prefix22[21].difficulty_bits,19);
 
 const cases=[
   {activationHeight:20,expectedAnchorBits:18},
@@ -70,10 +70,8 @@ for(const scenario of cases){
   assert.equal(validated.context.anchor_difficulty_bits,scenario.expectedAnchorBits);
 }
 
-// Two nodes at same chain tip but different policy identity must refuse compatibility
-// before fork-choice or block acceptance is attempted.
 const remoteWrong=activationPolicyDescriptor(freezeActivationPolicy({activationHeight:21,halfLifeSeconds:21601}));
 const handshake=assertActivationPolicyCompatible(base,remoteWrong);
 assert.equal(handshake.ok,false);assert.equal(handshake.error,'activation_policy_mismatch');
 
-console.log(JSON.stringify({status:'PASS',policy_id:baseDescriptor.policy_id,retarget_cases:cases.length,mismatch_guards:6}));
+console.log(JSON.stringify({status:'PASS',policy_id:baseDescriptor.policy_id,retarget_cases:cases.length,mismatch_guards:8,tamper_guard:true}));
