@@ -34,6 +34,7 @@ jobs:
           node --check sovereign-forge/node/authoritative/peer-guard.mjs
           node --check sovereign-forge/node/fae-node-v6-candidate.mjs
           node --check sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --check sovereign-forge/tests/independent-node-v11-process-recovery.mjs
 
       - name: Verify existing P2P security invariants
         run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
@@ -46,3 +47,6 @@ jobs:
 
       - name: Attack Independent Node v1.1 durability and network recovery
         run: node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+
+      - name: Verify hard-crash restart and durable healing in the real v6 process
+        run: node --test sovereign-forge/tests/independent-node-v11-process-recovery.mjs
