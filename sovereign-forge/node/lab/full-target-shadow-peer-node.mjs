@@ -7,7 +7,7 @@ import {stableStringify} from '../authoritative/canonical.mjs';
 import {loadOrCreateNodeIdentity,signEnvelope,verifyEnvelope} from '../authoritative/node-identity.mjs';
 import {SecureChannelHub,establishSecurePeerSession} from '../authoritative/secure-channel.mjs';
 import {activationPolicyDescriptor,assertActivationPolicyCompatible} from '../authoritative/activation-policy-identity-candidate.mjs';
-import {validateBranchChain} from '../authoritative/activation-reorg-candidate.mjs';
+import {validateBranchChain,compareBranchForks} from '../authoritative/activation-reorg-candidate.mjs';
 import {validateDownloadedBodies,rehearseHeadersFirstSync} from '../authoritative/full-target-headers-sync-candidate.mjs';
 
 export const FULL_TARGET_SHADOW_NODE_STATUS='lab-only-no-consensus-authority';
@@ -29,6 +29,14 @@ function trustedPrefixMatches(chain,trusted){if(chain.length<trusted.length)retu
 function chainWork(chain,policy){return validateBranchChain(chain,policy,{enforceFutureDrift:false}).work}
 function locator(chain){const result=[];for(let h=chain.length;h>=0&&result.length<128;h--)result.push({height:h,hash:h===0?ZERO_HASH:String(chain[h-1].hash)});return result}
 function commonAncestor(chain,remoteLocator){if(!Array.isArray(remoteLocator))throw new Error('shadow_locator_required');for(const entry of remoteLocator){const h=Number(entry?.height),hash=String(entry?.hash??'');if(!Number.isSafeInteger(h)||h<0||h>chain.length||!/^[0-9a-f]{64}$/.test(hash))continue;const local=blockAt(chain,h);if(local&&String(local.hash)===hash)return{height:h,hash}}return null}
+
+export function shadowCandidateAdoptionDecision(currentChain,candidateChain,policy){
+  if(!Array.isArray(currentChain)||!Array.isArray(candidateChain))throw new Error('shadow_adoption_chains_required');
+  const fork=compareBranchForks(candidateChain,currentChain,policy);
+  if(fork.winner==='tie')return{adopt:false,reason:'already_adopted',fork};
+  if(fork.winner!=='a')return{adopt:false,reason:'local_state_advanced',fork};
+  return{adopt:true,reason:'preferred_candidate',fork};
+}
 
 export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile=null,identityFile=null,policy,trustedPrefix,initialChain=null}={}){
   if(!policy)throw new Error('shadow_policy_required');if(!Array.isArray(trustedPrefix)||trustedPrefix.length<1)throw new Error('shadow_trusted_prefix_required');
@@ -64,9 +72,13 @@ export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile
     const session=await sessionFor(hello);try{
       const ancestor=await session.request('/peer/ancestor',{method:'POST',body:{locator:locator(state.chain)}});if(!ancestor||!Number.isSafeInteger(Number(ancestor.height))||Number(ancestor.height)<0||Number(ancestor.height)>state.chain.length)throw new Error('shadow_invalid_ancestor');const local=blockAt(state.chain,Number(ancestor.height));if(!local||String(local.hash)!==String(ancestor.hash))throw new Error('shadow_ancestor_not_local');if(Number(hello.height)<=Number(ancestor.height))return{adopted:false,reason:'no_branch',peer_id:hello.peer_id};
       const from=Number(ancestor.height)+1,target=Number(hello.height);
-      const result=await rehearseHeadersFirstSync({localChain:state.chain,commonAncestorHeight:Number(ancestor.height),remotePolicyDescriptor:hello.policy,remoteClaimedWork:BigInt(hello.chain_work),policy,nowMs:Date.now()+365*24*60*60_000,fetchHeaders:async()=>{const response=await session.request(`/headers?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.headers)||response.headers.length!==target-from+1)throw new Error('shadow_incomplete_headers');return response.headers},fetchBlocks:async()=>{const response=await session.request(`/blocks?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.blocks)||response.blocks.length!==target-from+1)throw new Error('shadow_incomplete_blocks');return response.blocks}});
+      const result=await rehearseHeadersFirstSync({localChain:state.chain,commonAncestorHeight:Number(ancestor.height),remotePolicyDescriptor:hello.policy,remoteClaimedWork:BigInt(hello.chain_work),remoteClaimedTipHash:hello.tip_hash,policy,nowMs:Date.now()+365*24*60*60_000,fetchHeaders:async()=>{const response=await session.request(`/headers?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.headers)||response.headers.length!==target-from+1)throw new Error('shadow_incomplete_headers');return response.headers},fetchBlocks:async()=>{const response=await session.request(`/blocks?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.blocks)||response.blocks.length!==target-from+1)throw new Error('shadow_incomplete_blocks');return response.blocks}});
       if(!result.ok)return{adopted:false,reason:result.error,stage:result.stage,peer_id:hello.peer_id};if(!result.preferred)return{adopted:false,reason:'validated_but_not_preferred',peer_id:hello.peer_id,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
-      await serial(async()=>{const currentWork=chainWork(state.chain,policy);const candidateWork=chainWork(result.candidate_chain,policy);if(candidateWork<currentWork)throw new Error('shadow_local_advanced');if(!Array.isArray(result.storage_chain))throw new Error('shadow_storage_chain_missing');validateStateChain(result.storage_chain);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:jsonClone(result.storage_chain)};await persist()});
+      const adoption=await serial(async()=>{
+        const decision=shadowCandidateAdoptionDecision(state.chain,result.candidate_chain,policy);if(!decision.adopt)return{adopted:false,reason:decision.reason};
+        if(!Array.isArray(result.storage_chain))throw new Error('shadow_storage_chain_missing');validateStateChain(result.storage_chain);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:jsonClone(result.storage_chain)};await persist();return{adopted:true,reason:'preferred_candidate'};
+      });
+      if(!adoption.adopted)return{adopted:false,reason:adoption.reason,peer_id:hello.peer_id,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
       return{adopted:true,peer_id:hello.peer_id,height:state.chain.length,tip_hash:state.chain.at(-1).hash,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
     }finally{session.close()}
   }
