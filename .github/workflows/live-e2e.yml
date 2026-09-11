@@ -1,0 +1,29 @@
+name: live-e2e-production-gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-live-e2e-production
+  cancel-in-progress: false
+
+jobs:
+  readonly-live-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check live E2E gate
+        run: node --check tests/live-e2e-readonly.mjs
+      - name: Verify canonical production end-to-end read-only boundary
+        env:
+          FAE_SITE_URL: https://fairyelf-fae-testnet.vercel.app
+          FAE_ACTIVE_API_URL: https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4
+          FAE_CANDIDATE_API_URL: https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4-authoritative-candidate
+        run: node tests/live-e2e-readonly.mjs
