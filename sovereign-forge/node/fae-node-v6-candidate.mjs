@@ -40,6 +40,7 @@ const recovery=await prepareIndependentNodeStorage({dataFile,durableFile,activat
 const node=createAuthoritativeV4PeerNode({
   host,port,dataFile,identityFile,peerTrustFile,peers,publicUrl,activationHeight,syncIntervalMs,
   pinnedPeerIdentityIds,peerDiversityOptions,
+  secureChannelOptions:{contextBinding:daaCandidateDescriptor?.policy_id??null},
   peerHelloExtensions:daaCandidateDescriptor?{daa_activation_policy:daaCandidateDescriptor}:null,
   peerHelloValidator:daaCandidatePolicy?(hello=>assertActivationPolicyCompatible(daaCandidatePolicy,hello?.daa_activation_policy)):null
 });
