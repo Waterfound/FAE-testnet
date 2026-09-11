@@ -1,0 +1,54 @@
+name: Full Target Shadow External Validation Kit
+
+on:
+  push:
+    branches: [main, shadow-external-validation-kit]
+    paths:
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
+      - 'sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_EXTERNAL_VALIDATION.md'
+      - '.github/workflows/full-target-shadow-external-validation-kit.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
+      - 'sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_EXTERNAL_VALIDATION.md'
+      - '.github/workflows/full-target-shadow-external-validation-kit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validation-kit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check validation kit
+        run: |
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs
+          node --check sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs
+      - name: Verify deterministic fixtures and executable evidence path
+        run: node sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs
+      - name: Build isolated validation image
+        run: docker build -f sovereign-forge/node/Dockerfile.full-target-shadow-validation -t fae-shadow-validation:ci sovereign-forge/node
+      - name: Preserve strict authority isolation
+        run: |
+          ! grep -q "shadow-validation-fixtures" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "shadow-validation-fixtures" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "fae-full-target-shadow-validation-node" sovereign-forge/node/fae-node-v6-candidate.mjs
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
