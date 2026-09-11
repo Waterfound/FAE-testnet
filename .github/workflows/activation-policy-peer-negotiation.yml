@@ -1,0 +1,45 @@
+name: Activation Policy Peer Negotiation
+
+on:
+  push:
+    branches: [main, activation-policy-peer-negotiation]
+    paths:
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node.mjs'
+      - 'sovereign-forge/node/fae-node-v6-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/tests/activation-policy-peer-negotiation.mjs'
+      - '.github/workflows/activation-policy-peer-negotiation.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node.mjs'
+      - 'sovereign-forge/node/fae-node-v6-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/tests/activation-policy-peer-negotiation.mjs'
+      - '.github/workflows/activation-policy-peer-negotiation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  negotiate-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check P2P negotiation surfaces
+        run: |
+          node --check sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          node --check sovereign-forge/node/fae-node-v6-candidate.mjs
+      - name: Match, mismatch, missing and tampered policy negotiation
+        run: node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+      - name: Preserve active-consensus fence
+        run: |
+          ! grep -q "activation-policy-identity-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "activation-reorg-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "FAE_DAA_CANDIDATE_ACTIVATION_HEIGHT" sovereign-forge/node/fae-node-v6-candidate.mjs
