@@ -1,0 +1,70 @@
+{
+  "schema": "FAE_DIFFICULTY_TIMESTAMP_VECTORS_V1",
+  "status": "candidate-not-active-consensus",
+  "parameters": {
+    "target_seconds": 180,
+    "mtp_window": 11,
+    "future_drift_ms": 90000,
+    "testnet_candidate_half_life_seconds": 21600,
+    "half_life_candidates_seconds": [21600, 43200, 86400, 172800],
+    "candidate_min_leading_zero_bits": 12
+  },
+  "asert": {
+    "anchor_height": 100,
+    "anchor_parent_time_seconds": 1000000,
+    "anchor_target_hex": "00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "evaluation_height": 200,
+    "on_schedule_time_seconds": 1018180,
+    "half_life_seconds": 21600,
+    "vectors": [
+      {
+        "name": "on_schedule",
+        "evaluation_time_seconds": 1018180,
+        "expected_target_hex": "00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "name": "late_one_half_life",
+        "evaluation_time_seconds": 1039780,
+        "expected_target_hex": "00001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"
+      },
+      {
+        "name": "early_one_half_life",
+        "evaluation_time_seconds": 996580,
+        "expected_target_hex": "000007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      {
+        "name": "late_half_half_life",
+        "evaluation_time_seconds": 1028980,
+        "expected_target_hex": "000016a01ffffffffffffffffffffffffffffffffffffffffffffffffffffffe"
+      },
+      {
+        "name": "early_half_half_life",
+        "evaluation_time_seconds": 1007380,
+        "expected_target_hex": "00000b500fffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    ]
+  },
+  "timestamp": {
+    "now_ms": 1900001980000,
+    "recent_chain_timestamps_ms": [
+      1900000000000,
+      1900000180000,
+      1900000360000,
+      1900000540000,
+      1900000720000,
+      1900000900000,
+      1900001080000,
+      1900001260000,
+      1900001440000,
+      1900001620000,
+      1900001800000
+    ],
+    "expected_mtp_ms": 1900000900000,
+    "vectors": [
+      {"name": "parent_equal_allowed", "timestamp_ms": 1900001800000, "ok": true},
+      {"name": "future_boundary_allowed", "timestamp_ms": 1900002070000, "ok": true},
+      {"name": "future_boundary_plus_one_rejected", "timestamp_ms": 1900002070001, "ok": false, "error": "timestamp_too_far_future"},
+      {"name": "before_parent_rejected", "timestamp_ms": 1900001799999, "ok": false, "error": "timestamp_before_parent"}
+    ]
+  }
+}
