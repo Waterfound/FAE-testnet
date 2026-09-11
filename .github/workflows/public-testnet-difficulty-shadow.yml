@@ -1,0 +1,36 @@
+name: public-testnet-difficulty-shadow
+
+on:
+  push:
+    branches: [public-testnet-daa-shadow]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Real-data shadow regression
+        run: node --test sovereign-forge/tests/public-testnet-difficulty-shadow.mjs
+      - name: Preserve full hardening chain
+        run: |
+          node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
+          node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+          node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+          python3 sovereign-forge/tests/difficulty_timestamp_reference.py
+          node --test sovereign-forge/tests/full-target-migration.mjs
+          node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --test sovereign-forge/tests/consensus-v3-shadow-activation.mjs
+      - name: Authority fences
+        run: |
+          ! grep -q "public-testnet-v4-heights-398-414" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-migration-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "export const RETARGET_INTERVAL=20" sovereign-forge/node/authoritative/fae-v4-core.mjs
