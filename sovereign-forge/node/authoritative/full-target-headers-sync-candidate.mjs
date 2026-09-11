@@ -1,6 +1,7 @@
 import {NETWORK,MAX_TXS_PER_BLOCK,validateHeaderSequence} from './fae-v4-core.mjs';
 import {isValidAddress} from './address.mjs';
 import {hashHex} from './crypto.mjs';
+import {stableStringify} from './canonical.mjs';
 import {hashMeetsTarget,targetFromHex} from './difficulty-timestamp-candidate.mjs';
 import {validateBranchBlock,validateBranchChain,compareBranchForks} from './activation-reorg-candidate.mjs';
 import {activationPolicyDescriptor,assertActivationPolicyCompatible} from './activation-policy-identity-candidate.mjs';
@@ -11,7 +12,7 @@ export const FULL_TARGET_HEADERS_SYNC_STATUS='candidate-not-active-consensus';
 function int(value,label,{min=0}={}){const n=Number(value);if(!Number.isSafeInteger(n)||n<min)throw new Error(`${label}_invalid`);return n}
 function hex64(value,label){const s=String(value??'').toLowerCase();if(!/^[0-9a-f]{64}$/.test(s))throw new Error(`${label}_invalid`);return s}
 function activatedRecord(record){return{height:Number(record.height),hash:String(record.hash),previous_hash:String(record.previous_hash),timestamp_ms:Number(record.timestamp_ms),target_hex:String(record.target_hex),reward_atoms:String(record.reward_atoms)};}
-function same(a,b){return JSON.stringify(a)===JSON.stringify(b)}
+function same(a,b){return stableStringify(a)===stableStringify(b)}
 
 export function activatedHeaderRecord(candidate){
   const header=candidate?.header;if(!header)throw new Error('candidate_header_required');
