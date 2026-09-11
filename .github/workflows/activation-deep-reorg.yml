@@ -8,7 +8,7 @@ on:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
       - 'sovereign-forge/node/authoritative/full-target-migration-candidate.mjs'
       - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
-      - 'sovereign-forge/tests/activation-deep-reorg-fork.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
       - '.github/workflows/activation-deep-reorg.yml'
   pull_request:
     paths:
@@ -16,7 +16,7 @@ on:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
       - 'sovereign-forge/node/authoritative/full-target-migration-candidate.mjs'
       - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
-      - 'sovereign-forge/tests/activation-deep-reorg-fork.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
       - '.github/workflows/activation-deep-reorg.yml'
   workflow_dispatch:
 
@@ -34,3 +34,5 @@ jobs:
           node-version: 22
       - name: Deep reorg + rollback + restart + differential reference
         run: node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+      - name: 128 deterministic differential reorg scenarios
+        run: node sovereign-forge/tests/activation-reorg-differential-fuzz.mjs
