@@ -15,19 +15,25 @@ export class PeerGuard{
       if(record.bannedUntil<=now&&now-record.lastSeen>staleAfter)this.records.delete(id);
     }
     if(this.records.size<=this.maxRecords)return;
-    const removable=[...this.records.entries()]
-      .filter(([,record])=>record.bannedUntil<=now)
-      .sort((a,b)=>a[1].lastSeen-b[1].lastSeen);
-    for(const [id] of removable){if(this.records.size<=this.maxRecords)break;this.records.delete(id)}
+    const ordered=[...this.records.entries()].sort((a,b)=>{
+      const aBanned=a[1].bannedUntil>now,bBanned=b[1].bannedUntil>now;
+      if(aBanned!==bBanned)return aBanned?1:-1;
+      if(aBanned&&bBanned&&a[1].bannedUntil!==b[1].bannedUntil)return a[1].bannedUntil-b[1].bannedUntil;
+      return a[1].lastSeen-b[1].lastSeen;
+    });
+    for(const [id] of ordered){if(this.records.size<=this.maxRecords)break;this.records.delete(id)}
   }
 
   ensureCapacity(now){
     if(this.records.size<this.maxRecords)return;
     this.prune(now);
     if(this.records.size<this.maxRecords)return;
-    const candidate=[...this.records.entries()]
-      .filter(([,record])=>record.bannedUntil<=now)
-      .sort((a,b)=>a[1].lastSeen-b[1].lastSeen)[0];
+    const candidate=[...this.records.entries()].sort((a,b)=>{
+      const aBanned=a[1].bannedUntil>now,bBanned=b[1].bannedUntil>now;
+      if(aBanned!==bBanned)return aBanned?1:-1;
+      if(aBanned&&bBanned&&a[1].bannedUntil!==b[1].bannedUntil)return a[1].bannedUntil-b[1].bannedUntil;
+      return a[1].lastSeen-b[1].lastSeen;
+    })[0];
     if(candidate)this.records.delete(candidate[0]);
   }
 
