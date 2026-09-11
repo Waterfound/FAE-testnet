@@ -1,0 +1,41 @@
+name: difficulty-timestamp-redteam
+
+on:
+  push:
+    branches: [difficulty-timestamp-redteam]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  redteam:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
+          node --check sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs
+          node --check sovereign-forge/node/authoritative/difficulty-timestamp-template-policy.mjs
+          node --check sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+      - name: Existing deterministic gate
+        run: node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
+      - name: Existing shadow gate
+        run: node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+      - name: Seeded stochastic and clock-skew red-team
+        run: node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+      - name: Authority fences
+        run: |
+          ! grep -q "difficulty-timestamp-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "difficulty-timestamp-shadow" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "difficulty-timestamp-template-policy" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "export const RETARGET_INTERVAL=20" sovereign-forge/node/authoritative/fae-v4-core.mjs
+      - name: Preserve prior hardening gates
+        run: |
+          node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --test sovereign-forge/tests/consensus-v3-shadow-activation.mjs
