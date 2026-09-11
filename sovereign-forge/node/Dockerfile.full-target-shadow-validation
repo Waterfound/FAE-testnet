@@ -1,0 +1,18 @@
+FROM node:22-bookworm-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY authoritative ./authoritative
+COPY lab ./lab
+ENV FAE_SHADOW_HOST=0.0.0.0 \
+    FAE_SHADOW_PORT=8788 \
+    FAE_SHADOW_PROFILE=trusted \
+    FAE_SHADOW_DATA_FILE=/data/full-target-shadow-state.json \
+    FAE_SHADOW_IDENTITY_FILE=/data/full-target-shadow-identity.json \
+    FAE_SHADOW_EVIDENCE_FILE=/data/full-target-shadow-evidence.jsonl \
+    FAE_SHADOW_SYNC=1 \
+    FAE_SHADOW_SYNC_MS=15000
+VOLUME ["/data"]
+EXPOSE 8788
+USER node
+CMD ["node","lab/fae-full-target-shadow-validation-node.mjs"]
