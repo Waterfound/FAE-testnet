@@ -23,7 +23,6 @@ const prefix=legacyPrefix(3);
 const activationTimestamp=prefix.at(-1).timestamp_ms+6*60*60_000+180_000;
 
 assert.equal(FULL_ACTIVATION_REHEARSAL_STATUS,'candidate-not-active-consensus');
-
 const template=buildFullActivationTemplate(prefix,policy,{minerAddress:miner,timestampMs:activationTimestamp});
 assert.equal(template.header.height,4);assert.equal(template.header.difficulty_bits,undefined);assert.match(template.header.target_hex,/^[0-9a-f]{64}$/);
 
@@ -45,13 +44,24 @@ const badHash={...mined4.candidate,hash:'f'.repeat(64)};
 const badHashVerdict=validateFullActivationCandidate(prefix,badHash,policy,{nowMs:activationTimestamp});
 assert.equal(badHashVerdict.ok,false);assert.equal(badHashVerdict.error,'hash_mismatch');
 
-const wrongTarget=(targetFromHex(mined4.candidate.header.target_hex)-1n);
+const wrongTarget=targetFromHex(mined4.candidate.header.target_hex)-1n;
 const badTarget={...mined4.candidate,header:{...mined4.candidate.header,target_hex:targetHex(wrongTarget)}};
 const badTargetVerdict=validateFullActivationCandidate(prefix,badTarget,policy,{nowMs:activationTimestamp});
 assert.equal(badTargetVerdict.ok,false);assert.equal(badTargetVerdict.error,'unexpected_activation_target');
 
 const future=validateFullActivationCandidate(prefix,mined4.candidate,policy,{nowMs:activationTimestamp-policy.future_drift_ms-1});
 assert.equal(future.ok,false);assert.equal(future.error,'timestamp_too_far_future');
+assert.throws(()=>buildFullActivationTemplate(prefix,policy,{minerAddress:miner,timestampMs:activationTimestamp,txids:['a','a']}),/duplicate_txid/);
 
-const duplicateTx=buildFullActivationTemplate(prefix,policy,{minerAddress:miner,timestampMs:activationTimestamp,txids:['a','a']});
-assert.fail('duplicate tx template should throw');
+// Competing valid branch with a much larger activation delay receives an easier
+// ASERT target and therefore less cumulative work per solved block. Fork choice
+// must use work, not height or arrival order.
+const slowT4=prefix.at(-1).timestamp_ms+12*60*60_000+180_000;
+const slow4=mineFullActivationCandidate(prefix,policy,{minerAddress:miner,timestampMs:slowT4,maxNonce:5_000_000});
+let chainB=appendRehearsedCandidate(prefix,slow4.candidate,policy,{nowMs:slowT4});
+const slowT5=slowT4+180_000;
+const slow5=mineFullActivationCandidate(chainB,policy,{minerAddress:miner,timestampMs:slowT5,maxNonce:5_000_000});
+chainB=appendRehearsedCandidate(chainB,slow5.candidate,policy,{nowMs:slowT5});
+const fork=compareRehearsedForks(chainA,chainB,policy);assert.equal(fork.winner,'a');assert.ok(fork.a_work>fork.b_work);
+
+console.log(JSON.stringify({status:'PASS',activation_height:policy.activation_height,tip_height:chainA.at(-1).height,policy_guard:true,codec_roundtrip:true,pow_verified:true,replay:true,fork_choice:'a',attempts:mined4.attempts+mined5.attempts+slow4.attempts+slow5.attempts}));
