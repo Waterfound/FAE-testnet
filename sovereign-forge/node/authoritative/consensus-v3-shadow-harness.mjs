@@ -13,7 +13,18 @@ function run(operation){
   try{return{accepted:true,value:operation(),error:null,errorClass:null}}
   catch(error){return{accepted:false,value:null,error:String(error?.message||error),errorClass:errorClass(error)}}
 }
-function stateFingerprint(state){return stableStringify(state)}
+function rawStateFingerprint(state){return stableStringify(state)}
+function consensusStateProjection(state){
+  const projected=cloneState(state);
+  for(const record of Object.values(projected.transactions||{})){
+    // created_at is local observation metadata. It is never hashed into txid, block headers,
+    // UTXO ownership, fees, chain work or validity decisions, and separate executions may
+    // legitimately stamp it milliseconds apart.
+    if(record&&typeof record==='object')delete record.created_at;
+  }
+  return projected;
+}
+function consensusStateFingerprint(state){return stableStringify(consensusStateProjection(state))}
 function codecRoundTrip(encode,decode,value){
   try{
     const encoded=encode(value),decoded=decode(encoded);
@@ -25,11 +36,14 @@ export function shadowBlockParity(state,candidate,{activationHeight=undefined}={
   assertShadowCodecIsNonAuthoritative();
   const authoritative=run(()=>appendBlockFromSubmission(cloneState(state),candidate,{activationHeight}));
   const codec=codecRoundTrip(encodeCurrentV4BlockShadow,decodeCurrentV4BlockShadow,candidate);
-  let shadow={accepted:false,value:null,error:codec.error,errorClass:codec.errorClass},semanticLossless=false,stateEqual=null;
+  let shadow={accepted:false,value:null,error:codec.error,errorClass:codec.errorClass},semanticLossless=false,stateEqual=null,rawStateEqual=null;
   if(codec.ok){
     semanticLossless=stableStringify(projectCurrentV4BlockCandidate(candidate))===stableStringify(codec.decoded);
     shadow=run(()=>appendBlockFromSubmission(cloneState(state),codec.decoded,{activationHeight}));
-    if(authoritative.accepted&&shadow.accepted)stateEqual=stateFingerprint(authoritative.value)===stateFingerprint(shadow.value);
+    if(authoritative.accepted&&shadow.accepted){
+      stateEqual=consensusStateFingerprint(authoritative.value)===consensusStateFingerprint(shadow.value);
+      rawStateEqual=rawStateFingerprint(authoritative.value)===rawStateFingerprint(shadow.value);
+    }
   }
   const decisionParity=authoritative.accepted===shadow.accepted;
   const acceptedParity=authoritative.accepted?Boolean(codec.ok&&semanticLossless&&shadow.accepted&&stateEqual):decisionParity;
@@ -37,7 +51,7 @@ export function shadowBlockParity(state,candidate,{activationHeight=undefined}={
     kind:'block',status:SHADOW_HARNESS_STATUS,codecStatus:SHADOW_CODEC_STATUS,authoritative:{accepted:authoritative.accepted,errorClass:authoritative.errorClass,tipHash:authoritative.accepted?(tip(authoritative.value)?.hash??null):null},
     codec:{ok:codec.ok,encodedBytes:codec.encodedBytes,errorClass:codec.errorClass,semanticLossless},
     shadow:{accepted:shadow.accepted,errorClass:shadow.errorClass,tipHash:shadow.accepted?(tip(shadow.value)?.hash??null):null},
-    decisionParity,errorParity:authoritative.accepted||!codec.ok?null:authoritative.errorClass===shadow.errorClass,stateEqual,parity:acceptedParity
+    decisionParity,errorParity:authoritative.accepted||!codec.ok?null:authoritative.errorClass===shadow.errorClass,stateEqual,rawStateEqual,parity:acceptedParity
   };
 }
 
@@ -45,11 +59,14 @@ export function shadowTransactionParity(state,raw,{fromFeed=false}={}){
   assertShadowCodecIsNonAuthoritative();
   const authoritativeState=cloneState(state),authoritative=run(()=>acceptTxInto(authoritativeState,raw,{fromFeed}));
   const codec=codecRoundTrip(encodeCurrentV4TransactionShadow,decodeCurrentV4TransactionShadow,raw);
-  let shadowState=cloneState(state),shadow={accepted:false,value:null,error:codec.error,errorClass:codec.errorClass},semanticLossless=false,stateEqual=null;
+  let shadowState=cloneState(state),shadow={accepted:false,value:null,error:codec.error,errorClass:codec.errorClass},semanticLossless=false,stateEqual=null,rawStateEqual=null;
   if(codec.ok){
     semanticLossless=stableStringify(projectCurrentV4Transaction(raw))===stableStringify(codec.decoded);
     shadow=run(()=>acceptTxInto(shadowState,codec.decoded,{fromFeed}));
-    if(authoritative.accepted&&shadow.accepted)stateEqual=stateFingerprint(authoritativeState)===stateFingerprint(shadowState);
+    if(authoritative.accepted&&shadow.accepted){
+      stateEqual=consensusStateFingerprint(authoritativeState)===consensusStateFingerprint(shadowState);
+      rawStateEqual=rawStateFingerprint(authoritativeState)===rawStateFingerprint(shadowState);
+    }
   }
   const decisionParity=authoritative.accepted===shadow.accepted;
   const acceptedParity=authoritative.accepted?Boolean(codec.ok&&semanticLossless&&shadow.accepted&&stateEqual):decisionParity;
@@ -58,7 +75,7 @@ export function shadowTransactionParity(state,raw,{fromFeed=false}={}){
     authoritative:{accepted:authoritative.accepted,errorClass:authoritative.errorClass,txid:authoritative.value?.txid??null,feeAtoms:authoritative.value?.fee_atoms??null},
     codec:{ok:codec.ok,encodedBytes:codec.encodedBytes,errorClass:codec.errorClass,semanticLossless},
     shadow:{accepted:shadow.accepted,errorClass:shadow.errorClass,txid:shadow.value?.txid??null,feeAtoms:shadow.value?.fee_atoms??null},
-    decisionParity,errorParity:authoritative.accepted||!codec.ok?null:authoritative.errorClass===shadow.errorClass,stateEqual,parity:acceptedParity
+    decisionParity,errorParity:authoritative.accepted||!codec.ok?null:authoritative.errorClass===shadow.errorClass,stateEqual,rawStateEqual,parity:acceptedParity
   };
 }
 
