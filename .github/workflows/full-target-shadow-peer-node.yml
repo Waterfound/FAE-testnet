@@ -1,0 +1,44 @@
+name: Full Target Shadow Peer Node
+
+on:
+  push:
+    branches: [main, full-target-shadow-peer-node]
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/secure-channel.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-peer-node.mjs'
+      - '.github/workflows/full-target-shadow-peer-node.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/secure-channel.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-peer-node.mjs'
+      - '.github/workflows/full-target-shadow-peer-node.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-multinode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check isolated shadow node
+        run: node --check sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+      - name: Three-node partition, reconnect, activation reorg and restart
+        run: node sovereign-forge/tests/full-target-shadow-peer-node.mjs
+      - name: Preserve strict authority isolation
+        run: |
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/fae-node-v6-candidate.mjs
