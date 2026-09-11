@@ -76,12 +76,16 @@ export function validateDownloadedBodies(prefix,headers,blocks,policy,{remotePol
   return{ok:true,chain,storage_chain:storageChain,work:validateBranchChain(chain,policy,{enforceFutureDrift:false}).work};
 }
 
-export async function rehearseHeadersFirstSync({localChain,commonAncestorHeight,remotePolicyDescriptor,remoteClaimedWork=null,fetchHeaders,fetchBlocks,policy,nowMs=Date.now()}={}){
+export async function rehearseHeadersFirstSync({localChain,commonAncestorHeight,remotePolicyDescriptor,remoteClaimedWork=null,remoteClaimedTipHash=null,fetchHeaders,fetchBlocks,policy,nowMs=Date.now()}={}){
   if(!Array.isArray(localChain)||typeof fetchHeaders!=='function'||typeof fetchBlocks!=='function')throw new Error('sync_inputs_required');
   const compatibility=assertActivationPolicyCompatible(policy,remotePolicyDescriptor);if(!compatibility.ok)return{ok:false,stage:'policy',error:compatibility.error};
   const ancestor=int(commonAncestorHeight,'common_ancestor_height');if(ancestor<0||ancestor>localChain.length)throw new Error('common_ancestor_out_of_range');
   const prefix=structuredClone(localChain.slice(0,ancestor));
   const headers=await fetchHeaders();
+  if(remoteClaimedTipHash!==null){
+    let claimed;try{claimed=hex64(remoteClaimedTipHash,'remote_claimed_tip_hash')}catch(error){return{ok:false,stage:'headers',error:error.message,blocks_requested:false};}
+    const downloadedTip=headers.at(-1);if(!downloadedTip||String(downloadedTip.hash).toLowerCase()!==claimed)return{ok:false,stage:'headers',error:'remote_tip_changed_during_headers',blocks_requested:false};
+  }
   let headerPlan;try{headerPlan=validateMixedHeaderSequence(prefix,headers,policy,{remotePolicyDescriptor,nowMs,enforceFutureDrift:false});}catch(error){return{ok:false,stage:'headers',error:error.message,blocks_requested:false};}
   if(remoteClaimedWork!==null&&BigInt(remoteClaimedWork)!==headerPlan.work)return{ok:false,stage:'headers',error:'remote_chain_work_mismatch',blocks_requested:false};
   const blocks=await fetchBlocks();
