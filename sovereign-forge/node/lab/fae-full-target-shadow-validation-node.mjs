@@ -62,9 +62,7 @@ process.on('uncaughtException',error=>{console.error(JSON.stringify({event:'shad
 await node.start();
 const online=node.status();
 await evidence('online',{status:online,configured_peers:peers,fixture:{version:fixture.fixture_version,expected_height:fixture.expected_height,expected_tip_hash:fixture.expected_tip_hash,expected_work:fixture.expected_work,expected_weak_work:fixture.expected_weak_work,expected_strong_work:fixture.expected_strong_work}});
-console.log(JSON.stringify({event:'shadow-validation-online',label,profile:validationProfile,listen:{host,port:node.server?.address?.()?.port??port},base_url:node.baseUrl(),evidence_file:evidenceFile,status:online,configured_peers:peers}));
+console.log(JSON.stringify({event:'shadow-validation-online',label,profile:validationProfile,base_url:node.baseUrl(),evidence_file:evidenceFile,status:online,configured_peers:peers}));
 
 if(syncEnabled&&peers.length){await syncCycle('startup');timer=setInterval(()=>syncCycle('interval').catch(error=>console.error(JSON.stringify({event:'shadow-validation-sync-error',error:cleanError(error)}))),syncIntervalMs);timer.unref?.();}
-
-// Keep a no-peer or sync-disabled validation node alive as an HTTP endpoint.
-if(!timer)await new Promise(()=>{});
+// No artificial top-level wait is needed: the HTTP server keeps the process alive.
