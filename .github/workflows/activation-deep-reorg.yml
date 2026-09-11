@@ -1,0 +1,38 @@
+name: Activation Deep Reorg Hardening
+
+on:
+  push:
+    branches: [main, deep-reorg-fork-hardening]
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-reorg-*.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-migration-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
+      - '.github/workflows/activation-deep-reorg.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-reorg-*.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-migration-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
+      - '.github/workflows/activation-deep-reorg.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adversarial-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deep reorg + rollback + restart + differential reference
+        run: node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+      - name: 128 deterministic differential reorg scenarios
+        run: node sovereign-forge/tests/activation-reorg-differential-fuzz.mjs
