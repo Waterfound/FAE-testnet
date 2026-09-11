@@ -4,6 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY authoritative ./authoritative
 COPY lab ./lab
+RUN mkdir -p /data && chown -R node:node /data
 ENV FAE_SHADOW_HOST=0.0.0.0 \
     FAE_SHADOW_PORT=8788 \
     FAE_SHADOW_PROFILE=trusted \
