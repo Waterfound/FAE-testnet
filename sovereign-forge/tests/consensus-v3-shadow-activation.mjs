@@ -24,7 +24,12 @@ function signTx(owner,inputs,outputs,extra={}){const tx={version:2,network:NETWO
 function mineCandidate(template){for(let nonce=0;nonce<12_000_000;nonce++){const hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)return{header:structuredClone(template.header),nonce,hash,txids:[...(template.txids||[])],...(template.coinbase_outputs?{coinbase_outputs:structuredClone(template.coinbase_outputs)}:{})}}throw new Error('PoW search exhausted')}
 function mutate(candidate,fn){const copy=structuredClone(candidate);fn(copy);return copy}
 
-function assertParity(report,label){assert.doesNotThrow(()=>assertShadowParity(report),`${label}: ${JSON.stringify(report)}`);assert.equal(report.parity,true,label)}
+function assertParity(report,label){
+  const requireErrorClass=report.authoritative.accepted===false&&report.codec.ok;
+  assert.doesNotThrow(()=>assertShadowParity(report,{requireErrorClass}),`${label}: ${JSON.stringify(report)}`);
+  assert.equal(report.parity,true,label);
+  if(requireErrorClass)assert.equal(report.errorParity,true,`${label}: reject class must match`);
+}
 
 test('v3 shadow activation harness is cryptographically/architecturally fenced from consensus authority',()=>{
   assert.equal(CODEC_STATUS,'candidate-not-active-consensus');
