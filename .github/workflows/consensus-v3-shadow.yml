@@ -1,0 +1,50 @@
+name: consensus-v3-shadow-parity
+
+on:
+  push:
+    branches: [consensus-v3-shadow-activation-harness]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/consensus-codec-v3.mjs'
+      - 'sovereign-forge/node/authoritative/consensus-v3-shadow-*.mjs'
+      - 'sovereign-forge/tests/consensus-v3-shadow-activation.mjs'
+      - 'sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs'
+      - 'sovereign-forge/protocol/CONSENSUS_CODEC_V3_VECTORS.json'
+      - '.github/workflows/consensus-v3-shadow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-consensus-v3-shadow-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check shadow codec and harness
+        run: |
+          node --check sovereign-forge/node/authoritative/consensus-codec-v3.mjs
+          node --check sovereign-forge/node/authoritative/consensus-v3-shadow-codec.mjs
+          node --check sovereign-forge/node/authoritative/consensus-v3-shadow-harness.mjs
+          node --check sovereign-forge/tests/consensus-v3-shadow-activation.mjs
+
+      - name: Preserve historical and current compatibility vectors
+        run: node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+
+      - name: Prove current-v4 accept/reject parity through v3 shadow serialization
+        run: node --test sovereign-forge/tests/consensus-v3-shadow-activation.mjs
+
+      - name: Assert codec remains non-authoritative
+        run: |
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/consensus-codec-v3.mjs
+          grep -q "shadow-only-not-consensus" sovereign-forge/node/authoritative/consensus-v3-shadow-codec.mjs
+          grep -q "dual-validation-observer-only" sovereign-forge/node/authoritative/consensus-v3-shadow-harness.mjs
