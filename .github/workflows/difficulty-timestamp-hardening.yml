@@ -8,6 +8,7 @@ on:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-hardening.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-adversarial-sim.mjs'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_VECTORS.json'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_HARDENING.md'
       - '.github/workflows/difficulty-timestamp-hardening.yml'
@@ -17,6 +18,7 @@ on:
       - 'sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-hardening.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-shadow.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-adversarial-sim.mjs'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_VECTORS.json'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_HARDENING.md'
       - '.github/workflows/difficulty-timestamp-hardening.yml'
@@ -45,12 +47,16 @@ jobs:
           node --check sovereign-forge/node/authoritative/difficulty-timestamp-shadow.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-hardening.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+          node --check sovereign-forge/tests/difficulty-timestamp-adversarial-sim.mjs
 
       - name: Run deterministic and adversarial vectors
         run: node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
 
       - name: Run observer-only shadow bridge tests
         run: node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+
+      - name: Run seeded stochastic and timestamp-attack simulations
+        run: node --test sovereign-forge/tests/difficulty-timestamp-adversarial-sim.mjs
 
       - name: Assert integer-only candidate target arithmetic
         run: |
