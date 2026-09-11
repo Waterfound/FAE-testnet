@@ -59,20 +59,20 @@ function candidateFromActivatedBlock(block){
 
 export function validateDownloadedBodies(prefix,headers,blocks,policy,{remotePolicyDescriptor=activationPolicyDescriptor(policy),nowMs=Date.now()}={}){
   if(!Array.isArray(headers)||!Array.isArray(blocks)||headers.length!==blocks.length)throw new Error('header_block_length_mismatch');
-  let chain=structuredClone(prefix);
+  let chain=structuredClone(prefix),storageChain=structuredClone(prefix);
   for(let i=0;i<headers.length;i++){
     const header=headers[i],block=blocks[i];if(String(block?.hash)!==String(header?.hash)||!same(block?.header_json,header?.header_json))throw new Error('downloaded_block_header_mismatch');
     const height=int(header.height,'height',{min:1});
     if(height<policy.activation_height){
       if(!Array.isArray(block.txids)||new Set(block.txids.map(String)).size!==block.txids.length)throw new Error('legacy_block_bad_txids');
       const full=header.header_json;if(Number(full.tx_count)!==block.txids.length||String(full.tx_root)!==hashHex(block.txids.map(String)))throw new Error('legacy_block_tx_commitment_mismatch');
-      chain=validateHeaderSequence(chain,[header],{activationHeight:Number.MAX_SAFE_INTEGER,now:nowMs});continue;
+      chain=validateHeaderSequence(chain,[header],{activationHeight:Number.MAX_SAFE_INTEGER,now:nowMs});storageChain.push(structuredClone(block));continue;
     }
     const candidate=candidateFromActivatedBlock(block),verdict=validateFullActivationCandidate(chain,candidate,policy,{remotePolicyDescriptor,nowMs,enforceFutureDrift:false});
     if(!verdict.ok)throw Object.assign(new Error(verdict.error),{verdict});
-    chain.push(activatedRecord(header));
+    chain.push(activatedRecord(header));storageChain.push(structuredClone(block));
   }
-  return{ok:true,chain,work:validateBranchChain(chain,policy,{enforceFutureDrift:false}).work};
+  return{ok:true,chain,storage_chain:storageChain,work:validateBranchChain(chain,policy,{enforceFutureDrift:false}).work};
 }
 
 export async function rehearseHeadersFirstSync({localChain,commonAncestorHeight,remotePolicyDescriptor,remoteClaimedWork=null,fetchHeaders,fetchBlocks,policy,nowMs=Date.now()}={}){
@@ -87,5 +87,5 @@ export async function rehearseHeadersFirstSync({localChain,commonAncestorHeight,
   let bodies;try{bodies=validateDownloadedBodies(prefix,headers,blocks,policy,{remotePolicyDescriptor,nowMs});}catch(error){return{ok:false,stage:'blocks',error:error.message,blocks_requested:true};}
   if(bodies.work!==headerPlan.work)return{ok:false,stage:'blocks',error:'header_body_work_mismatch',blocks_requested:true};
   const fork=compareBranchForks(bodies.chain,localChain,policy);
-  return{ok:true,status:FULL_TARGET_HEADERS_SYNC_STATUS,policy_id:compatibility.policy_id,blocks_requested:true,headers_validated:headers.length,blocks_validated:blocks.length,remote_work:bodies.work,local_work:validateBranchChain(localChain,policy,{enforceFutureDrift:false}).work,preferred:fork.winner==='a',fork_winner:fork.winner,candidate_chain:bodies.chain};
+  return{ok:true,status:FULL_TARGET_HEADERS_SYNC_STATUS,policy_id:compatibility.policy_id,blocks_requested:true,headers_validated:headers.length,blocks_validated:blocks.length,remote_work:bodies.work,local_work:validateBranchChain(localChain,policy,{enforceFutureDrift:false}).work,preferred:fork.winner==='a',fork_winner:fork.winner,candidate_chain:bodies.chain,storage_chain:bodies.storage_chain};
 }
