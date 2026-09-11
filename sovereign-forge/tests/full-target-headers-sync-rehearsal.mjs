@@ -62,7 +62,7 @@ const plan=validateMixedHeaderSequence(prefix,remoteHeaders,policy,{remotePolicy
 
 let headerFetches=0,blockFetches=0;
 const sync=await rehearseHeadersFirstSync({
-  localChain,commonAncestorHeight:12,remotePolicyDescriptor:descriptor,remoteClaimedWork:plan.work,policy,nowMs:remote15Time,
+  localChain,commonAncestorHeight:12,remotePolicyDescriptor:descriptor,remoteClaimedWork:plan.work,remoteClaimedTipHash:remoteHeaders.at(-1).hash,policy,nowMs:remote15Time,
   fetchHeaders:async()=>{headerFetches++;return structuredClone(remoteHeaders)},
   fetchBlocks:async()=>{blockFetches++;return structuredClone(remoteBlocks)}
 });
@@ -70,6 +70,16 @@ assert.equal(sync.ok,true);assert.equal(sync.preferred,true);assert.equal(sync.f
 assert.equal(sync.headers_validated,3);assert.equal(sync.blocks_validated,3);assert.equal(headerFetches,1);assert.equal(blockFetches,1);
 assert.equal(sync.candidate_chain.at(-1).hash,remote15.candidate.hash);
 assert.ok(sync.remote_work>sync.local_work);
+
+// A peer that advertises one signed tip and serves another header branch must
+// fail before bodies are requested, even if cumulative work could otherwise match.
+let tipSwapBodyFetch=false;
+const tipSwap=await rehearseHeadersFirstSync({
+  localChain,commonAncestorHeight:12,remotePolicyDescriptor:descriptor,remoteClaimedWork:plan.work,remoteClaimedTipHash:'f'.repeat(64),policy,nowMs:remote15Time,
+  fetchHeaders:async()=>structuredClone(remoteHeaders),
+  fetchBlocks:async()=>{tipSwapBodyFetch=true;return structuredClone(remoteBlocks)}
+});
+assert.equal(tipSwap.ok,false);assert.equal(tipSwap.stage,'headers');assert.equal(tipSwap.error,'remote_tip_changed_during_headers');assert.equal(tipSwap.blocks_requested,false);assert.equal(tipSwapBodyFetch,false);
 
 // A bad header must abort before any body download.
 const badHeaders=structuredClone(remoteHeaders);badHeaders[1].target_hex='f'.repeat(64);badHeaders[1].header_json.target_hex='f'.repeat(64);
@@ -91,4 +101,4 @@ assert.equal(badPolicy.ok,false);assert.equal(badPolicy.stage,'policy');assert.e
 const restarted=validateBranchChain(JSON.parse(JSON.stringify(sync.candidate_chain)),policy,{enforceFutureDrift:false});
 assert.equal(restarted.ok,true);assert.equal(restarted.tip.hash,remote15.candidate.hash);assert.equal(restarted.work,sync.remote_work);
 
-console.log(JSON.stringify({status:'PASS',activation_height:14,common_ancestor:12,crosses_activation:true,headers_first:true,blocks_deferred_until_headers_valid:true,remote_preferred:true,restart_replay:true,legacy_attempts:local13.attempts+remote13.attempts,full_target_attempts:local14.attempts+local15.attempts+remote14.attempts+remote15.attempts}));
+console.log(JSON.stringify({status:'PASS',activation_height:14,common_ancestor:12,crosses_activation:true,headers_first:true,blocks_deferred_until_headers_valid:true,remote_tip_bound:true,remote_preferred:true,restart_replay:true,legacy_attempts:local13.attempts+remote13.attempts,full_target_attempts:local14.attempts+local15.attempts+remote14.attempts+remote15.attempts}));
