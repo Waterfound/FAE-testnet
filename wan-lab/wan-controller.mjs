@@ -41,16 +41,14 @@ async function req(url, path, method = 'GET', payload = null, timeout = 15000, r
       });
       const j = await r.json().catch(() => ({}));
       if (r.ok) return j;
-      const retryable = [408, 425, 429, 500, 502, 503, 504].includes(r.status);
+      const retryable = [408,425,429,500,502,503,504].includes(r.status);
       const err = Error(`${r.status}:${j.error || r.statusText}`);
       if (!retryable || attempt === retries) throw err;
       lastError = err;
     } catch (e) {
       lastError = e;
       if (attempt === retries) throw e;
-    } finally {
-      clearTimeout(t);
-    }
+    } finally { clearTimeout(t); }
     await sleep(Math.min(2500, 200 * (2 ** attempt)) + Math.floor(Math.random() * 100));
   }
   throw lastError || Error('request_failed');
@@ -104,20 +102,31 @@ function evaluatePair(bundle){
 
 async function waitReady() {
   for (let i=0;i<120;i++) {
-    const s=await Promise.allSettled(NODES.map(n=>req(n,'/status', 'GET', null, 10000, 2)));
+    const s=await Promise.allSettled(NODES.map(n=>req(n,'/status','GET',null,10000,2)));
     if (s.every(x=>x.status==='fulfilled')) return s.map(x=>x.value);
     await sleep(2000);
   }
   throw Error('nodes_not_ready');
 }
+async function statuses(){ return Promise.all(NODES.map(n=>req(n,'/status'))); }
 async function configure() {
   await Promise.all(NODES.map(n=>post(n,'/control/auto-produce',{enabled:false}).catch(()=>{})));
+  await Promise.all(NODES.map(n=>post(n,'/control/peers',{peers:[]})));
+  await sleep(600);
   await Promise.all(NODES.map(n=>post(n,'/control/reset')));
+  await sleep(1200);
+  const clean=await statuses();
+  if (!clean.every(x=>Number(x.height)===0 && Number(x.knownBlocks)===0 && Number(x.staleBlocks)===0)) {
+    throw Error(`phase_reset_contaminated:${JSON.stringify(clean.map(x=>({nodeId:x.nodeId,height:x.height,knownBlocks:x.knownBlocks,staleBlocks:x.staleBlocks})))}`);
+  }
+  await Promise.all(NODES.flatMap((n,i)=>NODES.filter((_,j)=>j!==i).map(peer=>post(n,'/control/peer-block',{peer,blocked:false}).catch(()=>{}))));
   await Promise.all(NODES.map((n,i)=>post(n,'/control/peers',{peers:NODES.filter((_,j)=>j!==i)})));
-  await Promise.all(NODES.map(n=>post(n,'/control/sync')));
-  await sleep(1500);
+  await sleep(1200);
+  const linked=await statuses();
+  if (!linked.every(x=>Number(x.height)===0 && Number(x.knownBlocks)===0 && Number(x.staleBlocks)===0)) {
+    throw Error(`phase_link_contaminated:${JSON.stringify(linked.map(x=>({nodeId:x.nodeId,height:x.height,knownBlocks:x.knownBlocks,staleBlocks:x.staleBlocks})))}`);
+  }
 }
-async function statuses(){ return Promise.all(NODES.map(n=>req(n,'/status'))); }
 
 async function findEvent(nodeIndex, hash, limit=100) {
   const e = await req(NODES[nodeIndex],`/events?limit=${limit}`,'GET',null,10000,4);
@@ -168,12 +177,12 @@ async function runPhase({targetSeconds,blocks,phase,payloadMultiplier=1,rotateOr
     parent=block.hash;height++;
     if ((i+1)%50===0) console.log(JSON.stringify({event:'FAE_BLOCK_TIME_V2_PROGRESS',targetSeconds,phase,completed:i+1,total:blocks,samples:latencies.length}));
   }
-  await Promise.all(NODES.map(n=>post(n,'/control/sync')));
-  await sleep(800);
+  await sleep(1200);
   const s=await statuses();
   const stale=Math.max(...s.map(x=>Number(x.staleBlocks||0)));
-  const discovered=height+stale;
-  return {blocks:discovered,staleBlocks:stale,latencies,statuses:s.map((x,i)=>({node:NODES[i],nodeId:x.nodeId,region:x.region,height:x.height,staleBlocks:x.staleBlocks,reorgCount:x.reorgCount,tipHash:x.tipHash}))};
+  const canonicalHeight=Math.max(...s.map(x=>Number(x.height||0)));
+  if (canonicalHeight!==height) throw Error(`unexpected_height:${phase}:${targetSeconds}:${canonicalHeight}:${height}`);
+  return {blocks:height+stale,staleBlocks:stale,latencies,statuses:s.map((x,i)=>({node:NODES[i],nodeId:x.nodeId,region:x.region,height:x.height,knownBlocks:x.knownBlocks,staleBlocks:x.staleBlocks,reorgCount:x.reorgCount,tipHash:x.tipHash}))};
 }
 
 async function runTarget(targetSeconds) {
