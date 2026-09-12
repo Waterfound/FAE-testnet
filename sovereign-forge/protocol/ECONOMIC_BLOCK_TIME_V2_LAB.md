@@ -18,6 +18,7 @@ The 300-second baseline uses the current preferred research candidate:
 - initial subsidy: **14 FAE/block**;
 - halving interval: **430,000 blocks**;
 - theoretical geometric maximum supply: **12,040,000 FAE**;
+- base unit: **100,000,000 atoms = 1 FAE**;
 - coinbase maturity: **200 blocks = 16h40m at 300 seconds**.
 
 These are lab inputs, not a silent rewrite of the live public-testnet constants.
@@ -42,9 +43,26 @@ The simulator makes three policies explicit rather than smuggling one in:
 
 1. **Height-frozen:** keep 14 FAE and 430,000 blocks. The theoretical supply remains 12.04m FAE, but the calendar issuance curve stretches 2x at 600s and 3x at 900s.
 2. **Calendar-neutral / reward-frozen:** scale halving height to preserve the ~4.09-year cadence while keeping 14 FAE/block. This contracts theoretical supply to ~6.02m FAE at 600s and ~4.013m FAE at 900s.
-3. **Calendar + supply neutral:** scale both halving height and per-block reward. 600s becomes 28 FAE every 215,000 blocks; 900s uses ~42.0001 FAE every 143,333 blocks. This restores the 12.04m geometric supply in the research model, but changes per-block payout magnitude and therefore requires a separate mining/payout review.
+3. **Calendar + supply neutral, atom-exact:** search for an integer halving height and integer atom reward that preserve the 12.04m geometric supply while minimizing calendar error.
+
+For 600 seconds the atom-exact result is simple: **28 FAE × 215,000 blocks**, preserving both the supply and the baseline halving calendar exactly.
+
+For 900 seconds the naive real-number pair `~42.0001 FAE × 143,333 blocks` is not a valid exact monetary rule because the reward is not an integer number of atoms. The nearest exact atom-level pair inside the research search window is:
+
+- **4,199,218,750 atoms = 41.9921875 FAE/block**;
+- **143,360 blocks/halving**;
+- exact geometric supply: **12,040,000 FAE**;
+- calendar error versus the 300s baseline halving time: **24,000 seconds = 6h40m** over ~4.09 years.
+
+This is a useful L2 result: monetary granularity becomes part of block-time selection. A mathematically neat scaling ratio is not sufficient if it cannot be represented exactly in consensus base units.
 
 No branch is ratified by this lab.
+
+## Maturity and block-count quantization
+
+Preserving 16h40m maturity is exact at 600s: **100 blocks**. It is not exactly representable at 900s because `60,000 / 900 = 66.666…` blocks. The nearest whole-block rule is **67 blocks = 16h45m**, a +5 minute error; 66 blocks would be 16h30m.
+
+This means a 900s candidate must either accept explicit wall-clock quantization, redefine the desired maturity, or introduce a different maturity rule. The lab does not silently choose among those policy changes.
 
 ## DAA coupling
 
@@ -74,27 +92,29 @@ This is an important L2 result: a longer block target does not provide a free st
 
 ## Confirmation and mining-event semantics
 
-Block-count UX cannot be compared naively across candidates. Six confirmations at 300s is ~30 minutes; the same wall-clock window is about three confirmations at 600s and two at 900s. Likewise, solo-mining and block-event frequency falls 2x/3x at longer targets. Under calendar+supply-neutral issuance, per-block rewards rise 2x/~3x, preserving expected issuance per time but increasing event granularity and payout latency.
+Block-count UX cannot be compared naively across candidates. Six confirmations at 300s is ~30 minutes; the same wall-clock window is about three confirmations at 600s and two at 900s. Likewise, solo-mining and block-event frequency falls 2x/3x at longer targets. Under calendar+supply-neutral issuance, per-block rewards rise roughly 2x/3x, preserving expected issuance per time but increasing event granularity and payout latency.
 
 Any PPLNS/share-window rule expressed in blocks instead of work/time must therefore be re-reviewed before a longer target can advance.
 
-## Focused Red Team L2 — precommitted findings/gates
+## Focused Red Team L2 — findings/gates
 
 | ID | Area | L2 finding / gate | State |
 |---|---|---|---|
 | E-01 | Economics | A block-time change must not silently stretch or compress the monetary calendar. | **BLOCKER for target-only change** |
 | E-02 | Coinbase | 200-block maturity becomes 33h20m / 50h at 600/900s unless explicitly rescaled. | **BLOCKER for target-only change** |
 | E-03 | Capacity | 20 tx/block halves / thirds nominal throughput at 600/900s. | **BLOCKER for target-only change** |
+| E-04 | Base units | Supply-neutral reward/halving pairs must be exactly representable in atoms. | **CLOSED as lab invariant** |
+| E-05 | Quantization | 900s cannot represent the baseline 16h40m maturity exactly in whole blocks. | **YELLOW / explicit policy required** |
 | D-01 | DAA | Half-life must be parameterized in wall-clock time; hidden 180/300-second assumptions are forbidden. | **OPEN / test** |
-| D-02 | DAA noise | 6h gives only 72/36/24 observations for 300/600/900s; quantify variance before selection. | **OPEN / test** |
+| D-02 | DAA noise | 6h gives only 72/36/24 observations for 300/600/900s; quantify variance before selection. | **YELLOW / proxy favors 300s** |
 | M-01 | Mining UX | Longer targets reduce block-event frequency and increase feedback/payout-event latency. | **OPEN / measure** |
-| S-01 | Stales | Longer targets may reduce propagation-race pressure only after payload/throughput effects are charged. | **OPEN / measure** |
+| S-01 | Stales | Longer targets may reduce propagation-race pressure only after payload/throughput effects are charged. | **YELLOW / no free advantage** |
 | A-01 | Activation | Lab code must have zero authority over public consensus. | **HARD INVARIANT** |
 | A-02 | Activation | Choosing a winner is not activation; L3 is mandatory before testnet activation. | **HARD INVARIANT** |
 
 ## Candidate decision rule
 
-The lab must not rank 600s or 900s above 300s merely because fixed-payload stale probability is lower. A challenger must demonstrate a net gain after charging the costs of slower confirmation UX, lower block-event frequency, DAA observation density, maturity semantics, throughput/capacity and monetary-policy coupling.
+The lab must not rank 600s or 900s above 300s merely because fixed-payload stale probability is lower. A challenger must demonstrate a net gain after charging the costs of slower confirmation UX, lower block-event frequency, DAA observation density, maturity semantics, throughput/capacity, atom-level monetary granularity and monetary-policy coupling.
 
 The 300-second candidate remains the baseline until evidence shows that a longer interval materially improves robustness enough to justify those costs.
 
