@@ -1,0 +1,53 @@
+name: economic-block-time-v2-lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
+      - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
+      - '.github/workflows/economic-block-time-v2-lab.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
+      - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
+      - '.github/workflows/economic-block-time-v2-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify lab syntax
+        run: |
+          node --check sovereign-forge/node/lab/economic-block-time-v2-lab.mjs
+          node --check sovereign-forge/tests/economic-block-time-v2-lab.mjs
+
+      - name: Run L2 invariant checks
+        run: node sovereign-forge/tests/economic-block-time-v2-lab.mjs
+
+      - name: Generate deterministic lab report
+        run: node sovereign-forge/node/lab/economic-block-time-v2-lab.mjs > economic-block-time-v2-report.json
+
+      - name: Assert non-authoritative boundary
+        run: |
+          grep -q 'research-only-candidate-not-active-consensus' economic-block-time-v2-report.json
+          grep -q 'L3_REQUIRED_BEFORE_ANY_TESTNET_ACTIVATION' economic-block-time-v2-report.json
+          grep -q 'HOLD-300-AS-INCUMBENT' economic-block-time-v2-report.json
+
+      - name: Upload lab evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-block-time-v2-report
+          path: economic-block-time-v2-report.json
+          retention-days: 30
