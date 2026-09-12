@@ -37,17 +37,20 @@ reset();
 function pathToGenesis(h){const out=[];let cur=blocks.get(h);const seen=new Set();while(cur&&cur.hash!==GENESIS&&!seen.has(cur.hash)){seen.add(cur.hash);out.push(cur.hash);cur=blocks.get(cur.parent);}out.push(GENESIS);return out;}
 function isAncestor(a,b){if(a===b)return true;let cur=blocks.get(b);const seen=new Set();while(cur&&cur.hash!==GENESIS&&!seen.has(cur.hash)){if(cur.parent===a)return true;seen.add(cur.hash);cur=blocks.get(cur.parent);}return a===GENESIS;}
 function chooseTip(){let best=blocks.get(GENESIS);for(const b of blocks.values()){if(b.height>best.height||(b.height===best.height&&b.hash<best.hash))best=b;}return best.hash;}
-function updateTip(){const old=tipHash;const next=chooseTip();if(next!==old){if(!isAncestor(old,next)&&old!==GENESIS)reorgCount++;tipHash=next;}}
+function updateTip(){const old=tipHash;const next=chooseTip();if(next!==old){if(!isAncestor(old,next)&&old!==GENESIS)reorgCount++;tipHash=next;}return old!==tipHash;}
 function canonicalSet(){return new Set(pathToGenesis(tipHash));}
 function staleCount(){const c=canonicalSet();let n=0;for(const h of blocks.keys())if(h!==GENESIS&&!c.has(h))n++;return n;}
 function branchTips(){const parents=new Set([...blocks.values()].filter(b=>b.parent).map(b=>b.parent));return [...blocks.values()].filter(b=>b.hash!==GENESIS&&!parents.has(b.hash)).map(b=>b.hash);}
 function verifyBlock(b){if(!b||b.lab!=='FAE_WAN_LAB_V1'||typeof b.hash!=='string'||typeof b.parent!=='string'||!Number.isInteger(b.height)||b.height<1)return false;const payload={lab:b.lab,height:b.height,parent:b.parent,createdAtMs:b.createdAtMs,origin:b.origin,seq:b.seq,nonce:b.nonce};return hashBlockPayload(payload)===b.hash;}
 function ingest(b,via='unknown',seenAt=Date.now()){
-  if(blocks.has(b.hash)){if(!events.has(b.hash))events.set(b.hash,{hash:b.hash,firstSeenMs:seenAt,via});return {added:false};}
+  if(blocks.has(b.hash)){if(!events.has(b.hash))events.set(b.hash,{hash:b.hash,firstSeenMs:seenAt,via});return {added:false,tipChanged:false};}
   if(!verifyBlock(b))throw Error('invalid_block_hash');
   const p=blocks.get(b.parent);if(!p)throw Error('missing_parent');if(b.height!==p.height+1)throw Error('bad_height');
   blocks.set(b.hash,structuredClone(b));if(!children.has(b.parent))children.set(b.parent,new Set());children.get(b.parent).add(b.hash);
-  events.set(b.hash,{hash:b.hash,firstSeenMs:seenAt,via,origin:b.origin,height:b.height});updateTip();return {added:true};
+  events.set(b.hash,{hash:b.hash,firstSeenMs:seenAt,via,origin:b.origin,height:b.height});
+  const tipChanged=updateTip();
+  if(tipChanged&&autoProduce.enabled)scheduleAuto();
+  return {added:true,tipChanged};
 }
 function snapshot(){const hashes=pathToGenesis(tipHash).reverse();return hashes.map(h=>blocks.get(h));}
 function baseUrl(){return process.env.FAE_PUBLIC_URL?.replace(/\/$/,'')||`http://127.0.0.1:${PORT}`;}
@@ -70,10 +73,11 @@ function scheduleAuto(){
   const delay=exponentialDelay(autoProduce.meanMs);
   autoProduce.nextAtMs=Date.now()+delay;
   autoProduce.timer=setTimeout(()=>{
+    autoProduce.timer=null;
     if(!autoProduce.enabled||generation!==autoProduce.generation)return;
     try{mineLocal(`auto-${NODE_ID}-${Date.now()}-${autoProduce.produced+1}`);autoProduce.produced++;}
     catch(e){console.warn('[FAE-WAN] auto-produce:',e.message);}
-    finally{if(autoProduce.enabled&&generation===autoProduce.generation)scheduleAuto();}
+    finally{if(autoProduce.enabled&&generation===autoProduce.generation&&!autoProduce.timer)scheduleAuto();}
   },delay);
   autoProduce.timer.unref?.();
 }
