@@ -6,6 +6,7 @@ const BASE = Object.freeze({
   maxTxPerBlock: 20,
   daaHalfLifeSeconds: 6 * 3600,
   confirmationsReference: 6,
+  atomsPerFae: 100_000_000,
 });
 
 const CANDIDATES = Object.freeze([300, 600, 900]);
@@ -16,6 +17,38 @@ export function theoreticalSupply(rewardFae, halvingBlocks) {
 }
 
 export const BASE_SUPPLY_FAE = theoreticalSupply(BASE.rewardFae, BASE.halvingBlocks);
+export const BASE_SUPPLY_ATOMS = BigInt(BASE_SUPPLY_FAE) * BigInt(BASE.atomsPerFae);
+
+export function nearestExactSupplyNeutral(targetSeconds, searchRadius = 20_000) {
+  const scale = targetSeconds / BASE.targetSeconds;
+  const idealHalvingBlocks = BASE.halvingBlocks / scale;
+  const halfSupplyAtoms = BASE_SUPPLY_ATOMS / 2n;
+  let best = null;
+
+  const start = Math.max(1, Math.floor(idealHalvingBlocks - searchRadius));
+  const end = Math.ceil(idealHalvingBlocks + searchRadius);
+  for (let halvingBlocks = start; halvingBlocks <= end; halvingBlocks += 1) {
+    const h = BigInt(halvingBlocks);
+    if (halfSupplyAtoms % h !== 0n) continue;
+    const rewardAtoms = halfSupplyAtoms / h;
+    const calendarErrorSeconds = Math.abs(halvingBlocks * targetSeconds - BASE.halvingBlocks * BASE.targetSeconds);
+    const candidate = {
+      halvingBlocks,
+      rewardAtoms,
+      rewardFae: Number(rewardAtoms) / BASE.atomsPerFae,
+      halvingYears: yearsForBlocks(halvingBlocks, targetSeconds),
+      calendarErrorSeconds,
+      maxSupplyAtoms: rewardAtoms * h * 2n,
+    };
+    if (!best || calendarErrorSeconds < best.calendarErrorSeconds ||
+        (calendarErrorSeconds === best.calendarErrorSeconds && halvingBlocks < best.halvingBlocks)) {
+      best = candidate;
+    }
+  }
+
+  if (!best) throw new Error(`no exact atom-level supply-neutral pair within radius ${searchRadius}`);
+  return best;
+}
 
 export function raceProbability(delaySeconds, targetSeconds) {
   return 1 - Math.exp(-delaySeconds / targetSeconds);
@@ -48,15 +81,19 @@ export function staticCandidate(targetSeconds) {
     maxSupplyFae: theoreticalSupply(BASE.rewardFae, calendarHalvingBlocks),
   };
 
-  const supplyNeutralRewardFae = BASE_SUPPLY_FAE / (2 * calendarHalvingBlocks);
+  const exactSupplyNeutral = nearestExactSupplyNeutral(targetSeconds);
   const calendarSupplyNeutral = {
-    rewardFae: supplyNeutralRewardFae,
-    halvingBlocks: calendarHalvingBlocks,
-    halvingYears: yearsForBlocks(calendarHalvingBlocks, targetSeconds),
-    maxSupplyFae: theoreticalSupply(supplyNeutralRewardFae, calendarHalvingBlocks),
+    rewardFae: exactSupplyNeutral.rewardFae,
+    rewardAtoms: exactSupplyNeutral.rewardAtoms.toString(),
+    halvingBlocks: exactSupplyNeutral.halvingBlocks,
+    halvingYears: exactSupplyNeutral.halvingYears,
+    calendarErrorSeconds: exactSupplyNeutral.calendarErrorSeconds,
+    maxSupplyFae: Number(exactSupplyNeutral.maxSupplyAtoms) / BASE.atomsPerFae,
   };
 
-  const wallClockMaturityBlocks = Math.max(1, Math.round((BASE.maturityBlocks * BASE.targetSeconds) / targetSeconds));
+  const desiredMaturitySeconds = BASE.maturityBlocks * BASE.targetSeconds;
+  const wallClockMaturityBlocks = Math.max(1, Math.round(desiredMaturitySeconds / targetSeconds));
+  const actualMaturitySeconds = wallClockMaturityBlocks * targetSeconds;
   const throughputNeutralMaxTx = Math.max(1, Math.round(BASE.maxTxPerBlock * scale));
   const timeNeutralConfirmations = Math.max(1, Math.round((BASE.confirmationsReference * BASE.targetSeconds) / targetSeconds));
 
@@ -75,7 +112,8 @@ export function staticCandidate(targetSeconds) {
     calendarSupplyNeutral,
     wallClockNeutral: {
       maturityBlocks: wallClockMaturityBlocks,
-      maturityHours: (wallClockMaturityBlocks * targetSeconds) / 3600,
+      maturityHours: actualMaturitySeconds / 3600,
+      maturityErrorSeconds: actualMaturitySeconds - desiredMaturitySeconds,
       maxTxPerBlock: throughputNeutralMaxTx,
       nominalTps: throughputNeutralMaxTx / targetSeconds,
       confirmationsForBaselineThirtyMinutes: timeNeutralConfirmations,
