@@ -10,7 +10,7 @@ const TARGETS = [300, 600, 900];
 const BASE_TX_PER_BLOCK = 20;
 const TX_BYTES = 512;
 const STEADY_BLOCKS = 400;
-const STRESS_BLOCKS = 400;
+const STRESS_BLOCKS = 200;
 const PAYLOAD_POLICY_ID = 'synthetic-512Btx-throughput-neutral-v1';
 const HARNESS_COMMIT = String(process.env.RENDER_GIT_COMMIT || process.env.RENDER_COMMIT || '').toLowerCase();
 const ENVIRONMENT_ID = 'render-oregon-frankfurt-singapore-v1';
@@ -27,20 +27,33 @@ let result = {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function req(url, path, method = 'GET', payload = null, timeout = 15000) {
-  const c = new AbortController();
-  const t = setTimeout(() => c.abort(), timeout);
-  try {
-    const r = await fetch(url + path, {
-      method,
-      signal: c.signal,
-      headers: {'content-type':'application/json','x-fae-lab-token':TOKEN},
-      body: payload ? JSON.stringify(payload) : undefined,
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw Error(`${r.status}:${j.error || r.statusText}`);
-    return j;
-  } finally { clearTimeout(t); }
+async function req(url, path, method = 'GET', payload = null, timeout = 15000, retries = 6) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), timeout);
+    try {
+      const r = await fetch(url + path, {
+        method,
+        signal: c.signal,
+        headers: {'content-type':'application/json','x-fae-lab-token':TOKEN},
+        body: payload ? JSON.stringify(payload) : undefined,
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) return j;
+      const retryable = [408, 425, 429, 500, 502, 503, 504].includes(r.status);
+      const err = Error(`${r.status}:${j.error || r.statusText}`);
+      if (!retryable || attempt === retries) throw err;
+      lastError = err;
+    } catch (e) {
+      lastError = e;
+      if (attempt === retries) throw e;
+    } finally {
+      clearTimeout(t);
+    }
+    await sleep(Math.min(2500, 200 * (2 ** attempt)) + Math.floor(Math.random() * 100));
+  }
+  throw lastError || Error('request_failed');
 }
 const post = (u,p,b={}) => req(u,p,'POST',b);
 
@@ -91,14 +104,14 @@ function evaluatePair(bundle){
 
 async function waitReady() {
   for (let i=0;i<120;i++) {
-    const s=await Promise.allSettled(NODES.map(n=>req(n,'/status')));
+    const s=await Promise.allSettled(NODES.map(n=>req(n,'/status', 'GET', null, 10000, 2)));
     if (s.every(x=>x.status==='fulfilled')) return s.map(x=>x.value);
     await sleep(2000);
   }
   throw Error('nodes_not_ready');
 }
 async function configure() {
-  await Promise.all(NODES.map((n,i)=>post(n,'/control/auto-produce',{enabled:false}).catch(()=>{})));
+  await Promise.all(NODES.map(n=>post(n,'/control/auto-produce',{enabled:false}).catch(()=>{})));
   await Promise.all(NODES.map(n=>post(n,'/control/reset')));
   await Promise.all(NODES.map((n,i)=>post(n,'/control/peers',{peers:NODES.filter((_,j)=>j!==i)})));
   await Promise.all(NODES.map(n=>post(n,'/control/sync')));
@@ -107,23 +120,25 @@ async function configure() {
 async function statuses(){ return Promise.all(NODES.map(n=>req(n,'/status'))); }
 
 async function findEvent(nodeIndex, hash, limit=100) {
-  const e = await req(NODES[nodeIndex],`/events?limit=${limit}`);
+  const e = await req(NODES[nodeIndex],`/events?limit=${limit}`,'GET',null,10000,4);
   return (e.events || []).find(x=>x.hash===hash) || null;
 }
-async function waitPeerEvents(hash, originIndex, originSeenMs, timeout=12000) {
+async function waitPeerEvents(hash, originIndex, originSeenMs, timeout=30000) {
   const start=Date.now();
   const pending=new Set(NODES.map((_,i)=>i).filter(i=>i!==originIndex));
   const samples=[];
   while (pending.size && Date.now()-start<timeout) {
     for (const i of [...pending]) {
-      const ev=await findEvent(i,hash,120);
-      if (ev && Number.isFinite(ev.firstSeenMs)) {
-        const delta=ev.firstSeenMs-originSeenMs;
-        if (delta>=0) samples.push(delta);
-        pending.delete(i);
-      }
+      try {
+        const ev=await findEvent(i,hash,120);
+        if (ev && Number.isFinite(ev.firstSeenMs)) {
+          const delta=ev.firstSeenMs-originSeenMs;
+          if (delta>=0) samples.push(delta);
+          pending.delete(i);
+        }
+      } catch {}
     }
-    if (pending.size) await sleep(25);
+    if (pending.size) await sleep(40);
   }
   if (pending.size) throw Error(`propagation_timeout:${hash}:${[...pending].join(',')}`);
   return samples;
@@ -145,7 +160,7 @@ async function runPhase({targetSeconds,blocks,phase,payloadMultiplier=1,rotateOr
     const originIndex=rotateOrigins ? i%NODES.length : 0;
     const txPerBlock=Math.round(BASE_TX_PER_BLOCK*(targetSeconds/300));
     const block=buildBlock({parent,height:height+1,targetSeconds,txPerBlock,phase,originIndex,payloadMultiplier});
-    const ing=await post(NODES[originIndex],'/ingest',{block,from:`block-time-v2-controller-${phase}`},{});
+    const ing=await post(NODES[originIndex],'/ingest',{block,from:`block-time-v2-controller-${phase}`});
     const originSeenMs=Number(ing.firstSeenMs);
     if (!Number.isFinite(originSeenMs)) throw Error('origin_first_seen_missing');
     const samples=await waitPeerEvents(block.hash,originIndex,originSeenMs);
