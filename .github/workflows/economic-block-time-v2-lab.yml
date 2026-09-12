@@ -6,21 +6,27 @@ on:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_L2_RESULTS.md'
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md'
       - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
       - 'sovereign-forge/node/lab/economic-block-time-v2-extended.mjs'
       - 'sovereign-forge/node/lab/economic-block-time-v2-sensitivity.mjs'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-evidence-gate.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-sensitivity.mjs'
+      - 'sovereign-forge/tests/economic-block-time-v2-evidence-gate.mjs'
       - '.github/workflows/economic-block-time-v2-lab.yml'
   pull_request:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_L2_RESULTS.md'
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md'
       - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
       - 'sovereign-forge/node/lab/economic-block-time-v2-extended.mjs'
       - 'sovereign-forge/node/lab/economic-block-time-v2-sensitivity.mjs'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-evidence-gate.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-sensitivity.mjs'
+      - 'sovereign-forge/tests/economic-block-time-v2-evidence-gate.mjs'
       - '.github/workflows/economic-block-time-v2-lab.yml'
   workflow_dispatch:
 
@@ -41,13 +47,16 @@ jobs:
           node --check sovereign-forge/node/lab/economic-block-time-v2-lab.mjs
           node --check sovereign-forge/node/lab/economic-block-time-v2-extended.mjs
           node --check sovereign-forge/node/lab/economic-block-time-v2-sensitivity.mjs
+          node --check sovereign-forge/node/lab/economic-block-time-v2-evidence-gate.mjs
           node --check sovereign-forge/tests/economic-block-time-v2-lab.mjs
           node --check sovereign-forge/tests/economic-block-time-v2-sensitivity.mjs
+          node --check sovereign-forge/tests/economic-block-time-v2-evidence-gate.mjs
 
       - name: Run L2 invariant checks
         run: |
           node sovereign-forge/tests/economic-block-time-v2-lab.mjs
           node sovereign-forge/tests/economic-block-time-v2-sensitivity.mjs
+          node sovereign-forge/tests/economic-block-time-v2-evidence-gate.mjs
 
       - name: Generate standard deterministic lab report
         run: node sovereign-forge/node/lab/economic-block-time-v2-lab.mjs > economic-block-time-v2-report.json
@@ -70,6 +79,7 @@ jobs:
           grep -q 'fae-economic-block-time-v2-sensitivity/1' economic-block-time-v2-sensitivity.json
           grep -q 'L3_REQUIRED_BEFORE_ANY_TESTNET_ACTIVATION' economic-block-time-v2-sensitivity.json
           grep -q 'Compare confirmation security by expected chainwork/time' economic-block-time-v2-sensitivity.json
+          grep -q 'activationAuthorized: false' sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md
 
       - name: Upload standard lab evidence
         uses: actions/upload-artifact@v4
