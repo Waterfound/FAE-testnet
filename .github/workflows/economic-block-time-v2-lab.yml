@@ -6,12 +6,14 @@ on:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
       - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-extended.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
       - '.github/workflows/economic-block-time-v2-lab.yml'
   pull_request:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md'
       - 'sovereign-forge/node/lab/economic-block-time-v2-lab.mjs'
+      - 'sovereign-forge/node/lab/economic-block-time-v2-extended.mjs'
       - 'sovereign-forge/tests/economic-block-time-v2-lab.mjs'
       - '.github/workflows/economic-block-time-v2-lab.yml'
   workflow_dispatch:
@@ -31,23 +33,38 @@ jobs:
       - name: Verify lab syntax
         run: |
           node --check sovereign-forge/node/lab/economic-block-time-v2-lab.mjs
+          node --check sovereign-forge/node/lab/economic-block-time-v2-extended.mjs
           node --check sovereign-forge/tests/economic-block-time-v2-lab.mjs
 
       - name: Run L2 invariant checks
         run: node sovereign-forge/tests/economic-block-time-v2-lab.mjs
 
-      - name: Generate deterministic lab report
+      - name: Generate standard deterministic lab report
         run: node sovereign-forge/node/lab/economic-block-time-v2-lab.mjs > economic-block-time-v2-report.json
+
+      - name: Generate extended seeded evidence
+        run: node sovereign-forge/node/lab/economic-block-time-v2-extended.mjs > economic-block-time-v2-extended.json
 
       - name: Assert non-authoritative boundary
         run: |
           grep -q 'research-only-candidate-not-active-consensus' economic-block-time-v2-report.json
           grep -q 'L3_REQUIRED_BEFORE_ANY_TESTNET_ACTIVATION' economic-block-time-v2-report.json
           grep -q 'HOLD-300-AS-INCUMBENT' economic-block-time-v2-report.json
+          grep -q 'seeded-stochastic-proxy-not-network-measurement' economic-block-time-v2-extended.json
+          grep -q '"runsPerScenario": 256' economic-block-time-v2-extended.json
+          grep -q '"durationDaysPerRun": 14' economic-block-time-v2-extended.json
+          grep -q '"selectionAuthority": "NONE"' economic-block-time-v2-extended.json
 
-      - name: Upload lab evidence
+      - name: Upload standard lab evidence
         uses: actions/upload-artifact@v4
         with:
           name: economic-block-time-v2-report
           path: economic-block-time-v2-report.json
+          retention-days: 30
+
+      - name: Upload extended lab evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-block-time-v2-extended
+          path: economic-block-time-v2-extended.json
           retention-days: 30
