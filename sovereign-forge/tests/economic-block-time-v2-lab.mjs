@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   BASE_SUPPLY_FAE,
+  nearestExactSupplyNeutral,
   raceProbability,
   staticCandidate,
   simulateAsertProxy,
@@ -18,12 +19,18 @@ assert.equal(c900.heightFrozen.maturityHours, 50);
 
 assert.equal(c600.calendarSupplyNeutral.halvingBlocks, 215_000);
 assert.equal(c600.calendarSupplyNeutral.rewardFae, 28);
+assert.equal(c600.calendarSupplyNeutral.rewardAtoms, '2800000000');
 assert.equal(c600.calendarSupplyNeutral.maxSupplyFae, BASE_SUPPLY_FAE);
-assert.equal(c900.calendarSupplyNeutral.halvingBlocks, 143_333);
-assert.ok(Math.abs(c900.calendarSupplyNeutral.maxSupplyFae - BASE_SUPPLY_FAE) < 1e-6);
+
+assert.equal(c900.calendarSupplyNeutral.halvingBlocks, 143_360);
+assert.equal(c900.calendarSupplyNeutral.rewardAtoms, '4199218750');
+assert.equal(c900.calendarSupplyNeutral.rewardFae, 41.9921875);
+assert.equal(c900.calendarSupplyNeutral.maxSupplyFae, BASE_SUPPLY_FAE);
+assert.equal(nearestExactSupplyNeutral(900).calendarErrorSeconds, 24_000);
 
 assert.equal(c600.wallClockNeutral.maturityBlocks, 100);
 assert.equal(c900.wallClockNeutral.maturityBlocks, 67);
+assert.equal(c900.wallClockNeutral.maturityErrorSeconds, 300);
 assert.equal(c600.wallClockNeutral.maxTxPerBlock, 40);
 assert.equal(c900.wallClockNeutral.maxTxPerBlock, 60);
 assert.equal(c600.wallClockNeutral.confirmationsForBaselineThirtyMinutes, 3);
