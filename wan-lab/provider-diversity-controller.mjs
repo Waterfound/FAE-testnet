@@ -8,7 +8,7 @@ const NODES=[
   {id:'B',provider:'render',url:process.env.FAE_NODE_B},
   {id:'C',provider:'render',url:process.env.FAE_NODE_C},
   {id:'D',provider:'supabase',url:process.env.FAE_NODE_D},
-].filter(x=>x.url).map(x=>({...x,url:x.url.replace(/\/$/,''));
+].filter(x=>x.url).map(x=>({...x,url:x.url.replace(/\/$/, '')}));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let result={ok:false,status:'warming',format:'FAE_PROVIDER_DIVERSITY_GATE_V1',startedAt:new Date().toISOString(),nodes:NODES};
 async function req(base,path,method='GET',payload=null,timeout=12000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeout);try{const r=await fetch(base+path,{method,signal:c.signal,headers:{'content-type':'application/json','x-fae-lab-token':TOKEN},body:payload?JSON.stringify(payload):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(`${r.status}:${j.error||r.statusText}`);return j}finally{clearTimeout(t)}}
@@ -42,7 +42,7 @@ async function run(){
  await sleep(1800);await syncAll();const first=await waitConverged();const winner=first[0].tipHash;const losing=winner===fa.block.hash?fd.block.hash:fa.block.hash;const loserIndex=winner===fa.block.hash?3:0;
  const ext=await post(NODES[loserIndex].url,'/control/mine',{parent:losing,nonce:'cross-provider-reorg'});
  await sleep(1800);await syncAll();const reorg=await waitConverged();
- for(let i=0;i<3;i++)for(let j=i+1;j<4;j++){if(i===3||j===3){await setBlocked(i,j,true);await setBlocked(j,i,true)}}
+ for(let i=0;i<3;i++){await setBlocked(i,3,true);await setBlocked(3,i,true)}
  for(let i=0;i<3;i++){await post(NODES[0].url,'/control/mine',{nonce:`render-part-${i}`});await sleep(200)}
  for(let i=0;i<2;i++){await post(NODES[3].url,'/control/mine',{nonce:`supabase-part-${i}`});await sleep(200)}
  const during=await statuses();
