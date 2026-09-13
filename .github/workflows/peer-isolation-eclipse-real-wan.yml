@@ -1,0 +1,216 @@
+name: peer-isolation-eclipse-real-wan
+
+on:
+  push:
+    branches: [lab-peer-isolation-eclipse-real-wan]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-real-wan-*'
+      - 'sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh'
+      - 'sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_REAL_WAN.md'
+      - '.github/workflows/peer-isolation-eclipse-real-wan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+concurrency:
+  group: peer-isolation-eclipse-real-wan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authority-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Preserve non-activation boundary and syntax
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/tests/peer-isolation-eclipse-real-wan-node.mjs
+          node --check sovereign-forge/tests/peer-isolation-eclipse-real-wan-controller.mjs
+          bash -n sovereign-forge/tests/peer-isolation-eclipse-real-wan-common.sh
+          bash -n sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh
+          bash -n sovereign-forge/tests/peer-isolation-eclipse-real-wan-observer.sh
+          ! grep -q 'fae-v4-peer-node-eclipse-candidate' sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q 'trycloudflare\|localhost.run\|pinggy' sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q 'trycloudflare\|localhost.run\|pinggy' sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q 'trycloudflare\|localhost.run\|pinggy' sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs
+      - name: Re-run frozen eclipse evidence locally
+        run: |
+          node --test sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-protocol6.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+
+  rendezvous:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      issue_number: ${{ steps.create.outputs.issue_number }}
+    steps:
+      - name: Create ephemeral eclipse-WAN rendezvous issue
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          title="FAE eclipse WAN rendezvous ${RUN_ID}"
+          body=$(cat <<EOF
+          Ephemeral coordination record for Peer Isolation & Eclipse Resistance real-WAN Gate 3, run ${RUN_ID}.
+
+          Commit: ${SHA}
+
+          Only short-lived public lab endpoints, runner boot IDs and phase markers are recorded here. No private keys or production secrets are published. Endpoints expire when the jobs finish. This run has no public testnet or mainnet activation authority.
+          EOF
+          )
+          payload=$(jq -nc --arg title "$title" --arg body "$body" '{title:$title,body:$body}')
+          response=$(curl -fsS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "https://api.github.com/repos/${REPO}/issues" -d "$payload")
+          number=$(jq -r '.number' <<<"$response")
+          test "$number" != null
+          echo "issue_number=${number}" >> "$GITHUB_OUTPUT"
+
+  ordinary-peers:
+    needs: rendezvous
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - role: O1
+            provider: cloudflare
+            runner: ubuntu-22.04
+          - role: O2
+            provider: localhost-run
+            runner: ubuntu-24.04
+          - role: O3
+            provider: pinggy
+            runner: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-eclipse-wan-${{ matrix.role }}
+      FAE_WAN_PORT: 18787
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run independent ordinary peer ${{ matrix.role }}
+        run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.provider }}'
+      - name: Upload ordinary peer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-wan-${{ matrix.role }}-${{ github.run_id }}
+          path: /tmp/fae-eclipse-wan-${{ matrix.role }}
+          if-no-files-found: warn
+          retention-days: 7
+
+  anchor:
+    needs: rendezvous
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-eclipse-wan-ANCHOR
+      FAE_WAN_PORT: 18787
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run persistent-identity stronger-chain anchor
+        run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh ANCHOR cloudflare
+      - name: Upload anchor evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-wan-anchor-${{ github.run_id }}
+          path: /tmp/fae-eclipse-wan-ANCHOR
+          if-no-files-found: warn
+          retention-days: 7
+
+  observer:
+    needs: rendezvous
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-eclipse-wan-observer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Independently verify four failure domains and three ordinary network groups
+        run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-observer.sh
+      - name: Upload observer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-wan-observer-${{ github.run_id }}
+          path: /tmp/fae-eclipse-wan-observer
+          if-no-files-found: warn
+          retention-days: 7
+
+  controller:
+    needs: rendezvous
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-eclipse-wan-controller
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Execute real-WAN HOLD to READY to HOLD gate
+        run: node sovereign-forge/tests/peer-isolation-eclipse-real-wan-controller.mjs
+      - name: Upload controller evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eclipse-wan-controller-${{ github.run_id }}
+          path: /tmp/fae-eclipse-wan-controller
+          if-no-files-found: warn
+          retention-days: 7
+
+  finalize:
+    if: always()
+    needs: [authority-isolation, rendezvous, ordinary-peers, anchor, observer, controller]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      RUN_ID: ${{ github.run_id }}
+      AUTHORITY_RESULT: ${{ needs.authority-isolation.result }}
+      ORDINARY_RESULT: ${{ needs.ordinary-peers.result }}
+      ANCHOR_RESULT: ${{ needs.anchor.result }}
+      OBSERVER_RESULT: ${{ needs.observer.result }}
+      CONTROLLER_RESULT: ${{ needs.controller.result }}
+    steps:
+      - name: Record result and close rendezvous
+        if: env.ISSUE_NUMBER != ''
+        run: |
+          set -euo pipefail
+          summary=$(jq -nc --arg run "$RUN_ID" --arg authority "$AUTHORITY_RESULT" --arg ordinary "$ORDINARY_RESULT" --arg anchor "$ANCHOR_RESULT" --arg observer "$OBSERVER_RESULT" --arg controller "$CONTROLLER_RESULT" '{run_id:$run,authority:$authority,ordinary_peers:$ordinary,anchor:$anchor,observer:$observer,controller:$controller}')
+          body="FAE_ECLIPSE_WAN_RUN_COMPLETE ${summary}"
+          jq -nc --arg body "$body" '{body:$body}' | curl -fsS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}/comments" -d @- >/dev/null
+          jq -nc '{state:"closed",state_reason:"completed"}' | curl -fsS -X PATCH -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}" -d @- >/dev/null
