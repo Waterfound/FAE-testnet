@@ -22,7 +22,7 @@ export function createAuthoritativeV4PeerNodeEclipseCandidate({
   const known=(Array.isArray(knownPeers)?knownPeers:[]).map(row=>knownPeer(row,'operator-known'));
   const pinnedIds=[...new Set([...(nodeOptions.pinnedPeerIdentityIds||[]).map(value=>String(value).toLowerCase()),...pinned.map(row=>row.identityId)])];
   const node=createAuthoritativeV4PeerNode({...nodeOptions,pinnedPeerIdentityIds:pinnedIds,syncIntervalMs:0});
-  node.directory.configureAdmission({maxRecordsPerSource:64,maxRecordsPerNetworkGroup:32,maxUnverifiedRecords:256,protectedSources:['self'],...eclipseDirectoryOptions});
+  node.directory.configureAdmission({maxRecordsPerSource:64,maxRecordsPerNetworkGroup:32,maxUnverifiedRecords:256,authenticationFailureThreshold:2,protectedSources:['self'],...eclipseDirectoryOptions});
   const peerView=new EclipseResistantDiscoveryCandidate({...eclipseDiscoveryOptions,pinnedIdentityIds:pinnedIds,peerDiversityOptions:nodeOptions.peerDiversityOptions||{}});
   peerView.ingest([...known,...pinned]);
   let syncRunning=false,syncTimer=null;
@@ -36,6 +36,7 @@ export function createAuthoritativeV4PeerNodeEclipseCandidate({
       return{peer:row.endpoint,peer_id:row.identityId,ok:true,...result};
     }catch(error){
       peerView.markProbeResult({identityId:row.identityId,endpoint:row.endpoint,ok:false});
+      node.directory.markProbeFailure(row.identityId,row.endpoint);absorbDirectory();
       return{peer:row.endpoint,peer_id:row.identityId,ok:false,adopted:false,error:error.code||error.message};
     }
   }
