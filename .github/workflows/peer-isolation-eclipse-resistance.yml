@@ -1,0 +1,46 @@
+name: peer-isolation-eclipse-resistance
+
+on:
+  push:
+    branches: [lab-peer-isolation-eclipse-resistance]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/peer-isolation-eclipse-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/peer-*.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs'
+      - 'sovereign-forge/tests/authoritative-peer-diversity.mjs'
+      - 'sovereign-forge/tests/authoritative-p2p-security.mjs'
+      - 'sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_RESISTANCE.md'
+      - '.github/workflows/peer-isolation-eclipse-resistance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peer-isolation-eclipse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eclipse-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check eclipse lab candidate
+        run: |
+          node --check sovereign-forge/node/lab/peer-isolation-eclipse-candidate.mjs
+          node --check sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
+
+      - name: Verify existing peer diversity invariants
+        run: node --test sovereign-forge/tests/authoritative-peer-diversity.mjs
+
+      - name: Verify existing authenticated P2P security invariants
+        run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
+
+      - name: Attack discovery starvation and eclipse readiness
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
