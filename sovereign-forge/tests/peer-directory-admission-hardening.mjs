@@ -66,7 +66,7 @@ test('tightening admission on a populated directory removes excess records immed
   assert.equal(status.maxObservedSourceRecords,3);
 });
 
-test('eclipse candidate enables admission hardening without changing the public node default',()=>{
+test('eclipse candidate enables admission hardening without changing the public node default',async()=>{
   const node=createAuthoritativeV4PeerNodeEclipseCandidate({
     eclipseDirectoryOptions:{maxRecordsPerSource:7,maxRecordsPerNetworkGroup:5},
     eclipseDiscoveryOptions:{peerDiversityOptions:{minPinnedIdentities:0}},
