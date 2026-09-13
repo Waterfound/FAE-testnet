@@ -35,7 +35,7 @@ export class PeerDirectory{
   constructor({
     networkId,maxRecords=MAX_RECORDS,maxEndpointsPerIdentity=MAX_ENDPOINTS_PER_IDENTITY,
     maxRecordsPerSource=undefined,maxRecordsPerNetworkGroup=undefined,maxUnverifiedRecords=undefined,
-    protectedSources=[],now=()=>Date.now()
+    authenticationFailureThreshold=Number.MAX_SAFE_INTEGER,protectedSources=[],now=()=>Date.now()
   }={}){
     if(typeof networkId!=='string'||!networkId)throw new Error('Peer directory requires network id');
     this.networkId=networkId;
@@ -44,17 +44,20 @@ export class PeerDirectory{
     this.maxRecordsPerSource=positiveInt('maxRecordsPerSource',maxRecordsPerSource,this.maxRecords);
     this.maxRecordsPerNetworkGroup=positiveInt('maxRecordsPerNetworkGroup',maxRecordsPerNetworkGroup,this.maxRecords);
     this.maxUnverifiedRecords=nonNegativeInt('maxUnverifiedRecords',maxUnverifiedRecords,this.maxRecords);
+    this.authenticationFailureThreshold=positiveInt('authenticationFailureThreshold',authenticationFailureThreshold,Number.MAX_SAFE_INTEGER);
     if(this.maxUnverifiedRecords>this.maxRecords)throw new Error('maxUnverifiedRecords must be <= maxRecords');
     if(typeof now!=='function')throw new Error('Peer directory now must be a function');
     this.now=now;this.entries=new Map();this.protectedSources=new Set((Array.isArray(protectedSources)?protectedSources:[]).map(String));
   }
   configureAdmission({
     maxRecordsPerSource=this.maxRecordsPerSource,maxRecordsPerNetworkGroup=this.maxRecordsPerNetworkGroup,
-    maxUnverifiedRecords=this.maxUnverifiedRecords,protectedSources=[...this.protectedSources]
+    maxUnverifiedRecords=this.maxUnverifiedRecords,authenticationFailureThreshold=this.authenticationFailureThreshold,
+    protectedSources=[...this.protectedSources]
   }={}){
     this.maxRecordsPerSource=positiveInt('maxRecordsPerSource',maxRecordsPerSource,this.maxRecords);
     this.maxRecordsPerNetworkGroup=positiveInt('maxRecordsPerNetworkGroup',maxRecordsPerNetworkGroup,this.maxRecords);
     this.maxUnverifiedRecords=nonNegativeInt('maxUnverifiedRecords',maxUnverifiedRecords,this.maxRecords);
+    this.authenticationFailureThreshold=positiveInt('authenticationFailureThreshold',authenticationFailureThreshold,Number.MAX_SAFE_INTEGER);
     if(this.maxUnverifiedRecords>this.maxRecords)throw new Error('maxUnverifiedRecords must be <= maxRecords');
     this.protectedSources=new Set((Array.isArray(protectedSources)?protectedSources:[]).map(String));
     for(const source of new Set([...this.entries.values()].map(entry=>entry.source)))if(!this.protectedSources.has(source))this.boundWhere(entry=>entry.source===source,this.maxRecordsPerSource);
@@ -63,12 +66,13 @@ export class PeerDirectory{
     return this.admissionStatus();
   }
   admissionStatus(){
-    const sources=new Map(),groups=new Map();let authenticatedRecords=0,unverifiedRecords=0;
+    const sources=new Map(),groups=new Map();let authenticatedRecords=0,unverifiedRecords=0,maxObservedConsecutiveProbeFailures=0;
     for(const entry of this.entries.values()){
       sources.set(entry.source,(sources.get(entry.source)||0)+1);groups.set(entry.payload.networkGroup,(groups.get(entry.payload.networkGroup)||0)+1);
       if(entry.authenticated)authenticatedRecords++;else if(!this.isProtected(entry))unverifiedRecords++;
+      maxObservedConsecutiveProbeFailures=Math.max(maxObservedConsecutiveProbeFailures,Number(entry.consecutiveProbeFailures||0));
     }
-    return{records:this.entries.size,authenticatedRecords,unverifiedRecords,maxRecords:this.maxRecords,maxRecordsPerSource:this.maxRecordsPerSource,maxRecordsPerNetworkGroup:this.maxRecordsPerNetworkGroup,maxUnverifiedRecords:this.maxUnverifiedRecords,protectedSources:[...this.protectedSources].sort(),maxObservedSourceRecords:Math.max(0,...sources.values()),maxObservedNetworkGroupRecords:Math.max(0,...groups.values())};
+    return{records:this.entries.size,authenticatedRecords,unverifiedRecords,maxRecords:this.maxRecords,maxRecordsPerSource:this.maxRecordsPerSource,maxRecordsPerNetworkGroup:this.maxRecordsPerNetworkGroup,maxUnverifiedRecords:this.maxUnverifiedRecords,authenticationFailureThreshold:this.authenticationFailureThreshold,maxObservedConsecutiveProbeFailures,protectedSources:[...this.protectedSources].sort(),maxObservedSourceRecords:Math.max(0,...sources.values()),maxObservedNetworkGroupRecords:Math.max(0,...groups.values())};
   }
   prune(){const now=this.now();for(const[key,entry]of this.entries)if(Date.parse(entry.payload.validUntil)<=now)this.entries.delete(key)}
   isProtected(entry){return this.protectedSources.has(entry.source)}
@@ -93,7 +97,7 @@ export class PeerDirectory{
       const removable=sameIdentity.filter(([,entry])=>!this.isProtected(entry)).sort((a,b)=>this.retentionRank(a[1])-this.retentionRank(b[1])||a[1].observedAt-b[1].observedAt||a[0].localeCompare(b[0]));
       const oldest=removable.shift();if(!oldest)break;this.entries.delete(oldest[0]);const index=sameIdentity.findIndex(([candidate])=>candidate===oldest[0]);if(index>=0)sameIdentity.splice(index,1);
     }
-    this.entries.set(key,{payload,envelope:structuredClone(envelope),source:effectiveSource,observedAt:this.now(),authenticated:Boolean(existing?.authenticated),authenticatedAt:Number(existing?.authenticatedAt||0)});
+    this.entries.set(key,{payload,envelope:structuredClone(envelope),source:effectiveSource,observedAt:this.now(),authenticated:Boolean(existing?.authenticated),authenticatedAt:Number(existing?.authenticatedAt||0),consecutiveProbeFailures:Number(existing?.consecutiveProbeFailures||0),lastProbeFailureAt:Number(existing?.lastProbeFailureAt||0)});
     if(!this.protectedSources.has(effectiveSource))this.boundWhere(entry=>entry.source===effectiveSource,this.maxRecordsPerSource);
     this.boundWhere(entry=>entry.payload.networkGroup===payload.networkGroup,this.maxRecordsPerNetworkGroup);
     this.boundUnverified();this.boundWhere(()=>true,this.maxRecords);
@@ -102,9 +106,18 @@ export class PeerDirectory{
   markAuthenticated(identityId,endpoint){
     const id=String(identityId||'').toLowerCase();if(!ID_RE.test(id))throw new Error('Authenticated peer identity is malformed');
     const normalized=normalizePeerEndpoint(endpoint),entry=this.entries.get(recordKey(id,normalized));if(!entry)return false;
-    entry.authenticated=true;entry.authenticatedAt=this.now();this.boundUnverified();this.boundWhere(()=>true,this.maxRecords);return true;
+    entry.authenticated=true;entry.authenticatedAt=this.now();entry.consecutiveProbeFailures=0;entry.lastProbeFailureAt=0;this.boundUnverified();this.boundWhere(()=>true,this.maxRecords);return true;
+  }
+  markProbeFailure(identityId,endpoint){
+    const id=String(identityId||'').toLowerCase();if(!ID_RE.test(id))throw new Error('Failed peer identity is malformed');
+    const normalized=normalizePeerEndpoint(endpoint),entry=this.entries.get(recordKey(id,normalized));if(!entry)return{found:false,demoted:false,failures:0};
+    entry.consecutiveProbeFailures=Number(entry.consecutiveProbeFailures||0)+1;entry.lastProbeFailureAt=this.now();
+    const demoted=Boolean(entry.authenticated)&&entry.consecutiveProbeFailures>=this.authenticationFailureThreshold;
+    if(demoted)entry.authenticated=false;
+    this.boundUnverified();this.boundWhere(()=>true,this.maxRecords);
+    return{found:true,demoted,failures:entry.consecutiveProbeFailures};
   }
   merge(envelopes,{source='gossip'}={}){let accepted=0;for(const envelope of Array.isArray(envelopes)?envelopes:[]){try{this.register(envelope,{source});accepted++}catch{}}return accepted}
   descriptors({limit=128}={}){this.prune();return[...this.entries.values()].sort((a,b)=>b.observedAt-a.observedAt||a.payload.peerId.localeCompare(b.payload.peerId)).slice(0,Math.max(1,Math.min(256,limit))).map(entry=>structuredClone(entry.envelope))}
-  observations(){this.prune();return[...this.entries.values()].map(entry=>({endpoint:entry.payload.endpoint,identityId:entry.payload.peerId,networkGroup:entry.payload.networkGroup,source:entry.source,descriptorOnly:true,authenticated:Boolean(entry.authenticated),authenticatedAt:Number(entry.authenticatedAt||0),observedAt:entry.observedAt}))}
+  observations(){this.prune();return[...this.entries.values()].map(entry=>({endpoint:entry.payload.endpoint,identityId:entry.payload.peerId,networkGroup:entry.payload.networkGroup,source:entry.source,descriptorOnly:true,authenticated:Boolean(entry.authenticated),authenticatedAt:Number(entry.authenticatedAt||0),consecutiveProbeFailures:Number(entry.consecutiveProbeFailures||0),lastProbeFailureAt:Number(entry.lastProbeFailureAt||0),observedAt:entry.observedAt}))}
 }
