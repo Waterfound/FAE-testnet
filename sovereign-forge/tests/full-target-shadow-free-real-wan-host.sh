@@ -35,7 +35,9 @@ node "$ROOT/node/lab/fae-full-target-shadow-validation-node.mjs" >"$NODE_LOG" 2>
 echo $! >"$NODE_PID_FILE"
 wan_wait_http "http://127.0.0.1:8788/status" 120
 
-wan_install_cloudflared /tmp/cloudflared
+if ! wan_install_cloudflared /tmp/cloudflared; then
+  echo "cloudflared install unavailable; zero-cost fallback remains eligible" >&2
+fi
 PUBLIC_URL=$(wan_start_tunnel 8788 "$TUNNEL_LOG" "$TUNNEL_PID_FILE" /tmp/cloudflared)
 TUNNEL_PROVIDER=$(wan_tunnel_provider "$PUBLIC_URL")
 [[ "$TUNNEL_PROVIDER" != unknown ]]
