@@ -5,6 +5,7 @@ on:
     branches: [economic-block-time-v2-300-l3]
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
@@ -26,6 +27,7 @@ on:
   pull_request:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
