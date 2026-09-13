@@ -32,7 +32,7 @@ export function verifyPeerDescriptor(envelope,{networkId=null,now=Date.now()}={}
 export class PeerDirectory{
   constructor({
     networkId,maxRecords=MAX_RECORDS,maxEndpointsPerIdentity=MAX_ENDPOINTS_PER_IDENTITY,
-    maxRecordsPerSource=MAX_RECORDS,maxRecordsPerNetworkGroup=MAX_RECORDS,protectedSources=['self'],now=()=>Date.now()
+    maxRecordsPerSource=undefined,maxRecordsPerNetworkGroup=undefined,protectedSources=[],now=()=>Date.now()
   }={}){
     if(typeof networkId!=='string'||!networkId)throw new Error('Peer directory requires network id');
     this.networkId=networkId;
