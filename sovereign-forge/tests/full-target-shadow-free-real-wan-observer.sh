@@ -17,6 +17,13 @@ C_META=$(wan_wait_role FAE_WAN_ENDPOINT C 300)
 A_URL=$(jq -r '.url' <<<"$A_META")
 B_URL=$(jq -r '.url' <<<"$B_META")
 C_URL=$(jq -r '.url' <<<"$C_META")
+A_PROVIDER=$(jq -r '.tunnel_provider // "unknown"' <<<"$A_META")
+B_PROVIDER=$(jq -r '.tunnel_provider // "unknown"' <<<"$B_META")
+C_PROVIDER=$(jq -r '.tunnel_provider // "unknown"' <<<"$C_META")
+[[ "$A_PROVIDER" != unknown && "$B_PROVIDER" != unknown && "$C_PROVIDER" != unknown ]]
+[[ "$A_PROVIDER" == "$(wan_tunnel_provider "$A_URL")" ]]
+[[ "$B_PROVIDER" == "$(wan_tunnel_provider "$B_URL")" ]]
+[[ "$C_PROVIDER" == "$(wan_tunnel_provider "$C_URL")" ]]
 
 printf '%s\n' "$A_META" >"$WORK/a-endpoint.json"
 printf '%s\n' "$B_META" >"$WORK/b-endpoint.json"
@@ -51,7 +58,7 @@ WEAK_WORK=$(jq -r '.c_chain_work' <<<"$WEAK_PHASE")
 jq -e --arg tip "$WEAK_TIP" --arg work "$WEAK_WORK" '.tip_hash==$tip and .chain_work==$work and .status=="lab-only-no-consensus-authority"' <<<"$A_WEAK" >/dev/null
 jq -e --arg tip "$WEAK_TIP" --arg work "$WEAK_WORK" '.tip_hash==$tip and .chain_work==$work and .status=="lab-only-no-consensus-authority" and .secure_context_binding==.policy_id' <<<"$C_WEAK" >/dev/null
 printf '%s\n' "$C_WEAK" >"$WORK/c-weak-public.json"
-wan_post FAE_WAN_OBSERVER_PHASE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase weak --arg observer_host "$D_HOST" --arg observer_runner "$D_RUNNER" --arg observer_boot_id "$D_BOOT_ID" --arg tip "$WEAK_TIP" --arg work "$WEAK_WORK" '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,c_tip_hash:$tip,c_chain_work:$work,distinct_boot_ids:true,public_endpoint_verified:true}')"
+wan_post FAE_WAN_OBSERVER_PHASE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase weak --arg observer_host "$D_HOST" --arg observer_runner "$D_RUNNER" --arg observer_boot_id "$D_BOOT_ID" --arg c_provider "$C_PROVIDER" --arg tip "$WEAK_TIP" --arg work "$WEAK_WORK" '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,c_tunnel_provider:$c_provider,c_tip_hash:$tip,c_chain_work:$work,distinct_boot_ids:true,public_endpoint_verified:true}')"
 
 # After C completes the fault/restart/reconnect sequence, D independently fetches
 # all three public endpoints. No controller-local file or loopback endpoint is used.
@@ -64,6 +71,7 @@ A_WORK=$(jq -r '.a_chain_work' <<<"$FINAL_PHASE")
 B_TIP=$(jq -r '.b_tip_hash' <<<"$FINAL_PHASE")
 B_WORK=$(jq -r '.b_chain_work' <<<"$FINAL_PHASE")
 
+jq -e --arg ap "$A_PROVIDER" --arg bp "$B_PROVIDER" --arg cp "$C_PROVIDER" '.tunnel_providers.A==$ap and .tunnel_providers.B==$bp and .tunnel_providers.C==$cp' <<<"$FINAL_PHASE" >/dev/null
 jq -e --arg tip "$A_TIP" --arg work "$A_WORK" '.tip_hash==$tip and .chain_work==$work and .status=="lab-only-no-consensus-authority"' <<<"$A_FINAL" >/dev/null
 jq -e --arg tip "$B_TIP" --arg work "$B_WORK" '.tip_hash==$tip and .chain_work==$work and .status=="lab-only-no-consensus-authority"' <<<"$B_FINAL" >/dev/null
 jq -e --arg tip "$B_TIP" --arg work "$B_WORK" '.tip_hash==$tip and .chain_work==$work and .status=="lab-only-no-consensus-authority" and .secure_context_binding==.policy_id' <<<"$C_FINAL" >/dev/null
@@ -78,7 +86,8 @@ printf '%s\n' "$BOOT_IDS" >"$WORK/kernel-boot-ids.json"
 
 PASS=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg phase final --arg observer_host "$D_HOST" --arg observer_runner "$D_RUNNER" --arg observer_boot_id "$D_BOOT_ID" \
+  --arg a_provider "$A_PROVIDER" --arg b_provider "$B_PROVIDER" --arg c_provider "$C_PROVIDER" \
   --arg a_tip "$A_TIP" --arg a_work "$A_WORK" --arg b_tip "$B_TIP" --arg b_work "$B_WORK" \
-  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,distinct_runner_vms:true,distinct_runner_hosts:true,distinct_boot_ids:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_provider:"cloudflare-quick-tunnel",multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
+  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,distinct_runner_vms:true,distinct_runner_hosts:true,distinct_boot_ids:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_providers:{A:$a_provider,B:$b_provider,C:$c_provider},tunnel_provider_fallback_capable:true,multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
 wan_post FAE_WAN_OBSERVER_PASS "$PASS"
 printf '%s\n' "$PASS" >"$WORK/observer-pass.json"
