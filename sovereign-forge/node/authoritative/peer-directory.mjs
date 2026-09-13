@@ -87,7 +87,7 @@ export class PeerDirectory{
       if(incomingProtected&&!this.isProtected(existing))existing.source=sourceName;
       return existing.envelope;
     }
-    const effectiveSource=existing&&this.isProtected(existing)&&!incomingProtected?existing.source:sourceName;
+    const retainExistingSource=existing&&!incomingProtected&&(this.isProtected(existing)||existing.authenticated),effectiveSource=retainExistingSource?existing.source:sourceName;
     const sameIdentity=[...this.entries.entries()].filter(([,entry])=>entry.payload.peerId===payload.peerId&&entry.payload.endpoint!==payload.endpoint);
     while(sameIdentity.length>=this.maxEndpointsPerIdentity){
       const removable=sameIdentity.filter(([,entry])=>!this.isProtected(entry)).sort((a,b)=>this.retentionRank(a[1])-this.retentionRank(b[1])||a[1].observedAt-b[1].observedAt||a[0].localeCompare(b[0]));
