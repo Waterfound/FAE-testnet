@@ -1,0 +1,145 @@
+{
+  "format": "fae-peer-isolation-loopback-evidence-v1",
+  "passed": true,
+  "scope": "local-process-and-loopback-only",
+  "timeBasis": "virtual-monotonic-policy-clock",
+  "realSocketTransport": true,
+  "independentHosts": false,
+  "independentOperators": false,
+  "consensusAuthority": false,
+  "externalWanProof": false,
+  "eclipseResistanceProven": false,
+  "height": 11,
+  "finalTip": "0000038c3b279241c27571fd3976d12b6e0c0ae2abff661c8e0ebca67a024ec8",
+  "phases": [
+    {
+      "name": "configured-without-contact",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "ISOLATED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups",
+        "missing_local_anchor"
+      ],
+      "freshObservations": 0,
+      "selectedIdentities": 0,
+      "selectedTransportGroups": 0,
+      "selectedAnchors": 0,
+      "configured": 3,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 0,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    },
+    {
+      "name": "verified-local-sync",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "DEGRADED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups"
+      ],
+      "freshObservations": 3,
+      "selectedIdentities": 2,
+      "selectedTransportGroups": 1,
+      "selectedAnchors": 1,
+      "configured": 3,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 3,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    },
+    {
+      "name": "anchor-unavailable",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "DEGRADED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups",
+        "missing_local_anchor"
+      ],
+      "freshObservations": 2,
+      "selectedIdentities": 2,
+      "selectedTransportGroups": 1,
+      "selectedAnchors": 0,
+      "configured": 3,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 3,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    },
+    {
+      "name": "all-local-sources-unavailable",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "ISOLATED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups",
+        "missing_local_anchor"
+      ],
+      "freshObservations": 0,
+      "selectedIdentities": 0,
+      "selectedTransportGroups": 0,
+      "selectedAnchors": 0,
+      "configured": 3,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 3,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    },
+    {
+      "name": "same-identity-reconnection",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "DEGRADED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups"
+      ],
+      "freshObservations": 1,
+      "selectedIdentities": 1,
+      "selectedTransportGroups": 1,
+      "selectedAnchors": 1,
+      "configured": 3,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 3,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    },
+    {
+      "name": "fresh-observer-bootstrap",
+      "scope": "lab-only-no-consensus-authority",
+      "state": "DEGRADED",
+      "reasons": [
+        "insufficient_fresh_identities",
+        "insufficient_transport_groups"
+      ],
+      "freshObservations": 1,
+      "selectedIdentities": 1,
+      "selectedTransportGroups": 1,
+      "selectedAnchors": 1,
+      "configured": 1,
+      "candidates": 0,
+      "inFlight": 0,
+      "attemptsInWindow": 1,
+      "consensusAuthority": false,
+      "externalWanProof": false,
+      "operatorIndependenceProven": false,
+      "eclipseResistanceProven": false
+    }
+  ]
+}

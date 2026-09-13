@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: PI-02 / PI-07 / PI-10 / PI-11 / PI-12: real local sessions recover while loopback diversity stays DEGRADED
+ok 1 - PI-02 / PI-07 / PI-10 / PI-11 / PI-12: real local sessions recover while loopback diversity stays DEGRADED
+  ---
+  duration_ms: 353.838829
+  type: 'test'
+  ...
+# Subtest: PI-06 / PI-10: the local adapter cannot dial a discovery hint outside its fixed allowlist
+ok 2 - PI-06 / PI-10: the local adapter cannot dial a discovery hint outside its fixed allowlist
+  ---
+  duration_ms: 0.833452
+  type: 'test'
+  ...
+# Subtest: PI-06: an unsettled local transport operation prevents overlapping adapter rounds
+ok 3 - PI-06: an unsettled local transport operation prevents overlapping adapter rounds
+  ---
+  duration_ms: 0.377628
+  type: 'test'
+  ...
+# Subtest: PI-01 / PI-12: configuration and hints are not live evidence or a security verdict
+ok 4 - PI-01 / PI-12: configuration and hints are not live evidence or a security verdict
+  ---
+  duration_ms: 161.378977
+  type: 'test'
+  ...
+# Subtest: PI-02: evidence is invalid at the exact TTL boundary
+ok 5 - PI-02: evidence is invalid at the exact TTL boundary
+  ---
+  duration_ms: 1.967779
+  type: 'test'
+  ...
+# Subtest: PI-02 / PI-07: failed refresh removes liveness immediately; retry obeys backoff
+ok 6 - PI-02 / PI-07: failed refresh removes liveness immediately; retry obeys backoff
+  ---
+  duration_ms: 2.233838
+  type: 'test'
+  ...
+# Subtest: PI-03: identity aliases, including across transport groups, count only once
+ok 7 - PI-03: identity aliases, including across transport groups, count only once
+  ---
+  duration_ms: 0.795701
+  type: 'test'
+  ...
+# Subtest: PI-03 / PI-11: mapped IPv4, loopback, private addresses and ports cannot fabricate groups
+ok 8 - PI-03 / PI-11: mapped IPv4, loopback, private addresses and ports cannot fabricate groups
+  ---
+  duration_ms: 9.411896
+  type: 'test'
+  ...
+# Subtest: PI-03: unrelated DNS names remain unknown until the local adapter supplies transport evidence
+ok 9 - PI-03: unrelated DNS names remain unknown until the local adapter supplies transport evidence
+  ---
+  duration_ms: 1.203086
+  type: 'test'
+  ...
+# Subtest: PI-04 / PI-06: discovery cannot consume configured capacity or create pinning
+ok 10 - PI-04 / PI-06: discovery cannot consume configured capacity or create pinning
+  ---
+  duration_ms: 3.106775
+  type: 'test'
+  ...
+# Subtest: PI-04: enough local anchors are retained without sacrificing available group diversity
+ok 11 - PI-04: enough local anchors are retained without sacrificing available group diversity
+  ---
+  duration_ms: 1.319784
+  type: 'test'
+  ...
+# Subtest: PI-05: separate source identities in one transport group share an admission quota
+ok 12 - PI-05: separate source identities in one transport group share an admission quota
+  ---
+  duration_ms: 1.250474
+  type: 'test'
+  ...
+# Subtest: PI-05 / PI-06: group, identity, per-call and expiry limits remain independent
+ok 13 - PI-05 / PI-06: group, identity, per-call and expiry limits remain independent
+  ---
+  duration_ms: 1.637159
+  type: 'test'
+  ...
+# Subtest: PI-06: outstanding leases and attempt windows bound repeated calls
+ok 14 - PI-06: outstanding leases and attempt windows bound repeated calls
+  ---
+  duration_ms: 0.889357
+  type: 'test'
+  ...
+# Subtest: PI-07: expired completions cannot revive a lease or supersede a later attempt
+ok 15 - PI-07: expired completions cannot revive a lease or supersede a later attempt
+  ---
+  duration_ms: 0.552426
+  type: 'test'
+  ...
+# Subtest: PI-07: retries are capped and repeated hints do not reset cooldown
+ok 16 - PI-07: retries are capped and repeated hints do not reset cooldown
+  ---
+  duration_ms: 1.086387
+  type: 'test'
+  ...
+# Subtest: PI-07: fixed candidates are eventually probed under a small rotating budget
+ok 17 - PI-07: fixed candidates are eventually probed under a small rotating budget
+  ---
+  duration_ms: 2.232977
+  type: 'test'
+  ...
+# Subtest: PI-08: restart and regressed time invalidate freshness including anchors
+ok 18 - PI-08: restart and regressed time invalidate freshness including anchors
+  ---
+  duration_ms: 1.163201
+  type: 'test'
+  ...
+# Subtest: PI-07: an unavailable anchor cannot monopolize a one-slot scheduler
+ok 19 - PI-07: an unavailable anchor cannot monopolize a one-slot scheduler
+  ---
+  duration_ms: 0.616206
+  type: 'test'
+  ...
+# Subtest: PI-09: local keyed ordering is reproducible and independent of input ordering
+ok 20 - PI-09: local keyed ordering is reproducible and independent of input ordering
+  ---
+  duration_ms: 21.481696
+  type: 'test'
+  ...
+# Subtest: PI-03 / PI-04: mismatched identity and transport evidence fail closed
+ok 21 - PI-03 / PI-04: mismatched identity and transport evidence fail closed
+  ---
+  duration_ms: 1.198708
+  type: 'test'
+  ...
+# Subtest: PI-06: invalid policy limits and ambiguous endpoint forms are rejected
+ok 22 - PI-06: invalid policy limits and ambiguous endpoint forms are rejected
+  ---
+  duration_ms: 1.307651
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 519.940836
