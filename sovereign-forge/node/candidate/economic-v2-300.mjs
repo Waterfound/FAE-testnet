@@ -17,7 +17,8 @@ export const ECONOMIC_V2_300 = Object.freeze({
     futureDriftSeconds: 90,
     arithmetic: 'integer-only',
     targetRepresentation: 'uint256-full-target',
-    vectors: 'REGENERATE_FOR_300S_BEFORE_ACTIVATION',
+    vectors: 'protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json',
+    crossRuntimeValidation: 'node22+python3',
   }),
 });
 
