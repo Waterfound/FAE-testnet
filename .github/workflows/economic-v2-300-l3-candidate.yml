@@ -12,6 +12,8 @@ on:
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
       - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/profile-runtime-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
@@ -19,10 +21,12 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/tests/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
       - 'candidate-net-lab/run-local-l3.mjs'
+      - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   pull_request:
     paths:
@@ -34,6 +38,8 @@ on:
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
       - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/profile-runtime-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
@@ -41,10 +47,12 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/tests/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
       - 'candidate-net-lab/run-local-l3.mjs'
+      - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   workflow_dispatch:
 
@@ -70,16 +78,20 @@ jobs:
           node --check sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/node/candidate/network-boundary-v2-300.mjs
           node --check sovereign-forge/node/candidate/activation-profile-v2-300.mjs
+          node --check sovereign-forge/node/candidate/profile-runtime-v2-300.mjs
+          node --check sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs
           node --check sovereign-forge/node/candidate/fae-v5-300-core.mjs
           node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/tests/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/activation-profile-v2-300.mjs
+          node --check sovereign-forge/tests/profile-consensus-binding-v2-300.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check candidate-net-lab/v5-node.mjs
           node --check candidate-net-lab/v5-controller.mjs
           node --check candidate-net-lab/run-local-l3.mjs
+          node --check candidate-net-lab/run-one-machine-scale-l3.mjs
           python -m py_compile sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
 
       - name: Run economic invariants
@@ -94,6 +106,9 @@ jobs:
       - name: Run fail-closed activation-profile invariants
         run: node sovereign-forge/tests/activation-profile-v2-300.mjs
 
+      - name: Run profile-derived consensus binding invariants
+        run: node sovereign-forge/tests/profile-consensus-binding-v2-300.mjs
+
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
 
@@ -106,6 +121,10 @@ jobs:
       - name: Run isolated 3-node candidate network L3 path
         run: node candidate-net-lab/run-local-l3.mjs
         timeout-minutes: 4
+
+      - name: Run one-machine 16-process scale L3 path
+        run: node candidate-net-lab/run-one-machine-scale-l3.mjs
+        timeout-minutes: 5
 
       - name: Generate candidate manifest
         run: node sovereign-forge/node/candidate/economic-v2-300.mjs > economic-v2-300-candidate.json
@@ -134,7 +153,7 @@ jobs:
           grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
           grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
           grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
-          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|activation-profile-v2-300\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
+          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|activation-profile-v2-300\|profile-runtime-v2-300\|profile-consensus-binding-v2-300\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
             echo 'candidate imported into live v4 node' >&2
             exit 1
           fi
