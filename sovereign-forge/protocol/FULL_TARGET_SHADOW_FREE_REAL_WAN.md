@@ -9,6 +9,7 @@ This protocol closes the next empirical gap after the one-machine failure-domain
 A successful run establishes:
 
 - real multi-host execution on separately allocated GitHub-hosted VMs;
+- explicit distinct-kernel evidence from unique Linux boot IDs for A/B/C/D;
 - real public Internet transport between the hosts through independent public tunnel endpoints;
 - a fourth runner that independently observes A/B/C through those public endpoints;
 - deterministic interruption of the reorg after common-ancestor discovery, once during headers and once during block bodies;
@@ -40,7 +41,12 @@ D — independent observer   GitHub-hosted VM
 
 A, B and C each expose their peer server through a separate temporary `trycloudflare.com` endpoint. C does not read A or B state files. D does not read C's files or loopback control endpoint: it checks A/B/C only through their public URLs.
 
-GitHub runner `RUNNER_NAME` allocations are used to prove job/VM separation. Linux hostname text is intentionally not used as a uniqueness primitive because GitHub-hosted runner VMs may reuse the same hostname string.
+Two independent allocation signals are required before D may attest a PASS:
+
+- A/B/C must have distinct GitHub runner allocation names and D must have a fourth allocation;
+- A/B/C/D must expose four distinct Linux `/proc/sys/kernel/random/boot_id` values.
+
+Linux hostname text is intentionally not used as a uniqueness primitive because GitHub-hosted runner VMs may reuse the same hostname string. A boot ID is generated for a Linux kernel boot and gives us a stronger explicit separation check than job naming alone.
 
 ## Lab-only control plane
 
@@ -60,6 +66,7 @@ An ephemeral GitHub issue is created for each run. It contains only:
 
 - the run id;
 - short-lived public test endpoints;
+- runner allocation and kernel boot identifiers used for separation evidence;
 - machine-readable phase markers and PASS/FAIL attestations.
 
 No wallet secrets, private keys, production credentials or consensus authority are placed there. The issue is closed by the finalizer after the run.
@@ -68,7 +75,7 @@ No wallet secrets, private keys, production credentials or consensus authority a
 
 ### 0. Endpoint establishment
 
-A, B and C each start the shadow validation node and a Quick Tunnel. They publish their role, runner allocation identity, public endpoint, tip and cumulative work. D confirms the three runner allocations and URLs are distinct.
+A, B and C each start the shadow validation node and a Quick Tunnel. They publish their role, runner allocation identity, Linux boot ID, public endpoint, tip and cumulative work. D confirms the three A/B/C allocations, three URLs and all four A/B/C/D boot IDs are distinct.
 
 ### 1. Weak branch observed independently
 
@@ -115,6 +122,7 @@ This churn is deliberately labeled accelerated stress, not a 6h/24h soak.
 C publishes a final-ready marker but does not self-attest. D independently fetches A/B/C through the public endpoints and requires:
 
 ```text
+four distinct Linux boot IDs for A/B/C/D
 B cumulative work > A cumulative work
 C tip == B tip
 C work == B work
@@ -157,7 +165,7 @@ The final controller evidence reported:
 
 The independent D attestation reported:
 
-- distinct runner VMs: PASS;
+- distinct runner VMs by runner allocation: PASS;
 - public endpoint consistency: PASS;
 - weak state independently observed: PASS;
 - stronger-work branch selected: PASS;
@@ -167,6 +175,8 @@ The independent D attestation reported:
 - time-equivalent soak: **false**.
 
 All A/B/C/D jobs and the finalizer completed successfully.
+
+This first clean PASS predates the stricter boot-ID requirement. It remains valid evidence of separate GitHub runner allocations and real public-WAN behavior, but the next confirmation run must additionally satisfy four distinct kernel boot IDs before the stronger VM-separation verdict is recorded.
 
 ## Cost boundary
 
