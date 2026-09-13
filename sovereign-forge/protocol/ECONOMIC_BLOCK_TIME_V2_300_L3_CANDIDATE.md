@@ -2,12 +2,12 @@
 
 Status: **activation candidate / NOT active consensus**  
 Branch: `economic-block-time-v2-300-l3`  
-Focused Red Team: **L3 preparation active**  
+Focused Red Team: **L3 implementation/review active**  
 Public testnet consensus: **unchanged**
 
 ## Candidate package
 
-The candidate under review is the simple monetary package selected by the completed L2 research:
+The candidate under review is the simple monetary package selected after the completed L2 research:
 
 | Parameter | Candidate value |
 |---|---:|
@@ -23,83 +23,117 @@ The candidate under review is the simple monetary package selected by the comple
 
 The halving calendar is `430,000 × 300 = 129,000,000 seconds`, approximately **1,493.06 days** or **4.09 years**.
 
-## Important atom-level result
+## Atom-level issuance
 
-`430,000 × 14 × 2 = 12,040,000 FAE` is the correct theoretical geometric supply if halvings are treated as infinitely divisible.
+`430,000 × 14 × 2 = 12,040,000 FAE` is the theoretical geometric supply if halvings are infinitely divisible.
 
-Consensus rewards are integer atoms. If each era subsidy is implemented as integer halving / right shift, the finite atom-level sequence terminates after the 1-atom era. Under that simple rule the actually mintable total is:
+Consensus rewards are integer atoms. With the deliberately simple integer right-shift halving rule, the finite atom sequence terminates naturally at:
 
 **12,039,999.9484 FAE**
 
-which is **0.0516 FAE (5,160,000 atoms)** below the 12,040,000 FAE theoretical cap.
+That is **0.0516 FAE (5,160,000 atoms)** below the theoretical cap. L3 keeps this behavior intentionally: **no terminal top-up** is added merely to force an exact decimal total. Atom truncation may reduce issuance; it may never increase it beyond the 12.04M cap.
 
-L3 policy for this candidate: **do not add a special terminal top-up merely to manufacture an exact decimal supply**. Preserve the simple halving rule, keep `12,040,000 FAE` as the hard upper cap/theoretical maximum, and document the atom-level terminal issuance explicitly. This difference is caused only by indivisible base units and does not create over-issuance.
+The executable candidate arithmetic and boundary tests now freeze this result.
 
-## Activation model
+## Fresh-genesis activation model
 
-This package must not silently reinterpret the existing `fairyelf-public-testnet-v4` chain. The current chain was created under different subsidy, target, halving and maximum-supply rules.
+This package must not reinterpret the existing `fairyelf-public-testnet-v4` history, whose issuance and timing rules differ.
 
-The preferred L3 activation architecture is therefore a **fresh-genesis candidate testnet epoch** rather than pretending legacy v4 issuance was generated under the new monetary curve.
+The candidate therefore has a separate network identity:
 
-Required properties:
+`fairyelf-public-testnet-v5-candidate-300s`
 
-- new candidate network/epoch identity;
-- clean issuance counters from candidate genesis;
-- no automatic migration of legacy v4 coinbase outputs into candidate monetary accounting;
-- explicit activation/release artifact after L3 passes;
-- current v4 remains readable as historical test evidence;
-- mainnet remains nonexistent/unaffected.
+and a deterministic fresh-genesis descriptor/commitment. Its activation boundary explicitly requires:
 
-A future decision may choose another migration architecture, but such a choice reopens L3 monetary-accounting review.
+- height 0 / issued atoms 0 at candidate genesis;
+- no inherited v4 balances or v4 coinbase outputs;
+- a distinct transaction domain that commits to the candidate genesis identity;
+- peer compatibility requiring both the candidate network id and candidate genesis commitment;
+- explicit rejection of v4 peers/transactions by candidate boundary helpers;
+- v4 remaining historical test evidence rather than being rewritten as candidate history.
 
-## Current implementation gaps discovered at L3 entry
+This is still candidate-only infrastructure and has no public activation authority.
 
-The live v4 reference currently encodes 180 seconds, 10 FAE, 600,000-block halvings and a 12,000,000 FAE cap. Those values must remain untouched until activation authority exists.
+## 200-block coinbase maturity
 
-Two candidate dependencies are not yet permitted to be hand-waved:
+The maturity convention is frozen as:
 
-1. **Coinbase maturity enforcement.** The candidate requires 200 blocks. The current independent-node state model exposes confirmed reward UTXOs without a 200-block spendability rule. Candidate integration must tag coinbase outputs and reject spends before maturity in every mempool, block-validation and reorg path.
-2. **DAA/timestamp integration.** Merely replacing `TARGET_SECONDS=180` with `300` is not an L3-complete difficulty design. The previously developed Difficulty + Timestamp hardening package must be explicitly bound to this candidate, with all wall-clock assumptions and activation semantics tested together.
+> A coinbase created at height `H` may first be consumed by a block at height `H + 200`.
 
-Both are **activation blockers**, not reasons to alter the economic candidate itself.
+Mempool admission evaluates the candidate next-block height using the identical predicate. Candidate coinbase outputs are explicitly tagged with consensus-derived `created_height` and `coinbase_matures_at_height` metadata.
+
+The candidate maturity layer now fails closed for:
+
+- one-block-early spends;
+- missing/spent inputs;
+- unknown UTXO origin;
+- forged maturity metadata;
+- duplicate inputs.
+
+Tests also cover multi-output/direct-PPLNS-style coinbase rewards, wallet spendability filtering, and a reorg that moves the chain from above the maturity boundary back below it. Maturity is recomputed from canonical height rather than cached from the formerly taller branch.
+
+**Remaining maturity work:** wire this policy into a dedicated fresh-genesis candidate state machine so both real mempool admission and candidate block validation exercise it end to end. The live v4 state machine is intentionally untouched.
+
+## Difficulty + Timestamp binding at 300s
+
+The hardened full-target Difficulty + Timestamp design is now bound explicitly to this candidate instead of silently inheriting 180-second assumptions:
+
+- target: **300 seconds**;
+- family: anchored ASERT-style full uint256 target;
+- arithmetic: integer-only;
+- half-life: **21,600 seconds (6h)**;
+- MTP window: **11 blocks**;
+- future drift: **90 seconds**.
+
+A frozen 300-second vector set is checked by the Node implementation and independently reproduced by a Python reference implementation. The candidate economic manifest points to those vectors and records the cross-runtime validation boundary.
+
+This advances DAA/timestamp from an unbound blocker to an **integration-stage gate**. It is not yet authorized as live consensus until a fresh candidate node consumes the candidate DAA end to end.
+
+## Live-v4 isolation
+
+Candidate CI deliberately asserts that the current v4 reference still contains its existing 180-second / 10 FAE / 600,000-block / 12M parameters. It also fails if the candidate economics, DAA, maturity, or network-boundary modules are imported into the live v4 node accidentally.
+
+Therefore L3 development can continue without turning research commits into consensus changes by side effect.
 
 ## L3 invariants
 
-The candidate implementation must fail closed unless all of the following remain true:
+The activation candidate must fail closed unless all of the following hold:
 
 - subsidy at height 1 is exactly `1,400,000,000` atoms;
 - subsidy halves only at 430,000-block era boundaries;
-- no reward path can exceed the 12,040,000 FAE cap;
-- atom truncation can only reduce issuance, never increase it;
-- coinbase is unspendable for 200 confirmations/blocks according to one frozen height convention;
-- reorgs restore coinbase maturity deterministically;
-- mempool admission and block validation enforce the same maturity rule;
-- target time is 300 seconds everywhere the DAA/timestamp package requires it, with no hidden 180-second assumption;
-- 20 tx/block remains an explicit capacity choice rather than an accidental inherited constant;
-- candidate network identity prevents v4/v5 cross-replay or cross-sync;
-- no branch, documentation file or lab module has activation authority by itself.
+- no reward path can exceed the 12,040,000 FAE theoretical cap;
+- atom truncation can only reduce issuance;
+- coinbase is unspendable before `H + 200` under the same rule in mempool and block validation;
+- reorgs deterministically restore immaturity when height falls below the boundary;
+- every candidate DAA path uses 300 seconds and the frozen full-target vector semantics;
+- 20 tx/block remains an explicit capacity choice;
+- candidate network/genesis identity prevents v4/v5 cross-replay and cross-sync;
+- activation remains a separate explicit action after L3 passes.
 
-## L3 disposition at start
+## Current L3 disposition
 
 | Area | State | Reason |
 |---|---|---|
-| Monetary constants | **GREEN** | Simple and internally coherent |
-| Atom-level issuance | **GREEN with explicit terminal truncation** | 0.0516 FAE below theoretical cap; no over-issuance |
-| 300s block-time evidence | **GREEN / pre-L3 ceiling reached** | L2 + real-WAN evidence completed |
-| 900s alternative | **CLOSED** | Failed predefined propagation-improvement gate |
-| 600s alternative | **YELLOW / retained research challenger** | Not selected for activation |
-| Coinbase maturity implementation | **RED blocker** | 200-block consensus enforcement not yet integrated |
-| DAA/timestamp binding | **RED blocker** | Must bind the hardened DAA/timestamp package explicitly |
-| Fresh-genesis activation boundary | **YELLOW → implement/test** | Preferred architecture frozen here, implementation pending |
+| Monetary constants | **GREEN** | Executable candidate + boundary tests |
+| Atom-level issuance | **GREEN** | Exact terminal issuance and 0.0516 FAE shortfall frozen |
+| 300s block-time research | **GREEN / pre-L3 ceiling** | L2 + real-WAN evidence completed |
+| 600s alternative | **YELLOW / retained research challenger** | Not selected for this activation candidate |
+| 900s alternative | **CLOSED** | Failed predefined promotion gate |
+| Coinbase maturity policy | **GREEN at policy/test layer** | Boundary, reorg and wallet tests implemented |
+| Coinbase maturity node integration | **YELLOW** | Dedicated candidate state machine still required |
+| DAA/timestamp vectors | **GREEN** | Frozen 300s vectors reproduced in Node + Python |
+| DAA/timestamp node integration | **YELLOW** | Candidate node must consume it end to end |
+| Fresh-genesis/replay boundary | **GREEN at policy/test layer** | Candidate network/genesis/tx/peer separation implemented |
+| Candidate node integration | **YELLOW** | Fresh candidate core/node still to be assembled and exercised |
 | Activation authorization | **FALSE** | L3 not yet complete |
 
 ## Next implementation order
 
-1. freeze executable candidate constants + arithmetic invariants;
-2. add candidate-only CI proving current v4 cannot be changed accidentally;
-3. integrate 200-block coinbase maturity in the candidate state machine;
-4. bind the hardened Difficulty + Timestamp package to 300s;
-5. run L3 reorg/mempool/issuance/activation-boundary tests;
-6. only then decide whether the candidate is eligible for public-testnet activation.
+The remaining high-value work is now narrower:
+
+1. assemble a dedicated fresh-genesis candidate core/state machine using the frozen economics, maturity, DAA/timestamp and network-boundary modules;
+2. exercise real mempool admission + block validation + reorg replay under that candidate core;
+3. run L3 adversarial issuance, maturity, timestamp, reorg and v4/v5 isolation tests against the integrated candidate;
+4. only after those gates pass decide whether the candidate is eligible for public-testnet activation.
 
 No public consensus change is authorized by this document.
