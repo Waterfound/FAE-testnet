@@ -1,0 +1,43 @@
+name: Full Target Shadow Pinggy Fallback Smoke
+
+on:
+  push:
+    branches: [lab-network-reorg-real-wan-tunnel-failover]
+    paths:
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-pinggy-fallback-smoke.sh'
+      - '.github/workflows/full-target-shadow-pinggy-fallback-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinggy-public-http-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax and authority boundary
+        run: |
+          set -euo pipefail
+          bash -n sovereign-forge/tests/full-target-shadow-pinggy-fallback-smoke.sh
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q 'free.pinggy.io' sovereign-forge/tests/full-target-shadow-pinggy-fallback-smoke.sh
+          ! grep -q 'free.pinggy.io' sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q 'free.pinggy.io' sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q 'free.pinggy.io' sovereign-forge/node/fae-node-v6-candidate.mjs
+      - name: Exercise Pinggy fallback over public HTTP
+        run: bash sovereign-forge/tests/full-target-shadow-pinggy-fallback-smoke.sh
+      - name: Upload fallback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinggy-fallback-smoke-${{ github.run_id }}
+          path: /tmp/fae-pinggy-smoke
+          if-no-files-found: warn
+          retention-days: 7
