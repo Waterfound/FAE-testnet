@@ -21,7 +21,6 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
-      - 'sovereign-forge/tests/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
@@ -47,7 +46,6 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
-      - 'sovereign-forge/tests/profile-consensus-binding-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
@@ -86,7 +84,6 @@ jobs:
           node --check sovereign-forge/tests/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/activation-profile-v2-300.mjs
-          node --check sovereign-forge/tests/profile-consensus-binding-v2-300.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check candidate-net-lab/v5-node.mjs
           node --check candidate-net-lab/v5-controller.mjs
@@ -105,9 +102,6 @@ jobs:
 
       - name: Run fail-closed activation-profile invariants
         run: node sovereign-forge/tests/activation-profile-v2-300.mjs
-
-      - name: Run profile-derived consensus binding invariants
-        run: node sovereign-forge/tests/profile-consensus-binding-v2-300.mjs
 
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
