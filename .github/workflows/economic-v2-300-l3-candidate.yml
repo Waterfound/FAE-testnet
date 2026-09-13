@@ -22,9 +22,9 @@ on:
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
+      - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
-      - 'candidate-net-lab/v5-controller.mjs'
-      - 'candidate-net-lab/run-local-l3.mjs'
+      - 'candidate-net-lab/run-local-profile-core.mjs'
       - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   pull_request:
@@ -47,9 +47,9 @@ on:
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
+      - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
-      - 'candidate-net-lab/v5-controller.mjs'
-      - 'candidate-net-lab/run-local-l3.mjs'
+      - 'candidate-net-lab/run-local-profile-core.mjs'
       - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   workflow_dispatch:
@@ -85,9 +85,9 @@ jobs:
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/activation-profile-v2-300.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
+          node --check sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
           node --check candidate-net-lab/v5-node.mjs
-          node --check candidate-net-lab/v5-controller.mjs
-          node --check candidate-net-lab/run-local-l3.mjs
+          node --check candidate-net-lab/run-local-profile-core.mjs
           node --check candidate-net-lab/run-one-machine-scale-l3.mjs
           python -m py_compile sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
 
@@ -103,20 +103,23 @@ jobs:
       - name: Run fail-closed activation-profile invariants
         run: node sovereign-forge/tests/activation-profile-v2-300.mjs
 
+      - name: Run strict launch-profile binding invariants
+        run: node sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
+
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
 
       - name: Reproduce 300s DAA and timestamp vectors independently in Python
         run: python sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
 
-      - name: Run integrated candidate core L3 path
+      - name: Run integrated one-process profile-bound core path
         run: node sovereign-forge/tests/fae-v5-300-core-integration.mjs
 
-      - name: Run isolated 3-node candidate network L3 path
-        run: node candidate-net-lab/run-local-l3.mjs
-        timeout-minutes: 4
+      - name: Run local three-process profile-bound core path
+        run: node candidate-net-lab/run-local-profile-core.mjs
+        timeout-minutes: 3
 
-      - name: Run one-machine 16-process scale L3 path
+      - name: Run one-machine 16-process profile-bound scale path
         run: node candidate-net-lab/run-one-machine-scale-l3.mjs
         timeout-minutes: 5
 
