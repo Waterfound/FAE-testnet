@@ -16,12 +16,13 @@ function knownPeer(row,source='known'){
  * explicitly instantiate this factory.
  */
 export function createAuthoritativeV4PeerNodeEclipseCandidate({
-  knownPeers=[],pinnedPeers=[],eclipseDiscoveryOptions={},...nodeOptions
+  knownPeers=[],pinnedPeers=[],eclipseDiscoveryOptions={},eclipseDirectoryOptions={},...nodeOptions
 }={}){
   const pinned=(Array.isArray(pinnedPeers)?pinnedPeers:[]).map(row=>knownPeer(row,'operator-pinned'));
   const known=(Array.isArray(knownPeers)?knownPeers:[]).map(row=>knownPeer(row,'operator-known'));
   const pinnedIds=[...new Set([...(nodeOptions.pinnedPeerIdentityIds||[]).map(value=>String(value).toLowerCase()),...pinned.map(row=>row.identityId)])];
   const node=createAuthoritativeV4PeerNode({...nodeOptions,pinnedPeerIdentityIds:pinnedIds,syncIntervalMs:0});
+  node.directory.configureAdmission({maxRecordsPerSource:64,maxRecordsPerNetworkGroup:32,protectedSources:['self'],...eclipseDirectoryOptions});
   const peerView=new EclipseResistantDiscoveryCandidate({...eclipseDiscoveryOptions,pinnedIdentityIds:pinnedIds,peerDiversityOptions:nodeOptions.peerDiversityOptions||{}});
   peerView.ingest([...known,...pinned]);
   let syncRunning=false,syncTimer=null;
@@ -42,7 +43,7 @@ export function createAuthoritativeV4PeerNodeEclipseCandidate({
     try{absorbDirectory();const rows=peerView.probeBatch({limit}),results=[];for(const row of rows)results.push(await probe(row));return results}finally{syncRunning=false}
   }
   async function syncKnownPeer(row){const normalized=knownPeer(row);peerView.ingest([normalized]);return probe(normalized)}
-  function status(){const base=node.status(),eclipseResistance=peerView.assessment();return{...base,peer_diversity:eclipseResistance,eclipse_resistance:eclipseResistance,peer_view_authority:'eclipse-resistant-candidate-v1'}}
+  function status(){const base=node.status(),eclipseResistance=peerView.assessment();return{...base,peer_diversity:eclipseResistance,eclipse_resistance:eclipseResistance,peer_directory_admission:node.directory.admissionStatus(),peer_view_authority:'eclipse-resistant-candidate-v1'}}
   async function start(){await node.start();if(nodeOptions.syncIntervalMs>0)syncTimer=setInterval(()=>syncPeers().catch(()=>{}),Math.max(5000,nodeOptions.syncIntervalMs));return api()}
   async function close(){if(syncTimer)clearInterval(syncTimer);return node.close()}
   function api(){return{...node,start,close,status,syncPeers,syncKnownPeer,peerView,inner:node}}
