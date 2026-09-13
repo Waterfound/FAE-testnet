@@ -101,7 +101,9 @@ start_proxy(){
 stop_proxy(){ wan_stop_pid_file "$PROXY_PID_FILE" TERM; rm -f "$PROXY_PID_FILE"; }
 
 start_c
-wan_install_cloudflared /tmp/cloudflared
+if ! wan_install_cloudflared /tmp/cloudflared; then
+  echo "cloudflared install unavailable; zero-cost fallback remains eligible" >&2
+fi
 C_URL=$(wan_start_tunnel 8788 "$TUNNEL_LOG" "$TUNNEL_PID_FILE" /tmp/cloudflared)
 C_TUNNEL_PROVIDER=$(wan_tunnel_provider "$C_URL")
 [[ "$C_TUNNEL_PROVIDER" != unknown ]]
