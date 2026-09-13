@@ -1,0 +1,66 @@
+name: Full Target Shadow One-Machine Ceiling
+
+on:
+  push:
+    branches: [main, lab-network-reorg-one-machine-ceiling]
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
+      - 'sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md'
+      - '.github/workflows/full-target-shadow-one-machine-ceiling.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
+      - 'sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md'
+      - '.github/workflows/full-target-shadow-one-machine-ceiling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-machine-failure-domain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check local ceiling components
+        run: |
+          node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          bash -n sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh
+      - name: Preserve deterministic in-process mid-reorg preflight
+        run: node sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs
+      - name: Build isolated shadow validation image
+        run: docker build -f sovereign-forge/node/Dockerfile.full-target-shadow-validation -t fae-shadow-validation:one-machine sovereign-forge/node
+      - name: Run one-machine failure-domain degraded-network chaos gate
+        env:
+          FAE_SHADOW_LOCAL_CHAOS_IMAGE: fae-shadow-validation:one-machine
+        run: bash sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh
+      - name: Preserve strict authority isolation
+        run: |
+          grep -q "lab-only-network-fault-injector" sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          grep -q "external_wan_proof:false" sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh
+          grep -q "not external WAN proof" sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md
+          ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "FAE_SHADOW_PROXY_BASE_DELAY_MS" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "FAE_SHADOW_PROXY_BASE_DELAY_MS" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "FAE_SHADOW_PROXY_BASE_DELAY_MS" sovereign-forge/node/fae-node-v6-candidate.mjs
