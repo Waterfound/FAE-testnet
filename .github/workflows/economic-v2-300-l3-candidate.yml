@@ -10,12 +10,14 @@ on:
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py'
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
+      - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
@@ -29,12 +31,14 @@ on:
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py'
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
+      - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
@@ -63,11 +67,13 @@ jobs:
           node --check sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/node/candidate/network-boundary-v2-300.mjs
+          node --check sovereign-forge/node/candidate/activation-profile-v2-300.mjs
           node --check sovereign-forge/node/candidate/fae-v5-300-core.mjs
           node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/tests/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
+          node --check sovereign-forge/tests/activation-profile-v2-300.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check candidate-net-lab/v5-node.mjs
           node --check candidate-net-lab/v5-controller.mjs
@@ -82,6 +88,9 @@ jobs:
 
       - name: Run fresh-genesis replay and peer boundary invariants
         run: node sovereign-forge/tests/network-boundary-v2-300.mjs
+
+      - name: Run fail-closed activation-profile invariants
+        run: node sovereign-forge/tests/activation-profile-v2-300.mjs
 
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
@@ -123,7 +132,7 @@ jobs:
           grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
           grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
           grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
-          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
+          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|activation-profile-v2-300\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
             echo 'candidate imported into live v4 node' >&2
             exit 1
           fi
