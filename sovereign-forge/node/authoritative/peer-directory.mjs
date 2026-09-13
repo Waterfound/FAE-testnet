@@ -43,6 +43,19 @@ export class PeerDirectory{
     if(typeof now!=='function')throw new Error('Peer directory now must be a function');
     this.now=now;this.entries=new Map();this.protectedSources=new Set((Array.isArray(protectedSources)?protectedSources:[]).map(String));
   }
+  configureAdmission({maxRecordsPerSource=this.maxRecordsPerSource,maxRecordsPerNetworkGroup=this.maxRecordsPerNetworkGroup,protectedSources=[...this.protectedSources]}={}){
+    this.maxRecordsPerSource=positiveInt('maxRecordsPerSource',maxRecordsPerSource,this.maxRecords);
+    this.maxRecordsPerNetworkGroup=positiveInt('maxRecordsPerNetworkGroup',maxRecordsPerNetworkGroup,this.maxRecords);
+    this.protectedSources=new Set((Array.isArray(protectedSources)?protectedSources:[]).map(String));
+    for(const source of new Set([...this.entries.values()].map(entry=>entry.source)))if(!this.protectedSources.has(source))this.boundWhere(entry=>entry.source===source,this.maxRecordsPerSource);
+    for(const group of new Set([...this.entries.values()].map(entry=>entry.payload.networkGroup)))this.boundWhere(entry=>entry.payload.networkGroup===group,this.maxRecordsPerNetworkGroup);
+    this.boundWhere(()=>true,this.maxRecords);
+    return this.admissionStatus();
+  }
+  admissionStatus(){
+    const sources=new Map(),groups=new Map();for(const entry of this.entries.values()){sources.set(entry.source,(sources.get(entry.source)||0)+1);groups.set(entry.payload.networkGroup,(groups.get(entry.payload.networkGroup)||0)+1)}
+    return{records:this.entries.size,maxRecords:this.maxRecords,maxRecordsPerSource:this.maxRecordsPerSource,maxRecordsPerNetworkGroup:this.maxRecordsPerNetworkGroup,protectedSources:[...this.protectedSources].sort(),maxObservedSourceRecords:Math.max(0,...sources.values()),maxObservedNetworkGroupRecords:Math.max(0,...groups.values())};
+  }
   prune(){const now=this.now();for(const[key,entry]of this.entries)if(Date.parse(entry.payload.validUntil)<=now)this.entries.delete(key)}
   isProtected(entry){return this.protectedSources.has(entry.source)}
   evictOldest(entries){
