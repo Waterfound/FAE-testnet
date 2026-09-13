@@ -34,7 +34,7 @@ assert.equal(issuanceAtomsThroughHeight(860_000), 9_030_000n * COIN_ATOMS);
 // Integer-atom halvings terminate naturally below the theoretical geometric cap.
 assert.equal(terminalIssuanceAtoms(), 1_203_999_994_840_000n);
 assert.equal(terminalShortfallAtoms(), 5_160_000n);
-assert.equal(terminalShortfallAtoms(), 0.0516 * Number(COIN_ATOMS));
+assert.equal(Number(terminalShortfallAtoms()) / Number(COIN_ATOMS), 0.0516);
 assert.ok(terminalIssuanceAtoms() < ECONOMIC_V2_300.theoreticalCapAtoms);
 assert.equal(issuanceAtomsThroughHeight(Number.MAX_SAFE_INTEGER), terminalIssuanceAtoms());
 
