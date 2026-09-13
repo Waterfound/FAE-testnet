@@ -24,6 +24,7 @@ try{
   const ordinary=[o1,o2,o3],ordinaryGroups=new Set(ordinary.map(row=>networkGroupForEndpoint(row.endpoint)));
   if(ordinaryGroups.size!==3)throw new Error(`expected three ordinary network groups, got ${[...ordinaryGroups].join(',')}`);
   if(anchor.height!==13||ordinary.some(row=>row.height!==11))throw new Error('unexpected initial WAN chain heights');
+  await waitFor((marker,value)=>marker==='FAE_ECLIPSE_WAN_OBSERVER'&&value.ok===true,'independent pre-isolation observer',300_000);
 
   let clock=1_930_000_000_000;
   victim=createAuthoritativeV4PeerNodeEclipseCandidate({
