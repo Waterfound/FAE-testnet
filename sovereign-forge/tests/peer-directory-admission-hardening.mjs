@@ -53,6 +53,18 @@ test('protected self descriptor survives global churn while untrusted records re
   assert.ok(observations.some(row=>row.identityId===self.id&&row.source==='self'));
 });
 
+test('re-gossip cannot downgrade protected self provenance',()=>{
+  let tick=0;
+  const self=generateNodeIdentity(),directory=new PeerDirectory({networkId:NETWORK,maxRecords:8,maxRecordsPerSource:2,maxRecordsPerNetworkGroup:8,protectedSources:['self'],now:()=>NOW+3500+(tick++)});
+  const envelope=descriptor(self,'https://self.protected.example');
+  directory.register(envelope,{source:'self'});
+  directory.register(envelope,{source:'peer:replayer'});
+  const rows=directory.observations().filter(row=>row.identityId===self.id);
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].source,'self');
+  assert.deepEqual(directory.admissionStatus().protectedSources,['self']);
+});
+
 test('tightening admission on a populated directory removes excess records immediately',()=>{
   let tick=0;
   const directory=new PeerDirectory({networkId:NETWORK,maxRecords:32,now:()=>NOW+4000+(tick++)});
