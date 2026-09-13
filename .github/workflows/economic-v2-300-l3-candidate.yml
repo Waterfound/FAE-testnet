@@ -1,0 +1,73 @@
+name: economic-v2-300-l3-candidate
+
+on:
+  push:
+    branches: [economic-block-time-v2-300-l3]
+    paths:
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
+      - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
+      - '.github/workflows/economic-v2-300-l3-candidate.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
+      - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
+      - '.github/workflows/economic-v2-300-l3-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax
+        run: |
+          node --check sovereign-forge/node/candidate/economic-v2-300.mjs
+          node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
+
+      - name: Run candidate arithmetic and maturity invariants
+        run: node sovereign-forge/tests/economic-v2-300-candidate.mjs
+
+      - name: Generate candidate manifest
+        run: node sovereign-forge/node/candidate/economic-v2-300.mjs > economic-v2-300-candidate.json
+
+      - name: Assert fail-closed activation boundary
+        run: |
+          grep -q '"authority": "candidate-not-active-consensus"' economic-v2-300-candidate.json
+          grep -q '"targetSeconds": 300' economic-v2-300-candidate.json
+          grep -q '"initialSubsidyAtoms": "1400000000"' economic-v2-300-candidate.json
+          grep -q '"halvingEraBlocks": 430000' economic-v2-300-candidate.json
+          grep -q '"theoreticalCapAtoms": "1204000000000000"' economic-v2-300-candidate.json
+          grep -q '"terminalIssuanceAtoms": "1203999994840000"' economic-v2-300-candidate.json
+          grep -q '"terminalShortfallAtoms": "5160000"' economic-v2-300-candidate.json
+          grep -q '"coinbaseMaturityBlocks": 200' economic-v2-300-candidate.json
+          grep -q '"activationAuthorized": false' economic-v2-300-candidate.json
+          grep -q '"publicConsensusChanged": false' economic-v2-300-candidate.json
+
+      - name: Guard current v4 consensus from accidental candidate activation
+        run: |
+          grep -q "const INITIAL_SUBSIDY=10n\*COIN;" sovereign-forge/node/fae-node.mjs
+          grep -q "const HALVING_ERA_BLOCKS=600000;" sovereign-forge/node/fae-node.mjs
+          grep -q "const MAX_SUPPLY=12000000n\*COIN;" sovereign-forge/node/fae-node.mjs
+          grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
+          grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
+          grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
+          if grep -q "economic-v2-300" sovereign-forge/node/fae-node.mjs; then
+            echo 'candidate imported into live v4 node' >&2
+            exit 1
+          fi
+
+      - name: Upload candidate manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: economic-v2-300-l3-candidate
+          path: economic-v2-300-candidate.json
+          retention-days: 30
