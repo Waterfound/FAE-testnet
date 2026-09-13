@@ -13,6 +13,9 @@ NODE_PID_FILE="$WORK/node.pid"
 TUNNEL_PID_FILE="$WORK/tunnel.pid"
 NODE_LOG="$WORK/node.log"
 TUNNEL_LOG="$WORK/tunnel.log"
+BOOT_ID="$(cat /proc/sys/kernel/random/boot_id)"
+[[ -n "$BOOT_ID" ]]
+printf '%s\n' "$BOOT_ID" >"$WORK/boot-id.txt"
 
 cleanup(){
   wan_stop_pid_file "$TUNNEL_PID_FILE" TERM
@@ -42,9 +45,9 @@ WORK_VALUE=$(jq -r '.chain_work' <<<"$STATUS")
 ENDPOINT=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg profile "$PROFILE" \
   --arg url "$PUBLIC_URL" --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" \
-  --arg os "${RUNNER_OS:-unknown}" --arg arch "${RUNNER_ARCH:-unknown}" \
+  --arg boot_id "$BOOT_ID" --arg os "${RUNNER_OS:-unknown}" --arg arch "${RUNNER_ARCH:-unknown}" \
   --arg tip "$TIP" --arg work "$WORK_VALUE" --argjson height "$EXPECTED_HEIGHT" \
-  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
+  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
 wan_post FAE_WAN_ENDPOINT "$ENDPOINT"
 
 echo "$ENDPOINT" >"$WORK/endpoint.json"
@@ -68,4 +71,4 @@ done
 FINAL=$(wan_json_status "$PUBLIC_URL")
 jq -e --arg tip "$TIP" --arg work "$WORK_VALUE" '.tip_hash==$tip and .chain_work==$work' <<<"$FINAL" >/dev/null
 printf '%s\n' "$FINAL" >"$WORK/final-status.json"
-wan_post FAE_WAN_HOST_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg tip "$TIP" --arg work "$WORK_VALUE" '{run_id:$run,role:$role,phase:"final",tip_hash:$tip,chain_work:$work,status:"PASS"}')"
+wan_post FAE_WAN_HOST_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg boot_id "$BOOT_ID" --arg tip "$TIP" --arg work "$WORK_VALUE" '{run_id:$run,role:$role,phase:"final",boot_id:$boot_id,tip_hash:$tip,chain_work:$work,status:"PASS"}')"
