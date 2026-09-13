@@ -15,6 +15,10 @@ import {
   assertActivationProfileReady,
   activationProfileBoundaryReport,
 } from '../node/candidate/activation-profile-v2-300.mjs';
+import {
+  createProfileConsensusBinding,
+  assertProfileConsensusBinding,
+} from '../node/candidate/profile-consensus-binding-v2-300.mjs';
 
 const digest = text => createHash('sha256').update(text).digest('hex');
 const calibrationA = digest('FAE launch-hashrate calibration evidence A');
@@ -92,6 +96,12 @@ const testnetNamedProfile = createActivationProfile({
 assert.equal(testnetNamedProfile.profileId, 'public-testnet-v5-launch-a');
 assert.equal(testnetNamedProfile.testOnly, false);
 assert.equal(testnetNamedProfile.activationAuthorized, false);
+const testnetBinding = createProfileConsensusBinding(testnetNamedProfile);
+assert.equal(assertProfileConsensusBinding(testnetBinding, testnetNamedProfile), true);
+assert.equal(testnetBinding.genesisCommitment, testnetNamedProfile.activationGenesisCommitment);
+assert.equal(testnetBinding.initialTargetHex, realisticTarget);
+assert.equal(testnetBinding.activationAuthorized, false);
+assert.match(testnetBinding.transactionDomainCommitment, /^[0-9a-f]{64}$/);
 
 const profileA = createActivationProfile({
   profileId: 'public-launch-a',
@@ -111,6 +121,8 @@ assert.equal(profileA.descriptor.inheritedV4Balances, false);
 assert.equal(profileA.descriptor.inheritedV4Coinbase, false);
 assert.equal(profileA.descriptor.initialHeight, 0);
 assert.equal(profileA.descriptor.initialIssuedAtoms, '0');
+const bindingA = createProfileConsensusBinding(profileA);
+assert.equal(assertProfileConsensusBinding(bindingA, profileA), true);
 
 const profileARepeat = createActivationProfile({
   profileId: 'public-launch-a',
@@ -119,6 +131,7 @@ const profileARepeat = createActivationProfile({
   calibrationEvidenceLabel: 'Measured launch hashrate calibration packet A',
 });
 assert.equal(profileARepeat.activationGenesisCommitment, profileA.activationGenesisCommitment, 'same frozen profile must be deterministic');
+assert.equal(createProfileConsensusBinding(profileARepeat).transactionDomainCommitment, bindingA.transactionDomainCommitment, 'same frozen profile must bind the same transaction domain');
 
 const profileTargetChanged = createActivationProfile({
   profileId: 'public-launch-a',
@@ -127,6 +140,7 @@ const profileTargetChanged = createActivationProfile({
   calibrationEvidenceLabel: 'Measured launch hashrate calibration packet A',
 });
 assert.notEqual(profileTargetChanged.activationGenesisCommitment, profileA.activationGenesisCommitment, 'initial target must bind genesis commitment');
+assert.notEqual(createProfileConsensusBinding(profileTargetChanged).transactionDomainCommitment, bindingA.transactionDomainCommitment, 'target-derived genesis must change transaction domain');
 
 const profileEvidenceChanged = createActivationProfile({
   profileId: 'public-launch-a',
@@ -135,6 +149,7 @@ const profileEvidenceChanged = createActivationProfile({
   calibrationEvidenceLabel: 'Measured launch hashrate calibration packet B',
 });
 assert.notEqual(profileEvidenceChanged.activationGenesisCommitment, profileA.activationGenesisCommitment, 'calibration evidence must bind genesis commitment');
+assert.notEqual(createProfileConsensusBinding(profileEvidenceChanged).transactionDomainCommitment, bindingA.transactionDomainCommitment, 'evidence-derived genesis must change transaction domain');
 
 const tampered = structuredClone(profileA);
 tampered.initialTargetHex = slightlyHarderTarget;
