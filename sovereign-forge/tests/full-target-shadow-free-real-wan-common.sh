@@ -172,6 +172,19 @@ wan_stop_pid_file(){
 }
 
 wan_json_status(){
-  local url="$1"
-  curl -fsS --max-time 15 --retry 3 --retry-delay 1 "${url}/status"
+  local url="$1" timeout_s="${2:-90}" start now body
+  start=$(date +%s)
+  while :; do
+    if body=$(curl -fsS --max-time 15 "$url/status" 2>/dev/null) \
+      && jq -e 'type=="object"' >/dev/null 2>&1 <<<"$body"; then
+      printf '%s\n' "$body"
+      return 0
+    fi
+    now=$(date +%s)
+    (( now-start < timeout_s )) || {
+      echo "public status endpoint did not become readable within ${timeout_s}s: ${url}" >&2
+      return 1
+    }
+    sleep 2
+  done
 }
