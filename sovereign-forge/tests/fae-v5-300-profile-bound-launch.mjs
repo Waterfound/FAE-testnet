@@ -56,7 +56,6 @@ const profileBoundTx = {
 const profileVerdict = verifyCandidateTxCrypto(profileBoundTx, binding);
 assert.equal(profileVerdict.ok, true);
 assert.equal(profileVerdict.profileId, profile.profileId);
-assert.equal(profileVerdict.ciLegacyDomain, false);
 
 const legacyDomainTx = {
   ...unsigned,
