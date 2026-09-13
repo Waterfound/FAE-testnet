@@ -9,7 +9,7 @@ wan_tunnel_provider(){
   case "$url" in
     https://*.trycloudflare.com) printf '%s\n' cloudflare-quick-tunnel ;;
     https://*.localhost.run|https://*.lhr.life|https://*.lhrtunnel.link) printf '%s\n' localhost-run ;;
-    http://*.pinggy.link:*|http://*.free.pinggy.link:*|http://*.free.pinggy.online:*) printf '%s\n' pinggy-tcp ;;
+    http://*.pinggy.link:*|http://*.free.pinggy.link:*|http://*.pinggy-free.link:*|http://*.free.pinggy.online:*) printf '%s\n' pinggy-tcp ;;
     *) printf '%s\n' unknown ;;
   esac
 }
