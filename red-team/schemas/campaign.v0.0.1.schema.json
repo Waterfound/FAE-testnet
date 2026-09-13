@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fairyelf.invalid/schemas/red-team/campaign.v0.0.1.schema.json",
+  "title": "FAE Red Team campaign v0.0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "target",
+    "taxonomy_path",
+    "score_policy_path",
+    "attack_library_path",
+    "attack_ids",
+    "seed",
+    "repetitions",
+    "execution",
+    "authority_boundary",
+    "blind"
+  ],
+  "properties": {
+    "schema_version": {"const": "fae.red-team.campaign.v0.0.1"},
+    "campaign_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._~/-]{2,127}$"},
+    "title": {"type": "string"},
+    "target": {
+      "type": "object",
+      "required": ["kind", "root", "required_ref", "require_clean", "writable"],
+      "properties": {
+        "kind": {"const": "git"},
+        "label": {"type": "string"},
+        "root": {"type": "string", "minLength": 1},
+        "required_ref": {"type": "string", "minLength": 1},
+        "require_clean": {"const": true},
+        "writable": {"const": false}
+      }
+    },
+    "taxonomy_path": {"type": "string", "minLength": 1},
+    "score_policy_path": {"type": "string", "minLength": 1},
+    "attack_library_path": {"type": "string", "minLength": 1},
+    "attack_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "seed": {"type": "string", "minLength": 1},
+    "repetitions": {"type": "integer", "minimum": 1, "maximum": 10},
+    "execution": {
+      "type": "object",
+      "required": ["order", "max_parallel", "fail_fast"],
+      "properties": {
+        "order": {"enum": ["listed", "seeded"]},
+        "max_parallel": {"const": 1},
+        "fail_fast": {"type": "boolean"}
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "required": ["consensus_authority", "testnet_mutation", "wallet_keys", "block_submission"],
+      "properties": {
+        "consensus_authority": {"const": false},
+        "testnet_mutation": {"const": false},
+        "wallet_keys": {"const": false},
+        "block_submission": {"const": false}
+      }
+    },
+    "blind": {
+      "type": "object",
+      "required": ["expected_answers_available_to_runner"],
+      "properties": {
+        "active_set": {"type": ["string", "null"]},
+        "expected_answers_available_to_runner": {"const": false}
+      }
+    },
+    "exclusions": {"type": "array", "items": {"type": "string"}}
+  }
+}

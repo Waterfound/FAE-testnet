@@ -1,0 +1,13 @@
+{
+  "schema_version": "fae.red-team.holdout-commitments.v0.0.1",
+  "set_id": "example-not-active",
+  "status": "example",
+  "cases": [
+    {
+      "case_id": "example-case-001",
+      "domain": "meta",
+      "commitment": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "input_public": {"kind": "example-only"}
+    }
+  ]
+}
