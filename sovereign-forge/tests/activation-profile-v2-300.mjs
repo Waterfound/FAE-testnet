@@ -83,6 +83,16 @@ assert.throws(
   error => error.code === 'placeholder_calibration_evidence_rejected',
 );
 
+const testnetNamedProfile = createActivationProfile({
+  profileId: 'public-testnet-v5-launch-a',
+  initialTargetHex: realisticTarget,
+  calibrationEvidenceSha256: calibrationA,
+  calibrationEvidenceLabel: 'Measured launch hashrate calibration packet A',
+});
+assert.equal(testnetNamedProfile.profileId, 'public-testnet-v5-launch-a');
+assert.equal(testnetNamedProfile.testOnly, false);
+assert.equal(testnetNamedProfile.activationAuthorized, false);
+
 const profileA = createActivationProfile({
   profileId: 'public-launch-a',
   initialTargetHex: realisticTarget,
