@@ -27,6 +27,10 @@ function cleanString(value, field, { min = 1, max = 160 } = {}) {
   return text;
 }
 
+function looksTestOnlyProfileId(value) {
+  return /(^|[-_.])(test|ci|example|placeholder)([-_.]|$)/i.test(value);
+}
+
 function evidenceDigest(value) {
   const digest = cleanString(value, 'calibration_evidence_sha256', { min: 64, max: 64 }).toLowerCase();
   if (!/^[0-9a-f]{64}$/.test(digest)) fail('invalid_calibration_evidence_sha256');
@@ -68,7 +72,7 @@ export function createActivationProfile({
   calibrationEvidenceLabel,
 } = {}) {
   const id = cleanString(profileId, 'profile_id', { min: 3, max: 80 });
-  if (/test|ci|example|placeholder/i.test(id)) fail('activation_profile_id_looks_test_only');
+  if (looksTestOnlyProfileId(id)) fail('activation_profile_id_looks_test_only');
   const initial = normalizedTargetHex(initialTargetHex);
   const evidenceSha = evidenceDigest(calibrationEvidenceSha256);
   const evidenceLabel = cleanString(calibrationEvidenceLabel, 'calibration_evidence_label', { min: 3, max: 160 });
