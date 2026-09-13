@@ -1,0 +1,43 @@
+name: peer-directory-admission-hardening
+
+on:
+  push:
+    branches: [lab-peer-directory-admission-hardening]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/peer-directory.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs'
+      - 'sovereign-forge/tests/peer-directory-admission-hardening.mjs'
+      - 'sovereign-forge/tests/authoritative-peer-diversity.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-*.mjs'
+      - '.github/workflows/peer-directory-admission-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  admission-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax boundary
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/node/authoritative/peer-directory.mjs
+          node --check sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs
+          node --check sovereign-forge/tests/peer-directory-admission-hardening.mjs
+          ! grep -q 'fae-v4-peer-node-eclipse-candidate' sovereign-forge/node/fae-node-v6-candidate.mjs
+      - name: Peer-directory admission tests
+        run: node --test sovereign-forge/tests/peer-directory-admission-hardening.mjs
+      - name: Existing peer diversity regression
+        run: node --test sovereign-forge/tests/authoritative-peer-diversity.mjs
+      - name: Eclipse resistance regression
+        run: |
+          node --test sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-protocol6.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
