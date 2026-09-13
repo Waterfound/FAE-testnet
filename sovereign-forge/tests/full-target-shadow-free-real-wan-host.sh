@@ -35,8 +35,12 @@ node "$ROOT/node/lab/fae-full-target-shadow-validation-node.mjs" >"$NODE_LOG" 2>
 echo $! >"$NODE_PID_FILE"
 wan_wait_http "http://127.0.0.1:8788/status" 120
 
-wan_install_cloudflared /tmp/cloudflared
+if ! wan_install_cloudflared /tmp/cloudflared; then
+  echo "cloudflared install unavailable; zero-cost fallback remains eligible" >&2
+fi
 PUBLIC_URL=$(wan_start_tunnel 8788 "$TUNNEL_LOG" "$TUNNEL_PID_FILE" /tmp/cloudflared)
+TUNNEL_PROVIDER=$(wan_tunnel_provider "$PUBLIC_URL")
+[[ "$TUNNEL_PROVIDER" != unknown ]]
 STATUS=$(wan_json_status "$PUBLIC_URL")
 EXPECTED_HEIGHT=$(jq -r '.height' <<<"$STATUS")
 TIP=$(jq -r '.tip_hash' <<<"$STATUS")
@@ -44,14 +48,15 @@ WORK_VALUE=$(jq -r '.chain_work' <<<"$STATUS")
 
 ENDPOINT=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg profile "$PROFILE" \
-  --arg url "$PUBLIC_URL" --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" \
+  --arg url "$PUBLIC_URL" --arg tunnel_provider "$TUNNEL_PROVIDER" \
+  --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" \
   --arg boot_id "$BOOT_ID" --arg os "${RUNNER_OS:-unknown}" --arg arch "${RUNNER_ARCH:-unknown}" \
   --arg tip "$TIP" --arg work "$WORK_VALUE" --argjson height "$EXPECTED_HEIGHT" \
-  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
+  '{run_id:$run,role:$role,profile:$profile,url:$url,tunnel_provider:$tunnel_provider,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
 wan_post FAE_WAN_ENDPOINT "$ENDPOINT"
 
 echo "$ENDPOINT" >"$WORK/endpoint.json"
-echo "FAE WAN ${ROLE} online at ${PUBLIC_URL}"
+echo "FAE WAN ${ROLE} online at ${PUBLIC_URL} via ${TUNNEL_PROVIDER}"
 
 # Keep the independent runner and its tunnel alive until the observer confirms
 # the final cross-host state. The checks below also turn a silent node/tunnel
@@ -61,8 +66,8 @@ while :; do
   if wan_phase_json FAE_WAN_OBSERVER_PASS final | grep -q .; then
     break
   fi
-  kill -0 "$(cat "$NODE_PID_FILE")" 2>/dev/null || { cat "$NODE_LOG" >&2; exit 1; }
-  kill -0 "$(cat "$TUNNEL_PID_FILE")" 2>/dev/null || { cat "$TUNNEL_LOG" >&2; exit 1; }
+  wan_process_alive "$(cat "$NODE_PID_FILE")" || { cat "$NODE_LOG" >&2; exit 1; }
+  wan_process_alive "$(cat "$TUNNEL_PID_FILE")" || { cat "$TUNNEL_LOG" >&2; exit 1; }
   wan_wait_http "${PUBLIC_URL}/status" 30 || exit 1
   now=$(date +%s); (( now-start < 900 )) || { echo "observer timeout" >&2; exit 1; }
   sleep 3
@@ -71,4 +76,4 @@ done
 FINAL=$(wan_json_status "$PUBLIC_URL")
 jq -e --arg tip "$TIP" --arg work "$WORK_VALUE" '.tip_hash==$tip and .chain_work==$work' <<<"$FINAL" >/dev/null
 printf '%s\n' "$FINAL" >"$WORK/final-status.json"
-wan_post FAE_WAN_HOST_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg boot_id "$BOOT_ID" --arg tip "$TIP" --arg work "$WORK_VALUE" '{run_id:$run,role:$role,phase:"final",boot_id:$boot_id,tip_hash:$tip,chain_work:$work,status:"PASS"}')"
+wan_post FAE_WAN_HOST_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg role "$ROLE" --arg boot_id "$BOOT_ID" --arg tunnel_provider "$TUNNEL_PROVIDER" --arg tip "$TIP" --arg work "$WORK_VALUE" '{run_id:$run,role:$role,phase:"final",boot_id:$boot_id,tunnel_provider:$tunnel_provider,tip_hash:$tip,chain_work:$work,status:"PASS"}')"

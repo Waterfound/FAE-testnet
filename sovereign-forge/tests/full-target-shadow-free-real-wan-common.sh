@@ -109,18 +109,32 @@ wan_wait_http(){
   done
 }
 
-wan_start_tunnel(){
+wan_process_alive(){
+  local pid="$1" stat
+  kill -0 "$pid" 2>/dev/null || return 1
+  stat=$(ps -o stat= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+  [[ -n "$stat" && "$stat" != Z* ]]
+}
+
+wan_tunnel_provider(){
+  local url="$1"
+  case "$url" in
+    https://*.trycloudflare.com) printf '%s\n' cloudflare-quick-tunnel ;;
+    https://*.localhost.run|https://*.lhr.life|https://*.lhrtunnel.link) printf '%s\n' localhost-run ;;
+    *) printf '%s\n' unknown ;;
+  esac
+}
+
+wan_start_cloudflare_tunnel(){
   local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}"
   local attempt attempt_log url start now pid
   : >"$log"
+  [[ -x "$bin" ]] || { echo "cloudflared unavailable: ${bin}" >>"$log"; return 1; }
 
-  # Quick Tunnels are intentionally ephemeral. A tunnel process can occasionally
-  # receive a trycloudflare hostname whose DNS record is not usable from the
-  # runner even though cloudflared itself is healthy. Treat only this bootstrap
-  # condition as retryable. Once a public endpoint has passed /status, the rest
-  # of the WAN protocol remains fail-closed with no tunnel substitution.
-  for attempt in 1 2 3; do
-    attempt_log="${log}.attempt-${attempt}"
+  # Quick Tunnels are ephemeral. Treat only bootstrap/endpoint-readiness failure
+  # as retryable. Once a public endpoint passes /status, the protocol is fail-closed.
+  for attempt in 1 2; do
+    attempt_log="${log}.cloudflare-${attempt}"
     : >"$attempt_log"
     "$bin" tunnel --no-autoupdate --url "http://127.0.0.1:${port}" >"$attempt_log" 2>&1 &
     pid=$!
@@ -130,16 +144,15 @@ wan_start_tunnel(){
 
     while :; do
       url=$(grep -Eo 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' "$attempt_log" | head -n1 || true)
-      if [[ -n "$url" ]]; then break; fi
-      if ! kill -0 "$pid" 2>/dev/null; then break; fi
-      now=$(date +%s)
-      (( now-start < 45 )) || break
+      [[ -n "$url" ]] && break
+      wan_process_alive "$pid" || break
+      now=$(date +%s); (( now-start < 30 )) || break
       sleep 2
     done
 
-    if [[ -n "$url" ]] && wan_wait_http "${url}/status" 40; then
+    if [[ -n "$url" ]] && wan_wait_http "${url}/status" 35; then
       {
-        echo "--- quick-tunnel attempt ${attempt}: READY ${url} ---"
+        echo "--- cloudflare attempt ${attempt}: READY ${url} ---"
         cat "$attempt_log"
       } >>"$log"
       printf '%s\n' "$url"
@@ -147,18 +160,107 @@ wan_start_tunnel(){
     fi
 
     {
-      echo "--- quick-tunnel attempt ${attempt}: bootstrap failed ---"
+      echo "--- cloudflare attempt ${attempt}: bootstrap failed ---"
       cat "$attempt_log"
     } >>"$log"
     kill -TERM "$pid" 2>/dev/null || true
-    for _ in $(seq 1 12); do kill -0 "$pid" 2>/dev/null || break; sleep 0.25; done
+    for _ in $(seq 1 12); do wan_process_alive "$pid" || break; sleep 0.25; done
     kill -KILL "$pid" 2>/dev/null || true
     rm -f "$pid_file"
-    sleep 2
+    sleep 1
   done
-
-  cat "$log" >&2
   return 1
+}
+
+wan_start_localhost_run_tunnel(){
+  local port="$1" log="$2" pid_file="$3"
+  local attempt attempt_log url line host start now pid known_hosts
+  : >"$log"
+  known_hosts="${log}.localhost-run-known-hosts"
+  : >"$known_hosts"
+
+  for attempt in 1 2; do
+    attempt_log="${log}.localhost-run-${attempt}"
+    : >"$attempt_log"
+    ssh -T \
+      -o StrictHostKeyChecking=accept-new \
+      -o UserKnownHostsFile="$known_hosts" \
+      -o ServerAliveInterval=15 \
+      -o ServerAliveCountMax=3 \
+      -o ExitOnForwardFailure=yes \
+      -R "80:127.0.0.1:${port}" \
+      nokey@localhost.run >"$attempt_log" 2>&1 &
+    pid=$!
+    echo "$pid" >"$pid_file"
+    start=$(date +%s)
+    url=''
+
+    while :; do
+      line=$(grep -E 'tunneled with tls termination' "$attempt_log" | tail -n1 || true)
+      if [[ -n "$line" ]]; then
+        url=$(grep -Eo 'https://[A-Za-z0-9.-]+' <<<"$line" | tail -n1 || true)
+        if [[ -z "$url" ]]; then
+          host=$(awk '{print $1}' <<<"$line")
+          [[ "$host" =~ ^[A-Za-z0-9.-]+$ ]] && url="https://${host}"
+        fi
+      fi
+      [[ -n "$url" ]] && break
+      wan_process_alive "$pid" || break
+      now=$(date +%s); (( now-start < 35 )) || break
+      sleep 2
+    done
+
+    if [[ -n "$url" ]] && wan_wait_http "${url}/status" 35; then
+      {
+        echo "--- localhost.run attempt ${attempt}: READY ${url} ---"
+        cat "$attempt_log"
+      } >>"$log"
+      printf '%s\n' "$url"
+      return 0
+    fi
+
+    {
+      echo "--- localhost.run attempt ${attempt}: bootstrap failed ---"
+      cat "$attempt_log"
+    } >>"$log"
+    kill -TERM "$pid" 2>/dev/null || true
+    for _ in $(seq 1 12); do wan_process_alive "$pid" || break; sleep 0.25; done
+    kill -KILL "$pid" 2>/dev/null || true
+    rm -f "$pid_file"
+    sleep 1
+  done
+  return 1
+}
+
+wan_start_tunnel(){
+  local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}"
+  local preference="${FAE_WAN_TUNNEL_PROVIDER:-auto}" url
+  case "$preference" in
+    cloudflare)
+      [[ -x "$bin" ]] || { echo "cloudflared unavailable: ${bin}" >&2; return 1; }
+      wan_start_cloudflare_tunnel "$port" "$log" "$pid_file" "$bin"
+      ;;
+    localhost-run)
+      wan_start_localhost_run_tunnel "$port" "$log" "$pid_file"
+      ;;
+    auto)
+      if [[ -x "$bin" ]] && url=$(wan_start_cloudflare_tunnel "$port" "$log" "$pid_file" "$bin"); then
+        printf '%s\n' "$url"
+        return 0
+      fi
+      echo "Cloudflare Quick Tunnel bootstrap unavailable; falling back to localhost.run" >&2
+      if url=$(wan_start_localhost_run_tunnel "$port" "$log" "$pid_file"); then
+        printf '%s\n' "$url"
+        return 0
+      fi
+      cat "$log" >&2
+      return 1
+      ;;
+    *)
+      echo "invalid FAE_WAN_TUNNEL_PROVIDER: ${preference}" >&2
+      return 1
+      ;;
+  esac
 }
 
 wan_stop_pid_file(){
@@ -167,7 +269,7 @@ wan_stop_pid_file(){
   pid=$(cat "$file" 2>/dev/null || true)
   [[ -n "$pid" ]] || return 0
   kill -s "$signal" "$pid" 2>/dev/null || true
-  for _ in $(seq 1 20); do kill -0 "$pid" 2>/dev/null || return 0; sleep 0.25; done
+  for _ in $(seq 1 20); do wan_process_alive "$pid" || return 0; sleep 0.25; done
   kill -KILL "$pid" 2>/dev/null || true
 }
 

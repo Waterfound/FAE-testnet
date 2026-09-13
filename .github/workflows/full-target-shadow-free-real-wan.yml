@@ -2,7 +2,7 @@ name: Full Target Shadow Free Real WAN
 
 on:
   push:
-    branches: [main, lab-network-reorg-free-real-wan]
+    branches: [main, lab-network-reorg-free-real-wan, lab-network-reorg-tunnel-fallback]
     paths:
       - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
@@ -36,6 +36,8 @@ jobs:
           grep -q "time-equivalent soak" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
           grep -q "no consensus authority" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
           grep -q "Linux boot ID" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
+          grep -q "wan_start_localhost_run_tunnel" sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
+          grep -q "nokey@localhost.run" sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/fae-node-v6-candidate.mjs
@@ -45,6 +47,9 @@ jobs:
           ! grep -q "trycloudflare" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "trycloudflare" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "trycloudflare" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "localhost.run" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "localhost.run" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "localhost.run" sovereign-forge/node/fae-node-v6-candidate.mjs
 
   rendezvous:
     runs-on: ubuntu-latest
@@ -100,6 +105,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
       WAN_ARTIFACT_DIR: /tmp/fae-real-wan-${{ matrix.role }}
+      FAE_WAN_TUNNEL_PROVIDER: ${{ github.ref_name == 'lab-network-reorg-tunnel-fallback' && matrix.role == 'B' && 'localhost-run' || 'auto' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -111,6 +117,7 @@ jobs:
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
           node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
+          grep -q 'tunnel_provider' sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
       - name: Run independent public WAN host ${{ matrix.role }}
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
       - name: Upload host evidence
@@ -130,6 +137,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
       WAN_ARTIFACT_DIR: /tmp/fae-real-wan-C
+      FAE_WAN_TUNNEL_PROVIDER: auto
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -144,7 +152,7 @@ jobs:
           grep -q "lab-only-local-control-no-consensus-authority" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q "shadow_control_must_bind_loopback" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
-          grep -q 'distinct_boot_ids' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
+          grep -q 'tunnel_providers' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Run cross-runner reorg/restart controller C
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Upload controller evidence
@@ -172,6 +180,7 @@ jobs:
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
           grep -q 'distinct_boot_ids:true' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+          grep -q 'tunnel_provider_fallback_capable:true' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Independently observe A/B/C over public endpoints
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Upload observer evidence

@@ -28,7 +28,7 @@ on_exit(){
   local rc=$?
   trap - EXIT
   if (( rc != 0 )); then
-    wan_post FAE_WAN_CONTROLLER_FAIL "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase "controller" --arg status "FAIL" '{run_id:$run,phase:$phase,status:$status}')" || true
+    wan_post FAE_WAN_CONTROLLER_FAIL "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase controller --arg status FAIL '{run_id:$run,phase:$phase,status:$status}')" || true
   fi
   cleanup
   exit "$rc"
@@ -57,7 +57,7 @@ hard_kill_c(){
   pid=$(cat "$NODE_PID_FILE")
   kill -KILL "$pid" 2>/dev/null || true
   wait "$pid" 2>/dev/null || true
-  for _ in $(seq 1 40); do kill -0 "$pid" 2>/dev/null || return 0; sleep 0.1; done
+  for _ in $(seq 1 40); do wan_process_alive "$pid" || return 0; sleep 0.1; done
   return 1
 }
 
@@ -101,16 +101,21 @@ start_proxy(){
 stop_proxy(){ wan_stop_pid_file "$PROXY_PID_FILE" TERM; rm -f "$PROXY_PID_FILE"; }
 
 start_c
-wan_install_cloudflared /tmp/cloudflared
+if ! wan_install_cloudflared /tmp/cloudflared; then
+  echo "cloudflared install unavailable; zero-cost fallback remains eligible" >&2
+fi
 C_URL=$(wan_start_tunnel 8788 "$TUNNEL_LOG" "$TUNNEL_PID_FILE" /tmp/cloudflared)
+C_TUNNEL_PROVIDER=$(wan_tunnel_provider "$C_URL")
+[[ "$C_TUNNEL_PROVIDER" != unknown ]]
 C_INITIAL=$(wan_json_status "$C_URL")
 C_ENDPOINT=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg role C --arg profile trusted --arg url "$C_URL" \
-  --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" --arg boot_id "$BOOT_ID" \
+  --arg tunnel_provider "$C_TUNNEL_PROVIDER" --arg runner "${RUNNER_NAME:-unknown}" \
+  --arg hostname "$(hostname)" --arg boot_id "$BOOT_ID" \
   --arg os "${RUNNER_OS:-unknown}" --arg arch "${RUNNER_ARCH:-unknown}" \
   --arg tip "$(jq -r '.tip_hash' <<<"$C_INITIAL")" --arg work "$(jq -r '.chain_work' <<<"$C_INITIAL")" \
   --argjson height "$(jq -r '.height' <<<"$C_INITIAL")" \
-  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
+  '{run_id:$run,role:$role,profile:$profile,url:$url,tunnel_provider:$tunnel_provider,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
 wan_post FAE_WAN_ENDPOINT "$C_ENDPOINT"
 echo "$C_ENDPOINT" >"$WORK/c-endpoint.json"
 
@@ -118,6 +123,9 @@ A_META=$(wan_wait_role FAE_WAN_ENDPOINT A 300)
 B_META=$(wan_wait_role FAE_WAN_ENDPOINT B 300)
 A_URL=$(jq -r '.url' <<<"$A_META")
 B_URL=$(jq -r '.url' <<<"$B_META")
+A_TUNNEL_PROVIDER=$(jq -r '.tunnel_provider // "unknown"' <<<"$A_META")
+B_TUNNEL_PROVIDER=$(jq -r '.tunnel_provider // "unknown"' <<<"$B_META")
+[[ "$A_TUNNEL_PROVIDER" != unknown && "$B_TUNNEL_PROVIDER" != unknown ]]
 A_STATUS=$(wan_json_status "$A_URL")
 B_STATUS=$(wan_json_status "$B_URL")
 A_TIP=$(jq -r '.tip_hash' <<<"$A_STATUS")
@@ -128,12 +136,12 @@ jq -e '.status=="lab-only-no-consensus-authority" and .height==15' <<<"$A_STATUS
 jq -e '.status=="lab-only-no-consensus-authority" and .height==15' <<<"$B_STATUS" >/dev/null
 (( B_WORK > A_WORK )) || { echo "strong B work is not greater than weak A" >&2; exit 1; }
 
-# Stage 0: C first commits the lower-work A branch over a real public tunnel.
+# Stage 0: C first commits the lower-work A branch over A's public tunnel.
 code=$(control_sync "$A_URL" "$WORK/sync-adopt-a.json")
 [[ "$code" == 200 ]]
 jq -e '.ok==true and .result.adopted==true and .result.headers_validated==3 and .result.blocks_validated==3' "$WORK/sync-adopt-a.json" >/dev/null
 assert_c_tip_work "$A_TIP" "$A_WORK"
-wan_post FAE_WAN_PHASE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase weak --arg c_url "$C_URL" --arg tip "$A_TIP" --arg work "$A_WORK" '{run_id:$run,phase:$phase,c_url:$c_url,c_tip_hash:$tip,c_chain_work:$work,status:"READY_FOR_OBSERVER"}')"
+wan_post FAE_WAN_PHASE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase weak --arg c_url "$C_URL" --arg c_tunnel_provider "$C_TUNNEL_PROVIDER" --arg tip "$A_TIP" --arg work "$A_WORK" '{run_id:$run,phase:$phase,c_url:$c_url,c_tunnel_provider:$c_tunnel_provider,c_tip_hash:$tip,c_chain_work:$work,status:"READY_FOR_OBSERVER"}')"
 wan_wait_phase FAE_WAN_OBSERVER_PHASE weak 300 >/dev/null
 
 # Stage 1A: common ancestor succeeds across the real WAN; the C-side lab proxy
@@ -160,8 +168,8 @@ start_c
 assert_c_tip_work "$A_TIP" "$A_WORK"
 stop_proxy
 
-# Stage 1C: restore the same C->Cloudflare->B route, still degraded, and require
-# a fresh secure session to atomically adopt the greater-work B branch.
+# Stage 1C: restore the same C->public-tunnel->B route, still degraded, and
+# require a fresh secure session to atomically adopt the greater-work B branch.
 start_proxy 0 recovered-link
 code=$(control_sync "$PROXY_URL" "$WORK/sync-recovered.json")
 [[ "$code" == 200 ]]
@@ -215,8 +223,9 @@ printf '%s\n' "$FINAL_PUBLIC" >"$WORK/c-final-public.json"
 
 FINAL_PHASE=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg phase final --arg c_url "$C_URL" --arg c_boot_id "$BOOT_ID" \
+  --arg a_provider "$A_TUNNEL_PROVIDER" --arg b_provider "$B_TUNNEL_PROVIDER" --arg c_provider "$C_TUNNEL_PROVIDER" \
   --arg a_tip "$A_TIP" --arg a_work "$A_WORK" --arg b_tip "$B_TIP" --arg b_work "$B_WORK" \
-  '{run_id:$run,phase:$phase,c_url:$c_url,c_boot_id:$c_boot_id,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work,c_tip_hash:$b_tip,c_chain_work:$b_work,headers_interrupted:true,blocks_interrupted:true,sigkill_recovery:true,fresh_session_recovery:true,rollback_rejected:true,reconnect:true,churn_cycles:4,real_public_tunnels:true,independent_runner_hosts:true,multi_provider_proof:false,time_equivalent_soak:false,status:"READY_FOR_OBSERVER"}')
+  '{run_id:$run,phase:$phase,c_url:$c_url,c_boot_id:$c_boot_id,tunnel_providers:{A:$a_provider,B:$b_provider,C:$c_provider},a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work,c_tip_hash:$b_tip,c_chain_work:$b_work,headers_interrupted:true,blocks_interrupted:true,sigkill_recovery:true,fresh_session_recovery:true,rollback_rejected:true,reconnect:true,churn_cycles:4,real_public_tunnels:true,independent_runner_hosts:true,multi_provider_compute_proof:false,time_equivalent_soak:false,status:"READY_FOR_OBSERVER"}')
 wan_post FAE_WAN_PHASE "$FINAL_PHASE"
 echo "$FINAL_PHASE" >"$WORK/controller-final.json"
 
@@ -224,4 +233,4 @@ echo "$FINAL_PHASE" >"$WORK/controller-final.json"
 # attests the final state from a fourth runner.
 OBSERVER=$(wan_wait_phase FAE_WAN_OBSERVER_PASS final 300)
 jq -e '.status=="PASS" and .distinct_runner_vms==true and .distinct_boot_ids==true and .public_endpoint_consistency==true' <<<"$OBSERVER" >/dev/null
-wan_post FAE_WAN_CONTROLLER_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase final --arg boot_id "$BOOT_ID" --arg tip "$B_TIP" --arg work "$B_WORK" '{run_id:$run,phase:$phase,status:"PASS",boot_id:$boot_id,tip_hash:$tip,chain_work:$work}')"
+wan_post FAE_WAN_CONTROLLER_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase final --arg boot_id "$BOOT_ID" --arg tunnel_provider "$C_TUNNEL_PROVIDER" --arg tip "$B_TIP" --arg work "$B_WORK" '{run_id:$run,phase:$phase,status:"PASS",boot_id:$boot_id,tunnel_provider:$tunnel_provider,tip_hash:$tip,chain_work:$work}')"
