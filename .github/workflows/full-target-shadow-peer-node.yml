@@ -2,10 +2,11 @@ name: Full Target Shadow Peer Node
 
 on:
   push:
-    branches: [main, full-target-shadow-peer-node, lab-network-reorg-midstream-faults]
+    branches: [main, full-target-shadow-peer-node, lab-network-reorg-midstream-faults, lab-network-reorg-wan-fault-gate]
     paths:
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
       - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
       - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
       - 'sovereign-forge/node/authoritative/secure-channel.mjs'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
       - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
       - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
       - 'sovereign-forge/node/authoritative/secure-channel.mjs'
@@ -36,8 +38,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Syntax-check isolated shadow node
-        run: node --check sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+      - name: Syntax-check isolated shadow node and WAN fault proxy
+        run: |
+          node --check sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
       - name: Three-node partition, reconnect, activation reorg and restart
         run: node sovereign-forge/tests/full-target-shadow-peer-node.mjs
       - name: Interrupt headers and blocks mid-reorg, then recover atomically
@@ -45,6 +49,10 @@ jobs:
       - name: Preserve strict authority isolation
         run: |
           grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          grep -q "lab-only-network-fault-injector" sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
           ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/fae-node-v6-candidate.mjs

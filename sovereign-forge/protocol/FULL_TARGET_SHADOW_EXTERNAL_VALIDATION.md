@@ -4,7 +4,7 @@ Status: **lab-only / no consensus authority**. This procedure does not activate 
 
 ## Purpose
 
-This is the first gate that cannot be established by single-host CI alone. It validates the already-tested full-target shadow stack under real WAN scheduling, separate failure domains, independent clocks, process/container restarts, temporary network partitions, and an independent operator.
+This is the first gate that cannot be established by single-host CI alone. It validates the already-tested full-target shadow stack under real WAN scheduling, separate failure domains, independent clocks, process/container restarts, temporary network partitions, deterministic mid-reorg transport interruption, and an independent operator.
 
 The validation image runs `lab/fae-full-target-shadow-validation-node.mjs`. It uses deterministic fixture version 1 with activation height 14:
 
@@ -13,6 +13,8 @@ The validation image runs `lab/fae-full-target-shadow-validation-node.mjs`. It u
 - `strong-b`: H13-H15 valid branch with a shorter activation gap and higher cumulative work.
 
 Every correct installation independently derives the same fixtures and policy fingerprint. No private key, wallet seed, production/testnet database, or FAE funds are required.
+
+The image also contains `lab/full-target-shadow-fault-proxy.mjs`, a lab-only transport fault injector. It has no consensus authority and is used only on C's test path to B so that the WAN reorg can be interrupted at deterministic protocol phases instead of relying on manual firewall timing.
 
 ## Required topology
 
@@ -71,27 +73,127 @@ docker run -d --name fae-shadow \
   fae-shadow-validation:<COMMIT>
 ```
 
-Gate A: C must adopt A and reach height 15 with A's tip. Save C's evidence file before proceeding.
+Gate A: C must adopt A and reach height 15 with A's weak tip. Save C's evidence file before proceeding. **Do not allow C to contact B yet.** The persisted weak state is the starting point for the interrupted-reorg gate.
 
-## Stage 1 — WAN reorg across activation
+## Stage 1 — WAN reorg with deterministic mid-stream interruption
 
-Preserve C's volume. Restart C with both A and B configured:
+This stage keeps A and B on different hosts and routes only C→B through the lab fault proxy on Host C. Traffic after the proxy still crosses the real C↔B WAN path.
+
+The secure request order for the pinned implementation is:
+
+1. common ancestor;
+2. headers;
+3. block bodies.
+
+`FAE_SHADOW_PROXY_DROP_SECURE_ORDINAL=2` therefore truncates the headers response. `=3` permits headers validation and truncates the block-body response. The proxy resets its ordinal on every new secure-channel handshake, so the chosen fault repeats deterministically until the proxy is replaced or restarted with injection disabled.
+
+Create a private Docker network on Host C:
 
 ```bash
--e FAE_SHADOW_PEERS=http://<A_PUBLIC_HOST>:8788,http://<B_PUBLIC_HOST>:8788
+docker network create fae-shadow-lab || true
 ```
 
-Gate B: C must validate both peers and converge to B because `strong-b` has greater cumulative work. The reorg has common ancestor H12, starts below activation at H13, and resolves above activation at H15.
+Restart C on that network while preserving its existing `fae-shadow-data` volume. Configure A directly and B only through the proxy name:
+
+```bash
+docker rm -f fae-shadow || true
+
+docker run -d --name fae-shadow --network fae-shadow-lab \
+  -p 8788:8788 -v fae-shadow-data:/data \
+  -e FAE_SHADOW_LABEL=C \
+  -e FAE_SHADOW_PROFILE=trusted \
+  -e FAE_SHADOW_PEERS=http://<A_PUBLIC_HOST>:8788,http://fae-shadow-fault-proxy:8790 \
+  -e FAE_SHADOW_SYNC=1 \
+  -e FAE_SHADOW_SYNC_MS=15000 \
+  fae-shadow-validation:<COMMIT>
+```
+
+### Stage 1A — interrupt headers
+
+Launch the proxy with ordinal 2:
+
+```bash
+docker rm -f fae-shadow-fault-proxy || true
+
+docker run -d --name fae-shadow-fault-proxy --network fae-shadow-lab \
+  -v fae-shadow-proxy-evidence:/data \
+  -e FAE_SHADOW_PROXY_LABEL=C-to-B-headers-cut \
+  -e FAE_SHADOW_PROXY_TARGET=http://<B_PUBLIC_HOST>:8788 \
+  -e FAE_SHADOW_PROXY_DROP_SECURE_ORDINAL=2 \
+  fae-shadow-validation:<COMMIT> \
+  node lab/full-target-shadow-fault-proxy.mjs
+```
+
+Observe at least one completed C sync cycle. Acceptance:
+
+- C records a transport/session error for the B path.
+- C remains on A's weak `tip_hash` and weak `chain_work`.
+- A remains reachable and is not adopted as a new rollback because C is already on A.
+- the proxy records at least one `fault_injected` event with `secure_ordinal: 2`.
+- no manual state repair is performed.
+
+Proxy status can be queried from inside C's private Docker network:
+
+```bash
+docker exec fae-shadow node -e \
+  "fetch('http://fae-shadow-fault-proxy:8790/proxy/status').then(r=>r.json()).then(x=>console.log(JSON.stringify(x)))"
+```
+
+### Stage 1B — validate headers, then interrupt block bodies
+
+Replace only the proxy and use ordinal 3:
+
+```bash
+docker rm -f fae-shadow-fault-proxy
+
+docker run -d --name fae-shadow-fault-proxy --network fae-shadow-lab \
+  -v fae-shadow-proxy-evidence:/data \
+  -e FAE_SHADOW_PROXY_LABEL=C-to-B-blocks-cut \
+  -e FAE_SHADOW_PROXY_TARGET=http://<B_PUBLIC_HOST>:8788 \
+  -e FAE_SHADOW_PROXY_DROP_SECURE_ORDINAL=3 \
+  fae-shadow-validation:<COMMIT> \
+  node lab/full-target-shadow-fault-proxy.mjs
+```
+
+Observe at least one completed C sync cycle. Acceptance:
+
+- C still remains exactly on A's weak tip/work even though the B headers phase was allowed to complete.
+- the proxy records `fault_injected` with `secure_ordinal: 3`.
+- C's persisted state must not contain a partially adopted B suffix.
+
+Now restart C **while the ordinal-3 fault is still active**, preserving `fae-shadow-data`. C must restart on A's weak persisted tip/work. This turns the no-partial-adoption property into a disk-recovery check rather than only an in-memory observation.
+
+### Stage 1C — restore the WAN path and complete the reorg
+
+Replace the proxy with injection disabled:
+
+```bash
+docker rm -f fae-shadow-fault-proxy
+
+docker run -d --name fae-shadow-fault-proxy --network fae-shadow-lab \
+  -v fae-shadow-proxy-evidence:/data \
+  -e FAE_SHADOW_PROXY_LABEL=C-to-B-restored \
+  -e FAE_SHADOW_PROXY_TARGET=http://<B_PUBLIC_HOST>:8788 \
+  -e FAE_SHADOW_PROXY_DROP_SECURE_ORDINAL=0 \
+  fae-shadow-validation:<COMMIT> \
+  node lab/full-target-shadow-fault-proxy.mjs
+```
+
+Gate B: C must open a fresh secure session, rediscover H12, revalidate the complete H13-H15 suffix, and converge to B because `strong-b` has greater cumulative work. No copied state or manual repair is allowed.
 
 Expected properties in evidence:
 
 - `policy_id` is identical across A/B/C.
 - `secure_context_binding == policy_id`.
-- final C `tip_hash == B.tip_hash`.
+- failed ordinal-2 and ordinal-3 attempts did not change C's live or persisted weak tip.
+- after connectivity is restored, final C `tip_hash == B.tip_hash`.
 - final C `chain_work == B.chain_work` and is greater than A's.
 - sync to A after convergence is not adopted as a rollback.
+- the restored proxy reports `faults_injected: 0`.
 
-## Stage 2 — partition + restart chaos
+Retain `/data/full-target-shadow-fault-proxy.jsonl` from the proxy volume together with C's node evidence.
+
+## Stage 2 — partition + restart chaos after convergence
 
 After C has converged to B:
 
@@ -154,7 +256,14 @@ For each node, retain:
 - provider/region (no account IDs or credentials);
 - UTC start/end times;
 - NTP synchronization status or equivalent clock-health evidence;
-- the partition/restart timeline.
+- the mid-reorg ordinal-2/ordinal-3 interruption timeline;
+- the post-convergence partition/restart timeline.
+
+For the fault proxy, retain:
+
+- `/data/full-target-shadow-fault-proxy.jsonl`;
+- final `GET /proxy/status` output for each fault mode;
+- container stdout+stderr.
 
 Also retain observer JSONL if used.
 
@@ -162,8 +271,10 @@ A PASS must be based on these artifacts, not only screenshots. Screenshots can s
 
 ## Important scope limits
 
+The local CI fault-injection test proves deterministic no-partial-adoption behavior on one runner. **It does not satisfy this external gate.** Stage 1 must still be executed across real C↔B hosts so scheduling, WAN transport, separate clocks, and independent failure domains are empirically exercised.
+
 This gate validates distributed operation of the **isolated shadow network**. It does not by itself activate or prove mainnet consensus readiness.
 
 Public-testnet Difficulty/Timestamp telemetry also needs additional naturally produced testnet blocks beyond the current observed tip before the live-data sample can grow. That is a separate observation gate from this WAN validation.
 
-Only after WAN + soak + chaos + independent-operator evidence passes should the project consider whether to move the candidate toward a testnet consensus-activation proposal. Mainnet activation remains a later and stricter decision.
+Only after WAN + interrupted-reorg recovery + soak + chaos + independent-operator evidence passes should the project consider whether to move the candidate toward a testnet consensus-activation proposal. Mainnet activation remains a later and stricter decision.
