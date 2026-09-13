@@ -35,6 +35,7 @@ jobs:
           grep -q "multi-provider compute independence" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
           grep -q "time-equivalent soak" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
           grep -q "no consensus authority" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
+          grep -q "Linux boot ID" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/fae-node-v6-candidate.mjs
@@ -109,6 +110,7 @@ jobs:
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
           node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
       - name: Run independent public WAN host ${{ matrix.role }}
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
       - name: Upload host evidence
@@ -141,6 +143,8 @@ jobs:
           node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
           grep -q "lab-only-local-control-no-consensus-authority" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q "shadow_control_must_bind_loopback" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
+          grep -q 'distinct_boot_ids' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Run cross-runner reorg/restart controller C
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Upload controller evidence
@@ -166,6 +170,8 @@ jobs:
         run: |
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+          grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+          grep -q 'distinct_boot_ids:true' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Independently observe A/B/C over public endpoints
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Upload observer evidence
