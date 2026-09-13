@@ -102,6 +102,8 @@ Even a structurally valid future public profile still returns `activationAuthori
 | Missing/placeholder calibration evidence | Rejected | GREEN |
 | Candidate activation authority | Remains false | GREEN / fail-closed |
 
+The focused multi-node robustness path is included in the dedicated candidate CI and has passed together with the economic, maturity, DAA, replay, activation-profile and live-v4 isolation gates.
+
 ## Evidence boundary
 
 Two different network evidence classes remain separate:
@@ -134,7 +136,7 @@ Neither class is relabeled as an independently operated production-like network.
 
 The software work is now close to its pre-calibration ceiling. The remaining sequence is intentionally narrow:
 
-1. finish the Focused L3 review against the integrated candidate/profile boundary;
+1. finish the remaining Focused L3 review of the activation-profile/core interface;
 2. preserve the current candidate test profile as non-activating;
 3. when launch-hashrate evidence exists, derive and freeze the real initial target/anchor through the activation-profile mechanism;
 4. rerun the integrated L3 suite against that frozen profile;
