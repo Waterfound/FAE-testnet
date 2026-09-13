@@ -24,9 +24,13 @@ on:
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/initial-target-calibration-v1.mjs'
+      - 'sovereign-forge/tests/n4-runtime-config.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
+      - 'candidate-net-lab/n4-runtime-config.mjs'
+      - 'candidate-net-lab/n4-entrypoint.mjs'
+      - 'candidate-net-lab/Dockerfile.n4'
       - 'candidate-net-lab/run-local-profile-core.mjs'
       - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
@@ -52,9 +56,13 @@ on:
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
       - 'sovereign-forge/tests/initial-target-calibration-v1.mjs'
+      - 'sovereign-forge/tests/n4-runtime-config.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
+      - 'candidate-net-lab/n4-runtime-config.mjs'
+      - 'candidate-net-lab/n4-entrypoint.mjs'
+      - 'candidate-net-lab/Dockerfile.n4'
       - 'candidate-net-lab/run-local-profile-core.mjs'
       - 'candidate-net-lab/run-one-machine-scale-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
@@ -92,9 +100,12 @@ jobs:
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/activation-profile-v2-300.mjs
           node --check sovereign-forge/tests/initial-target-calibration-v1.mjs
+          node --check sovereign-forge/tests/n4-runtime-config.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
           node --check candidate-net-lab/v5-node.mjs
+          node --check candidate-net-lab/n4-runtime-config.mjs
+          node --check candidate-net-lab/n4-entrypoint.mjs
           node --check candidate-net-lab/run-local-profile-core.mjs
           node --check candidate-net-lab/run-one-machine-scale-l3.mjs
           python -m py_compile sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
@@ -116,6 +127,12 @@ jobs:
 
       - name: Run strict launch-profile binding invariants
         run: node sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
+
+      - name: Run N4 provider runtime fail-closed invariants
+        run: node sovereign-forge/tests/n4-runtime-config.mjs
+
+      - name: Build portable N4 provider image
+        run: docker build -f candidate-net-lab/Dockerfile.n4 -t fae-n4-candidate:${{ github.sha }} .
 
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
