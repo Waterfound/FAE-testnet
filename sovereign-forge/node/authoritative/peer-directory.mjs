@@ -66,15 +66,19 @@ export class PeerDirectory{
     while(true){const rows=[...this.entries.entries()].filter(([,entry])=>predicate(entry));if(rows.length<=limit)return;if(!this.evictOldest(rows))return}
   }
   register(envelope,{source='gossip'}={}){
-    this.prune();const payload=verifyPeerDescriptor(envelope,{networkId:this.networkId,now:this.now()}),key=`${payload.peerId}|${payload.endpoint}`,sourceName=String(source),existing=this.entries.get(key);
-    if(existing&&Date.parse(existing.payload.issuedAt)>Date.parse(payload.issuedAt))return existing.envelope;
+    this.prune();const payload=verifyPeerDescriptor(envelope,{networkId:this.networkId,now:this.now()}),key=`${payload.peerId}|${payload.endpoint}`,sourceName=String(source),existing=this.entries.get(key),incomingProtected=this.protectedSources.has(sourceName);
+    if(existing&&Date.parse(existing.payload.issuedAt)>Date.parse(payload.issuedAt)){
+      if(incomingProtected&&!this.isProtected(existing))existing.source=sourceName;
+      return existing.envelope;
+    }
+    const effectiveSource=existing&&this.isProtected(existing)&&!incomingProtected?existing.source:sourceName;
     const sameIdentity=[...this.entries.entries()].filter(([,entry])=>entry.payload.peerId===payload.peerId&&entry.payload.endpoint!==payload.endpoint);
     while(sameIdentity.length>=this.maxEndpointsPerIdentity){
       const removable=sameIdentity.filter(([,entry])=>!this.isProtected(entry)).sort((a,b)=>a[1].observedAt-b[1].observedAt||a[0].localeCompare(b[0]));
       const oldest=removable.shift();if(!oldest)break;this.entries.delete(oldest[0]);const index=sameIdentity.findIndex(([candidate])=>candidate===oldest[0]);if(index>=0)sameIdentity.splice(index,1);
     }
-    this.entries.set(key,{payload,envelope:structuredClone(envelope),source:sourceName,observedAt:this.now()});
-    if(!this.protectedSources.has(sourceName))this.boundWhere(entry=>entry.source===sourceName,this.maxRecordsPerSource);
+    this.entries.set(key,{payload,envelope:structuredClone(envelope),source:effectiveSource,observedAt:this.now()});
+    if(!this.protectedSources.has(effectiveSource))this.boundWhere(entry=>entry.source===effectiveSource,this.maxRecordsPerSource);
     this.boundWhere(entry=>entry.payload.networkGroup===payload.networkGroup,this.maxRecordsPerNetworkGroup);
     this.boundWhere(()=>true,this.maxRecords);
     return envelope;
