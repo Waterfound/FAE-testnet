@@ -74,11 +74,13 @@ jobs:
             fae-shadow-validation:ci node lab/full-target-shadow-fault-proxy.mjs >/dev/null
           ready=0
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:18790/proxy/status > /tmp/fae-shadow-proxy-status.json; then ready=1; break; fi
+            if curl -fsS http://127.0.0.1:18790/proxy/status > /tmp/fae-shadow-proxy-status.json \
+              && curl -fsS http://127.0.0.1:18790/status > /tmp/fae-shadow-proxied-node-status.json; then
+              ready=1; break
+            fi
             sleep 1
           done
           test "$ready" = 1
-          curl -fsS http://127.0.0.1:18790/status > /tmp/fae-shadow-proxied-node-status.json
           node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/fae-shadow-proxy-status.json'));const s=JSON.parse(fs.readFileSync('/tmp/fae-shadow-proxied-node-status.json'));if(p.status!=='lab-only-network-fault-injector'||p.drop_secure_ordinal!==0||p.faults_injected!==0||s.status!=='lab-only-no-consensus-authority'||s.height!==15)process.exit(1)"
           docker stop --time 10 fae-shadow-proxy-ci >/dev/null
           docker wait fae-shadow-proxy-ci >/dev/null
