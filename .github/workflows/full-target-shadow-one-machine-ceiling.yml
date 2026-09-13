@@ -57,7 +57,8 @@ jobs:
           grep -q "lab-only-network-fault-injector" sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
           grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
           grep -q "external_wan_proof:false" sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh
-          grep -q "not external WAN proof" sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md
+          grep -q "external WAN proof" sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md
+          grep -q "What it cannot prove" sovereign-forge/protocol/FULL_TARGET_SHADOW_ONE_MACHINE_CEILING.md
           ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "full-target-shadow-one-machine-failure-domain" sovereign-forge/node/fae-node-v6-candidate.mjs
