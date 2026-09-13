@@ -9,7 +9,6 @@ import {
 } from './economic-v2-300.mjs';
 import {
   DAA_V2_300,
-  POW_LIMIT,
   MAX_HASH,
   candidateNextTarget300,
   validateTimestamp300,
@@ -26,17 +25,21 @@ import {
 } from './coinbase-maturity-v2-300.mjs';
 import {
   CANDIDATE_NETWORK_ID,
-  CANDIDATE_GENESIS_COMMITMENT,
   candidateTxDomain,
   assertCandidateNetwork,
 } from './network-boundary-v2-300.mjs';
+import { l3TestLaunchProfile } from './activation-profile-v2-300.mjs';
+import { createProfileConsensusBinding } from './profile-consensus-binding-v2-300.mjs';
 
-export const CANDIDATE_STATE_FORMAT = 'FAE_V5_300_CANDIDATE_STATE_V1';
+export const CANDIDATE_STATE_FORMAT = 'FAE_V5_300_CANDIDATE_STATE_V2_PROFILE_BOUND';
 export const CANDIDATE_TX_VERSION = 3;
 export const MAX_INPUTS = 64;
 export const MAX_OUTPUTS = 16;
 export const MAX_COINBASE_OUTPUTS = 64;
 export const ZERO_HASH = '0'.repeat(64);
+
+export const DEFAULT_CANDIDATE_PROFILE = l3TestLaunchProfile();
+export const DEFAULT_CANDIDATE_BINDING = createProfileConsensusBinding(DEFAULT_CANDIDATE_PROFILE);
 
 function fail(code, detail = {}) {
   throw Object.assign(new Error(code), { code, ...detail });
@@ -61,12 +64,75 @@ function nonNegativeSafeInteger(value, field) {
   return n;
 }
 
-export function emptyCandidateState() {
+function normalizedBinding(binding = DEFAULT_CANDIDATE_BINDING) {
+  if (!binding || binding.network !== CANDIDATE_NETWORK_ID) fail('candidate_binding_network_mismatch');
+  const profileId = String(binding.profileId || '');
+  const genesisCommitment = String(binding.genesisCommitment || '');
+  const initialTargetHex = String(binding.initialTargetHex || '').toLowerCase();
+  if (!profileId) fail('candidate_binding_profile_id_required');
+  if (!/^[0-9a-f]{64}$/.test(genesisCommitment)) fail('candidate_binding_genesis_invalid');
+  if (!/^[0-9a-f]{64}$/.test(initialTargetHex)) fail('candidate_binding_initial_target_invalid');
+  targetFromHex(initialTargetHex);
+  const descriptor = {
+    domain: 'FAIRYELF_TX_V5_300_PROFILE_BOUND',
+    network: CANDIDATE_NETWORK_ID,
+    profileId,
+    genesisCommitment,
+  };
+  const transactionDomainCommitment = hashHex(descriptor);
+  if (binding.transactionDomainCommitment && binding.transactionDomainCommitment !== transactionDomainCommitment) {
+    fail('candidate_binding_transaction_domain_mismatch');
+  }
+  if (binding.activationAuthorized !== false || binding.publicConsensusChanged !== false) fail('candidate_binding_authority_leak');
+  return Object.freeze({
+    authority: 'candidate-not-active-consensus',
+    network: CANDIDATE_NETWORK_ID,
+    profileId,
+    profileClass: String(binding.profileClass || 'profile-bound-candidate'),
+    genesisCommitment,
+    initialTargetHex,
+    transactionDomainCommitment,
+    activationProfileReady: binding.activationProfileReady === true,
+    testOnly: binding.testOnly === true,
+    activationAuthorized: false,
+    publicConsensusChanged: false,
+  });
+}
+
+export function candidateBindingFromProfile(profile = DEFAULT_CANDIDATE_PROFILE) {
+  return normalizedBinding(createProfileConsensusBinding(profile));
+}
+
+export function stateConsensusBinding(state) {
+  if (!state || state.network !== CANDIDATE_NETWORK_ID) fail('candidate_state_network_mismatch');
+  return normalizedBinding({
+    network: state.network,
+    profileId: state.profileId,
+    profileClass: state.profileClass,
+    genesisCommitment: state.genesisCommitment,
+    initialTargetHex: state.initialTargetHex,
+    transactionDomainCommitment: state.transactionDomainCommitment,
+    activationProfileReady: state.activationProfileReady,
+    testOnly: state.testOnly,
+    activationAuthorized: false,
+    publicConsensusChanged: false,
+  });
+}
+
+export function emptyCandidateState({ profile = null, binding = null } = {}) {
+  if (profile && binding) fail('candidate_profile_and_binding_are_mutually_exclusive');
+  const resolved = binding ? normalizedBinding(binding) : candidateBindingFromProfile(profile || DEFAULT_CANDIDATE_PROFILE);
   return {
     format: CANDIDATE_STATE_FORMAT,
     authority: 'candidate-not-active-consensus',
-    network: CANDIDATE_NETWORK_ID,
-    genesisCommitment: CANDIDATE_GENESIS_COMMITMENT,
+    network: resolved.network,
+    profileId: resolved.profileId,
+    profileClass: resolved.profileClass,
+    genesisCommitment: resolved.genesisCommitment,
+    initialTargetHex: resolved.initialTargetHex,
+    transactionDomainCommitment: resolved.transactionDomainCommitment,
+    activationProfileReady: resolved.activationProfileReady,
+    testOnly: resolved.testOnly,
     chain: [],
     transactions: {},
     mempoolOrder: [],
@@ -104,7 +170,8 @@ export function candidateChainWork(chain) {
 }
 
 export function nextCandidateTarget(state) {
-  if (!state.chain.length) return POW_LIMIT;
+  const binding = stateConsensusBinding(state);
+  if (!state.chain.length) return targetFromHex(binding.initialTargetHex);
   const first = state.chain[0];
   return candidateNextTarget300(state.chain, {
     anchor: {
@@ -133,8 +200,9 @@ export function normalizeCandidateTx(raw) {
   };
 }
 
-export function verifyCandidateTxCrypto(raw) {
+export function verifyCandidateTxCrypto(raw, binding = DEFAULT_CANDIDATE_BINDING) {
   try {
+    const resolved = normalizedBinding(binding);
     const tx = normalizeCandidateTx(raw);
     if (raw?.version !== undefined && Number(raw.version) !== CANDIDATE_TX_VERSION) return { ok: false, error: 'wrong_version' };
     assertCandidateNetwork(tx.network);
@@ -146,10 +214,11 @@ export function verifyCandidateTxCrypto(raw) {
     const spki = Buffer.from(tx.public_key_spki, 'base64');
     const signature = Buffer.from(tx.signature, 'base64');
     const key = createPublicKey({ key: spki, format: 'der', type: 'spki' });
-    if (!verifySignature(null, Buffer.from(stableStringify(candidateTxDomain(tx))), key, signature)) return { ok: false, error: 'invalid_signature' };
+    const signedDomain = candidateTxDomain(tx, resolved);
+    if (!verifySignature(null, Buffer.from(stableStringify(signedDomain)), key, signature)) return { ok: false, error: 'invalid_signature' };
     const from = deriveCandidateAddress(spki);
     const txid = hashHex(tx);
-    return { ok: true, tx, from, txid };
+    return { ok: true, tx, from, txid, profileId: resolved.profileId };
   } catch (error) {
     return { ok: false, error: error.code || 'invalid_public_key_or_signature', detail: error.message };
   }
@@ -168,7 +237,8 @@ function inputForMempool(state, outpoint, spendHeight) {
 }
 
 export function acceptCandidateTxInto(state, raw, { fromFeed = false, createdAt = new Date().toISOString() } = {}) {
-  const verified = verifyCandidateTxCrypto(raw);
+  const binding = stateConsensusBinding(state);
+  const verified = verifyCandidateTxCrypto(raw, binding);
   if (!verified.ok) fail(verified.error, { detail: verified.detail });
   const { tx, from, txid } = verified;
   if (raw.txid && raw.txid !== txid) fail('txid_mismatch');
@@ -193,7 +263,8 @@ export function acceptCandidateTxInto(state, raw, { fromFeed = false, createdAt 
   const record = {
     txid,
     version: CANDIDATE_TX_VERSION,
-    network: CANDIDATE_NETWORK_ID,
+    network: state.network,
+    profile_id: state.profileId,
     from_address: from,
     public_key_spki: tx.public_key_spki,
     signature: tx.signature,
@@ -229,7 +300,8 @@ function confirmedSpendability(output, height, outpoint) {
 
 export function applyConfirmedCandidateTx(state, record, height) {
   const txHeight = positiveSafeInteger(height, 'height');
-  const verified = verifyCandidateTxCrypto(record);
+  if (record.profile_id && record.profile_id !== state.profileId) fail('tx_profile_mismatch', { txid: record.txid });
+  const verified = verifyCandidateTxCrypto(record, stateConsensusBinding(state));
   if (!verified.ok || verified.txid !== record.txid) fail('invalid_tx', { txid: record.txid, reason: verified.error || 'txid' });
   if (record.from_address && record.from_address !== verified.from) fail('from_key_mismatch', { txid: record.txid });
 
@@ -267,7 +339,8 @@ export function applyConfirmedCandidateTx(state, record, height) {
   state.transactions[record.txid] = {
     ...record,
     version: CANDIDATE_TX_VERSION,
-    network: CANDIDATE_NETWORK_ID,
+    network: state.network,
+    profile_id: state.profileId,
     from_address: verified.from,
     fee_atoms: fee.toString(),
     status: 'confirmed',
@@ -309,6 +382,7 @@ export function candidateBlockTemplate(state, {
   txids = state.mempoolOrder.slice(0, ECONOMIC_V2_300.maxTxPerBlock),
   coinbaseOutputs = null,
 } = {}) {
+  stateConsensusBinding(state);
   if (!isValidAddress(minerAddress, 'faet')) fail('invalid_miner_address');
   const height = state.chain.length + 1;
   if (!Array.isArray(txids) || txids.length > ECONOMIC_V2_300.maxTxPerBlock || new Set(txids).size !== txids.length) fail('invalid_tx_list');
@@ -322,8 +396,9 @@ export function candidateBlockTemplate(state, {
   const ts = nonNegativeSafeInteger(timestampMs, 'timestamp_ms');
   const header = {
     version: 5,
-    network: CANDIDATE_NETWORK_ID,
-    genesis_commitment: CANDIDATE_GENESIS_COMMITMENT,
+    network: state.network,
+    profile_id: state.profileId,
+    genesis_commitment: state.genesisCommitment,
     height,
     previous_hash: previous?.hash || ZERO_HASH,
     timestamp_ms: ts,
@@ -351,7 +426,9 @@ export function validateCandidateBlockEnvelope(state, {
   txids,
   coinbaseOutputs,
 }, { nowMs = Date.now(), feeRecords = null } = {}) {
-  if (!header || header.network !== CANDIDATE_NETWORK_ID || header.genesis_commitment !== CANDIDATE_GENESIS_COMMITMENT) fail('wrong_network_or_genesis');
+  stateConsensusBinding(state);
+  if (!header || header.network !== state.network || header.genesis_commitment !== state.genesisCommitment) fail('wrong_network_or_genesis');
+  if (header.profile_id !== state.profileId) fail('wrong_profile');
   const height = state.chain.length + 1;
   const previous = candidateTip(state);
   if (Number(header.height) !== height || header.previous_hash !== (previous?.hash || ZERO_HASH)) fail('stale_tip');
@@ -413,19 +490,21 @@ export function appendCandidateBlock(state, envelope, { nowMs = Date.now(), feeR
     txids: [...envelope.txids],
     tx_records: txRecords,
     nonce: Number(envelope.nonce),
-    network: CANDIDATE_NETWORK_ID,
-    genesis_commitment: CANDIDATE_GENESIS_COMMITMENT,
+    network: state.network,
+    profile_id: state.profileId,
+    genesis_commitment: state.genesisCommitment,
   });
   return draft;
 }
 
-export function rebuildCandidateState(blocks, { nowMs = Date.now() } = {}) {
+export function rebuildCandidateState(blocks, { nowMs = Date.now(), profile = null, binding = null } = {}) {
   if (!Array.isArray(blocks)) throw new TypeError('blocks must be an array');
-  let state = emptyCandidateState();
+  let state = emptyCandidateState({ profile, binding });
   for (const block of blocks) {
     const header = {
       version: 5,
       network: block.network,
+      profile_id: block.profile_id,
       genesis_commitment: block.genesis_commitment,
       height: block.height,
       previous_hash: block.previous_hash,
@@ -470,7 +549,8 @@ function replayCandidatesFromOldState(oldState, newChain) {
 }
 
 export function reorganizeCandidateState(oldState, incomingBlocks, { nowMs = Date.now() } = {}) {
-  const incoming = rebuildCandidateState(incomingBlocks, { nowMs });
+  const binding = stateConsensusBinding(oldState);
+  const incoming = rebuildCandidateState(incomingBlocks, { nowMs, binding });
   const oldWork = candidateChainWork(oldState.chain);
   const newWork = candidateChainWork(incoming.chain);
   if (newWork <= oldWork) fail('insufficient_chainwork', { oldWork: oldWork.toString(), newWork: newWork.toString() });
@@ -481,6 +561,7 @@ export function reorganizeCandidateState(oldState, incomingBlocks, { nowMs = Dat
     const candidate = {
       version: CANDIDATE_TX_VERSION,
       network: record.network,
+      profile_id: record.profile_id,
       inputs: record.inputs,
       outputs: record.outputs,
       public_key_spki: record.public_key_spki,
@@ -501,13 +582,21 @@ export function reorganizeCandidateState(oldState, incomingBlocks, { nowMs = Dat
 }
 
 export function candidateStateInvariantReport(state) {
+  const binding = stateConsensusBinding(state);
   const issued = issuedSubsidyAtoms(state);
   const coinbaseCount = Object.values(state.utxos).filter(output => output.origin === COINBASE_ORIGIN).length;
   const unknownOrigins = Object.values(state.utxos).filter(output => output.origin !== COINBASE_ORIGIN && output.origin !== TRANSACTION_ORIGIN).length;
   return {
     authority: state.authority,
     network: state.network,
+    profileId: state.profileId,
+    profileClass: state.profileClass,
     genesisCommitment: state.genesisCommitment,
+    initialTargetHex: state.initialTargetHex,
+    transactionDomainCommitment: state.transactionDomainCommitment,
+    profileBoundCore: true,
+    activationProfileReady: state.activationProfileReady === true,
+    testOnly: state.testOnly === true,
     height: state.chain.length,
     chainWork: candidateChainWork(state.chain).toString(),
     issuedSubsidyAtoms: issued.toString(),
@@ -518,6 +607,7 @@ export function candidateStateInvariantReport(state) {
     unknownUtxoOrigins: unknownOrigins,
     targetSeconds: DAA_V2_300.targetSeconds,
     coinbaseMaturityBlocks: ECONOMIC_V2_300.coinbaseMaturityBlocks,
+    bindingValid: binding.profileId === state.profileId,
     activationAuthorized: false,
     publicConsensusChanged: false,
   };
