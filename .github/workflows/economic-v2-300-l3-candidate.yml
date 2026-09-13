@@ -9,10 +9,12 @@ on:
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py'
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
+      - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   pull_request:
     paths:
@@ -21,10 +23,12 @@ on:
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py'
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
+      - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   workflow_dispatch:
 
@@ -48,9 +52,11 @@ jobs:
           node --check sovereign-forge/node/candidate/economic-v2-300.mjs
           node --check sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs
+          node --check sovereign-forge/node/candidate/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/tests/coinbase-maturity-v2-300.mjs
+          node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           python -m py_compile sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
 
       - name: Run economic invariants
@@ -58,6 +64,9 @@ jobs:
 
       - name: Run 200-block coinbase maturity invariants
         run: node sovereign-forge/tests/coinbase-maturity-v2-300.mjs
+
+      - name: Run fresh-genesis replay and peer boundary invariants
+        run: node sovereign-forge/tests/network-boundary-v2-300.mjs
 
       - name: Run 300s DAA and timestamp vectors in Node
         run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
@@ -92,7 +101,7 @@ jobs:
           grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
           grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
           grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
-          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300" sovereign-forge/node/fae-node.mjs; then
+          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300" sovereign-forge/node/fae-node.mjs; then
             echo 'candidate imported into live v4 node' >&2
             exit 1
           fi
