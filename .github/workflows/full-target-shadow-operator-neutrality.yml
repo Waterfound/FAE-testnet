@@ -1,0 +1,68 @@
+name: Full Target Shadow Operator Neutrality
+
+on:
+  push:
+    branches: [lab-network-reorg-operator-neutrality]
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
+      - 'sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh'
+      - 'sovereign-forge/tests/full-target-shadow-operator-neutral-replay.sh'
+      - 'sovereign-forge/tests/full-target-shadow-operator-neutral-verifier.mjs'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_OPERATOR_NEUTRALITY.md'
+      - '.github/workflows/full-target-shadow-operator-neutrality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-man-one-machine-operator-neutrality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FAE_OPERATOR_NEUTRAL_REPLAYS: '5'
+      FAE_OPERATOR_NEUTRAL_EVIDENCE_DIR: operator-neutral-evidence
+      FAE_SHADOW_LOCAL_CHAOS_IMAGE: fae-shadow-validation:operator-neutral
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Syntax-check sealed gate components
+        run: |
+          node --check sovereign-forge/tests/full-target-shadow-operator-neutral-verifier.mjs
+          bash -n sovereign-forge/tests/full-target-shadow-operator-neutral-replay.sh
+          bash -n sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh
+          node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+
+      - name: Build frozen shadow validation image
+        run: docker build -f sovereign-forge/node/Dockerfile.full-target-shadow-validation -t "$FAE_SHADOW_LOCAL_CHAOS_IMAGE" sovereign-forge/node
+
+      - name: Execute five sealed complete replays and independent verification
+        run: bash sovereign-forge/tests/full-target-shadow-operator-neutral-replay.sh
+
+      - name: Preserve strict authority and scope isolation
+        run: |
+          grep -q "independent human operator: N/A" sovereign-forge/protocol/FULL_TARGET_SHADOW_OPERATOR_NEUTRALITY.md
+          grep -q "external_wan_proof: false" sovereign-forge/protocol/FULL_TARGET_SHADOW_OPERATOR_NEUTRALITY.md
+          grep -q "consensus_authority: false" sovereign-forge/protocol/FULL_TARGET_SHADOW_OPERATOR_NEUTRALITY.md
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          ! grep -q "operator-neutral" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "operator-neutral" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "operator-neutral" sovereign-forge/node/fae-node-v6-candidate.mjs
+
+      - name: Preserve operator-neutral evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-operator-neutral-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: operator-neutral-evidence/
+          if-no-files-found: warn
+          retention-days: 30
