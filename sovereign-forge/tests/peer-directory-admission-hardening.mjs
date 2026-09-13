@@ -78,6 +78,15 @@ test('tightening admission on a populated directory removes excess records immed
   assert.equal(status.maxObservedSourceRecords,3);
 });
 
+test('generic directory defaults remain non-hardened unless a caller opts in',()=>{
+  const directory=new PeerDirectory({networkId:NETWORK,maxRecords:9});
+  const status=directory.admissionStatus();
+  assert.equal(status.maxRecords,9);
+  assert.equal(status.maxRecordsPerSource,9);
+  assert.equal(status.maxRecordsPerNetworkGroup,9);
+  assert.deepEqual(status.protectedSources,[]);
+});
+
 test('eclipse candidate enables admission hardening without changing the public node default',async()=>{
   const node=createAuthoritativeV4PeerNodeEclipseCandidate({
     eclipseDirectoryOptions:{maxRecordsPerSource:7,maxRecordsPerNetworkGroup:5},
