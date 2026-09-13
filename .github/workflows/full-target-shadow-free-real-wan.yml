@@ -1,0 +1,185 @@
+name: Full Target Shadow Free Real WAN
+
+on:
+  push:
+    branches: [lab-network-reorg-free-real-wan]
+    paths:
+      - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh'
+      - 'sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh'
+      - 'sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh'
+      - 'sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh'
+      - '.github/workflows/full-target-shadow-free-real-wan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+jobs:
+  rendezvous:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      issue_number: ${{ steps.create.outputs.issue_number }}
+    steps:
+      - name: Create ephemeral WAN rendezvous issue
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          title="FAE shadow WAN rendezvous ${RUN_ID}"
+          body=$(cat <<EOF
+          Ephemeral coordination record for the lab-only Full Target Shadow real-WAN validation run ${RUN_ID}.
+
+          Commit: ${SHA}
+
+          This issue contains only short-lived public test endpoints and machine-readable phase markers. It contains no private keys or production secrets. The endpoints expire when the runner jobs finish. This run has no consensus, testnet, or mainnet authority.
+          EOF
+          )
+          payload=$(jq -nc --arg title "$title" --arg body "$body" '{title:$title,body:$body}')
+          response=$(curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${REPO}/issues" -d "$payload")
+          number=$(jq -r '.number' <<<"$response")
+          test "$number" != null
+          echo "issue_number=${number}" >> "$GITHUB_OUTPUT"
+          echo "Rendezvous issue #${number}"
+
+  hosts:
+    needs: rendezvous
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - role: A
+            profile: weak-a
+            runner: ubuntu-22.04
+          - role: B
+            profile: strong-b
+            runner: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-real-wan-${{ matrix.role }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check host harness
+        run: |
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+      - name: Run independent public WAN host ${{ matrix.role }}
+        run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
+      - name: Upload host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-wan-host-${{ matrix.role }}-${{ github.run_id }}
+          path: /tmp/fae-real-wan-${{ matrix.role }}
+          if-no-files-found: warn
+          retention-days: 7
+
+  controller:
+    needs: rendezvous
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-real-wan-C
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check C controller and lab-only control plane
+        run: |
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
+          node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
+          grep -q "lab-only-local-control-no-consensus-authority" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q "shadow_control_must_bind_loopback" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+      - name: Run cross-runner reorg/restart controller C
+        run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
+      - name: Upload controller evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-wan-controller-C-${{ github.run_id }}
+          path: /tmp/fae-real-wan-C
+          if-no-files-found: warn
+          retention-days: 7
+
+  observer:
+    needs: rendezvous
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      WAN_ARTIFACT_DIR: /tmp/fae-real-wan-D
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax-check independent observer
+        run: |
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
+          bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+      - name: Independently observe A/B/C over public endpoints
+        run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+      - name: Upload observer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-wan-observer-D-${{ github.run_id }}
+          path: /tmp/fae-real-wan-D
+          if-no-files-found: warn
+          retention-days: 7
+
+  finalize:
+    if: always()
+    needs: [rendezvous, hosts, controller, observer]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
+      RUN_ID: ${{ github.run_id }}
+      HOSTS_RESULT: ${{ needs.hosts.result }}
+      CONTROLLER_RESULT: ${{ needs.controller.result }}
+      OBSERVER_RESULT: ${{ needs.observer.result }}
+    steps:
+      - name: Record result and close rendezvous
+        if: env.ISSUE_NUMBER != ''
+        run: |
+          set -euo pipefail
+          summary=$(jq -nc \
+            --arg run "$RUN_ID" --arg hosts "$HOSTS_RESULT" --arg controller "$CONTROLLER_RESULT" --arg observer "$OBSERVER_RESULT" \
+            '{run_id:$run,hosts:$hosts,controller:$controller,observer:$observer}')
+          body="FAE_WAN_RUN_COMPLETE ${summary}"
+          jq -nc --arg body "$body" '{body:$body}' | curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}/comments" -d @- >/dev/null
+          jq -nc '{state:"closed",state_reason:"completed"}' | curl -fsS -X PATCH \
+            -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${REPO}/issues/${ISSUE_NUMBER}" -d @- >/dev/null
