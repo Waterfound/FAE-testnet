@@ -33,8 +33,6 @@ Consensus rewards are integer atoms. With the deliberately simple integer right-
 
 That is **0.0516 FAE (5,160,000 atoms)** below the theoretical cap. L3 keeps this behavior intentionally: **no terminal top-up** is added merely to force an exact decimal total. Atom truncation may reduce issuance; it may never increase it beyond the 12.04M cap.
 
-The executable candidate arithmetic and boundary tests freeze this result.
-
 ## Fresh-genesis activation model
 
 This package must not reinterpret the existing `fairyelf-public-testnet-v4` history, whose issuance and timing rules differ.
@@ -43,16 +41,9 @@ The candidate therefore has a separate network identity:
 
 `fairyelf-public-testnet-v5-candidate-300s`
 
-and a deterministic fresh-genesis descriptor/commitment. Its activation boundary explicitly requires:
+and a deterministic candidate genesis descriptor/commitment. Candidate history begins with height 0 and zero issuance, inherits no v4 balances or coinbase outputs, uses a distinct signed-transaction domain, and rejects v4 network/peer identities.
 
-- height 0 / issued atoms 0 at candidate genesis;
-- no inherited v4 balances or v4 coinbase outputs;
-- a distinct transaction domain that commits to the candidate genesis identity;
-- peer compatibility requiring both the candidate network id and candidate genesis commitment;
-- explicit rejection of v4 peers/transactions by candidate boundary helpers;
-- v4 remaining historical test evidence rather than being rewritten as candidate history.
-
-This remains candidate-only infrastructure and has no public activation authority.
+The eventual public-testnet activation profile is an additional boundary: its initial target and calibration-evidence digest must be explicit and are committed into a derived activation-genesis descriptor. The current candidate genesis and easy CI target therefore cannot silently become public activation parameters.
 
 ## 200-block coinbase maturity
 
@@ -60,15 +51,13 @@ The maturity convention is frozen as:
 
 > A coinbase created at height `H` may first be consumed by a block at height `H + 200`.
 
-Mempool admission evaluates the candidate next-block height using the identical predicate. Candidate coinbase outputs are explicitly tagged with consensus-derived `created_height` and `coinbase_matures_at_height` metadata.
+Mempool admission evaluates the candidate next-block height using the identical predicate. Candidate coinbase outputs are tagged with consensus-derived creation/maturity metadata.
 
-The maturity layer fails closed for one-block-early spends, missing/spent inputs, unknown UTXO origin, forged maturity metadata and duplicate inputs. Tests cover multi-output coinbase rewards, wallet spendability filtering and height rollback semantics.
-
-The integrated candidate core now exercises the same rule through both real candidate mempool admission and candidate block application. A spend from the height-1 reward is rejected when proposed for height 200, admitted at tip 200 for candidate height 201, and then confirmed at height 201.
+The integrated core and three-node test reject the height-1 coinbase spend one block before maturity and confirm it at the exact boundary.
 
 ## Difficulty + Timestamp binding at 300s
 
-The hardened full-target Difficulty + Timestamp design is bound explicitly to this candidate instead of silently inheriting 180-second assumptions:
+The hardened full-target Difficulty + Timestamp design is bound explicitly to this candidate:
 
 - target: **300 seconds**;
 - family: anchored ASERT-style full uint256 target;
@@ -77,57 +66,67 @@ The hardened full-target Difficulty + Timestamp design is bound explicitly to th
 - MTP window: **11 blocks**;
 - future drift: **90 seconds**.
 
-A frozen 300-second vector set is checked by the Node implementation and independently reproduced by a Python reference implementation.
+The frozen vectors are reproduced independently in Node and Python.
 
-The integrated candidate core consumes this DAA/timestamp layer end to end. On-schedule blocks remain on the same full target, block validation commits the expected target, and historical replay reconstructs the same chain state.
+### Initial target activation boundary
 
-### Initial target remains an activation-profile decision
+The L3 integration harness deliberately uses the easy DAA pow-limit so hundreds of blocks can be exercised rapidly. It is explicitly a **test profile**.
 
-The current L3 integration harness deliberately starts at the DAA **pow-limit/easy test target** so hundreds of candidate blocks can be mined inside CI. That target is a **test profile**, not a recommendation for public-testnet activation.
+`activation-profile-v2-300.mjs` now makes the launch boundary fail closed. A public-testnet profile must explicitly provide a valid full-target initial difficulty and non-placeholder calibration-evidence digest. Test/CI/example profile ids and placeholder evidence are rejected. Changing either target or evidence changes the derived activation-genesis commitment.
 
-The eventual fresh-genesis activation package must explicitly freeze an initial target/anchor derived from the intended launch hash-rate and safety assumptions. L3 must not silently promote the easy CI target into public consensus. This remains a separate **YELLOW activation blocker**.
+This closes the **implicit-target software failure mode**, but the real launch target cannot be frozen until launch-hashrate evidence exists.
 
 ## Integrated candidate core
 
-`node/candidate/fae-v5-300-core.mjs` now composes the previously separate candidate layers into a single non-activating state machine:
+`node/candidate/fae-v5-300-core.mjs` composes:
 
 - 300s economics and subsidy accounting;
 - integer-atom halving/cap behavior;
-- full-target 300s DAA/timestamp validation;
-- 200-block coinbase maturity in mempool and block application;
-- signed candidate transaction domain;
-- fee conservation and fee-to-coinbase accounting;
-- deterministic UTXO materialization;
-- candidate chainwork calculation;
-- block replay/rebuild;
+- full-target DAA/timestamp validation;
+- 200-block maturity in mempool and block application;
+- signed transactions and fee conservation;
+- deterministic UTXOs;
+- cumulative chainwork;
+- deterministic replay/rebuild;
 - chainwork-based reorganization;
-- detached-transaction mempool resurrection;
-- v4/v5 network/genesis isolation.
+- detached-transaction resurrection;
+- v4/v5 candidate isolation.
 
-The integrated L3 test mines an actual candidate sequence through height 201, tests an immature spend at both mempool and direct-block paths, confirms it exactly at the maturity boundary, rebuilds the chain deterministically, creates a longer alternative branch, performs a chainwork reorg, resurrects the detached transaction and confirms it again on the winning branch. The original state remains unmodified when an invalid block is rejected.
+The integrated single-process test and the isolated HTTP multi-process test both pass.
+
+## Internal three-node candidate network
+
+A separate v5 candidate runner now executes three independent Node processes over HTTP. The CI execution environment is deliberately classified as **single-host multi-process**, not geographic WAN or independent-operator evidence.
+
+The multi-node run proves:
+
+- clean fresh genesis on every node;
+- invalid target/subsidy rejection without state mutation;
+- stable equal-work tie behavior with no arbitrary replacement;
+- deterministic adoption of a higher-work branch;
+- exact 200-block maturity enforcement on every node;
+- transaction propagation/confirmation;
+- isolation of an alternative branch;
+- higher-work reorg and detached-transaction resurrection;
+- reconfirmation on the winning branch;
+- v4 envelope rejection;
+- `activationAuthorized=false` and `publicConsensusChanged=false` throughout.
+
+This closes the **internal multi-node semantic integration gate**. It does not claim the independently operated network that is currently unavailable.
+
+## Evidence boundary
+
+The earlier Block-Time v2 research contains real WAN propagation evidence for the 300/600/900 comparison. The new candidate-specific run contains stronger integrated consensus semantics but is single-host CI.
+
+These evidence classes remain separate and are not relabeled.
+
+Detailed results are recorded in `protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md`.
 
 ## Live-v4 isolation
 
-Candidate CI deliberately asserts that the current v4 reference still contains its existing 180-second / 10 FAE / 600,000-block / 12M parameters. It fails if candidate economics, DAA, maturity, network-boundary or integrated-core modules are imported into the live v4 node accidentally.
+Candidate CI asserts that current v4 still contains its existing 180-second / 10 FAE / 600,000-block / 12M parameters and fails if candidate modules leak into the live v4 node.
 
-Therefore L3 work can proceed without turning research commits into consensus changes by side effect.
-
-## L3 invariants
-
-The activation candidate must fail closed unless all of the following hold:
-
-- subsidy at height 1 is exactly `1,400,000,000` atoms;
-- subsidy halves only at 430,000-block era boundaries;
-- no reward path can exceed the 12,040,000 FAE theoretical cap;
-- atom truncation can only reduce issuance;
-- fees are redistributed but never counted as new monetary issuance;
-- coinbase is unspendable before `H + 200` under the same rule in mempool and block validation;
-- reorg/replay reconstructs maturity from canonical height and deterministic UTXO state;
-- every candidate DAA path uses 300 seconds and the frozen full-target vector semantics;
-- 20 tx/block remains an explicit capacity choice;
-- candidate network/genesis identity prevents v4/v5 cross-replay and cross-sync;
-- an activation profile must freeze its initial DAA target explicitly rather than inheriting the CI pow-limit;
-- activation remains a separate explicit action after L3 passes.
+Therefore L3 can advance without making research commits authoritative by side effect.
 
 ## Current L3 disposition
 
@@ -135,27 +134,31 @@ The activation candidate must fail closed unless all of the following hold:
 |---|---|---|
 | Monetary constants | **GREEN** | Executable candidate + boundary tests |
 | Atom-level issuance | **GREEN** | Exact terminal issuance and 0.0516 FAE shortfall frozen |
-| 300s block-time research | **GREEN / pre-L3 ceiling** | L2 + real-WAN evidence completed |
-| 600s alternative | **YELLOW / retained research challenger** | Not selected for this activation candidate |
+| 300s block-time research | **GREEN / pre-L3 ceiling** | L2 + real-WAN comparison completed |
+| 600s alternative | **YELLOW / retained research challenger** | Not selected for this candidate |
 | 900s alternative | **CLOSED** | Failed predefined promotion gate |
-| Coinbase maturity policy | **GREEN** | Boundary, wallet and rollback tests implemented |
-| Coinbase maturity core integration | **GREEN** | Mempool + direct-block + exact maturity boundary tested |
-| DAA/timestamp vectors | **GREEN** | Frozen 300s vectors reproduced in Node + Python |
-| DAA/timestamp core integration | **GREEN at L3 test profile** | Integrated block/replay path uses full target |
-| Fresh-genesis/replay boundary | **GREEN at candidate layer** | Network/genesis/tx/peer separation implemented |
-| Integrated candidate core | **GREEN at L3 test profile** | Mining, tx, maturity, replay and reorg path passes CI |
-| Initial activation target/anchor | **YELLOW blocker** | Must be calibrated/frozen separately; CI pow-limit is not activation authority |
-| Public multi-node candidate validation | **YELLOW** | Integrated candidate core has not yet been exercised as a fresh multi-node v5 candidate network |
-| Activation authorization | **FALSE** | L3 not yet complete |
+| Coinbase maturity | **GREEN** | Exact boundary tested in core + three-node path |
+| DAA/timestamp vectors | **GREEN** | Node + Python reproduction |
+| Integrated candidate core | **GREEN at L3 test profile** | Mining, tx, replay and reorg paths pass |
+| Internal three-node HTTP integration | **GREEN** | Multi-process end-to-end run passes |
+| Equal-work/higher-work branch behavior | **GREEN** | Tie remains local; higher work converges |
+| Fresh-genesis / v4-v5 isolation | **GREEN at candidate layer** | Cross-network envelope rejected |
+| Activation-profile mechanism | **GREEN** | Initial target/evidence cannot be implicit |
+| Launch initial target calibration/freeze | **YELLOW blocker** | Requires real launch-hashrate evidence |
+| Candidate-specific geographic WAN rerun | **YELLOW / opportunistic** | Not required to relabel current evidence |
+| Materially larger independent network | **UNAVAILABLE / deferred ceiling** | External dependency unavailable |
+| Activation authorization | **FALSE** | Explicit activation gate remains closed |
 
-## Next implementation order
+## Remaining sequence
 
-The remaining high-value work is now narrower:
+The high-value software work is now narrow:
 
-1. harden the integrated candidate envelope/profile boundary so the eventual initial target/anchor cannot be implicit;
-2. run the integrated candidate core as a separate fresh-genesis multi-node v5-candidate network, never as an in-place mutation of v4;
-3. attack issuance, maturity, timestamp, reorg and v4/v5 isolation against that integrated multi-node candidate;
-4. freeze the launch initial-target/anchor only after the relevant hash-rate evidence exists;
-5. only then decide whether the candidate is eligible for public-testnet activation.
+1. finish the Focused L3 review against the integrated candidate and activation-profile boundary;
+2. preserve the easy pow-limit profile as test-only;
+3. obtain launch-hashrate evidence when the relevant hardware/network state exists;
+4. derive and freeze the real initial target/anchor through the activation-profile mechanism;
+5. rerun the integrated L3 suite against that frozen profile;
+6. use any materially larger independent/WAN confirmation that is actually available;
+7. only then make an explicit public-testnet activation decision.
 
 No public consensus change is authorized by this document.
