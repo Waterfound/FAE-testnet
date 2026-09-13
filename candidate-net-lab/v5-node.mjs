@@ -11,7 +11,10 @@ import {
   reorganizeCandidateState,
   rebuildCandidateState,
   candidateChainWork,
+  cloneCandidateState,
+  normalizeCandidateTx,
 } from '../sovereign-forge/node/candidate/fae-v5-300-core.mjs';
+import { openCandidateRecoveryStore } from '../sovereign-forge/node/candidate/network-recovery-v1.mjs';
 import {
   targetFromHex,
   hashMeetsTarget,
@@ -22,6 +25,7 @@ import {
 } from '../sovereign-forge/node/candidate/network-boundary-v2-300.mjs';
 
 const PORT = Number(process.env.PORT || 3190);
+const HOST = process.env.FAE_HOST || '0.0.0.0';
 const NODE_ID = process.env.FAE_NODE_ID || `v5-${PORT}`;
 const REGION = process.env.FAE_REGION || 'local';
 const TOKEN = process.env.FAE_L3_TOKEN || 'local-l3-token';
@@ -73,7 +77,10 @@ function authHeaders() {
   return { 'content-type': 'application/json', 'x-fae-l3-token': TOKEN };
 }
 
-let state = emptyCandidateState();
+const recovery = process.env.FAE_L3_STATE_FILE
+  ? await openCandidateRecoveryStore({ path: process.env.FAE_L3_STATE_FILE })
+  : null;
+let state = recovery?.state || emptyCandidateState();
 let counters = {
   acceptedBlocks: 0,
   acceptedTxs: 0,
@@ -91,8 +98,14 @@ function serial(fn) {
   mutationTail = run.catch(() => {});
   return run;
 }
-function resetState() {
-  state = emptyCandidateState();
+async function publishState(next) {
+  // A successful mutation response follows a durable, validated snapshot.
+  // Disk errors leave the published in-memory state untouched.
+  if (recovery) await recovery.save(next);
+  state = next;
+}
+async function resetState() {
+  await publishState(emptyCandidateState());
   counters = { acceptedBlocks: 0, acceptedTxs: 0, rejected: 0, syncs: 0, reorgs: 0, resurrected: 0, fixtureLoads: 0 };
   lastReorg = null;
 }
@@ -109,6 +122,7 @@ function statusPayload() {
     mempoolCount: state.mempoolOrder.length,
     counters: { ...counters },
     lastReorg,
+    recovery: recovery?.status() || { enabled: false },
     ...report,
   };
 }
@@ -138,14 +152,21 @@ async function syncPeer(peer) {
   if (snapshot.network !== CANDIDATE_NETWORK_ID || snapshot.genesisCommitment !== CANDIDATE_GENESIS_COMMITMENT || !Array.isArray(snapshot.blocks)) {
     throw new Error('peer_candidate_identity_mismatch');
   }
-  return serial(() => {
+  const adoption = await serial(async () => {
     counters.syncs++;
     const currentWork = candidateChainWork(state.chain);
     const incomingState = rebuildCandidateState(snapshot.blocks, { nowMs: Date.now() });
     const incomingWork = candidateChainWork(incomingState.chain);
-    if (incomingWork <= currentWork) return { adopted: false, reason: 'not_more_chainwork' };
+    if (incomingWork <= currentWork) {
+      const sameTip = incomingState.chain.at(-1)?.hash === state.chain.at(-1)?.hash;
+      return {
+        adopted: false, reason: 'not_more_chainwork',
+        // Pending records are a retry source after a crash between persistence and relay.
+        ...(sameTip ? { recoveredTransactions: state.mempoolOrder.map(txid => normalizeCandidateTx(state.transactions[txid])) } : {}),
+      };
+    }
     const result = reorganizeCandidateState(state, snapshot.blocks, { nowMs: Date.now() });
-    state = result.state;
+    await publishState(result.state);
     counters.reorgs++;
     counters.resurrected += result.resurrected.length;
     lastReorg = {
@@ -156,8 +177,23 @@ async function syncPeer(peer) {
       dropped: structuredClone(result.dropped),
       newHeight: state.chain.length,
     };
-    return { adopted: true, ...lastReorg };
+    return {
+      adopted: true, ...lastReorg,
+      recoveredTransactions: result.resurrected.map(txid => normalizeCandidateTx(state.transactions[txid])),
+    };
   });
+  if (!adoption.recoveredTransactions) return adoption;
+  const { recoveredTransactions, ...result } = adoption;
+  const peers = [...new Set([peer, ...PEERS])];
+  let repropagated = 0;
+  // Parent before child on every target, including the source of the winning chain.
+  for (const tx of recoveredTransactions) {
+    const deliveries = await Promise.allSettled(peers.map(target => fetchJson(`${target}/tx`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ tx, from: baseUrl() }),
+    })));
+    repropagated += deliveries.filter(row => row.status === 'fulfilled').length;
+  }
+  return { ...result, repropagated };
 }
 async function syncAll() {
   const results = [];
@@ -199,8 +235,10 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/tx' && req.method === 'POST') {
       const body = await readBody(req);
       try {
-        const record = await serial(() => {
-          const r = acceptCandidateTxInto(state, body.tx, { createdAt: body.tx?.created_at || new Date().toISOString() });
+        const record = await serial(async () => {
+          const next = cloneCandidateState(state);
+          const r = acceptCandidateTxInto(next, body.tx, { createdAt: body.tx?.created_at || new Date().toISOString() });
+          await publishState(next);
           counters.acceptedTxs++;
           return structuredClone(r);
         });
@@ -216,8 +254,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/block' && req.method === 'POST') {
       const body = await readBody(req);
       try {
-        const accepted = await serial(() => {
-          state = appendCandidateBlock(state, body.envelope, { nowMs: Date.now() });
+        const accepted = await serial(async () => {
+          await publishState(appendCandidateBlock(state, body.envelope, { nowMs: Date.now() }));
           counters.acceptedBlocks++;
           return { height: state.chain.length, tipHash: state.chain.at(-1)?.hash || null };
         });
@@ -228,8 +266,8 @@ const server = http.createServer(async (req, res) => {
         if ((error.code || error.message) === 'stale_tip' && body.from) {
           try {
             await syncPeer(String(body.from).replace(/\/$/, ''));
-            const accepted = await serial(() => {
-              state = appendCandidateBlock(state, body.envelope, { nowMs: Date.now() });
+            const accepted = await serial(async () => {
+              await publishState(appendCandidateBlock(state, body.envelope, { nowMs: Date.now() }));
               counters.acceptedBlocks++;
               return { height: state.chain.length, tipHash: state.chain.at(-1)?.hash || null };
             });
@@ -246,7 +284,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/control/mine' && req.method === 'POST') {
       const body = await readBody(req);
       try {
-        const envelope = await serial(() => {
+        const envelope = await serial(async () => {
           const template = candidateBlockTemplate(state, {
             minerAddress: body.minerAddress,
             timestampMs: Number(body.timestampMs),
@@ -254,7 +292,7 @@ const server = http.createServer(async (req, res) => {
             coinbaseOutputs: Array.isArray(body.coinbaseOutputs) ? body.coinbaseOutputs : null,
           });
           const mined = mineTemplate(template);
-          state = appendCandidateBlock(state, mined, { nowMs: Date.now() });
+          await publishState(appendCandidateBlock(state, mined, { nowMs: Date.now() }));
           counters.acceptedBlocks++;
           return mined;
         });
@@ -278,8 +316,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/control/load-chain' && req.method === 'POST') {
       const body = await readBody(req);
       try {
-        await serial(() => {
-          state = rebuildCandidateState(body.blocks || [], { nowMs: Number(body.nowMs || Date.now()) });
+        await serial(async () => {
+          await publishState(rebuildCandidateState(body.blocks || [], { nowMs: Number(body.nowMs || Date.now()) }));
           counters.fixtureLoads++;
         });
         return send(res, 200, { ok: true, status: statusPayload() });
@@ -300,14 +338,14 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, HOST, () => {
   console.log(JSON.stringify({
     event: 'listen',
     lab: 'FAE_V5_300_MULTI_NODE_L3',
     profile: PROFILE,
     nodeId: NODE_ID,
     region: REGION,
-    port: PORT,
+    port: server.address().port,
     network: CANDIDATE_NETWORK_ID,
     genesisCommitment: CANDIDATE_GENESIS_COMMITMENT,
   }));

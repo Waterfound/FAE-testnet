@@ -1,0 +1,35 @@
+name: network-recovery-reorg-v1
+
+on:
+  pull_request:
+    paths:
+      - 'candidate-net-lab/v5-node.mjs'
+      - 'sovereign-forge/node/candidate/**'
+      - 'sovereign-forge/node/authoritative/durable-state-store.mjs'
+      - 'sovereign-forge/tests/network-recovery-v1*.mjs'
+      - '.github/workflows/network-recovery-reorg-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify recovery and local process integration
+        shell: bash
+        run: |
+          node --test --test-reporter=tap sovereign-forge/tests/network-recovery-v1.mjs sovereign-forge/tests/network-recovery-v1-process.mjs | tee network-recovery-v1.tap
+      - name: Preserve recovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: network-recovery-reorg-v1
+          path: network-recovery-v1.tap
+          retention-days: 30
