@@ -164,6 +164,41 @@ async function run() {
     assert(row.status.publicConsensusChanged === false, `v4_change_leak_${row.node.id}`);
   }
 
+  recordPhase('consensus-field-rejection-and-equal-work-tie-policy');
+  await setPeers({ A: [], B: [], C: [] });
+  const probeA = await mine(NODES[0], miner.address, baseTimestamp);
+  const invalidTarget = structuredClone(probeA.block);
+  invalidTarget.header.target_hex = '0'.repeat(64);
+  await expectError(NODES[2], '/block', { envelope: invalidTarget }, { status: 422, error: 'invalid_target' });
+  const invalidSubsidy = structuredClone(probeA.block);
+  invalidSubsidy.header.subsidy_atoms = '1';
+  await expectError(NODES[2], '/block', { envelope: invalidSubsidy }, { status: 422, error: 'invalid_subsidy' });
+  let probeCStatus = await get(NODES[2], '/status');
+  assert(probeCStatus.height === 0, 'invalid_consensus_field_mutated_state');
+
+  const probeB = await mine(NODES[1], receiver.address, baseTimestamp);
+  assert(probeA.block.hash !== probeB.block.hash, 'fork_probe_hashes_should_differ');
+  await setPeers({ A: [NODES[1].url], B: [NODES[0].url], C: [] });
+  await post(NODES[0], '/control/sync', {});
+  await post(NODES[1], '/control/sync', {});
+  const tieA = await get(NODES[0], '/status');
+  const tieB = await get(NODES[1], '/status');
+  assert(tieA.height === 1 && tieB.height === 1, 'equal_work_tie_height_changed');
+  assert(tieA.tipHash !== tieB.tipHash, 'equal_work_tie_should_not_replace_local_tip');
+
+  await setPeers({ A: [NODES[1].url], B: [], C: [NODES[1].url] });
+  await mine(NODES[1], receiver.address, baseTimestamp + STEP_MS);
+  await post(NODES[0], '/control/sync', {});
+  await post(NODES[2], '/control/sync', {});
+  const dominanceRows = await waitFor(statusRows => statusRows.every(row => row.status.height === 2 && row.status.tipHash === statusRows[0].status.tipHash), 'higher_chainwork_dominance');
+  assert(dominanceRows.every(row => row.status.height === 2), 'higher_chainwork_did_not_converge');
+
+  recordPhase('clean-reset-after-preflight-robustness');
+  for (const node of NODES) await post(node, '/control/reset', {});
+  await fullMesh();
+  rows = await statuses();
+  assert(rows.every(row => row.status.height === 0 && row.status.mempoolCount === 0), 'preflight_reset_failed');
+
   recordPhase('distributed-chain-build-to-199');
   const first = await mine(baselineNode, miner.address, baseTimestamp);
   const firstBlockHash = first.block.hash;
@@ -274,6 +309,9 @@ async function run() {
     profile: PROFILE,
     nodeCount: NODES.length,
     regionCount: new Set(NODES.map(node => node.region)).size,
+    consensusFieldRejectionPass: true,
+    equalWorkTiePolicyPass: true,
+    higherChainworkDominancePass: true,
     firstCoinbase,
     maturitySpendTxid: txid,
     maturityFirstSpendHeight: 201,
