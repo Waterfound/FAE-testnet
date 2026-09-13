@@ -39,6 +39,15 @@ export const CANDIDATE_GENESIS_DESCRIPTOR = Object.freeze({
 
 export const CANDIDATE_GENESIS_COMMITMENT = hashHex(CANDIDATE_GENESIS_DESCRIPTOR);
 
+function profileIdentity(binding = null) {
+  if (!binding) return null;
+  const profileId = String(binding.profileId || '');
+  const genesisCommitment = String(binding.genesisCommitment || '');
+  if (!profileId) throw Object.assign(new Error('profile_id_required'), { code: 'profile_id_required' });
+  if (!/^[0-9a-f]{64}$/i.test(genesisCommitment)) throw Object.assign(new Error('profile_genesis_commitment_invalid'), { code: 'profile_genesis_commitment_invalid' });
+  return { profileId, genesisCommitment };
+}
+
 export function assertCandidateNetwork(network) {
   if (network !== CANDIDATE_NETWORK_ID) {
     const error = new Error(network === LIVE_V4_NETWORK_ID ? 'legacy_v4_network_rejected' : 'wrong_candidate_network');
@@ -48,8 +57,23 @@ export function assertCandidateNetwork(network) {
   return true;
 }
 
-export function candidateTxDomain(tx = {}) {
+export function candidateTxDomain(tx = {}, binding = null) {
   assertCandidateNetwork(tx.network);
+  const identity = profileIdentity(binding);
+  if (identity) {
+    return {
+      domain: 'FAIRYELF_TX_V5_300_PROFILE_BOUND',
+      network: CANDIDATE_NETWORK_ID,
+      profileId: identity.profileId,
+      genesisCommitment: identity.genesisCommitment,
+      inputs: [...(tx.inputs || [])].map(String),
+      outputs: [...(tx.outputs || [])].map(output => ({
+        address: String(output.address),
+        amount_atoms: String(output.amount_atoms),
+      })),
+      public_key_spki: String(tx.public_key_spki || ''),
+    };
+  }
   return {
     domain: 'FAIRYELF_TX_V5_CANDIDATE_300S',
     network: CANDIDATE_NETWORK_ID,
@@ -63,17 +87,22 @@ export function candidateTxDomain(tx = {}) {
   };
 }
 
-export function peerCompatibility(status = {}) {
+export function peerCompatibility(status = {}, binding = null) {
   if (status.network !== CANDIDATE_NETWORK_ID) return { ok: false, error: 'peer_network_mismatch' };
-  if (status.genesisCommitment !== CANDIDATE_GENESIS_COMMITMENT) return { ok: false, error: 'peer_genesis_mismatch' };
+  const identity = profileIdentity(binding);
+  const expectedGenesis = identity?.genesisCommitment || CANDIDATE_GENESIS_COMMITMENT;
+  if (status.genesisCommitment !== expectedGenesis) return { ok: false, error: 'peer_genesis_mismatch' };
+  if (identity && status.profileId !== identity.profileId) return { ok: false, error: 'peer_profile_mismatch' };
   return { ok: true };
 }
 
-export function activationBoundaryManifest() {
+export function activationBoundaryManifest(binding = null) {
+  const identity = profileIdentity(binding);
   return {
     authority: 'candidate-not-active-consensus',
     network: CANDIDATE_NETWORK_ID,
-    genesisCommitment: CANDIDATE_GENESIS_COMMITMENT,
+    profileId: identity?.profileId || null,
+    genesisCommitment: identity?.genesisCommitment || CANDIDATE_GENESIS_COMMITMENT,
     freshGenesis: true,
     importsLegacyV4Balances: false,
     importsLegacyV4Coinbase: false,
