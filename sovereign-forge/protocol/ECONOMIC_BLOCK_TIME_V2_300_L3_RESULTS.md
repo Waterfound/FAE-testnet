@@ -38,11 +38,11 @@ The integrated path rejects the height-1 coinbase spend when proposed one block 
 
 **PASS at internal L3 test-profile scope.**
 
-The same candidate core was exercised through three independent Node processes communicating over HTTP. The run is intentionally classified as:
+The same candidate core was exercised through three independent Node processes communicating over HTTP. The CI execution environment is intentionally classified as:
 
 `internal-multiprocess-single-ci-host`
 
-It is **not** claimed as geographic WAN evidence or independent-operator evidence. Region labels in the harness are topology labels only when the harness is executed on one CI host.
+It is **not** geographic WAN evidence and it is **not** independent-operator evidence. Any Oregon/Frankfurt/Singapore names used by this local harness are topology labels only. The earlier Block-Time v2 WAN run remains the real geographically distributed propagation evidence.
 
 The run completed the following sequence:
 
@@ -68,7 +68,7 @@ This closes the **internal multi-node semantic integration gate**. It does not s
 
 **PASS for mechanism; real calibration remains pending.**
 
-`activation-profile-v2-300.mjs` now prevents the CI pow-limit from becoming launch consensus implicitly.
+`activation-profile-v2-300.mjs` prevents the CI pow-limit from becoming launch consensus implicitly.
 
 A public-testnet activation profile must explicitly provide:
 
@@ -104,12 +104,12 @@ Even a structurally valid future public profile still returns `activationAuthori
 
 ## Evidence boundary
 
-Two different network evidence classes must remain separate:
+Two different network evidence classes remain separate:
 
 - the earlier Block-Time v2 work includes real WAN propagation measurements for the 300/600/900 comparison;
-- the candidate-specific v5 L3 run above proves integrated consensus semantics across multiple HTTP processes, but on one CI host.
+- the candidate-specific v5 L3 run above proves integrated consensus semantics across multiple HTTP processes on one CI host.
 
-Neither class should be relabeled as an independently operated production-like network.
+Neither class is relabeled as an independently operated production-like network.
 
 ## Current L3 disposition
 
