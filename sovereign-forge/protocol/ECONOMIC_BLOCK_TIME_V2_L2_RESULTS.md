@@ -5,6 +5,8 @@ Compared targets: **300 / 600 / 900 seconds**
 Evidence: deterministic economics + propagation sensitivity + mining/payout variance + seeded stochastic DAA proxy  
 Extended run: **256 seeds × 14 days × 4 scenarios × 3 candidates**
 
+> **2026-09-12 closure update:** subsequent real-WAN V3 evidence and rare-event power analysis reached the practical pre-L3 empirical ceiling for the present three-region lab. See `ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md`. The conservative state remains 300s research incumbent, 600s retained challenger, 900s closed, with no selection or activation authority.
+
 ## Executive disposition
 
 | Candidate | L2 disposition | Reason |
