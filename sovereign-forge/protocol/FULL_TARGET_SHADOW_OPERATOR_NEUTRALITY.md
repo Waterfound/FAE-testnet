@@ -75,16 +75,39 @@ The final attestation is `FAE_OPERATOR_NEUTRAL_REPRODUCIBILITY_V1` and must stat
 
 Each replay log is SHA-256 hashed into the final attestation.
 
+## Empirical evidence
+
+First frozen execution:
+
+```text
+workflow: Full Target Shadow Operator Neutrality
+run:      34755555116
+commit:   bdab2f3088a02de658bdfe4d167d444098085e1e
+result:   SUCCESS
+replays:  5/5 required, verifier PASS
+```
+
+The run completed successfully on 2026-09-13. Syntax checks, frozen-image build, all five complete sealed replays, the separate verifier, strict authority/scope isolation and evidence preservation all completed successfully.
+
+The retained evidence artifact is:
+
+```text
+name:   fae-operator-neutral-evidence-34755555116-1
+digest: sha256:29dec018c12fe1eed5749fe0f19250f785bdc6bcbcad17159e7e8bcbd3892994
+```
+
+This closes the operator-neutral surrogate at GREEN for the tested commit. It does **not** convert independent-human operation into a claim; that line remains N/A by project principle.
+
 ## Interpretation
 
-If this gate passes, the Network Recovery & Reorg evidence ledger may classify:
+After a valid PASS, the Network Recovery & Reorg evidence ledger may classify:
 
 ```text
 Independent human operator                  N/A — design-excluded
 Operator-neutral execution                  GREEN
 One-machine reproducibility                 GREEN
 Anti-selection / all-runs-must-pass         GREEN
-Independent verifier code path              GREEN
+Separate verifier code path                 GREEN
 Code/evidence identity binding              GREEN
 ```
 
