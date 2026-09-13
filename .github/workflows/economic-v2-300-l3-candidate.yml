@@ -19,6 +19,7 @@ on:
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
+      - 'candidate-net-lab/run-local-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   pull_request:
     paths:
@@ -37,6 +38,7 @@ on:
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'candidate-net-lab/v5-node.mjs'
       - 'candidate-net-lab/v5-controller.mjs'
+      - 'candidate-net-lab/run-local-l3.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   workflow_dispatch:
 
@@ -69,6 +71,7 @@ jobs:
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check candidate-net-lab/v5-node.mjs
           node --check candidate-net-lab/v5-controller.mjs
+          node --check candidate-net-lab/run-local-l3.mjs
           python -m py_compile sovereign-forge/tests/difficulty-timestamp-v2-300-reference.py
 
       - name: Run economic invariants
@@ -88,6 +91,10 @@ jobs:
 
       - name: Run integrated candidate core L3 path
         run: node sovereign-forge/tests/fae-v5-300-core-integration.mjs
+
+      - name: Run isolated 3-node candidate network L3 path
+        run: node candidate-net-lab/run-local-l3.mjs
+        timeout-minutes: 4
 
       - name: Generate candidate manifest
         run: node sovereign-forge/node/candidate/economic-v2-300.mjs > economic-v2-300-candidate.json
