@@ -129,6 +129,7 @@ wan_start_cloudflare_tunnel(){
   local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}"
   local attempt attempt_log url start now pid
   : >"$log"
+  [[ -x "$bin" ]] || { echo "cloudflared unavailable: ${bin}" >>"$log"; return 1; }
 
   # Quick Tunnels are ephemeral. Treat only bootstrap/endpoint-readiness failure
   # as retryable. Once a public endpoint passes /status, the protocol is fail-closed.
@@ -236,13 +237,14 @@ wan_start_tunnel(){
   local preference="${FAE_WAN_TUNNEL_PROVIDER:-auto}" url
   case "$preference" in
     cloudflare)
+      [[ -x "$bin" ]] || { echo "cloudflared unavailable: ${bin}" >&2; return 1; }
       wan_start_cloudflare_tunnel "$port" "$log" "$pid_file" "$bin"
       ;;
     localhost-run)
       wan_start_localhost_run_tunnel "$port" "$log" "$pid_file"
       ;;
     auto)
-      if url=$(wan_start_cloudflare_tunnel "$port" "$log" "$pid_file" "$bin"); then
+      if [[ -x "$bin" ]] && url=$(wan_start_cloudflare_tunnel "$port" "$log" "$pid_file" "$bin"); then
         printf '%s\n' "$url"
         return 0
       fi
