@@ -110,22 +110,55 @@ wan_wait_http(){
 }
 
 wan_start_tunnel(){
-  local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}" url start now
+  local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}"
+  local attempt attempt_log url start now pid
   : >"$log"
-  "$bin" tunnel --no-autoupdate --url "http://127.0.0.1:${port}" >"$log" 2>&1 &
-  echo $! >"$pid_file"
-  start=$(date +%s)
-  while :; do
-    url=$(grep -Eo 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' "$log" | head -n1 || true)
-    if [[ -n "$url" ]]; then
-      wan_wait_http "${url}/status" 90
+
+  # Quick Tunnels are intentionally ephemeral. A tunnel process can occasionally
+  # receive a trycloudflare hostname whose DNS record is not usable from the
+  # runner even though cloudflared itself is healthy. Treat only this bootstrap
+  # condition as retryable. Once a public endpoint has passed /status, the rest
+  # of the WAN protocol remains fail-closed with no tunnel substitution.
+  for attempt in 1 2 3; do
+    attempt_log="${log}.attempt-${attempt}"
+    : >"$attempt_log"
+    "$bin" tunnel --no-autoupdate --url "http://127.0.0.1:${port}" >"$attempt_log" 2>&1 &
+    pid=$!
+    echo "$pid" >"$pid_file"
+    start=$(date +%s)
+    url=''
+
+    while :; do
+      url=$(grep -Eo 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' "$attempt_log" | head -n1 || true)
+      if [[ -n "$url" ]]; then break; fi
+      if ! kill -0 "$pid" 2>/dev/null; then break; fi
+      now=$(date +%s)
+      (( now-start < 45 )) || break
+      sleep 2
+    done
+
+    if [[ -n "$url" ]] && wan_wait_http "${url}/status" 40; then
+      {
+        echo "--- quick-tunnel attempt ${attempt}: READY ${url} ---"
+        cat "$attempt_log"
+      } >>"$log"
       printf '%s\n' "$url"
       return 0
     fi
-    if ! kill -0 "$(cat "$pid_file")" 2>/dev/null; then cat "$log" >&2; return 1; fi
-    now=$(date +%s); (( now-start < 90 )) || { cat "$log" >&2; return 1; }
+
+    {
+      echo "--- quick-tunnel attempt ${attempt}: bootstrap failed ---"
+      cat "$attempt_log"
+    } >>"$log"
+    kill -TERM "$pid" 2>/dev/null || true
+    for _ in $(seq 1 12); do kill -0 "$pid" 2>/dev/null || break; sleep 0.25; done
+    kill -KILL "$pid" 2>/dev/null || true
+    rm -f "$pid_file"
     sleep 2
   done
+
+  cat "$log" >&2
+  return 1
 }
 
 wan_stop_pid_file(){
