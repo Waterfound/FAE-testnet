@@ -1,0 +1,43 @@
+name: Peer Isolation Lab v0.0.1
+
+on:
+  push:
+    branches: [lab-peer-isolation-eclipse-resistance-v001]
+    paths:
+      - 'sovereign-forge/node/lab/peer-isolation-*.mjs'
+      - 'sovereign-forge/tests/peer-isolation-*.mjs'
+      - 'sovereign-forge/tests/run-peer-isolation-lab.mjs'
+      - 'sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_RESISTANCE_V001.md'
+      - '.github/workflows/peer-isolation-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peer-isolation-lab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify candidate, scope and real loopback recovery
+        env:
+          FAE_PEER_ISOLATION_OUTPUT: ${{ runner.temp }}/peer-isolation-evidence
+        run: node sovereign-forge/tests/run-peer-isolation-lab.mjs
+      - name: Preserve local evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-peer-isolation-v001-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/peer-isolation-evidence/
+          if-no-files-found: error
+          retention-days: 30
