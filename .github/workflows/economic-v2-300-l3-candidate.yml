@@ -6,6 +6,7 @@ on:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md'
+      - 'sovereign-forge/protocol/INITIAL_TARGET_CALIBRATION_V1.md'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
@@ -14,6 +15,7 @@ on:
       - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
       - 'sovereign-forge/node/candidate/profile-runtime-v2-300.mjs'
       - 'sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/initial-target-calibration-v1.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
@@ -21,6 +23,7 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/tests/initial-target-calibration-v1.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
@@ -31,6 +34,7 @@ on:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md'
+      - 'sovereign-forge/protocol/INITIAL_TARGET_CALIBRATION_V1.md'
       - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
       - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
@@ -39,6 +43,7 @@ on:
       - 'sovereign-forge/node/candidate/activation-profile-v2-300.mjs'
       - 'sovereign-forge/node/candidate/profile-runtime-v2-300.mjs'
       - 'sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/initial-target-calibration-v1.mjs'
       - 'sovereign-forge/node/candidate/fae-v5-300-core.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
       - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
@@ -46,6 +51,7 @@ on:
       - 'sovereign-forge/tests/coinbase-maturity-v2-300.mjs'
       - 'sovereign-forge/tests/network-boundary-v2-300.mjs'
       - 'sovereign-forge/tests/activation-profile-v2-300.mjs'
+      - 'sovereign-forge/tests/initial-target-calibration-v1.mjs'
       - 'sovereign-forge/tests/fae-v5-300-core-integration.mjs'
       - 'sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs'
       - 'candidate-net-lab/v5-node.mjs'
@@ -78,12 +84,14 @@ jobs:
           node --check sovereign-forge/node/candidate/activation-profile-v2-300.mjs
           node --check sovereign-forge/node/candidate/profile-runtime-v2-300.mjs
           node --check sovereign-forge/node/candidate/profile-consensus-binding-v2-300.mjs
+          node --check sovereign-forge/node/candidate/initial-target-calibration-v1.mjs
           node --check sovereign-forge/node/candidate/fae-v5-300-core.mjs
           node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
           node --check sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/tests/coinbase-maturity-v2-300.mjs
           node --check sovereign-forge/tests/network-boundary-v2-300.mjs
           node --check sovereign-forge/tests/activation-profile-v2-300.mjs
+          node --check sovereign-forge/tests/initial-target-calibration-v1.mjs
           node --check sovereign-forge/tests/fae-v5-300-core-integration.mjs
           node --check sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
           node --check candidate-net-lab/v5-node.mjs
@@ -102,6 +110,9 @@ jobs:
 
       - name: Run fail-closed activation-profile invariants
         run: node sovereign-forge/tests/activation-profile-v2-300.mjs
+
+      - name: Run deterministic initial-target calibration invariants
+        run: node sovereign-forge/tests/initial-target-calibration-v1.mjs
 
       - name: Run strict launch-profile binding invariants
         run: node sovereign-forge/tests/fae-v5-300-profile-bound-launch.mjs
@@ -150,7 +161,7 @@ jobs:
           grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
           grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
           grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
-          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|activation-profile-v2-300\|profile-runtime-v2-300\|profile-consensus-binding-v2-300\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
+          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300\|coinbase-maturity-v2-300\|network-boundary-v2-300\|activation-profile-v2-300\|profile-runtime-v2-300\|profile-consensus-binding-v2-300\|initial-target-calibration-v1\|fae-v5-300-core" sovereign-forge/node/fae-node.mjs; then
             echo 'candidate imported into live v4 node' >&2
             exit 1
           fi
