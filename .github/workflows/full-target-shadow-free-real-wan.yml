@@ -2,7 +2,7 @@ name: Full Target Shadow Free Real WAN
 
 on:
   push:
-    branches: [lab-network-reorg-free-real-wan]
+    branches: [main, lab-network-reorg-free-real-wan]
     paths:
       - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
@@ -12,6 +12,7 @@ on:
       - 'sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh'
       - 'sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh'
       - 'sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh'
+      - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md'
       - '.github/workflows/full-target-shadow-free-real-wan.yml'
   workflow_dispatch:
 
@@ -21,6 +22,29 @@ permissions:
   actions: read
 
 jobs:
+  authority-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve lab-only authority boundary
+        run: |
+          set -euo pipefail
+          grep -q "lab-only-local-control-no-consensus-authority" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q "shadow_control_must_bind_loopback" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
+          grep -q "multi-provider compute independence" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
+          grep -q "time-equivalent soak" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
+          grep -q "no consensus authority" sovereign-forge/protocol/FULL_TARGET_SHADOW_FREE_REAL_WAN.md
+          ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "FULL_TARGET_SHADOW_LOCAL_CONTROL_STATUS" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "full-target-shadow-free-real-wan" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-free-real-wan" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-shadow-free-real-wan" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "trycloudflare" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "trycloudflare" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "trycloudflare" sovereign-forge/node/fae-node-v6-candidate.mjs
+
   rendezvous:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -155,7 +179,7 @@ jobs:
 
   finalize:
     if: always()
-    needs: [rendezvous, hosts, controller, observer]
+    needs: [authority-isolation, rendezvous, hosts, controller, observer]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -163,6 +187,7 @@ jobs:
       REPO: ${{ github.repository }}
       ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
       RUN_ID: ${{ github.run_id }}
+      AUTHORITY_RESULT: ${{ needs.authority-isolation.result }}
       HOSTS_RESULT: ${{ needs.hosts.result }}
       CONTROLLER_RESULT: ${{ needs.controller.result }}
       OBSERVER_RESULT: ${{ needs.observer.result }}
@@ -172,8 +197,8 @@ jobs:
         run: |
           set -euo pipefail
           summary=$(jq -nc \
-            --arg run "$RUN_ID" --arg hosts "$HOSTS_RESULT" --arg controller "$CONTROLLER_RESULT" --arg observer "$OBSERVER_RESULT" \
-            '{run_id:$run,hosts:$hosts,controller:$controller,observer:$observer}')
+            --arg run "$RUN_ID" --arg authority "$AUTHORITY_RESULT" --arg hosts "$HOSTS_RESULT" --arg controller "$CONTROLLER_RESULT" --arg observer "$OBSERVER_RESULT" \
+            '{run_id:$run,authority:$authority,hosts:$hosts,controller:$controller,observer:$observer}')
           body="FAE_WAN_RUN_COMPLETE ${summary}"
           jq -nc --arg body "$body" '{body:$body}' | curl -fsS -X POST \
             -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' \
