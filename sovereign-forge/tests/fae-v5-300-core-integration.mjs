@@ -4,7 +4,6 @@ import { stableStringify } from '../node/authoritative/canonical.mjs';
 import { hashHex } from '../node/authoritative/crypto.mjs';
 import {
   CANDIDATE_NETWORK_ID,
-  CANDIDATE_GENESIS_COMMITMENT,
   candidateTxDomain,
 } from '../node/candidate/network-boundary-v2-300.mjs';
 import {
@@ -14,6 +13,7 @@ import {
 } from '../node/candidate/difficulty-timestamp-v2-300.mjs';
 import {
   CANDIDATE_TX_VERSION,
+  DEFAULT_CANDIDATE_BINDING,
   emptyCandidateState,
   deriveCandidateAddress,
   acceptCandidateTxInto,
@@ -47,7 +47,7 @@ function signedTx(owner, inputs, outputs) {
   };
   const signature = signPayload(
     null,
-    Buffer.from(stableStringify(candidateTxDomain(unsigned))),
+    Buffer.from(stableStringify(candidateTxDomain(unsigned, DEFAULT_CANDIDATE_BINDING))),
     owner.privateKey,
   ).toString('base64');
   return { ...unsigned, signature };
@@ -80,8 +80,9 @@ function manualEnvelopeWithRecords(state, { minerAddress, timestampMs, records }
   const coinbaseOutputs = [{ address: minerAddress, amount_atoms: (subsidy + fees).toString() }];
   const header = {
     version: 5,
-    network: CANDIDATE_NETWORK_ID,
-    genesis_commitment: CANDIDATE_GENESIS_COMMITMENT,
+    network: state.network,
+    profile_id: state.profileId,
+    genesis_commitment: state.genesisCommitment,
     height,
     previous_hash: state.chain.at(-1)?.hash || '0'.repeat(64),
     timestamp_ms: timestampMs,
@@ -103,19 +104,24 @@ const BASE = 1_900_000_000_000;
 const STEP = 300_000;
 let state = emptyCandidateState();
 
-// Mine the first reward and establish the 300-second full-target DAA anchor.
+assert.equal(state.profileId, DEFAULT_CANDIDATE_BINDING.profileId);
+assert.equal(state.genesisCommitment, DEFAULT_CANDIDATE_BINDING.genesisCommitment);
+assert.equal(state.initialTargetHex, DEFAULT_CANDIDATE_BINDING.initialTargetHex);
+assert.equal(state.transactionDomainCommitment, DEFAULT_CANDIDATE_BINDING.transactionDomainCommitment);
+
+// Mine the first reward and establish the profile-derived 300-second DAA anchor.
 let mined = appendNext(state, { minerAddress: miner.address, timestampMs: BASE });
 state = mined.state;
 const firstBlockHash = mined.envelope.hash;
 const firstCoinbase = `${firstBlockHash}:0`;
 assert.equal(state.chain.length, 1);
-assert.equal(state.chain[0].target_hex, targetHex(nextCandidateTarget(emptyCandidateState())));
+assert.equal(state.chain[0].profile_id, DEFAULT_CANDIDATE_BINDING.profileId);
+assert.equal(state.chain[0].genesis_commitment, DEFAULT_CANDIDATE_BINDING.genesisCommitment);
+assert.equal(state.chain[0].target_hex, DEFAULT_CANDIDATE_BINDING.initialTargetHex);
 assert.equal(state.utxos[firstCoinbase].origin, 'coinbase');
 assert.equal(state.utxos[firstCoinbase].created_height, 1);
 assert.equal(state.utxos[firstCoinbase].coinbase_matures_at_height, 201);
 
-// Build to height 199 at exactly the candidate target cadence. The full target
-// must remain stable on schedule and every block must mint exactly 14 FAE.
 for (let height = 2; height <= 199; height++) {
   const next = appendNext(state, { minerAddress: miner.address, timestampMs: BASE + (height - 1) * STEP });
   state = next.state;
@@ -128,21 +134,18 @@ const spend = signedTx(miner, [firstCoinbase], [
   { address: receiver.address, amount_atoms: '1300000000' },
 ]);
 
-// Mempool integration: tip 199 means candidate spend height 200, exactly one
-// block too early. The real candidate mempool path must reject it.
 assert.throws(
   () => acceptCandidateTxInto(state, spend),
   error => error.code === 'immature_coinbase' && error.remainingBlocks === 1 && error.maturesAtHeight === 201,
 );
 assert.equal(state.mempoolOrder.length, 0);
 
-// Block-validation integration must also reject the same spend at height 200,
-// even when supplied directly as a candidate block record instead of via mempool.
 const verifiedEarly = signedTx(miner, [firstCoinbase], [
   { address: receiver.address, amount_atoms: '1300000000' },
 ]);
 const earlyRecord = {
   ...verifiedEarly,
+  profile_id: state.profileId,
   txid: hashHex({ ...verifiedEarly, version: CANDIDATE_TX_VERSION, network: CANDIDATE_NETWORK_ID, inputs: verifiedEarly.inputs, outputs: verifiedEarly.outputs, public_key_spki: verifiedEarly.public_key_spki, signature: verifiedEarly.signature }),
   from_address: miner.address,
   fee_atoms: '100000000',
@@ -163,20 +166,17 @@ assert.throws(
   }),
   error => error.code === 'immature_coinbase',
 );
-assert.equal(state.chain.length, 199, 'failed block must not mutate the original state');
+assert.equal(state.chain.length, 199);
 assert.equal(state.utxos[firstCoinbase].spent, false);
 
-// Mine height 200 empty. At tip 200, the next candidate block is 201 and the
-// exact same coinbase becomes mempool-spendable.
 mined = appendNext(state, { minerAddress: miner.address, timestampMs: BASE + 199 * STEP });
 state = mined.state;
 assert.equal(state.chain.length, 200);
 const accepted = acceptCandidateTxInto(state, spend, { createdAt: 'candidate-test' });
 assert.equal(accepted.status, 'pending');
+assert.equal(accepted.profile_id, state.profileId);
 assert.equal(accepted.fee_atoms, '100000000');
 
-// Height 201 confirms the mature spend; fees are committed into the coinbase,
-// while only the 14 FAE subsidy contributes to monetary issuance.
 mined = appendNext(state, {
   minerAddress: miner.address,
   timestampMs: BASE + 200 * STEP,
@@ -191,6 +191,11 @@ assert.equal(state.chain.at(-1).fee_atoms, '100000000');
 assert.equal(BigInt(state.chain.at(-1).coinbase_outputs[0].amount_atoms), 1_500_000_000n);
 
 const report201 = candidateStateInvariantReport(state);
+assert.equal(report201.profileBoundCore, true);
+assert.equal(report201.bindingValid, true);
+assert.equal(report201.profileId, DEFAULT_CANDIDATE_BINDING.profileId);
+assert.equal(report201.initialTargetHex, DEFAULT_CANDIDATE_BINDING.initialTargetHex);
+assert.equal(report201.transactionDomainCommitment, DEFAULT_CANDIDATE_BINDING.transactionDomainCommitment);
 assert.equal(report201.underCap, true);
 assert.equal(report201.issuedSubsidyAtoms, (201n * 1_400_000_000n).toString());
 assert.equal(report201.targetSeconds, 300);
@@ -199,19 +204,13 @@ assert.equal(report201.unknownUtxoOrigins, 0);
 assert.equal(report201.activationAuthorized, false);
 assert.equal(report201.publicConsensusChanged, false);
 
-// Deterministic replay must reconstruct the same tip, issuance, transaction and
-// UTXO spend state from the integrated block records.
-const replayed = rebuildCandidateState(state.chain, { nowMs: BASE + 200 * STEP });
+const replayed = rebuildCandidateState(state.chain, { nowMs: BASE + 200 * STEP, binding: DEFAULT_CANDIDATE_BINDING });
 assert.equal(replayed.chain.at(-1).hash, state.chain.at(-1).hash);
 assert.equal(replayed.transactions[accepted.txid].status, 'confirmed');
 assert.equal(replayed.utxos[firstCoinbase].spent, true);
 assert.deepEqual(candidateStateInvariantReport(replayed), candidateStateInvariantReport(state));
 
-// Build an alternative branch from height 150 that omits the height-201 spend
-// and becomes longer. Reorg adoption must be chainwork-based, rebuild canonical
-// state, and resurrect the detached spend into mempool because its input is now
-// unspent and mature on the new tip.
-let alternative = rebuildCandidateState(state.chain.slice(0, 150), { nowMs: BASE + 149 * STEP });
+let alternative = rebuildCandidateState(state.chain.slice(0, 150), { nowMs: BASE + 149 * STEP, binding: DEFAULT_CANDIDATE_BINDING });
 for (let height = 151; height <= 202; height++) {
   const next = appendNext(alternative, {
     minerAddress: receiver.address,
@@ -228,8 +227,6 @@ assert.deepEqual(reorg.dropped, []);
 assert.equal(reorg.state.transactions[accepted.txid].status, 'pending');
 assert.equal(reorg.state.utxos[firstCoinbase].spent, false);
 
-// The resurrected transaction can be confirmed on the winning branch and the
-// candidate remains internally consistent after reorg + mempool replay.
 mined = appendNext(reorg.state, {
   minerAddress: receiver.address,
   timestampMs: BASE + 202 * STEP,
@@ -243,10 +240,9 @@ const finalReport = candidateStateInvariantReport(finalState);
 assert.equal(finalReport.underCap, true);
 assert.equal(finalReport.unknownUtxoOrigins, 0);
 assert.equal(finalReport.network, CANDIDATE_NETWORK_ID);
-assert.equal(finalReport.genesisCommitment, CANDIDATE_GENESIS_COMMITMENT);
+assert.equal(finalReport.profileId, DEFAULT_CANDIDATE_BINDING.profileId);
+assert.equal(finalReport.genesisCommitment, DEFAULT_CANDIDATE_BINDING.genesisCommitment);
 
-// Candidate blocks are network/genesis bound; a v4-like envelope cannot cross
-// the activation boundary.
 const wrongNetworkTemplate = candidateBlockTemplate(finalState, {
   minerAddress: miner.address,
   timestampMs: BASE + 203 * STEP,
@@ -256,6 +252,17 @@ const wrongNetworkEnvelope = mineTemplate(wrongNetworkTemplate);
 assert.throws(
   () => appendCandidateBlock(finalState, wrongNetworkEnvelope, { nowMs: BASE + 203 * STEP }),
   error => error.code === 'wrong_network_or_genesis',
+);
+
+const wrongProfileTemplate = candidateBlockTemplate(finalState, {
+  minerAddress: miner.address,
+  timestampMs: BASE + 203 * STEP,
+});
+wrongProfileTemplate.header.profile_id = 'foreign-profile';
+const wrongProfileEnvelope = mineTemplate(wrongProfileTemplate);
+assert.throws(
+  () => appendCandidateBlock(finalState, wrongProfileEnvelope, { nowMs: BASE + 203 * STEP }),
+  error => error.code === 'wrong_profile',
 );
 
 console.log('fae-v5-300-core-integration: PASS');
