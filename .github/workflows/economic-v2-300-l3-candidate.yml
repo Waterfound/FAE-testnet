@@ -5,14 +5,20 @@ on:
     branches: [economic-block-time-v2-300-l3]
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   pull_request:
     paths:
       - 'sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_CANDIDATE.md'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json'
       - 'sovereign-forge/node/candidate/economic-v2-300.mjs'
+      - 'sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs'
       - 'sovereign-forge/tests/economic-v2-300-candidate.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-v2-300.mjs'
       - '.github/workflows/economic-v2-300-l3-candidate.yml'
   workflow_dispatch:
 
@@ -31,10 +37,15 @@ jobs:
       - name: Syntax
         run: |
           node --check sovereign-forge/node/candidate/economic-v2-300.mjs
+          node --check sovereign-forge/node/candidate/difficulty-timestamp-v2-300.mjs
           node --check sovereign-forge/tests/economic-v2-300-candidate.mjs
+          node --check sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
 
-      - name: Run candidate arithmetic and maturity invariants
+      - name: Run economic and maturity invariants
         run: node sovereign-forge/tests/economic-v2-300-candidate.mjs
+
+      - name: Run 300s DAA and timestamp vectors
+        run: node sovereign-forge/tests/difficulty-timestamp-v2-300.mjs
 
       - name: Generate candidate manifest
         run: node sovereign-forge/node/candidate/economic-v2-300.mjs > economic-v2-300-candidate.json
@@ -51,6 +62,8 @@ jobs:
           grep -q '"coinbaseMaturityBlocks": 200' economic-v2-300-candidate.json
           grep -q '"activationAuthorized": false' economic-v2-300-candidate.json
           grep -q '"publicConsensusChanged": false' economic-v2-300-candidate.json
+          grep -q '"target_seconds": 300' sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json
+          grep -q '"status": "candidate-not-active-consensus"' sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json
 
       - name: Guard current v4 consensus from accidental candidate activation
         run: |
@@ -60,7 +73,7 @@ jobs:
           grep -q "const TARGET_SECONDS=180;" sovereign-forge/node/fae-node.mjs
           grep -q '| Initial subsidy | 10 FAE/block |' sovereign-forge/protocol/CONSENSUS.md
           grep -q '| Target block interval | 180 seconds |' sovereign-forge/protocol/CONSENSUS.md
-          if grep -q "economic-v2-300" sovereign-forge/node/fae-node.mjs; then
+          if grep -q "economic-v2-300\|difficulty-timestamp-v2-300" sovereign-forge/node/fae-node.mjs; then
             echo 'candidate imported into live v4 node' >&2
             exit 1
           fi
