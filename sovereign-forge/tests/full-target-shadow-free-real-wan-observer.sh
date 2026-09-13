@@ -68,6 +68,6 @@ printf '%s\n' "$RUNNERS" >"$WORK/runner-allocations.json"
 PASS=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg phase final --arg observer_host "$D_HOST" --arg observer_runner "$D_RUNNER" \
   --arg a_tip "$A_TIP" --arg a_work "$A_WORK" --arg b_tip "$B_TIP" --arg b_work "$B_WORK" \
-  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,distinct_runner_vms:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_provider:"cloudflare-quick-tunnel",multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
+  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,distinct_runner_vms:true,distinct_runner_hosts:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_provider:"cloudflare-quick-tunnel",multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
 wan_post FAE_WAN_OBSERVER_PASS "$PASS"
 printf '%s\n' "$PASS" >"$WORK/observer-pass.json"
