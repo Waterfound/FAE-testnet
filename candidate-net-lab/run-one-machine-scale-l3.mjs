@@ -7,7 +7,7 @@ const TOKEN = 'local-l3-scale-token';
 const NODE_COUNT = 16;
 const BASE_PORT = 3290;
 const STEP_MS = 300_000;
-const BASE_TIME = 1_950_000_000_000;
+const BASE_TIME = Date.now() - 40 * STEP_MS;
 const nodes = Array.from({ length: NODE_COUNT }, (_, index) => ({
   id: `S${String(index).padStart(2, '0')}`,
   port: BASE_PORT + index,
