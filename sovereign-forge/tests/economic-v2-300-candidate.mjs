@@ -44,12 +44,13 @@ assert.equal(coinbaseSpendableAtHeight(1, 201), true);
 assert.equal(coinbaseSpendableAtHeight(430_000, 430_199), false);
 assert.equal(coinbaseSpendableAtHeight(430_000, 430_200), true);
 
-// DAA binding is a candidate dependency, not a silent reuse of 180-second vectors.
+// DAA binding is candidate-specific and validated in two runtimes, not a silent reuse of 180-second vectors.
 assert.equal(ECONOMIC_V2_300.daaBinding.targetSeconds, 300);
 assert.equal(ECONOMIC_V2_300.daaBinding.halfLifeSeconds, 21_600);
 assert.equal(ECONOMIC_V2_300.daaBinding.mtpWindow, 11);
 assert.equal(ECONOMIC_V2_300.daaBinding.futureDriftSeconds, 90);
-assert.equal(ECONOMIC_V2_300.daaBinding.vectors, 'REGENERATE_FOR_300S_BEFORE_ACTIVATION');
+assert.equal(ECONOMIC_V2_300.daaBinding.vectors, 'protocol/DIFFICULTY_TIMESTAMP_V2_300_VECTORS.json');
+assert.equal(ECONOMIC_V2_300.daaBinding.crossRuntimeValidation, 'node22+python3');
 
 const manifest = candidateManifest();
 assert.equal(manifest.activationAuthorized, false);
