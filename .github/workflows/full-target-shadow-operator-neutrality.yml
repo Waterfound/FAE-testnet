@@ -2,7 +2,7 @@ name: Full Target Shadow Operator Neutrality
 
 on:
   push:
-    branches: [lab-network-reorg-operator-neutrality]
+    branches: [main, lab-network-reorg-operator-neutrality]
     paths:
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
