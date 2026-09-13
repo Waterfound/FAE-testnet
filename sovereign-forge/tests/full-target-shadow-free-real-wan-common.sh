@@ -109,18 +109,86 @@ wan_wait_http(){
   done
 }
 
+wan_tunnel_provider_from_url(){
+  local url="$1"
+  case "$url" in
+    *trycloudflare.com*) printf '%s\n' 'cloudflare-quick-tunnel' ;;
+    *pinggy-free.link*|*.pinggy.link*) printf '%s\n' 'pinggy-free-http' ;;
+    *) printf '%s\n' 'unknown' ;;
+  esac
+}
+
+wan_start_pinggy_tunnel(){
+  local port="$1" log="$2" pid_file="$3" debugger_port="${FAE_WAN_PINGGY_DEBUGGER_PORT:-4300}"
+  local attempt attempt_log pid start now urls url
+
+  command -v ssh >/dev/null 2>&1 || { echo 'ssh is required for Pinggy fallback' >&2; return 1; }
+
+  for attempt in 1 2; do
+    attempt_log="${log}.pinggy-attempt-${attempt}"
+    : >"$attempt_log"
+    ssh \
+      -o BatchMode=yes \
+      -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null \
+      -o ExitOnForwardFailure=yes \
+      -o ConnectTimeout=15 \
+      -o ServerAliveInterval=15 \
+      -o ServerAliveCountMax=3 \
+      -p 443 \
+      -R0:127.0.0.1:"${port}" \
+      -L"${debugger_port}":127.0.0.1:4300 \
+      -T free.pinggy.io >"$attempt_log" 2>&1 &
+    pid=$!
+    echo "$pid" >"$pid_file"
+    start=$(date +%s)
+    url=''
+
+    while :; do
+      if urls=$(curl -fsS --max-time 5 "http://127.0.0.1:${debugger_port}/urls" 2>/dev/null); then
+        url=$(jq -r '.urls[]? | select(startswith("https://"))' <<<"$urls" | head -n1 || true)
+        [[ -n "$url" ]] || url=$(jq -r '.urls[]? | select(startswith("http://"))' <<<"$urls" | head -n1 || true)
+        [[ -n "$url" ]] && break
+      fi
+      if ! kill -0 "$pid" 2>/dev/null; then break; fi
+      now=$(date +%s)
+      (( now-start < 45 )) || break
+      sleep 2
+    done
+
+    if [[ -n "$url" ]] && wan_wait_http "${url}/status" 40; then
+      {
+        echo "--- pinggy attempt ${attempt}: READY ${url} ---"
+        cat "$attempt_log"
+      } >>"$log"
+      printf '%s\n' "$url"
+      return 0
+    fi
+
+    {
+      echo "--- pinggy attempt ${attempt}: bootstrap failed ---"
+      cat "$attempt_log"
+    } >>"$log"
+    kill -TERM "$pid" 2>/dev/null || true
+    for _ in $(seq 1 12); do kill -0 "$pid" 2>/dev/null || break; sleep 0.25; done
+    kill -KILL "$pid" 2>/dev/null || true
+    rm -f "$pid_file"
+    sleep 2
+  done
+
+  return 1
+}
+
 wan_start_tunnel(){
   local port="$1" log="$2" pid_file="$3" bin="${4:-/tmp/cloudflared}"
   local attempt attempt_log url start now pid
   : >"$log"
 
-  # Quick Tunnels are intentionally ephemeral. A tunnel process can occasionally
-  # receive a trycloudflare hostname whose DNS record is not usable from the
-  # runner even though cloudflared itself is healthy. Treat only this bootstrap
-  # condition as retryable. Once a public endpoint has passed /status, the rest
-  # of the WAN protocol remains fail-closed with no tunnel substitution.
+  # Cloudflare remains the preferred zero-account path. Treat only endpoint
+  # bootstrap failure as retryable; once an endpoint passes /status, the rest
+  # of the protocol is fail-closed and never silently swaps providers mid-run.
   for attempt in 1 2 3; do
-    attempt_log="${log}.attempt-${attempt}"
+    attempt_log="${log}.cloudflare-attempt-${attempt}"
     : >"$attempt_log"
     "$bin" tunnel --no-autoupdate --url "http://127.0.0.1:${port}" >"$attempt_log" 2>&1 &
     pid=$!
@@ -139,7 +207,7 @@ wan_start_tunnel(){
 
     if [[ -n "$url" ]] && wan_wait_http "${url}/status" 40; then
       {
-        echo "--- quick-tunnel attempt ${attempt}: READY ${url} ---"
+        echo "--- cloudflare attempt ${attempt}: READY ${url} ---"
         cat "$attempt_log"
       } >>"$log"
       printf '%s\n' "$url"
@@ -147,7 +215,7 @@ wan_start_tunnel(){
     fi
 
     {
-      echo "--- quick-tunnel attempt ${attempt}: bootstrap failed ---"
+      echo "--- cloudflare attempt ${attempt}: bootstrap failed ---"
       cat "$attempt_log"
     } >>"$log"
     kill -TERM "$pid" 2>/dev/null || true
@@ -156,6 +224,9 @@ wan_start_tunnel(){
     rm -f "$pid_file"
     sleep 2
   done
+
+  echo '--- cloudflare exhausted; trying Pinggy fallback ---' >>"$log"
+  if wan_start_pinggy_tunnel "$port" "$log" "$pid_file"; then return 0; fi
 
   cat "$log" >&2
   return 1
