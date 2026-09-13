@@ -2,12 +2,13 @@ name: Full Target Shadow External Validation Kit
 
 on:
   push:
-    branches: [main, shadow-external-validation-kit]
+    branches: [main, shadow-external-validation-kit, lab-network-reorg-wan-fault-gate]
     paths:
       - 'sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
       - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
       - 'sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs'
       - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_EXTERNAL_VALIDATION.md'
@@ -18,6 +19,7 @@ on:
       - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs'
       - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs'
       - 'sovereign-forge/node/Dockerfile.full-target-shadow-validation'
       - 'sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs'
       - 'sovereign-forge/protocol/FULL_TARGET_SHADOW_EXTERNAL_VALIDATION.md'
@@ -41,11 +43,47 @@ jobs:
           node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           node --check sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs
           node --check sovereign-forge/node/lab/full-target-shadow-evidence-collector.mjs
+          node --check sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
           node --check sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs
       - name: Verify deterministic fixtures and executable evidence path
         run: node sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs
       - name: Build isolated validation image
         run: docker build -f sovereign-forge/node/Dockerfile.full-target-shadow-validation -t fae-shadow-validation:ci sovereign-forge/node
+      - name: Boot bundled fault proxy and verify clean passthrough
+        run: |
+          set -euo pipefail
+          docker network create fae-shadow-proxy-ci >/dev/null
+          docker volume create fae-shadow-proxy-ci-data >/dev/null
+          cleanup() {
+            docker rm -f fae-shadow-proxy-ci fae-shadow-proxy-target >/dev/null 2>&1 || true
+            docker network rm fae-shadow-proxy-ci >/dev/null 2>&1 || true
+            docker volume rm -f fae-shadow-proxy-ci-data >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker run -d --name fae-shadow-proxy-target --network fae-shadow-proxy-ci \
+            -e FAE_SHADOW_LABEL=proxy-target \
+            -e FAE_SHADOW_PROFILE=strong-b \
+            -e FAE_SHADOW_SYNC=0 \
+            fae-shadow-validation:ci >/dev/null
+          docker run -d --name fae-shadow-proxy-ci --network fae-shadow-proxy-ci \
+            -p 127.0.0.1:18790:8790 \
+            -v fae-shadow-proxy-ci-data:/data \
+            -e FAE_SHADOW_PROXY_LABEL=proxy-ci \
+            -e FAE_SHADOW_PROXY_TARGET=http://fae-shadow-proxy-target:8788 \
+            -e FAE_SHADOW_PROXY_DROP_SECURE_ORDINAL=0 \
+            fae-shadow-validation:ci node lab/full-target-shadow-fault-proxy.mjs >/dev/null
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18790/proxy/status > /tmp/fae-shadow-proxy-status.json; then ready=1; break; fi
+            sleep 1
+          done
+          test "$ready" = 1
+          curl -fsS http://127.0.0.1:18790/status > /tmp/fae-shadow-proxied-node-status.json
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/fae-shadow-proxy-status.json'));const s=JSON.parse(fs.readFileSync('/tmp/fae-shadow-proxied-node-status.json'));if(p.status!=='lab-only-network-fault-injector'||p.drop_secure_ordinal!==0||p.faults_injected!==0||s.status!=='lab-only-no-consensus-authority'||s.height!==15)process.exit(1)"
+          docker stop --time 10 fae-shadow-proxy-ci >/dev/null
+          docker wait fae-shadow-proxy-ci >/dev/null
+          docker run --rm --user root -v fae-shadow-proxy-ci-data:/data --entrypoint sh fae-shadow-validation:ci -c \
+            "grep -q '\"event\":\"online\"' /data/full-target-shadow-fault-proxy.jsonl && grep -q '\"event\":\"shutdown\"' /data/full-target-shadow-fault-proxy.jsonl"
       - name: Boot validation image with persistent volume and clean shutdown
         run: |
           set -euo pipefail
@@ -78,4 +116,8 @@ jobs:
           ! grep -q "shadow-validation-fixtures" sovereign-forge/node/authoritative/fae-v4-core.mjs
           ! grep -q "shadow-validation-fixtures" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
           ! grep -q "fae-full-target-shadow-validation-node" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-shadow-fault-proxy" sovereign-forge/node/fae-node-v6-candidate.mjs
           grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          grep -q "lab-only-network-fault-injector" sovereign-forge/node/lab/full-target-shadow-fault-proxy.mjs
