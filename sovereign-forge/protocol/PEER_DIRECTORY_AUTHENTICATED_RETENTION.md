@@ -34,7 +34,7 @@ A directory record is promoted to authenticated retention only after `createAuth
 
 A mere signed descriptor, repeated gossip, source rotation, DNS diversity, or a matching identity string cannot promote a record.
 
-The promotion is local runtime evidence. Re-gossip of the same signed descriptor does not erase it, and identity endpoint fanout prefers an already authenticated endpoint over unverified alternates.
+The promotion is local runtime evidence. Re-gossip of the same identity + endpoint does not erase authentication and cannot move an authenticated record into a different untrusted source quota bucket. Locally protected provenance may still supersede untrusted provenance. Identity endpoint fanout prefers an already authenticated endpoint over unverified alternates.
 
 ## Eviction rules
 
@@ -53,7 +53,7 @@ If the directory is already entirely occupied by retained authenticated records,
 The dedicated test topology requires all of the following:
 
 - many distinct gossip sources in many distinct DNS groups cannot exceed the unverified-record budget or evict an existing authenticated record;
-- re-gossip cannot erase prior authentication evidence;
+- re-gossip cannot erase prior authentication evidence or reassign a verified record into an attacker-controlled source bucket;
 - endpoint fanout for one identity retains its authenticated endpoint ahead of unverified alternates;
 - authenticated records remain subject to the hard global ceiling;
 - a real protocol-6 candidate probe promotes the exact directory record only after successful sync;
