@@ -31,17 +31,18 @@ test('colluding sources across distinct groups cannot consume the authenticated 
   assert.equal(status.records,6);
 });
 
-test('re-gossip of a verified descriptor preserves authenticated retention evidence',()=>{
+test('re-gossip cannot erase authentication or move a verified record into an attacker quota bucket',()=>{
   let tick=0;
   const directory=new PeerDirectory({networkId:NETWORK,maxRecords:8,maxUnverifiedRecords:3,now:()=>NOW+2000+(tick++)});
-  const peer=generateNodeIdentity(),envelope=descriptor(peer,'https://verified.regossip.example');
-  directory.register(envelope,{source:'peer:first'});
-  assert.equal(directory.markAuthenticated(peer.id,'https://verified.regossip.example'),true);
+  const peer=generateNodeIdentity(),endpoint='https://verified.regossip.example';
+  directory.register(descriptor(peer,endpoint,NOW),{source:'peer:first'});
+  assert.equal(directory.markAuthenticated(peer.id,endpoint),true);
   const authenticatedAt=directory.observations()[0].authenticatedAt;
-  directory.register(envelope,{source:'peer:second'});
+  directory.register(descriptor(peer,endpoint,NOW+500),{source:'peer:attacker-bucket'});
   const row=directory.observations().find(record=>record.identityId===peer.id);
   assert.equal(row.authenticated,true);
   assert.equal(row.authenticatedAt,authenticatedAt);
+  assert.equal(row.source,'peer:first');
 });
 
 test('identity endpoint churn retains an authenticated endpoint before unverified alternates',()=>{
