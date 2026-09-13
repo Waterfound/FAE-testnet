@@ -15,6 +15,9 @@ TUNNEL_LOG="$WORK/c-tunnel.log"
 PROXY_LOG="$WORK/proxy.log"
 CONTROL_URL="http://127.0.0.1:8791"
 PROXY_URL="http://127.0.0.1:8790"
+BOOT_ID="$(cat /proc/sys/kernel/random/boot_id)"
+[[ -n "$BOOT_ID" ]]
+printf '%s\n' "$BOOT_ID" >"$WORK/boot-id.txt"
 
 cleanup(){
   wan_stop_pid_file "$PROXY_PID_FILE" TERM
@@ -103,11 +106,11 @@ C_URL=$(wan_start_tunnel 8788 "$TUNNEL_LOG" "$TUNNEL_PID_FILE" /tmp/cloudflared)
 C_INITIAL=$(wan_json_status "$C_URL")
 C_ENDPOINT=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg role C --arg profile trusted --arg url "$C_URL" \
-  --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" \
+  --arg runner "${RUNNER_NAME:-unknown}" --arg hostname "$(hostname)" --arg boot_id "$BOOT_ID" \
   --arg os "${RUNNER_OS:-unknown}" --arg arch "${RUNNER_ARCH:-unknown}" \
   --arg tip "$(jq -r '.tip_hash' <<<"$C_INITIAL")" --arg work "$(jq -r '.chain_work' <<<"$C_INITIAL")" \
   --argjson height "$(jq -r '.height' <<<"$C_INITIAL")" \
-  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
+  '{run_id:$run,role:$role,profile:$profile,url:$url,runner_name:$runner,hostname:$hostname,boot_id:$boot_id,runner_os:$os,runner_arch:$arch,height:$height,tip_hash:$tip,chain_work:$work}')
 wan_post FAE_WAN_ENDPOINT "$C_ENDPOINT"
 echo "$C_ENDPOINT" >"$WORK/c-endpoint.json"
 
@@ -211,14 +214,14 @@ printf '%s\n' "$FINAL_LOCAL" >"$WORK/c-final-control.json"
 printf '%s\n' "$FINAL_PUBLIC" >"$WORK/c-final-public.json"
 
 FINAL_PHASE=$(jq -nc \
-  --arg run "$GITHUB_RUN_ID" --arg phase final --arg c_url "$C_URL" \
+  --arg run "$GITHUB_RUN_ID" --arg phase final --arg c_url "$C_URL" --arg c_boot_id "$BOOT_ID" \
   --arg a_tip "$A_TIP" --arg a_work "$A_WORK" --arg b_tip "$B_TIP" --arg b_work "$B_WORK" \
-  '{run_id:$run,phase:$phase,c_url:$c_url,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work,c_tip_hash:$b_tip,c_chain_work:$b_work,headers_interrupted:true,blocks_interrupted:true,sigkill_recovery:true,fresh_session_recovery:true,rollback_rejected:true,reconnect:true,churn_cycles:4,real_public_tunnels:true,independent_runner_hosts:true,multi_provider_proof:false,time_equivalent_soak:false,status:"READY_FOR_OBSERVER"}')
+  '{run_id:$run,phase:$phase,c_url:$c_url,c_boot_id:$c_boot_id,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work,c_tip_hash:$b_tip,c_chain_work:$b_work,headers_interrupted:true,blocks_interrupted:true,sigkill_recovery:true,fresh_session_recovery:true,rollback_rejected:true,reconnect:true,churn_cycles:4,real_public_tunnels:true,independent_runner_hosts:true,multi_provider_proof:false,time_equivalent_soak:false,status:"READY_FOR_OBSERVER"}')
 wan_post FAE_WAN_PHASE "$FINAL_PHASE"
 echo "$FINAL_PHASE" >"$WORK/controller-final.json"
 
 # Keep C and its public tunnel alive until D independently fetches A/B/C and
 # attests the final state from a fourth runner.
 OBSERVER=$(wan_wait_phase FAE_WAN_OBSERVER_PASS final 300)
-jq -e '.status=="PASS" and .distinct_runner_hosts==true and .public_endpoint_consistency==true' <<<"$OBSERVER" >/dev/null
-wan_post FAE_WAN_CONTROLLER_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase final --arg tip "$B_TIP" --arg work "$B_WORK" '{run_id:$run,phase:$phase,status:"PASS",tip_hash:$tip,chain_work:$work}')"
+jq -e '.status=="PASS" and .distinct_runner_vms==true and .distinct_boot_ids==true and .public_endpoint_consistency==true' <<<"$OBSERVER" >/dev/null
+wan_post FAE_WAN_CONTROLLER_COMPLETE "$(jq -nc --arg run "$GITHUB_RUN_ID" --arg phase final --arg boot_id "$BOOT_ID" --arg tip "$B_TIP" --arg work "$B_WORK" '{run_id:$run,phase:$phase,status:"PASS",boot_id:$boot_id,tip_hash:$tip,chain_work:$work}')"
