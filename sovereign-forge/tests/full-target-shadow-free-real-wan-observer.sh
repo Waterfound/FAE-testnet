@@ -17,10 +17,17 @@ C_META=$(wan_wait_role FAE_WAN_ENDPOINT C 300)
 A_URL=$(jq -r '.url' <<<"$A_META")
 B_URL=$(jq -r '.url' <<<"$B_META")
 C_URL=$(jq -r '.url' <<<"$C_META")
+A_PROVIDER=$(wan_tunnel_provider_from_url "$A_URL")
+B_PROVIDER=$(wan_tunnel_provider_from_url "$B_URL")
+C_PROVIDER=$(wan_tunnel_provider_from_url "$C_URL")
+[[ "$A_PROVIDER" != unknown && "$B_PROVIDER" != unknown && "$C_PROVIDER" != unknown ]]
+TUNNEL_PROVIDERS=$(jq -nc --arg a "$A_PROVIDER" --arg b "$B_PROVIDER" --arg c "$C_PROVIDER" '[$a,$b,$c]|unique')
+TUNNEL_PROVIDER_COUNT=$(jq 'length' <<<"$TUNNEL_PROVIDERS")
 
 printf '%s\n' "$A_META" >"$WORK/a-endpoint.json"
 printf '%s\n' "$B_META" >"$WORK/b-endpoint.json"
 printf '%s\n' "$C_META" >"$WORK/c-endpoint.json"
+printf '%s\n' "$TUNNEL_PROVIDERS" >"$WORK/tunnel-providers.json"
 
 # Require both distinct runner allocations and distinct Linux kernel boot IDs.
 # Hostname text alone is not used because GitHub-hosted runners may reuse it.
@@ -79,6 +86,7 @@ printf '%s\n' "$BOOT_IDS" >"$WORK/kernel-boot-ids.json"
 PASS=$(jq -nc \
   --arg run "$GITHUB_RUN_ID" --arg phase final --arg observer_host "$D_HOST" --arg observer_runner "$D_RUNNER" --arg observer_boot_id "$D_BOOT_ID" \
   --arg a_tip "$A_TIP" --arg a_work "$A_WORK" --arg b_tip "$B_TIP" --arg b_work "$B_WORK" \
-  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,distinct_runner_vms:true,distinct_runner_hosts:true,distinct_boot_ids:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_provider:"cloudflare-quick-tunnel",multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
+  --argjson tunnel_providers "$TUNNEL_PROVIDERS" --argjson tunnel_provider_count "$TUNNEL_PROVIDER_COUNT" \
+  '{run_id:$run,phase:$phase,status:"PASS",observer_hostname:$observer_host,observer_runner:$observer_runner,observer_boot_id:$observer_boot_id,distinct_runner_vms:true,distinct_runner_hosts:true,distinct_boot_ids:true,public_endpoint_consistency:true,weak_state_independently_observed:true,stronger_work_selected:true,secure_context_binding:true,real_public_tunnels:true,compute_provider:"github-actions",tunnel_providers:$tunnel_providers,tunnel_provider_count:$tunnel_provider_count,tunnel_failover_capable:true,multi_provider_compute_proof:false,time_equivalent_soak:false,a_tip_hash:$a_tip,a_chain_work:$a_work,b_tip_hash:$b_tip,b_chain_work:$b_work}')
 wan_post FAE_WAN_OBSERVER_PASS "$PASS"
 printf '%s\n' "$PASS" >"$WORK/observer-pass.json"
