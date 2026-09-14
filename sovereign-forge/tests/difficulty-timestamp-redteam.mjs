@@ -57,7 +57,7 @@ test('90s future wall rejects an accumulated-forward-clock strategy instead of a
 });
 
 test('declared honest clock-skew budget fits the 90s wall with explicit headroom',()=>{
-  const budget=guaranteedClockSkewBudget();assert.equal(CLOCK_SKEW_BUDGET_MS,30_000);assert.equal(RELAY_DELAY_BUDGET_MS,5_000);assert.equal(budget.ok,true);assert.equal(budget.worst_future_lead_ms,55_000);assert.equal(budget.headroom_ms,35_000);
+  const budget=guaranteedClockSkewBudget();assert.equal(CLOCK_SKEW_BUDGET_MS,30_000);assert.equal(RELAY_DELAY_BUDGET_MS,5_000);assert.equal(budget.ok,true);assert.equal(budget.worst_future_lead_ms,60_000);assert.equal(budget.headroom_ms,30_000);
   assert.equal(honestClockPairAccepted({producerSkewMs:30_000,receiverSkewMs:-30_000,relayDelayMs:0}),true);
   assert.equal(honestClockPairAccepted({producerSkewMs:46_000,receiverSkewMs:-46_000,relayDelayMs:0}),false,'outside declared skew budget may fail closed');
 });

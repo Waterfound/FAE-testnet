@@ -16,9 +16,14 @@ This gate extends the deterministic Difficulty + Timestamp package with seeded s
 
 - Future timestamp wall: **90 s** (unchanged).
 - Declared honest local-clock skew budget: **±30 s**.
-- Relay-delay budget used for the guarantee calculation: **5 s**.
-- Worst producer/receiver relative lead under those budgets: **55 s**.
-- Remaining future-wall headroom: **35 s**.
+- Relay-delay range: **0–5 s**. The upper bound supplies no guaranteed delay.
+- Worst producer/receiver relative lead under those budgets: **60 s** (zero-delay delivery).
+- Remaining future-wall headroom: **30 s**.
+
+The previous 55 s / 35 s calculation described an exact 5 s relay, not a
+guarantee over the entire permitted range. The 90 s wall and ±30 s skew
+parameters are unchanged. See `DIFFICULTY_TIMESTAMP_ARRIVAL_CLOCK.md` for the
+arrival/replay integration gate.
 
 This is an activation precondition, not a claim that arbitrary unsynchronised clocks are safe. Nodes outside the declared clock budget may fail closed. Before mainnet activation, node startup/health telemetry must expose clock-health state or equivalent operator-visible evidence.
 
