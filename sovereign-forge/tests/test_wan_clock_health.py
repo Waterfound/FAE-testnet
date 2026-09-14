@@ -1,5 +1,13 @@
 import unittest
-from wan_clock_health import assess, duration_ms, verify_records, SCHEMA
+from wan_clock_health import (
+    assess,
+    duration_ms,
+    verify_records,
+    verify_readiness,
+    stable_tail,
+    SCHEMA,
+    READINESS_SCHEMA,
+)
 
 CHRONY = '''Reference ID : 12345678 (ntp.example)
 Stratum : 3
@@ -33,6 +41,23 @@ def records():
                        'monotonic_ns': 100000000000+i*10_000_000_000, 'probe_elapsed_ms': 10,
                        'raw': report, 'assessment': assess(report)})
     return result
+
+
+def readiness(statuses=('PASS', 'PASS')):
+    rows = []
+    for i, status in enumerate(statuses):
+        report = raw() if status == 'PASS' else raw(CHRONY.replace('Normal', 'Not synchronised'))
+        rows.append({'schema': SCHEMA, 'role': 'A', 'source_sha': 'a'*40, 'run_id': '123',
+                     'runner_name': 'runner-A', 'boot_id': '12345678-1234-1234-1234-123456789012',
+                     'phase': 'readiness', 'wall_ns': 1760000000000000000+i*1_000_000_000,
+                     'monotonic_ns': 100000000000+i*1_000_000_000, 'probe_elapsed_ms': 10,
+                     'raw': report, 'assessment': assess(report)})
+    passed = stable_tail(rows, 2)
+    return {'schema': READINESS_SCHEMA, 'role': 'A', 'source_sha': 'a'*40, 'run_id': '123',
+            'status': 'PASS' if passed else 'INCOMPLETE', 'stable_samples_required': 2,
+            'samples': len(rows), 'boot_id': rows[0]['boot_id'], 'runner_name': rows[0]['runner_name'],
+            'final_assessment': rows[-1]['assessment'], 'independent_utc_proof': False,
+            'records': rows}
 
 
 class ClockHealthTests(unittest.TestCase):
@@ -86,6 +111,19 @@ class ClockHealthTests(unittest.TestCase):
             elif mode == 'nan': r[1]['probe_elapsed_ms'] = float('nan')
             else: r[1]['raw'] = {}; r[1]['assessment'] = assess({})
             self.assertEqual(verify_records(r, 'a'*40, '123')['status'], 'INCOMPLETE')
+
+    def test_readiness_requires_consecutive_passes(self):
+        self.assertTrue(stable_tail(readiness(('PASS', 'PASS'))['records'], 2))
+        self.assertFalse(stable_tail(readiness(('PASS', 'UNKNOWN'))['records'], 2))
+        self.assertTrue(stable_tail(readiness(('UNKNOWN', 'PASS', 'PASS'))['records'], 2))
+
+    def test_readiness_is_recomputed_from_raw_evidence(self):
+        result = readiness(('UNKNOWN', 'PASS', 'PASS'))
+        checked = verify_readiness(result, 'a'*40, '123')
+        self.assertEqual(checked['status'], 'PASS')
+        result['status'] = 'INCOMPLETE'
+        with self.assertRaisesRegex(ValueError, 'result'):
+            verify_readiness(result, 'a'*40, '123')
 
 
 if __name__ == '__main__':
