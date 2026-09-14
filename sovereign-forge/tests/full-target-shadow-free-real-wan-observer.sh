@@ -7,6 +7,8 @@ source "${ROOT}/tests/full-target-shadow-free-real-wan-common.sh"
 
 WORK="${WAN_ARTIFACT_DIR:-/tmp/fae-real-wan-d}"
 mkdir -p "$WORK"
+trap 'wan_clock_finish "$WORK"' EXIT
+wan_clock_start D "$WORK"
 D_BOOT_ID="$(cat /proc/sys/kernel/random/boot_id)"
 [[ -n "$D_BOOT_ID" ]]
 printf '%s\n' "$D_BOOT_ID" >"$WORK/boot-id.txt"
@@ -66,6 +68,11 @@ FINAL_PHASE=$(wan_wait_phase FAE_WAN_PHASE final 600)
 A_FINAL=$(wan_json_status "$A_URL")
 B_FINAL=$(wan_json_status "$B_URL")
 C_FINAL=$(wan_json_status "$C_URL")
+if [[ "${FAE_WAN_CLOCK_HEALTH:-0}" == 1 ]]; then
+  for status in "$A_FINAL" "$B_FINAL" "$C_FINAL"; do
+    jq -e '.timestamp_policy=="arrival-wall-enforced-replay-intrinsic-v1"' <<<"$status" >/dev/null
+  done
+fi
 A_TIP=$(jq -r '.a_tip_hash' <<<"$FINAL_PHASE")
 A_WORK=$(jq -r '.a_chain_work' <<<"$FINAL_PHASE")
 B_TIP=$(jq -r '.b_tip_hash' <<<"$FINAL_PHASE")
