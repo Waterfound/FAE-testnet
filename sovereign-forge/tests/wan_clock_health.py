@@ -12,6 +12,7 @@ import threading
 import time
 
 SCHEMA = 'FAE_WAN_CLOCK_HEALTH_V1'
+READINESS_SCHEMA = 'FAE_WAN_CLOCK_READINESS_V1'
 POLICY = 'arrival-wall-enforced-replay-intrinsic-v1'
 BUDGET_MS = 30000
 
@@ -94,6 +95,52 @@ def sample(role, sha, run, phase):
             'raw': raw, 'assessment': assess(raw)}
 
 
+def stable_tail(records, required):
+    streak = 0
+    for row in records:
+        if row['assessment']['status'] == 'PASS':
+            streak += 1
+        else:
+            streak = 0
+    return streak >= required
+
+
+def preflight(args):
+    """Wait read-only for a bounded stable synchronization window, but never set time."""
+    deadline = time.monotonic() + args.timeout_seconds
+    records = []
+    while True:
+        records.append(sample(args.role, args.sha, args.run, 'readiness'))
+        if stable_tail(records, args.stable_samples):
+            status = 'PASS'
+            break
+        if time.monotonic() >= deadline:
+            status = 'INCOMPLETE'
+            break
+        time.sleep(args.interval_seconds)
+
+    first = records[0]
+    result = {
+        'schema': READINESS_SCHEMA,
+        'role': args.role,
+        'source_sha': args.sha,
+        'run_id': args.run,
+        'status': status,
+        'stable_samples_required': args.stable_samples,
+        'samples': len(records),
+        'boot_id': first['boot_id'],
+        'runner_name': first['runner_name'],
+        'final_assessment': records[-1]['assessment'],
+        'independent_utc_proof': False,
+        'records': records,
+    }
+    Path(args.out).write_text(json.dumps(result, indent=2, allow_nan=False)+'\n')
+    print(json.dumps({key: result[key] for key in (
+        'schema', 'role', 'source_sha', 'run_id', 'status', 'stable_samples_required',
+        'samples', 'boot_id', 'runner_name', 'independent_utc_proof')}))
+    return 0
+
+
 def collect(args):
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
@@ -150,6 +197,30 @@ def verify_records(records, sha, run):
             'independent_utc_proof': False}
 
 
+def verify_readiness(result, sha, run):
+    required = {'schema', 'role', 'source_sha', 'run_id', 'status', 'stable_samples_required',
+                'samples', 'boot_id', 'runner_name', 'final_assessment', 'records'}
+    if not required.issubset(result):
+        raise ValueError('incomplete_clock_readiness')
+    if result['schema'] != READINESS_SCHEMA or result['source_sha'] != sha or str(result['run_id']) != run:
+        raise ValueError('clock_readiness_identity_mismatch')
+    if result['role'] not in 'ABCD' or not re.fullmatch(r'[0-9a-f-]{36}', result['boot_id']):
+        raise ValueError('invalid_clock_readiness_identity')
+    records = result['records']
+    if not records or result['samples'] != len(records) or result['stable_samples_required'] < 2:
+        raise ValueError('invalid_clock_readiness_capture')
+    for row in records:
+        if (row['schema'], row['source_sha'], str(row['run_id']), row['role'], row['boot_id'], row['runner_name']) != (SCHEMA, sha, run, result['role'], result['boot_id'], result['runner_name']):
+            raise ValueError('clock_readiness_record_identity_mismatch')
+        assessment = assess(row['raw'])
+        if assessment != row['assessment']:
+            raise ValueError('clock_readiness_assessment_mismatch')
+    expected = 'PASS' if stable_tail(records, result['stable_samples_required']) else 'INCOMPLETE'
+    if result['status'] != expected or result['final_assessment'] != records[-1]['assessment']:
+        raise ValueError('clock_readiness_result_mismatch')
+    return result
+
+
 def verify_bundle(args):
     rows = []
     for path in sorted(Path(args.directory).rglob('clock-health.jsonl')):
@@ -159,6 +230,23 @@ def verify_bundle(args):
         raise ValueError('four_clock_roles_required')
     if len({x['boot_id'] for x in rows}) != 4 or len({x['runner_name'] for x in rows}) != 4 or any(x['runner_name']=='unknown' for x in rows):
         raise ValueError('four_clock_hosts_required')
+
+    readiness_rows = []
+    for path in sorted(Path(args.directory).rglob('clock-readiness.json')):
+        readiness_rows.append(verify_readiness(json.loads(path.read_text()), args.sha, args.run))
+    if sorted(x['role'] for x in readiness_rows) != ['A', 'B', 'C', 'D']:
+        raise ValueError('four_clock_readiness_roles_required')
+    readiness_by_role = {x['role']: x for x in readiness_rows}
+    for row in rows:
+        ready = readiness_by_role[row['role']]
+        if (row['boot_id'], row['runner_name']) != (ready['boot_id'], ready['runner_name']):
+            raise ValueError('clock_readiness_host_mismatch:'+row['role'])
+        row['readiness_status'] = ready['status']
+        row['readiness_samples'] = ready['samples']
+        if ready['status'] != 'PASS':
+            row['status'] = 'INCOMPLETE'
+            row['errors'] = sorted(set(row['errors'] + ['clock_readiness_failed']))
+
     observer = list(Path(args.directory).rglob('observer-pass.json'))
     if len(observer) != 1:
         raise ValueError('observer_result_required')
@@ -178,7 +266,7 @@ def verify_bundle(args):
     result = {'schema': SCHEMA, 'source_sha': args.sha, 'run_id': args.run,
               'status': 'PASS' if all(x['status']=='PASS' for x in rows) and args.network_success == 'yes' else 'INCOMPLETE',
               'network_observation': 'PASS', 'network_jobs_success': args.network_success == 'yes', 'distinct_clock_hosts': 4, 'hosts': rows,
-              'independent_utc_proof': False, 'time_equivalent_soak': False}
+              'clock_readiness_required': True, 'independent_utc_proof': False, 'time_equivalent_soak': False}
     Path(args.out).write_text(json.dumps(result, indent=2)+'\n')
     print(json.dumps(result))
     return 0 if result['status']=='PASS' else 1
@@ -187,15 +275,25 @@ def verify_bundle(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest='action', required=True)
+    readiness = sub.add_parser('preflight')
+    readiness.add_argument('--role', choices=list('ABCD'), required=True)
+    readiness.add_argument('--out', required=True)
+    readiness.add_argument('--timeout-seconds', type=float, default=30)
+    readiness.add_argument('--stable-samples', type=int, default=2)
+    readiness.add_argument('--interval-seconds', type=float, default=1)
     capture = sub.add_parser('collect')
     capture.add_argument('--role', choices=list('ABCD'), required=True)
     capture.add_argument('--out', required=True)
     check = sub.add_parser('verify-bundle')
     check.add_argument('directory'); check.add_argument('--out', required=True)
     check.add_argument('--network-success', choices=['yes', 'no'], required=True)
-    for p in (capture, check):
+    for p in (readiness, capture, check):
         p.add_argument('--sha', required=True); p.add_argument('--run', required=True)
     args = parser.parse_args()
+    if args.action == 'preflight':
+        if args.timeout_seconds <= 0 or args.stable_samples < 2 or args.interval_seconds <= 0:
+            parser.error('preflight bounds must be positive and stable-samples >= 2')
+        raise SystemExit(preflight(args))
     if args.action == 'collect':
         collect(args)
     else:
