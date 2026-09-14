@@ -23,6 +23,7 @@ cleanup(){
   wan_stop_pid_file "$PROXY_PID_FILE" TERM
   wan_stop_pid_file "$TUNNEL_PID_FILE" TERM
   wan_stop_pid_file "$NODE_PID_FILE" TERM
+  wan_clock_finish "$WORK"
 }
 on_exit(){
   local rc=$?
@@ -34,6 +35,7 @@ on_exit(){
   exit "$rc"
 }
 trap on_exit EXIT
+wan_clock_start C "$WORK"
 
 start_c(){
   FAE_SHADOW_HOST=127.0.0.1 \

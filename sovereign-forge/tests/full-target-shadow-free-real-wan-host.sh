@@ -20,8 +20,10 @@ printf '%s\n' "$BOOT_ID" >"$WORK/boot-id.txt"
 cleanup(){
   wan_stop_pid_file "$TUNNEL_PID_FILE" TERM
   wan_stop_pid_file "$NODE_PID_FILE" TERM
+  wan_clock_finish "$WORK"
 }
 trap cleanup EXIT
+wan_clock_start "$ROLE" "$WORK"
 
 FAE_SHADOW_HOST=127.0.0.1 \
 FAE_SHADOW_PORT=8788 \

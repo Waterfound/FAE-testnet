@@ -8,6 +8,25 @@ set -euo pipefail
 
 FAE_WAN_API="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}"
 
+wan_clock_start(){
+  [[ "${FAE_WAN_CLOCK_HEALTH:-0}" == 1 ]] || return 0
+  local role="$1" work="$2"
+  python3 "${ROOT}/tests/wan_clock_health.py" collect --role "$role" \
+    --sha "${GITHUB_SHA:?}" --run "$GITHUB_RUN_ID" --out "$work/clock-health.jsonl" \
+    >"$work/clock-collector.log" 2>&1 &
+  echo $! >"$work/clock-collector.pid"
+}
+
+wan_clock_finish(){
+  [[ "${FAE_WAN_CLOCK_HEALTH:-0}" == 1 ]] || return 0
+  local work="$1" pid
+  [[ -f "$work/clock-collector.pid" ]] || return 0
+  pid=$(cat "$work/clock-collector.pid")
+  kill -TERM "$pid" || return 1
+  wait "$pid" || return 1
+  rm "$work/clock-collector.pid"
+}
+
 wan_comments(){
   curl -fsS --retry 3 \
     -H "Authorization: Bearer ${GH_TOKEN}" \
