@@ -1,0 +1,74 @@
+name: Difficulty Timestamp Arrival Clock
+
+on:
+  push:
+    branches: [main, lab-difficulty-timestamp-arrival-clock]
+    paths:
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-*.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-*.mjs'
+      - 'sovereign-forge/tests/difficulty_timestamp_reference.py'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP*'
+      - '.github/workflows/difficulty-timestamp-arrival-clock.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-*.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/lab/full-target-shadow-validation-fixtures.mjs'
+      - 'sovereign-forge/tests/difficulty-timestamp-*.mjs'
+      - 'sovereign-forge/tests/difficulty_timestamp_reference.py'
+      - 'sovereign-forge/protocol/DIFFICULTY_TIMESTAMP*'
+      - '.github/workflows/difficulty-timestamp-arrival-clock.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-arrival-clock-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  arrival-clock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Receiver-clock admission, retry and durable replay
+        run: node --test sovereign-forge/tests/difficulty-timestamp-arrival-clock.mjs
+      - name: Preserve frozen DAA, timestamp and observer behavior
+        run: |
+          node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs sovereign-forge/tests/difficulty-timestamp-redteam.mjs sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+          python sovereign-forge/tests/difficulty_timestamp_reference.py
+      - name: Preserve mixed headers and full activation rehearsal
+        run: |
+          node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+          node sovereign-forge/tests/full-activation-rehearsal.mjs
+      - name: Confirm authority and frozen-parameter isolation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root = Path('sovereign-forge/node')
+          for path in [root / 'authoritative/fae-v4-core.mjs', root / 'authoritative/fae-v4-peer-node.mjs', root / 'fae-node-v6-candidate.mjs']:
+              source = path.read_text()
+              for marker in ['full-target-shadow-peer-node', 'full-target-headers-sync-candidate', 'difficulty-timestamp-template-policy']:
+                  assert marker not in source, (str(path), marker)
+          peer = (root / 'lab/full-target-shadow-peer-node.mjs').read_text()
+          assert 'arrival-wall-enforced-replay-intrinsic-v1' in peer
+          assert 'Date.now()+365' not in peer
+          assert 'candidate-not-active-consensus' in (root / 'authoritative/difficulty-timestamp-candidate.mjs').read_text()
+          print('arrival-clock authority isolation: PASS')
+          PY

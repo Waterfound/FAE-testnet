@@ -13,6 +13,7 @@ import {validateDownloadedBodies,rehearseHeadersFirstSync} from '../authoritativ
 export const FULL_TARGET_SHADOW_NODE_STATUS='lab-only-no-consensus-authority';
 export const FULL_TARGET_SHADOW_NETWORK='fairyelf-full-target-shadow-v1';
 export const FULL_TARGET_SHADOW_STATE_FORMAT='FAE_FULL_TARGET_SHADOW_STATE_V1';
+export const SHADOW_TIMESTAMP_POLICY_STATUS='arrival-wall-enforced-replay-intrinsic-v1';
 const MAX_BODY=4*1024*1024;
 const MAX_PAGE=512;
 
@@ -38,8 +39,9 @@ export function shadowCandidateAdoptionDecision(currentChain,candidateChain,poli
   return{adopt:true,reason:'preferred_candidate',fork};
 }
 
-export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile=null,identityFile=null,policy,trustedPrefix,initialChain=null}={}){
+export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile=null,identityFile=null,policy,trustedPrefix,initialChain=null,clock=Date.now}={}){
   if(!policy)throw new Error('shadow_policy_required');if(!Array.isArray(trustedPrefix)||trustedPrefix.length<1)throw new Error('shadow_trusted_prefix_required');
+  if(typeof clock!=='function')throw new Error('shadow_clock_required');
   const trusted=jsonClone(trustedPrefix),trustedHeight=trusted.length,trustedTip=trusted.at(-1);if(Number(trustedTip.height)!==trustedHeight)throw new Error('shadow_trusted_prefix_height_mismatch');
   if(Number(policy.activation_height)<=trustedHeight)throw new Error('shadow_activation_must_follow_trusted_prefix');
   const descriptor=activationPolicyDescriptor(policy),checkpointHash=hex64(trustedTip.hash,'trusted_checkpoint_hash');
@@ -49,14 +51,19 @@ export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile
 
   function validateStateChain(chain){
     if(!Array.isArray(chain)||!trustedPrefixMatches(chain,trusted))throw new Error('shadow_trusted_prefix_mismatch');
-    const suffix=chain.slice(trustedHeight);if(suffix.length){const headers=suffix.map(headerRecord);validateDownloadedBodies(trusted,headers,suffix,policy,{remotePolicyDescriptor:descriptor,nowMs:Date.now()+365*24*60*60_000});}
+    const suffix=chain.slice(trustedHeight);if(suffix.length){const headers=suffix.map(headerRecord);validateDownloadedBodies(trusted,headers,suffix,policy,{remotePolicyDescriptor:descriptor,enforceFutureDrift:false});}
     return validateBranchChain(chain,policy,{enforceFutureDrift:false});
   }
   validateStateChain(state.chain);
+  function arrivalNow(){const now=clock();if(!Number.isSafeInteger(now)||now<0)throw new Error('shadow_clock_invalid');return now}
+  function validateArrivalSuffix(chain,prefixHeight){
+    const suffix=chain.slice(prefixHeight);
+    return validateDownloadedBodies(chain.slice(0,prefixHeight),suffix.map(headerRecord),suffix,policy,{remotePolicyDescriptor:descriptor,nowMs:arrivalNow(),enforceFutureDrift:true});
+  }
   function serial(fn){const run=writeLock.then(fn,fn);writeLock=run.catch(()=>{});return run}
   async function persist(){if(!resolvedDataFile)return;await mkdir(dirname(resolvedDataFile),{recursive:true});const tmp=`${resolvedDataFile}.tmp`;await writeFile(tmp,`${JSON.stringify(state,null,2)}\n`);await rename(tmp,resolvedDataFile)}
   async function load(){if(!resolvedDataFile)return;try{const raw=JSON.parse(await readFile(resolvedDataFile,'utf8'));if(raw?.format!==FULL_TARGET_SHADOW_STATE_FORMAT)throw new Error('shadow_state_format_mismatch');validateStateChain(raw.chain);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:jsonClone(raw.chain)}}catch(error){if(error.code!=='ENOENT')throw error}}
-  function status(){const replay=validateStateChain(state.chain),tip=state.chain.at(-1);return{ok:true,status:FULL_TARGET_SHADOW_NODE_STATUS,shadow_network:FULL_TARGET_SHADOW_NETWORK,consensus_network:NETWORK,node_identity:identity.id,policy_id:descriptor.policy_id,activation_height:descriptor.activation_height,trusted_height:trustedHeight,trusted_checkpoint_hash:checkpointHash,height:Number(tip.height),tip_hash:String(tip.hash),chain_work:replay.work.toString(),secure_context_binding:secureChannels.status().contextBinding}}
+  function status(){const replay=validateStateChain(state.chain),tip=state.chain.at(-1);return{ok:true,status:FULL_TARGET_SHADOW_NODE_STATUS,shadow_network:FULL_TARGET_SHADOW_NETWORK,consensus_network:NETWORK,node_identity:identity.id,policy_id:descriptor.policy_id,activation_height:descriptor.activation_height,trusted_height:trustedHeight,trusted_checkpoint_hash:checkpointHash,height:Number(tip.height),tip_hash:String(tip.hash),chain_work:replay.work.toString(),secure_context_binding:secureChannels.status().contextBinding,timestamp_policy:SHADOW_TIMESTAMP_POLICY_STATUS}}
   function helloPayload(challenge){const s=status();return{challenge,software:'fairyelf-full-target-shadow',shadow_network:FULL_TARGET_SHADOW_NETWORK,consensus_network:NETWORK,policy:descriptor,trusted_height:trustedHeight,trusted_checkpoint_hash:checkpointHash,height:s.height,tip_hash:s.tip_hash,chain_work:s.chain_work,status:FULL_TARGET_SHADOW_NODE_STATUS}}
 
   async function peerHello(peer){
@@ -72,17 +79,22 @@ export function createFullTargetShadowPeerNode({host='127.0.0.1',port=0,dataFile
     const session=await sessionFor(hello);try{
       const ancestor=await session.request('/peer/ancestor',{method:'POST',body:{locator:locator(state.chain)}});if(!ancestor||!Number.isSafeInteger(Number(ancestor.height))||Number(ancestor.height)<0||Number(ancestor.height)>state.chain.length)throw new Error('shadow_invalid_ancestor');const local=blockAt(state.chain,Number(ancestor.height));if(!local||String(local.hash)!==String(ancestor.hash))throw new Error('shadow_ancestor_not_local');if(Number(hello.height)<=Number(ancestor.height))return{adopted:false,reason:'no_branch',peer_id:hello.peer_id};
       const from=Number(ancestor.height)+1,target=Number(hello.height);
-      const result=await rehearseHeadersFirstSync({localChain:state.chain,commonAncestorHeight:Number(ancestor.height),remotePolicyDescriptor:hello.policy,remoteClaimedWork:BigInt(hello.chain_work),remoteClaimedTipHash:hello.tip_hash,policy,nowMs:Date.now()+365*24*60*60_000,fetchHeaders:async()=>{const response=await session.request(`/headers?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.headers)||response.headers.length!==target-from+1)throw new Error('shadow_incomplete_headers');return response.headers},fetchBlocks:async()=>{const response=await session.request(`/blocks?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.blocks)||response.blocks.length!==target-from+1)throw new Error('shadow_incomplete_blocks');return response.blocks}});
+      const result=await rehearseHeadersFirstSync({localChain:state.chain,commonAncestorHeight:Number(ancestor.height),remotePolicyDescriptor:hello.policy,remoteClaimedWork:BigInt(hello.chain_work),remoteClaimedTipHash:hello.tip_hash,policy,clock:arrivalNow,fetchHeaders:async()=>{const response=await session.request(`/headers?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.headers)||response.headers.length!==target-from+1)throw new Error('shadow_incomplete_headers');return response.headers},fetchBlocks:async()=>{const response=await session.request(`/blocks?from=${from}&limit=${target-from+1}`);if(response.from!==from||!Array.isArray(response.blocks)||response.blocks.length!==target-from+1)throw new Error('shadow_incomplete_blocks');return response.blocks}});
       if(!result.ok)return{adopted:false,reason:result.error,stage:result.stage,peer_id:hello.peer_id};if(!result.preferred)return{adopted:false,reason:'validated_but_not_preferred',peer_id:hello.peer_id,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
       const adoption=await serial(async()=>{
         const decision=shadowCandidateAdoptionDecision(state.chain,result.candidate_chain,policy);if(!decision.adopt)return{adopted:false,reason:decision.reason};
-        if(!Array.isArray(result.storage_chain))throw new Error('shadow_storage_chain_missing');validateStateChain(result.storage_chain);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:jsonClone(result.storage_chain)};await persist();return{adopted:true,reason:'preferred_candidate'};
+        if(!Array.isArray(result.storage_chain))throw new Error('shadow_storage_chain_missing');
+        // Recheck the current receiver clock inside the adoption lock. A wall
+        // clock correction while bodies were in flight must not commit a now-
+        // premature suffix. Previously accepted history uses intrinsic replay.
+        try{validateArrivalSuffix(result.storage_chain,Number(ancestor.height));}catch(error){return{adopted:false,reason:error.message,stage:'adoption'}}
+        validateStateChain(result.storage_chain);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:jsonClone(result.storage_chain)};await persist();return{adopted:true,reason:'preferred_candidate'};
       });
-      if(!adoption.adopted)return{adopted:false,reason:adoption.reason,peer_id:hello.peer_id,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
+      if(!adoption.adopted)return{adopted:false,reason:adoption.reason,...(adoption.stage?{stage:adoption.stage}:{}),peer_id:hello.peer_id,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
       return{adopted:true,peer_id:hello.peer_id,height:state.chain.length,tip_hash:state.chain.at(-1).hash,headers_validated:result.headers_validated,blocks_validated:result.blocks_validated};
     }finally{session.close()}
   }
-  async function appendBlock(block){return serial(async()=>{const next=[...state.chain,jsonClone(block)];validateStateChain(next);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:next};await persist();return status()})}
+  async function appendBlock(block){return serial(async()=>{const next=[...state.chain,jsonClone(block)];validateArrivalSuffix(next,state.chain.length);validateStateChain(next);state={format:FULL_TARGET_SHADOW_STATE_FORMAT,chain:next};await persist();return status()})}
 
   async function secureDispatch(message){if(!message||typeof message.path!=='string'||typeof message.method!=='string')throw new Error('shadow_secure_request_malformed');const url=new URL(message.path,'http://shadow.invalid');if(message.method==='POST'&&url.pathname==='/peer/ancestor'){const ancestor=commonAncestor(state.chain,message.body?.locator);if(!ancestor)throw new Error('shadow_no_common_ancestor');return ancestor}if(message.method==='GET'&&url.pathname==='/headers'){const from=int(url.searchParams.get('from'),'from',{min:1}),limit=int(url.searchParams.get('limit'),'limit',{min:1,max:MAX_PAGE});return{from,headers:page(state.chain,from,limit).map(headerRecord)}}if(message.method==='GET'&&url.pathname==='/blocks'){const from=int(url.searchParams.get('from'),'from',{min:1}),limit=int(url.searchParams.get('limit'),'limit',{min:1,max:MAX_PAGE});return{from,blocks:jsonClone(page(state.chain,from,limit))}}throw new Error('shadow_secure_request_not_allowed')}
 
