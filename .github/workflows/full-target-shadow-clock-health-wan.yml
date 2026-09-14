@@ -112,6 +112,13 @@ jobs:
           node --check sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
           grep -q 'tunnel_provider' sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh
+      - name: Establish read-only clock readiness ${{ matrix.role }}
+        run: |
+          mkdir -p "$WAN_ARTIFACT_DIR"
+          python3 sovereign-forge/tests/wan_clock_health.py preflight \
+            --role '${{ matrix.role }}' --sha '${{ github.sha }}' --run '${{ github.run_id }}' \
+            --out "$WAN_ARTIFACT_DIR/clock-readiness.json" \
+            --timeout-seconds 30 --stable-samples 2 --interval-seconds 1
       - name: Run independent public WAN host ${{ matrix.role }}
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
       - name: Upload host evidence
@@ -147,6 +154,13 @@ jobs:
           grep -q "shadow_control_must_bind_loopback" sovereign-forge/node/lab/fae-full-target-shadow-validation-node.mjs
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
           grep -q 'tunnel_providers' sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
+      - name: Establish read-only clock readiness C
+        run: |
+          mkdir -p "$WAN_ARTIFACT_DIR"
+          python3 sovereign-forge/tests/wan_clock_health.py preflight \
+            --role C --sha '${{ github.sha }}' --run '${{ github.run_id }}' \
+            --out "$WAN_ARTIFACT_DIR/clock-readiness.json" \
+            --timeout-seconds 30 --stable-samples 2 --interval-seconds 1
       - name: Run cross-runner reorg/restart controller C
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Upload controller evidence
@@ -175,6 +189,13 @@ jobs:
           grep -q '/proc/sys/kernel/random/boot_id' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
           grep -q 'distinct_boot_ids:true' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
           grep -q 'tunnel_provider_fallback_capable:true' sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
+      - name: Establish read-only clock readiness D
+        run: |
+          mkdir -p "$WAN_ARTIFACT_DIR"
+          python3 sovereign-forge/tests/wan_clock_health.py preflight \
+            --role D --sha '${{ github.sha }}' --run '${{ github.run_id }}' \
+            --out "$WAN_ARTIFACT_DIR/clock-readiness.json" \
+            --timeout-seconds 30 --stable-samples 2 --interval-seconds 1
       - name: Independently observe A/B/C over public endpoints
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Upload observer evidence
