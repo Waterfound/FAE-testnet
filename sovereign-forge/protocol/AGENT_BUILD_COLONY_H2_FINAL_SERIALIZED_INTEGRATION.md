@@ -17,6 +17,14 @@ H2 freezes these already-integrated stages:
 
 The H2 workflow verifies the exact additive file ownership of every serialized transition. Unexpected historical scope expansion is a failure.
 
+## H2-owned freeze manifest
+
+H2 owns one machine-readable release-side evidence file in addition to its test, workflow and protocol document:
+
+`sovereign-forge/release/software-only-ceiling-freeze.json`
+
+The freeze records the already-GREEN A–F/G2 milestones, current and preferred-candidate parameters, unresolved external evidence and unresolved final-launch inputs. It deliberately records H2 itself as `GATED_BY_THIS_FREEZE`; the file cannot pre-authorize its own integration. The executable H2 test must validate the freeze before the workflow can become GREEN.
+
 ## Integrated candidate map
 
 H2 requires all consensus-adjacent Colony modules to remain explicitly non-authoritative:
@@ -59,11 +67,11 @@ Even under that maximal synthetic input, the result must remain:
 - `automatic_go_path: false`;
 - `decision: HOLD_FINAL_EXPLICIT_AUTHORIZATION`.
 
-The evidence output labels the software verdict as:
+The machine-readable H2 evidence verdict is:
 
-`SOFTWARE_CEILING_REACHED_WITH_EXTERNAL_EVIDENCE_REMAINING`
+`SOFTWARE_ONLY_PRE_MAINNET_CEILING_REACHED`
 
-This wording is intentionally narrow. It means the Colony has exhausted the high-value software-only scope represented by A–F/G2/H2. It does not claim the missing external evidence has been obtained.
+This verdict is intentionally qualified by the same evidence payload: external/physical evidence remains required, final explicit authorization remains required, `mainnet_ready_claimed` remains false, and no production launch values are selected.
 
 ## External evidence still required
 
@@ -96,6 +104,6 @@ Canonical-source and Independent Node workflows are also triggered by the H2 tes
 
 ## Integration rule
 
-H2 itself is additive-only and owns only its test, workflow and protocol document. It must not repair an earlier layer while claiming to integrate it. Any newly discovered defect belongs in a separate repair branch followed by a fresh serialized H2 attempt.
+H2 is additive-only and owns exactly four files: its executable test, workflow, protocol document and machine-readable software-only ceiling freeze. It must not repair an earlier layer while claiming to integrate it. Any newly discovered defect belongs in a separate repair branch followed by a fresh serialized H2 attempt.
 
-> **H2 may conclude that the software-only ceiling has been reached. It may not conclude that mainnet is authorized.**
+> **H2 may conclude that the software-only pre-mainnet ceiling has been reached. It may not conclude that mainnet is ready or authorized.**
