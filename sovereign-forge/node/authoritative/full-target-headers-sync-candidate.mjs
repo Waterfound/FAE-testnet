@@ -1,4 +1,4 @@
-import {NETWORK,MAX_TXS_PER_BLOCK,validateHeaderSequence} from './fae-v4-core.mjs';
+import {NETWORK,MAX_TXS_PER_BLOCK,LEGACY_TESTNET_LAST_HEIGHT,validateHeaderSequence} from './fae-v4-core.mjs';
 import {isValidAddress} from './address.mjs';
 import {hashHex} from './crypto.mjs';
 import {stableStringify} from './canonical.mjs';
@@ -68,6 +68,19 @@ function candidateFromActivatedBlock(block){
   return{header:full,nonce,hash:String(block.hash),txids:[...(block.txids||[])]};
 }
 
+function validateLegacyBodyCommitment(height,header,block){
+  if(!Array.isArray(block.txids)||new Set(block.txids.map(String)).size!==block.txids.length)throw new Error('legacy_block_bad_txids');
+  const full=header.header_json;
+  if(height<=LEGACY_TESTNET_LAST_HEIGHT){
+    // The immutable historical v4 checkpoints predate tx_root/tx_count.
+    // Replay must preserve those exact bytes instead of retroactively
+    // normalizing them into the later legacy encoding.
+    if(block.txids.length!==0||full.tx_root!==undefined||full.tx_count!==undefined)throw new Error('invalid_historical_legacy_block');
+    return;
+  }
+  if(Number(full.tx_count)!==block.txids.length||String(full.tx_root)!==hashHex(block.txids.map(String)))throw new Error('legacy_block_tx_commitment_mismatch');
+}
+
 export function validateDownloadedBodies(prefix,headers,blocks,policy,{remotePolicyDescriptor=activationPolicyDescriptor(policy),nowMs=Date.now(),enforceFutureDrift=true}={}){
   if(enforceFutureDrift)arrivalTime(nowMs);
   if(!Array.isArray(headers)||!Array.isArray(blocks)||headers.length!==blocks.length)throw new Error('header_block_length_mismatch');
@@ -76,8 +89,7 @@ export function validateDownloadedBodies(prefix,headers,blocks,policy,{remotePol
     const header=headers[i],block=blocks[i];if(String(block?.hash)!==String(header?.hash)||!same(block?.header_json,header?.header_json))throw new Error('downloaded_block_header_mismatch');
     const height=int(header.height,'height',{min:1});
     if(height<policy.activation_height){
-      if(!Array.isArray(block.txids)||new Set(block.txids.map(String)).size!==block.txids.length)throw new Error('legacy_block_bad_txids');
-      const full=header.header_json;if(Number(full.tx_count)!==block.txids.length||String(full.tx_root)!==hashHex(block.txids.map(String)))throw new Error('legacy_block_tx_commitment_mismatch');
+      validateLegacyBodyCommitment(height,header,block);
       chain=validateLegacyHeader(chain,header,{nowMs,enforceFutureDrift});storageChain.push(structuredClone(block));continue;
     }
     const candidate=candidateFromActivatedBlock(block),verdict=validateFullActivationCandidate(chain,candidate,policy,{remotePolicyDescriptor,nowMs,enforceFutureDrift});
