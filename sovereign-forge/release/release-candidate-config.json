@@ -1,0 +1,30 @@
+{
+  "format": "FAE_RELEASE_CONFIG_FREEZE_V1",
+  "status": "candidate-package-only",
+  "authority": {
+    "candidate_to_authoritative": false,
+    "mainnet_launch_authorized": false,
+    "live_activation_height": null
+  },
+  "canonical_public_testnet": {
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_subsidy_fae": 10,
+    "halving_era_blocks": 600000
+  },
+  "preferred_future_candidate": {
+    "target_seconds": 300,
+    "initial_subsidy_fae": 14,
+    "halving_era_blocks": 430000,
+    "theoretical_max_supply_fae": 12040000,
+    "coinbase_maturity_blocks": 200,
+    "activation_height": null,
+    "status": "not-authorized"
+  },
+  "release_rules": {
+    "source_tree_must_be_reproducible": true,
+    "artifact_manifest_must_cover_every_tracked_file": true,
+    "build_environment_must_not_change_artifact_bytes": true,
+    "release_must_not_mutate_live_consensus": true
+  }
+}

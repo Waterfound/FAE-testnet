@@ -1,0 +1,79 @@
+name: colony-e-release-reproducibility
+
+on:
+  push:
+    branches:
+      - 'colony/e-release-reproducibility-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/release/**'
+      - 'sovereign-forge/scripts/build-reproducible-release.mjs'
+      - 'sovereign-forge/tests/release-reproducibility-colony-e.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_E_RELEASE_REPRODUCIBILITY.md'
+      - '.github/workflows/colony-e-release-reproducibility.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  release-reproducibility:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: 02b68016815b3c9e7d2359a408826a790ae5608e
+    steps:
+      - name: Checkout Worker E
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: primary
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove Worker E is additive only
+        working-directory: primary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/colony-e-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/colony-e-diff.txt | grep -q .; then
+            echo 'Worker E may not modify pre-existing authority.'
+            exit 1
+          fi
+      - name: Unit and byte reproducibility gate
+        working-directory: primary
+        run: |
+          node --check sovereign-forge/scripts/build-reproducible-release.mjs
+          node sovereign-forge/tests/release-reproducibility-colony-e.mjs
+
+      - name: Clean-room checkout A
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: clean-a
+      - name: Clean-room checkout B
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: clean-b
+      - name: Build twice from independent checkout paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-a" "$RUNNER_TEMP/release-b"
+          node clean-a/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-a"
+          node clean-b/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-b"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v1.json" "$RUNNER_TEMP/release-b/fae-source-release-v1.json"
+          cmp "$RUNNER_TEMP/release-a/manifest.json" "$RUNNER_TEMP/release-b/manifest.json"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v1.json.sha256" "$RUNNER_TEMP/release-b/fae-source-release-v1.json.sha256"
+          sha256sum "$RUNNER_TEMP/release-a/fae-source-release-v1.json"
+          echo 'COLONY_E_CLEAN_ROOM=PASS'
+      - name: Preserve reproducibility evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-release-candidate-reproducibility-evidence
+          path: |
+            ${{ runner.temp }}/release-a/fae-source-release-v1.json
+            ${{ runner.temp }}/release-a/manifest.json
+            ${{ runner.temp }}/release-a/fae-source-release-v1.json.sha256
+          if-no-files-found: error
+          retention-days: 7
