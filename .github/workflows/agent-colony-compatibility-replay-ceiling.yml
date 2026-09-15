@@ -1,0 +1,55 @@
+name: Agent Colony - Compatibility Replay Ceiling
+
+on:
+  push:
+    branches: [agent-colony-c-compatibility-replay, main]
+    paths:
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-*.mjs'
+      - 'sovereign-forge/tests/legacy-testnet-fixture.mjs'
+      - 'sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs'
+      - 'sovereign-forge/tests/activation-compatibility-replay-colony-ceiling.mjs'
+      - '.github/workflows/agent-colony-compatibility-replay-ceiling.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-*.mjs'
+      - 'sovereign-forge/tests/legacy-testnet-fixture.mjs'
+      - 'sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs'
+      - 'sovereign-forge/tests/activation-compatibility-replay-colony-ceiling.mjs'
+      - '.github/workflows/agent-colony-compatibility-replay-ceiling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-c-compatibility-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check compatibility candidate and ceiling test
+        run: |
+          node --check sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+          node --check sovereign-forge/tests/activation-compatibility-replay-colony-ceiling.mjs
+      - name: Preserve previous headers-first evidence
+        run: node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+      - name: Run genesis compatibility and replay ceiling
+        run: node sovereign-forge/tests/activation-compatibility-replay-colony-ceiling.mjs
+      - name: Preserve candidate-only authority and economics boundary
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+          ! grep -q "activation-compatibility-replay-colony-ceiling" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-headers-sync-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-headers-sync-candidate" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-target-headers-sync-candidate" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
