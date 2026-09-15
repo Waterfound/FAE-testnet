@@ -6,6 +6,7 @@ on:
       - 'colony/h2-final-serialized-integration'
   pull_request:
     paths:
+      - 'sovereign-forge/release/software-only-ceiling-freeze.json'
       - 'sovereign-forge/tests/agent-build-colony-h2-final-integration.mjs'
       - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_H2_FINAL_SERIALIZED_INTEGRATION.md'
       - '.github/workflows/colony-h2-final-serialized-integration.yml'
@@ -40,7 +41,7 @@ jobs:
             echo 'H2 may not modify any previously verified implementation.'
             exit 1
           fi
-          allowed='^A[[:space:]]+(sovereign-forge/tests/agent-build-colony-h2-final-integration\.mjs|sovereign-forge/protocol/AGENT_BUILD_COLONY_H2_FINAL_SERIALIZED_INTEGRATION\.md|\.github/workflows/colony-h2-final-serialized-integration\.yml)$'
+          allowed='^A[[:space:]]+(sovereign-forge/release/software-only-ceiling-freeze\.json|sovereign-forge/tests/agent-build-colony-h2-final-integration\.mjs|sovereign-forge/protocol/AGENT_BUILD_COLONY_H2_FINAL_SERIALIZED_INTEGRATION\.md|\.github/workflows/colony-h2-final-serialized-integration\.yml)$'
           if grep -Ev "$allowed" /tmp/h2-diff.txt | grep -q .; then
             echo 'H2 touched a path outside final-integration evidence ownership.'
             exit 1
@@ -84,6 +85,16 @@ jobs:
             .github/workflows/colony-g2-independent-release-mainnet-verifier.yml \
             sovereign-forge/protocol/AGENT_BUILD_COLONY_G2_INDEPENDENT_RELEASE_MAINNET_VERIFIER.md \
             sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs
+
+      - name: Validate frozen software-only ceiling matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "JSON.parse(require('fs').readFileSync('sovereign-forge/release/software-only-ceiling-freeze.json','utf8'))"
+          grep -q '"status": "software-only-pre-mainnet-ceiling-reached"' sovereign-forge/release/software-only-ceiling-freeze.json
+          grep -q '"software_only_work_remaining_before_external_evidence": false' sovereign-forge/release/software-only-ceiling-freeze.json
+          grep -q '"external_or_physical_evidence_still_required": true' sovereign-forge/release/software-only-ceiling-freeze.json
+          grep -q '"mainnet_ready_claimed": false' sovereign-forge/release/software-only-ceiling-freeze.json
 
       - name: Execute H2 integrated software-ceiling verdict
         shell: bash
