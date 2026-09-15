@@ -1,0 +1,51 @@
+name: Agent Colony - State Transition Ceiling
+
+on:
+  push:
+    branches: [agent-colony-b-state-transition, main]
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
+      - 'sovereign-forge/tests/activation-state-transition-colony-ceiling.mjs'
+      - 'sovereign-forge/tests/authoritative-v4-core.mjs'
+      - '.github/workflows/agent-colony-state-transition-ceiling.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-core.mjs'
+      - 'sovereign-forge/tests/activation-state-transition-colony-ceiling.mjs'
+      - 'sovereign-forge/tests/authoritative-v4-core.mjs'
+      - '.github/workflows/agent-colony-state-transition-ceiling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-b-state-transition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check candidate state layer
+        run: |
+          node --check sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          node --check sovereign-forge/tests/activation-state-transition-colony-ceiling.mjs
+      - name: Preserve current authoritative state baseline
+        run: node --test sovereign-forge/tests/authoritative-v4-core.mjs
+      - name: Run integrated state wallet UTXO transition ceiling
+        run: node sovereign-forge/tests/activation-state-transition-colony-ceiling.mjs
+      - name: Preserve candidate-only authority and economics boundary
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          grep -q "DEFAULT_COINBASE_MATURITY_BLOCKS=200" sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          ! grep -q "activation-state-transition-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "activation-state-transition-candidate" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "activation-state-transition-candidate" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
