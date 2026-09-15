@@ -1,0 +1,88 @@
+name: colony-g2-independent-release-mainnet-verifier
+
+on:
+  push:
+    branches:
+      - 'colony/g2-independent-release-mainnet-verifier'
+  pull_request:
+    paths:
+      - 'sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs'
+      - '.github/workflows/colony-g2-independent-release-mainnet-verifier.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g2-independent-verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      BASE_SHA: 20a37c26125c5a11ba4c6808c1b4e1d6a07afd88
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove G2 is verifier-only and additive
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/g2-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/g2-diff.txt | grep -q .; then
+            echo 'G2 may not modify the verified E/F implementation.'
+            exit 1
+          fi
+          allowed='^A[[:space:]]+(sovereign-forge/tests/release-mainnet-independent-verifier-g2\.mjs|\.github/workflows/colony-g2-independent-release-mainnet-verifier\.yml)$'
+          if grep -Ev "$allowed" /tmp/g2-diff.txt | grep -q .; then
+            echo 'G2 touched a path outside its verifier-only ownership.'
+            exit 1
+          fi
+
+      - name: Run independent Git-oracle verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs
+          node sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs | tee "$RUNNER_TEMP/g2-evidence.json"
+
+      - name: Reproduce E v2 and F v2 after independent verification
+        run: |
+          node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
+          node sovereign-forge/tests/mainnet-rehearsal-package-colony-f-v2.mjs
+
+      - name: Regress integrated Colony and differential evidence
+        run: |
+          node sovereign-forge/tests/agent-build-colony-h-integration.mjs
+          node sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs
+          node sovereign-forge/tests/activation-state-transition-core-differential.mjs
+          node sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
+
+      - name: Preserve permanent authority fences
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/release-candidate-config.json
+          grep -q '"candidate_to_authoritative": false' sovereign-forge/release/release-candidate-config.json
+          grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"candidate_to_authoritative": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"automatic_go_path": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"live_activation_height": null' sovereign-forge/release/mainnet-rehearsal-template.json
+          ! grep -q '"mainnet_launch_authorized": true' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+      - name: Preserve independent verifier evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-colony-g2-independent-release-mainnet-evidence
+          path: ${{ runner.temp }}/g2-evidence.json
+          if-no-files-found: error
+          retention-days: 7
