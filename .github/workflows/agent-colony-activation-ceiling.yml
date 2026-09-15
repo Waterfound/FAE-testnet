@@ -1,0 +1,65 @@
+name: Agent Colony - Activation Ceiling
+
+on:
+  push:
+    branches: [agent-colony-a-activation-ceiling, main]
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-*.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-*.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
+      - 'sovereign-forge/tests/full-activation-rehearsal.mjs'
+      - '.github/workflows/agent-colony-activation-ceiling.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-*.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-*.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/tests/activation-*.mjs'
+      - 'sovereign-forge/tests/full-activation-rehearsal.mjs'
+      - '.github/workflows/agent-colony-activation-ceiling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-a-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check candidate and reference implementations
+        run: |
+          node --check sovereign-forge/node/authoritative/activation-boundary-candidate.mjs
+          node --check sovereign-forge/node/authoritative/activation-reorg-candidate.mjs
+          node --check sovereign-forge/node/authoritative/activation-reorg-reference.mjs
+          node --check sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs
+          node --check sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs
+          node --check sovereign-forge/tests/activation-boundary-colony-ceiling.mjs
+      - name: Run activation evidence bank
+        run: |
+          node sovereign-forge/tests/activation-boundary-hardening.mjs
+          node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+          node sovereign-forge/tests/activation-policy-identity-rehearsal.mjs
+          node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+          node sovereign-forge/tests/full-activation-rehearsal.mjs
+          node sovereign-forge/tests/activation-boundary-colony-ceiling.mjs
+      - name: Preserve candidate-only authority boundary
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-boundary-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-reorg-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs
+          ! grep -q "activation-boundary-colony-ceiling" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "activation-boundary-colony-ceiling" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "activation-boundary-colony-ceiling" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
