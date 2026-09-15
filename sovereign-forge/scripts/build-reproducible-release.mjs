@@ -17,6 +17,7 @@ function canonical(value){
 }
 function stable(value){return JSON.stringify(canonical(value));}
 function sha256(bytes){return createHash('sha256').update(bytes).digest('hex');}
+function codepointOrder(a,b){return a<b?-1:a>b?1:0;}
 function git(args,{encoding='utf8',cwd=repoRoot,maxBuffer=256*1024*1024}={}){
   return execFileSync('git',args,{cwd,encoding,maxBuffer,stdio:['ignore','pipe','pipe']});
 }
@@ -47,7 +48,8 @@ function committedEntries({cwd=repoRoot}={}){
     if(!/^(100644|100755|120000)$/.test(git_mode)||!/^[0-9a-f]{40}$/.test(object_id))throw new Error('git_tree_metadata_invalid');
     rows.push({git_mode,type,object_id,path});
   }
-  rows.sort((a,b)=>a.path.localeCompare(b.path));
+  // Release ordering must be independent of host locale/collation settings.
+  rows.sort((a,b)=>codepointOrder(a.path,b.path));
   if(new Set(rows.map(row=>row.path)).size!==rows.length)throw new Error('duplicate_tree_path');
   return rows;
 }
