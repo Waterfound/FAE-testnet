@@ -1,0 +1,66 @@
+name: colony-f-mainnet-rehearsal-package
+
+on:
+  push:
+    branches:
+      - 'colony/f-mainnet-rehearsal-package-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/release/mainnet-rehearsal-template.json'
+      - 'sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs'
+      - 'sovereign-forge/tests/mainnet-rehearsal-package-colony-f.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_F_MAINNET_REHEARSAL_PACKAGE.md'
+      - '.github/workflows/colony-f-mainnet-rehearsal-package.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mainnet-rehearsal-package:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: 02b68016815b3c9e7d2359a408826a790ae5608e
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove Worker F is additive only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/colony-f-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/colony-f-diff.txt | grep -q .; then
+            echo 'Worker F may not modify pre-existing authority.'
+            exit 1
+          fi
+      - name: Syntax and executable rehearsal gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs
+          node sovereign-forge/tests/mainnet-rehearsal-package-colony-f.mjs | tee "$RUNNER_TEMP/mainnet-rehearsal-evidence.json"
+      - name: Regress activation, replay and network composition
+        run: |
+          node sovereign-forge/tests/full-activation-rehearsal.mjs
+          node sovereign-forge/tests/compatibility-replay-colony-c.mjs
+          node sovereign-forge/tests/activation-network-composition-colony-d.mjs
+      - name: Enforce permanent HOLD boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"candidate_to_authoritative": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"automatic_go_path": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          ! grep -q '"mainnet_launch_authorized": true' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q "mainnet_launch_authorized:false" sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs
+          echo 'COLONY_F_HOLD_BOUNDARY=PASS'
+      - name: Preserve rehearsal evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-mainnet-rehearsal-package-evidence
+          path: ${{ runner.temp }}/mainnet-rehearsal-evidence.json
+          if-no-files-found: error
+          retention-days: 7
