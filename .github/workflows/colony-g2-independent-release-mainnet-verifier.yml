@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_G2_INDEPENDENT_RELEASE_MAINNET_VERIFIER.md'
       - '.github/workflows/colony-g2-independent-release-mainnet-verifier.yml'
   workflow_dispatch:
 
@@ -18,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      BASE_SHA: 20a37c26125c5a11ba4c6808c1b4e1d6a07afd88
+      POST_COLONY_SHA: cfd08a88f0f4f2e66560811cdd7eac6f8eec9cf9
+      E_MERGE_SHA: 92088ac1d60043f870b2e1eec06d7a0817325896
+      F_MERGE_SHA: 20a37c26125c5a11ba4c6808c1b4e1d6a07afd88
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,16 +34,51 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/g2-diff.txt
+          git diff --name-status "$F_MERGE_SHA..HEAD" | tee /tmp/g2-diff.txt
           if grep -Ev '^A[[:space:]]' /tmp/g2-diff.txt | grep -q .; then
             echo 'G2 may not modify the verified E/F implementation.'
             exit 1
           fi
-          allowed='^A[[:space:]]+(sovereign-forge/tests/release-mainnet-independent-verifier-g2\.mjs|\.github/workflows/colony-g2-independent-release-mainnet-verifier\.yml)$'
+          allowed='^A[[:space:]]+(sovereign-forge/tests/release-mainnet-independent-verifier-g2\.mjs|sovereign-forge/protocol/AGENT_BUILD_COLONY_G2_INDEPENDENT_RELEASE_MAINNET_VERIFIER\.md|\.github/workflows/colony-g2-independent-release-mainnet-verifier\.yml)$'
           if grep -Ev "$allowed" /tmp/g2-diff.txt | grep -q .; then
             echo 'G2 touched a path outside its verifier-only ownership.'
             exit 1
           fi
+
+      - name: Verify exact frozen E v2 and F v2 integration scopes
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_scope() {
+            local base="$1" head="$2"; shift 2
+            local status actual expected
+            status="$(git diff --name-status "$base..$head")"
+            if printf '%s\n' "$status" | grep -Ev '^A[[:space:]]' | grep -q .; then
+              echo "Non-additive historical scope: $base..$head"
+              printf '%s\n' "$status"
+              exit 1
+            fi
+            actual="$(git diff --name-only "$base..$head" | LC_ALL=C sort)"
+            expected="$(printf '%s\n' "$@" | LC_ALL=C sort)"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Unexpected historical scope: $base..$head"
+              echo '--- actual ---'; printf '%s\n' "$actual"
+              echo '--- expected ---'; printf '%s\n' "$expected"
+              exit 1
+            fi
+          }
+          check_scope "$POST_COLONY_SHA" "$E_MERGE_SHA" \
+            .github/workflows/colony-e-release-reproducibility-v2.yml \
+            sovereign-forge/protocol/AGENT_BUILD_COLONY_E_RELEASE_REPRODUCIBILITY_V2.md \
+            sovereign-forge/release/release-candidate-config.json \
+            sovereign-forge/scripts/build-reproducible-release.mjs \
+            sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
+          check_scope "$E_MERGE_SHA" "$F_MERGE_SHA" \
+            .github/workflows/colony-f-mainnet-rehearsal-package-v2.yml \
+            sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs \
+            sovereign-forge/protocol/AGENT_BUILD_COLONY_F_MAINNET_REHEARSAL_PACKAGE_V2.md \
+            sovereign-forge/release/mainnet-rehearsal-template.json \
+            sovereign-forge/tests/mainnet-rehearsal-package-colony-f-v2.mjs
 
       - name: Run independent Git-oracle verifier
         shell: bash
@@ -67,6 +105,7 @@ jobs:
           set -euo pipefail
           grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/release-candidate-config.json
           grep -q '"candidate_to_authoritative": false' sovereign-forge/release/release-candidate-config.json
+          grep -q '"status": "not-authorized"' sovereign-forge/release/release-candidate-config.json
           grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/mainnet-rehearsal-template.json
           grep -q '"candidate_to_authoritative": false' sovereign-forge/release/mainnet-rehearsal-template.json
           grep -q '"automatic_go_path": false' sovereign-forge/release/mainnet-rehearsal-template.json
