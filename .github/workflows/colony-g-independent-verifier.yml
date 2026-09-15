@@ -1,0 +1,147 @@
+name: colony-g-independent-verifier
+
+on:
+  push:
+    branches:
+      - 'colony/g-independent-verifier-v1'
+  pull_request:
+    paths:
+      - '.github/workflows/colony-g-independent-verifier.yml'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_G_INDEPENDENT_VERIFIER.md'
+
+permissions:
+  contents: read
+
+jobs:
+  independent-verifier:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510
+      B_SHA: 46aa7de21a658a26c4607ad7514fcce210ef9568
+      C_SHA: 99364b91a75c04413cd63d8d44088e2487eb64d6
+      D_SHA: 848fbd89bc1a0bf565b20b7d14ac2890b837e8c0
+    steps:
+      - name: Checkout verifier
+        uses: actions/checkout@v4
+        with:
+          path: verifier
+      - name: Checkout frozen A baseline
+        uses: actions/checkout@v4
+        with:
+          ref: e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510
+          fetch-depth: 0
+          path: base
+      - name: Checkout frozen Worker B
+        uses: actions/checkout@v4
+        with:
+          ref: 46aa7de21a658a26c4607ad7514fcce210ef9568
+          fetch-depth: 0
+          path: b
+      - name: Checkout frozen Worker C
+        uses: actions/checkout@v4
+        with:
+          ref: 99364b91a75c04413cd63d8d44088e2487eb64d6
+          fetch-depth: 0
+          path: c
+      - name: Checkout frozen Worker D
+        uses: actions/checkout@v4
+        with:
+          ref: 848fbd89bc1a0bf565b20b7d14ac2890b837e8c0
+          fetch-depth: 0
+          path: d
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify exact builder ownership scopes
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_scope() {
+            local dir="$1"; shift
+            local actual expected
+            actual="$(git -C "$dir" diff --name-only "$BASE_SHA..HEAD" | sort)"
+            expected="$(printf '%s\n' "$@" | sort)"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Unexpected scope in $dir"
+              echo "--- actual ---"; printf '%s\n' "$actual"
+              echo "--- expected ---"; printf '%s\n' "$expected"
+              exit 1
+            fi
+          }
+          check_scope b \
+            .github/workflows/colony-b-state-transition.yml \
+            sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs \
+            sovereign-forge/protocol/AGENT_BUILD_COLONY_B_STATE_TRANSITION.md \
+            sovereign-forge/tests/activation-state-transition-colony-b.mjs
+          check_scope c \
+            .github/workflows/colony-c-compatibility-replay.yml \
+            sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs \
+            sovereign-forge/protocol/AGENT_BUILD_COLONY_C_COMPATIBILITY_REPLAY.md \
+            sovereign-forge/tests/compatibility-replay-colony-c.mjs
+          check_scope d \
+            .github/workflows/colony-d-network-composition.yml \
+            sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs \
+            sovereign-forge/protocol/AGENT_BUILD_COLONY_D_NETWORK_COMPOSITION.md \
+            sovereign-forge/tests/activation-network-composition-colony-d.mjs
+
+      - name: Verify shared authority files are byte-identical
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            sovereign-forge/node/authoritative/fae-v4-core.mjs
+            sovereign-forge/node/authoritative/activation-reorg-candidate.mjs
+            sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs
+            sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+          )
+          for candidate in b c d; do
+            for file in "${files[@]}"; do
+              cmp "base/$file" "$candidate/$file"
+            done
+          done
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" base/sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" base/sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" base/sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+      - name: Independently reproduce Worker A activation baseline
+        working-directory: base
+        run: |
+          node sovereign-forge/tests/activation-boundary-hardening.mjs
+          node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+          node sovereign-forge/tests/activation-policy-identity-rehearsal.mjs
+          node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+          node sovereign-forge/tests/full-activation-rehearsal.mjs
+          node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+
+      - name: Independently reproduce Worker B
+        working-directory: b
+        run: |
+          node --check sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          node sovereign-forge/tests/activation-state-transition-colony-b.mjs
+
+      - name: Independently reproduce Worker C plus legacy bootstrap
+        working-directory: c
+        run: |
+          node --check sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs
+          node sovereign-forge/tests/compatibility-replay-colony-c.mjs
+          node sovereign-forge/tests/sync-legacy-bootstrap.mjs
+          node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+
+      - name: Independently reproduce Worker D plus pre-colony network evidence
+        working-directory: d
+        run: |
+          node --check sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs
+          node sovereign-forge/tests/activation-network-composition-colony-d.mjs
+          node sovereign-forge/tests/partition-recovery-3node.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+          node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+
+      - name: Verify non-activation markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" b/sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          grep -q "candidate-not-active-consensus" c/sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs
+          grep -q "candidate-not-active-consensus" d/sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs
+          echo 'COLONY_G_A_D=PASS'

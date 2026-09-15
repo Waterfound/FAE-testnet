@@ -1,0 +1,77 @@
+# Agent Build Colony H — serialized integration gate
+name: colony-h-integration
+
+on:
+  push:
+    branches:
+      - 'colony/h-integration-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs'
+      - 'sovereign-forge/tests/agent-build-colony-h-integration.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_H_INTEGRATION.md'
+      - '.github/workflows/colony-h-integration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  serialized-integration:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove integration is additive only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/colony-h-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/colony-h-diff.txt | grep -q .; then
+            echo 'Worker H detected a modification/deletion/rename of pre-colony content.'
+            exit 1
+          fi
+
+      - name: Cross-worker integration invariants
+        run: node sovereign-forge/tests/agent-build-colony-h-integration.mjs
+
+      - name: Reproduce Worker A on integrated tree
+        run: |
+          node sovereign-forge/tests/activation-boundary-hardening.mjs
+          node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+          node sovereign-forge/tests/activation-policy-identity-rehearsal.mjs
+          node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+          node sovereign-forge/tests/full-activation-rehearsal.mjs
+          node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+
+      - name: Reproduce B C D on the same integrated tree
+        run: |
+          node sovereign-forge/tests/activation-state-transition-colony-b.mjs
+          node sovereign-forge/tests/compatibility-replay-colony-c.mjs
+          node sovereign-forge/tests/activation-network-composition-colony-d.mjs
+
+      - name: Integrated pre-colony network regressions
+        run: |
+          node sovereign-forge/tests/sync-legacy-bootstrap.mjs
+          node sovereign-forge/tests/partition-recovery-3node.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+
+      - name: Non-activation and live-economics guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          echo 'COLONY_H_INTEGRATION=PASS'
