@@ -12,7 +12,7 @@ import {
   slh_dsa_shake_256s, slh_dsa_shake_256f
 } from '@noble/post-quantum/slh-dsa.js';
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from '@noble/hashes/sha2.js';
-import { sha3_224, sha3_256, sha3_384, sha3_512, shake128, shake256 } from '@noble/hashes/sha3.js';
+import { sha3_224, sha3_256, sha3_384, sha3_512, shake128_32, shake256_64 } from '@noble/hashes/sha3.js';
 
 const base = process.env.PQ_ACVP_DIR;
 if (!base) throw new Error('PQ_ACVP_DIR is required');
@@ -35,8 +35,8 @@ const HASHES = {
   'SHA2-224': sha224, 'SHA2-256': sha256, 'SHA2-384': sha384, 'SHA2-512': sha512,
   'SHA2-512/224': sha512_224, 'SHA2-512/256': sha512_256,
   'SHA3-224': sha3_224, 'SHA3-256': sha3_256, 'SHA3-384': sha3_384, 'SHA3-512': sha3_512,
-  'SHAKE-128': Object.assign((m) => shake128(m, { dkLen: 32 }), { outputLen: 32 }),
-  'SHAKE-256': Object.assign((m) => shake256(m, { dkLen: 64 }), { outputLen: 64 })
+  'SHAKE-128': shake128_32,
+  'SHAKE-256': shake256_64
 };
 
 const hex = (s='') => Uint8Array.from(Buffer.from(s, 'hex'));
@@ -93,12 +93,13 @@ const evidence = {
     for (const t of g.tests) {
       const want=em.get(t.tcId); assert(want, 'missing ML siggen result');
       const rnd=t.rnd ? hex(t.rnd) : false;
-      const opts={extraEntropy:rnd, externalMu:!!g.externalMu};
+      const internalOpts={extraEntropy:rnd, externalMu:!!g.externalMu};
       let sig;
       if (g.signatureInterface==='internal') {
-        sig=g.externalMu ? scheme.internal.sign(hex(t.mu),hex(t.sk),opts) : scheme.internal.sign(hex(t.message),hex(t.sk),opts);
+        sig=g.externalMu ? scheme.internal.sign(hex(t.mu),hex(t.sk),internalOpts) : scheme.internal.sign(hex(t.message),hex(t.sk),internalOpts);
       } else if (g.signatureInterface==='external') {
         const ctx=t.context ? hex(t.context) : undefined;
+        const publicOpts={extraEntropy:rnd,context:ctx};
         if (g.preHash==='preHash') {
           const h=HASHES[t.hashAlg]; assert(h,'unknown hash '+t.hashAlg);
           if (strength(h)<scheme.securityLevel) {
@@ -106,8 +107,8 @@ const evidence = {
             assert(threw,'weak ML prehash was not rejected');
             evidence.pq03.policy_rejections++; continue;
           }
-          sig=scheme.prehash(h).sign(hex(t.message),hex(t.sk),{...opts,context:ctx});
-        } else sig=scheme.sign(hex(t.message),hex(t.sk),{...opts,context:ctx});
+          sig=scheme.prehash(h).sign(hex(t.message),hex(t.sk),publicOpts);
+        } else sig=scheme.sign(hex(t.message),hex(t.sk),publicOpts);
       } else throw new Error('unknown ML signatureInterface');
       assert(eq(sig,hex(want.signature)), `ML siggen mismatch tc=${t.tcId}`);
       evidence.pq03.siggen++;
