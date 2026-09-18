@@ -9,6 +9,8 @@ const MAX_COORDINATORS=8;
 const MAX_PROTOCOL_BACKOFF_MS=5*60_000;
 const MAX_EQUIVOCATION_BACKOFF_MS=30*60_000;
 const DIRECT_TIP_OBSERVER_INTERVAL_MS=2000;
+const DIRECT_TIP_HINT_CHANNEL='fae-mining-tip-hint-v1';
+let directTipHintChannel=null;
 let directTipObserverTimer=null;
 let directTipObserverToken=0;
 let activeDirectTipObserver=null;
@@ -78,6 +80,27 @@ function clearDirectTipObserver(token=null){
   directTipObserverToken++;
   if(directTipObserverTimer!==null){clearTimeout(directTipObserverTimer);directTipObserverTimer=null}
 }
+function broadcastDirectTipHint(){
+  try{directTipHintChannel?.postMessage({kind:'revalidate'})}catch{}
+}
+function revalidateDirectWorkOnHint(){
+  const observer=activeDirectTipObserver;
+  if(!observer)return;
+  observer.revalidate({failClosed:false,announceStale:false}).catch(()=>{});
+}
+function initDirectTipHintChannel(){
+  if(typeof BroadcastChannel!=='function')return null;
+  try{
+    const channel=new BroadcastChannel(DIRECT_TIP_HINT_CHANNEL);
+    channel.addEventListener('message',event=>{
+      if(event?.data?.kind!=='revalidate')return;
+      revalidateDirectWorkOnHint();
+    });
+    return channel;
+  }catch{return null}
+}
+directTipHintChannel=initDirectTipHintChannel();
+
 function startDirectTipObserver(header){
   clearDirectTipObserver();
   const token=directTipObserverToken;
@@ -90,12 +113,12 @@ function startDirectTipObserver(header){
     stopWorker(reason);
     return true;
   };
-  const revalidate=async({failClosed=false}={})=>{
+  const revalidate=async({failClosed=false,announceStale=true}={})=>{
     if(token!==directTipObserverToken)return'superseded';
     try{
       const status=await api('/status'),state=directWorkTipState(header,status);
       if(token!==directTipObserverToken)return'superseded';
-      if(state==='stale'){invalidate('TIP_INVALIDATED');return'stale'}
+      if(state==='stale'){if(announceStale)broadcastDirectTipHint();invalidate('TIP_INVALIDATED');return'stale'}
       if(state==='current')return'current';
       if(failClosed)invalidate('TIP_FRESHNESS_UNKNOWN');
       return'unknown';
@@ -286,6 +309,7 @@ async function mineDirectIteration(rewardAddress,{fallbackFailures=0}={}){
     const submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
     if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
     const accepted=await api('/submit-block',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(submission)});
+    broadcastDirectTipHint();
     return{mode:'direct',template,pow,accepted,attempts:pow.attempts||0,fallbackFailures};
   }finally{tipObserver.stop()}
 }
