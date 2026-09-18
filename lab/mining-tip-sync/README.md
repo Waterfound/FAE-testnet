@@ -4,7 +4,7 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-**MTS-08 — Background, throttling, suspend and return**
+**MTS-09 — Multi-tab, multi-context, other-device and remote-miner independence**
 
 MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
@@ -37,8 +37,12 @@ MTS-06 provides the deterministic VM/fake-Worker/fake-network regression harness
 
 MTS-07 is GREEN without a runtime patch: 12 consecutive tip replacements, 2,000 delayed-scheduling progress callbacks, three consecutive status failures with recovery, and solution-during-outage all preserved zero stale submissions and automatic recovery.
 
-## MTS-08 objective
+## MTS-08 result
 
-Model browser lifecycle hazards: background timer throttling, long suspension with chain advancement, resume/return revalidation, and queued Worker callbacks around suspend/resume. The browser must never submit work whose parent freshness was not re-established after return.
+MTS-08 is GREEN. The stress-first run reproduced a lifecycle gap: stale direct work survived foreground visibility return and pageshow until the polling timer. The minimal miner patch now forces immediate authoritative revalidation on both lifecycle events and fails closed when freshness cannot be re-established. Final lifecycle matrix: 5/5 PASS; canonical verifier: 31/31 PASS.
 
-No wallet secrets or real Proof of Work are required for the deterministic MTS-08 phase.
+## MTS-09 objective
+
+Prove independent convergence across multiple tabs/contexts and externally advanced chain state. No tab, device, or remote miner may need a same-device signal to discover stale work. Optional cross-context hints remain acceleration-only and cannot become authority.
+
+The initial MTS-09 phase remains stress-first and requires no wallet secrets or real Proof of Work.
