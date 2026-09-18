@@ -31,8 +31,14 @@ function amount(value){
   if(typeof value!=='string'||!/^[1-9][0-9]*$/.test(value))throw new Error('invalid_amount');
   return value;
 }
+const HYBRID_ALLOWED_FIELDS=new Set([
+  'kind','shadow_version','network','inputs','outputs',
+  'ed25519_public_key_spki','mldsa_parameter_set','mldsa_public_key',
+  'ed25519_signature','mldsa_signature'
+]);
 function normalizeCore(raw){
   if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('malformed_shadow_transaction');
+  for(const key of Object.keys(raw))if(!HYBRID_ALLOWED_FIELDS.has(key))throw new Error('unexpected_shadow_field:'+key);
   if(raw.kind!==SHADOW_KIND)throw new Error('wrong_kind');
   if(Number(raw.shadow_version)!==SHADOW_VERSION)throw new Error('wrong_shadow_version');
   if(raw.network!==SHADOW_NETWORK)throw new Error('wrong_network');
