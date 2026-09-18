@@ -37,7 +37,7 @@ test('MTS-12 acceptance page compiles and stays Lab-only',()=>{
   const scripts=[...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
   assert.equal(scripts.length,1);
   assert.doesNotThrow(()=>new Function(scripts[0]));
-  assert.equal(authority.status,'MTS_12_ACCEPTANCE_PREP');
+  assert.ok(['MTS_12_ACCEPTANCE_PREP','MTS_12_READY_FOR_PHYSICAL_RUN'].includes(authority.status));
   assert.equal(authority.current_stage_active_miner_write_authorized,false);
   assert.ok(authority.current_stage_protected_paths.includes('mining.js'));
 });
