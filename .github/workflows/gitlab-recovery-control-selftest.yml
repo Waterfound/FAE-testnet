@@ -1,0 +1,27 @@
+name: GitLab Recovery Control Self-Test
+
+on:
+  pull_request:
+    paths:
+      - 'tools/repository-recovery/**'
+      - '.github/workflows/gitlab-recovery-control-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  control-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prove control-package bootstrap and fail-closed behavior
+        env:
+          SOURCE_URL: https://github.com/${{ github.repository }}.git
+          EXPECTED_REF: refs/heads/${{ github.head_ref || github.ref_name }}
+          EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash tools/repository-recovery/selftest-gitlab-control.sh
