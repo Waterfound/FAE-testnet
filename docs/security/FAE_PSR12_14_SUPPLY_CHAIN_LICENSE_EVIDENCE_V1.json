@@ -1,0 +1,158 @@
+{
+  "schema": "FAE_PSR12_14_SUPPLY_CHAIN_LICENSE_EVIDENCE_V1",
+  "source_revision": "a5af028770debfaf46656f39e902eb8278d4312e",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "status": "CANDIDATE_COMPLETE_PENDING_CANONICAL_AND_CODEQL_VERIFICATION_AND_INTEGRATION",
+  "psr12": {
+    "dependency_inventory": {
+      "npm": [
+        {
+          "path": "/sovereign-forge/node",
+          "dependencies": {},
+          "note": "Active/reference node package has no external npm dependencies."
+        },
+        {
+          "path": "/lab/post-quantum-signatures",
+          "dependencies": {
+            "@noble/post-quantum": "0.7.1",
+            "@noble/hashes": "2.4.0"
+          },
+          "authority": "SHADOW_LAB_ONLY"
+        }
+      ],
+      "github_actions": {
+        "baseline_workflow_count": 46,
+        "update_policy": "weekly Dependabot",
+        "floating_main_master_latest_forbidden_by_guard": true
+      },
+      "containers": {
+        "path": "/sovereign-forge/node",
+        "current_base": "node:22-bookworm-slim",
+        "update_policy": "weekly Dependabot docker ecosystem",
+        "digest_pinning": "DEFER_TO_PSR13_REPRODUCIBLE_RELEASE_PROVENANCE"
+      }
+    },
+    "controls": [
+      ".github/dependabot.yml",
+      ".github/workflows/codeql.yml",
+      "tests/public-repo-hygiene.mjs",
+      ".github/workflows/verify.yml canonical hygiene step"
+    ],
+    "least_privilege_review": {
+      "baseline_workflows_reviewed": 44,
+      "default_expected_permissions": [
+        "contents: read"
+      ],
+      "reviewed_write_allowlist": {
+        "full-target-shadow-clock-health-wan.yml": [
+          "issues"
+        ],
+        "full-target-shadow-free-real-wan.yml": [
+          "issues"
+        ],
+        "peer-isolation-eclipse-real-wan.yml": [
+          "issues"
+        ],
+        "codeql.yml": [
+          "security-events"
+        ]
+      },
+      "direct_secrets_reference_policy": "FAIL unless future explicit review changes the guard",
+      "pull_request_target_policy": "FORBIDDEN",
+      "write_all_policy": "FORBIDDEN"
+    },
+    "secret_leak_prevention": {
+      "execution": "local checkout scan inside canonical CI",
+      "high_signal_patterns": [
+        "PEM private keys",
+        "GitHub classic tokens",
+        "GitHub fine-grained tokens",
+        "AWS access keys",
+        "Stripe live secret keys",
+        "Slack tokens"
+      ],
+      "limitation": "Pattern scanning is defense-in-depth and cannot prove absence of all secrets."
+    },
+    "codeql": {
+      "language": "javascript-typescript",
+      "triggers": [
+        "push main",
+        "pull_request",
+        "weekly schedule",
+        "workflow_dispatch"
+      ],
+      "permissions": [
+        "contents: read",
+        "security-events: write"
+      ],
+      "authority": "SIGNAL_ONLY_NOT_SECURITY_PROOF"
+    },
+    "dependabot": {
+      "cadence": "weekly",
+      "ecosystems": [
+        "github-actions /",
+        "npm /sovereign-forge/node",
+        "npm /lab/post-quantum-signatures",
+        "docker /sovereign-forge/node"
+      ]
+    },
+    "residuals": [
+      {
+        "id": "PSR12-R1-ACTION-TAG-PINNING",
+        "severity": "HARDENING_OPPORTUNITY",
+        "state": "OPEN",
+        "detail": "Existing official GitHub Actions mostly use major-version refs rather than immutable commit SHAs. Floating main/master/latest refs are forbidden; Dependabot monitors the action ecosystem."
+      },
+      {
+        "id": "PSR12-R2-CONTAINER-DIGEST",
+        "severity": "PSR13_INPUT",
+        "state": "ROUTED",
+        "detail": "node:22-bookworm-slim is tag-pinned but not digest-pinned. Exact image provenance belongs to PSR-13."
+      },
+      {
+        "id": "PSR12-R3-PQ-LAB-LOCKFILE",
+        "severity": "SHADOW_LAB_HYGIENE",
+        "state": "OPEN_NON_AUTHORITY",
+        "detail": "PQ lab uses exact direct npm versions but currently has no committed lockfile; it is shadow-only and does not satisfy active consensus authority."
+      }
+    ]
+  },
+  "psr14": {
+    "selected_license": "Apache-2.0",
+    "artifact": "LICENSE",
+    "rationale": [
+      "Permissive open-source license compatible with public protocol development.",
+      "Includes an explicit patent-license grant and patent-termination clause.",
+      "Does not itself satisfy any security or mainnet-readiness gate."
+    ],
+    "notice_file_created": false,
+    "forge_snapshot_modified": false
+  },
+  "authority": {
+    "scanners_are_defense_in_depth_only": true,
+    "runtime_or_consensus_change": false,
+    "economic_change": false,
+    "wallet_or_address_change": false,
+    "mainnet_authority": false
+  },
+  "downstream_on_green": {
+    "PSR13": "READY",
+    "PSR15": "remains blocked until PSR13 and later prerequisites are GREEN"
+  },
+  "rebinding": {
+    "binding_revision": 3,
+    "previous_source_revision": "df015bd4d9a0d998bba7176755d817a855d95358",
+    "intervening_commits": 4,
+    "reviewed_scope": [
+      ".github/workflows/pq-lab-wave-g-pq09.yml",
+      "lab/post-quantum-signatures/wave-g/pq09/*"
+    ],
+    "authority_note": "PQ-09 is shadow-only. Its new workflow was reviewed as contents:read, no secrets.*, no pull_request_target.",
+    "earlier_stale_candidate": {
+      "source_revision": "b4925310c8241f9f15d07f00225c44c9df17c05b",
+      "canonical_run": 512,
+      "codeql_run": 1,
+      "result": "SUCCESS_BUT_NOT_USED_AFTER_MAIN_ADVANCED"
+    }
+  }
+}
