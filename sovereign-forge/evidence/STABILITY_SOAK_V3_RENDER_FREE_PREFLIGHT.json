@@ -1,0 +1,120 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_PREFLIGHT_V1",
+  "status": "OBSERVED_INFRASTRUCTURE_NOT_READY",
+  "observed_at": "2026-09-18",
+  "software_commit": "745faec3c2ee3fd214199b60293f46e7b9d5a92b",
+  "authority": {
+    "public_testnet_v4_unchanged": true,
+    "new_economy_activation": false,
+    "candidate_promoted": false,
+    "mainnet_authorized": false
+  },
+  "duration_hours": 96,
+  "margin_hours": 12,
+  "max_transient_outage_seconds": 180,
+  "phase_hours": [24,24,24,24],
+  "nodes": [
+    {
+      "role": "node-a",
+      "service_id": "srv-daicporm8hqs73cauong",
+      "provider": "render",
+      "region": "oregon",
+      "plan": "free",
+      "suspended": "suspended",
+      "suspender": "billing",
+      "auto_deploy": false,
+      "continuous_capacity_hours": 0,
+      "persistent_state": false,
+      "persistent_identity": false,
+      "persistent_peer_bootstrap": false
+    },
+    {
+      "role": "node-b",
+      "service_id": "srv-daicps3m8hqs73cav78g",
+      "provider": "render",
+      "region": "frankfurt",
+      "plan": "free",
+      "suspended": "suspended",
+      "suspender": "billing",
+      "auto_deploy": false,
+      "continuous_capacity_hours": 0,
+      "persistent_state": false,
+      "persistent_identity": false,
+      "persistent_peer_bootstrap": false
+    },
+    {
+      "role": "node-c",
+      "service_id": "srv-daicpu0ae00c73dvigm0",
+      "provider": "render",
+      "region": "singapore",
+      "plan": "free",
+      "suspended": "suspended",
+      "suspender": "billing",
+      "auto_deploy": false,
+      "continuous_capacity_hours": 0,
+      "persistent_state": false,
+      "persistent_identity": false,
+      "persistent_peer_bootstrap": false
+    }
+  ],
+  "controller": {
+    "role": "controller",
+    "service_id": "srv-daideq95efls73d2mn40",
+    "provider": "render",
+    "region": "virginia",
+    "plan": "free",
+    "suspended": "suspended",
+    "suspender": "billing",
+    "auto_deploy": false,
+    "continuous_capacity_hours": 0,
+    "durable_evidence_sink": false
+  },
+  "observer": {
+    "role": "observer",
+    "service_id": "srv-daicrhp5efls73d0fv8g",
+    "provider": "render",
+    "region": "ohio",
+    "plan": "free",
+    "suspended": "suspended",
+    "suspender": "billing",
+    "auto_deploy": false,
+    "continuous_capacity_hours": 0,
+    "independent_observer": false
+  },
+  "telemetry": {
+    "process_boot_id": false,
+    "process_started_at": false,
+    "provider_instance_id": true,
+    "state_height": true,
+    "state_tip_hash": true,
+    "state_generation": false,
+    "peer_directory_count": false,
+    "peer_directory_digest": false,
+    "configured_peer_count": true,
+    "bootstrap_attempts": false,
+    "bootstrap_last_error": false,
+    "transport_reachability": true,
+    "restart_classification": false,
+    "outage_start_end": true,
+    "recovery_duration_ms": true,
+    "propagation_p95": true,
+    "stale_count": true,
+    "reorg_count": true
+  },
+  "statistics": {
+    "wilson_one_sided_confidence": 0.95,
+    "stale_rate_threshold": 0.01,
+    "wilson_upper_threshold": 0.01,
+    "propagation_p95_max_ms": 5000
+  },
+  "infrastructure_evidence": {
+    "billing_or_quota_clear": false,
+    "no_known_96h_suspension_limit": false
+  },
+  "run_started": false,
+  "evidence_notes": [
+    "All five observed Render services are currently suspended with suspender=billing.",
+    "The node services use the Free compute plan, which does not provide persistent disks.",
+    "This file records preflight evidence only and does not start, resume, or redeploy any service."
+  ]
+}
