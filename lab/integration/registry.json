@@ -138,6 +138,30 @@
         ]
       ],
       "note": "Bounded PSR-00→19 security hardening closes into recurring Project Assurance. Combined-main verifies the static recurring-assurance contract; the dedicated recurring workflow classifies each change and reruns the 17-case white-box campaign when critical categories are touched."
+    },
+    {
+      "id": "block-explorer",
+      "label": "FAE Block Explorer",
+      "required_paths": [
+        "lab/block-explorer/authority.json",
+        "lab/block-explorer/read-model-v1.json",
+        "lab/block-explorer/gate-status.json",
+        "lab/block-explorer/README.md",
+        "lab/block-explorer/combined-guard.mjs",
+        "lab/block-explorer/tests/be-01-contract.test.mjs"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "lab/block-explorer/combined-guard.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-01-contract.test.mjs"
+        ]
+      ],
+      "note": "BE-01 freezes the read-only Explorer authority/read-model contract. Combined-main checks live-network constant separation, no mutation authority, reward-event completeness, digest-search ambiguity, and derived-disposable index semantics. It grants no node-query runtime, consensus, economics, wallet, mining, deployment, or mainnet authority."
     }
   ]
 }
