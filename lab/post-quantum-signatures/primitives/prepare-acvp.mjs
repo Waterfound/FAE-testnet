@@ -10,12 +10,15 @@ const outDir = process.env.PQ_ACVP_DIR;
 const circlDir = process.env.CIRCL_DIR || null;
 if (!outDir) throw new Error('PQ_ACVP_DIR is required');
 
+const family = process.env.PQ_ACVP_FAMILY || 'ALL';
 const wanted = manifest.resources.filter(r =>
   r.kind === 'nist_acvp_sample_corpus' &&
   !r.id.includes('registration') &&
-  (r.path.includes('ML-DSA-') || r.path.includes('SLH-DSA-'))
+  (r.path.includes('ML-DSA-') || r.path.includes('SLH-DSA-')) &&
+  (family === 'ALL' || r.path.includes(family + '-'))
 );
-if (wanted.length !== 12) throw new Error(`expected 12 frozen prompt/result resources, got ${wanted.length}`);
+const expected = family === 'ALL' ? 12 : 6;
+if (wanted.length !== expected) throw new Error(`expected ${expected} frozen prompt/result resources for ${family}, got ${wanted.length}`);
 
 const observed = [];
 for (const resource of wanted) {
@@ -51,6 +54,7 @@ const evidence = {
   schema: 'FAE_PQ_WAVE_D_ACVP_ACQUISITION_V1',
   result: 'PASS',
   pinned_commit: manifest.normative_status.acvp.commit,
+  family,
   resources: observed
 };
 await writeFile(path.join(outDir, 'acquisition-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
