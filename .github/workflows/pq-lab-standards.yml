@@ -54,17 +54,22 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Probe Noble browser-facing implementation
         run: |
+          set -o pipefail
           mkdir -p lab/post-quantum-signatures/evidence
           node lab/post-quantum-signatures/probes/noble-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-noble.json
       - name: Probe Node crypto tertiary path
-        run: node lab/post-quantum-signatures/probes/node-crypto-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-node-crypto.json
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/probes/node-crypto-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-node-crypto.json
       - name: Probe Cloudflare CIRCL independent verifier
         run: |
+          set -o pipefail
           mkdir -p /tmp/fae-pq-circl
           cp lab/post-quantum-signatures/probes/circl-probe.go /tmp/fae-pq-circl/main.go
           cd /tmp/fae-pq-circl
           go mod init fae-pq02-probe
           go get github.com/cloudflare/circl@2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          go mod tidy
           go run main.go | tee "$GITHUB_WORKSPACE/lab/post-quantum-signatures/evidence/pq02-circl.json"
       - name: Upload PQ-02 implementation probe evidence
         if: always()
