@@ -54,7 +54,9 @@ pre{white-space:pre-wrap;word-break:break-word;background:#06100a;border:1px sol
       <div class="metric"><span class="small">Miner B</span><b id="status-b">Not opened</b></div>
       <div class="metric"><span class="small">Real tip convergence</span><b id="tip-result">Not armed</b></div>
       <div class="metric"><span class="small">Background → foreground</span><b id="resume-result">Not armed</b></div>
-      <div class="metric"><span class="small">Stale submissions</span><b id="stale-count">0</b></div>
+      <div class="metric"><span class="small">Stale after known mismatch</span><b id="stale-count">0</b></div>
+      <div class="metric"><span class="small">Race-lost 409 responses</span><b id="race-count">0</b></div>
+      <div class="metric"><span class="small">Unclassified stale responses</span><b id="unclassified-count">0</b></div>
       <div class="metric"><span class="small">Manual Stop → Start used</span><b id="manual-restart">No</b></div>
     </div>
   </section>
@@ -74,7 +76,7 @@ const TIP_GATE_MS=3500;
 const RESUME_GATE_MS=1500;
 const events=[];
 const childWindows={a:null,b:null};
-const state={role:'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleSubmissions:0,manualRestartUsed:false,verdict:null};
+const state={role:'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleResponses:0,staleSubmissions:0,raceLostResponses:0,unclassifiedStaleResponses:0,manualRestartUsed:false,verdict:null};
 const $=id=>document.getElementById(id);
 const now=()=>performance.timeOrigin+performance.now();
 function emit(kind,data={}){const event={at_ms:Date.now(),perf_ms:now(),kind,...data};events.push(event);renderLog();return event}
@@ -104,11 +106,21 @@ function handleControl(message){
   if((r==='a'||r==='b')&&event.kind==='child_ready'){state.contexts[r].ready=true;setText('status-'+r,'Ready','ok')}
   if((r==='a'||r==='b')&&event.kind==='mining_started'){state.contexts[r].miningStartedAt=event.perf_ms;setText('status-'+r,'Running','ok')}
   if(event.kind==='manual_restart')state.manualRestartUsed=true;
-  if(event.kind==='submit_result'&&event.stale===true)state.staleSubmissions++;
-  if(event.kind==='status_observation')observeTip(event.height,event.tip_hash,event.perf_ms,r);
+  if(event.kind==='submit_result'&&event.stale===true){
+    state.staleResponses++;
+    if(event.known_mismatch_at_start===true)state.staleSubmissions++;
+    else if(event.known_mismatch_at_start===false)state.raceLostResponses++;
+    else state.unclassifiedStaleResponses++;
+  }
+  if(event.kind==='status_observation'){
+    if(r==='a'||r==='b')state.contexts[r].lastStatus={height:Number(event.height),tip_hash:String(event.tip_hash||''),perf_ms:event.perf_ms};
+    observeTip(event.height,event.tip_hash,event.perf_ms,r);
+  }
   if(event.kind==='template_observation')observeTemplate(r,event);
   if(event.kind==='resume_status')observeResume(r,event);
   $('stale-count').textContent=String(state.staleSubmissions);
+  $('race-count').textContent=String(state.raceLostResponses);
+  $('unclassified-count').textContent=String(state.unclassifiedStaleResponses);
   $('manual-restart').textContent=state.manualRestartUsed?'YES':'No';
   evaluateTipGate();evaluateResumeGate();renderLog();
 }
@@ -128,11 +140,12 @@ function observeTemplate(role,event){
   }
 }
 function evaluateTipGate(){
-  if(!state.tipArmed||!state.tipTarget)return;
+  if(state.tipVerdict||!state.tipArmed||!state.tipTarget)return;
   const a=state.contexts.a.convergenceMs,b=state.contexts.b.convergenceMs;
   if(a===undefined||b===undefined)return;
-  const pass=a<=TIP_GATE_MS&&b<=TIP_GATE_MS&&state.staleSubmissions===0&&!state.manualRestartUsed;
-  state.tipVerdict={pass,a_ms:a,b_ms:b,gate_ms:TIP_GATE_MS,tip:state.tipTarget};
+  const pass=a<=TIP_GATE_MS&&b<=TIP_GATE_MS&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed;
+  state.tipVerdict={pass,a_ms:a,b_ms:b,gate_ms:TIP_GATE_MS,tip:state.tipTarget,known_mismatch_submissions:state.staleSubmissions,race_lost_409_responses:state.raceLostResponses,unclassified_stale_responses:state.unclassifiedStaleResponses};
+  state.tipArmed=false;
   setText('tip-result',pass?'PASS · A '+Math.round(a)+' ms · B '+Math.round(b)+' ms':'FAIL',pass?'ok':'bad');
   emit('tip_gate',{...state.tipVerdict});
 }
@@ -142,11 +155,12 @@ function observeResume(role,event){
   state.contexts[role].resumeLatencyMs=Math.max(0,event.perf_ms-state.visibleAt);
 }
 function evaluateResumeGate(){
-  if(!state.resumeArmed||!state.visibleAt)return;
+  if(state.resumeVerdict||!state.resumeArmed||!state.visibleAt)return;
   const a=state.contexts.a.resumeLatencyMs,b=state.contexts.b.resumeLatencyMs;
   if(a===undefined||b===undefined)return;
-  const pass=a<=RESUME_GATE_MS&&b<=RESUME_GATE_MS&&state.staleSubmissions===0&&!state.manualRestartUsed;
-  state.resumeVerdict={pass,a_ms:a,b_ms:b,gate_ms:RESUME_GATE_MS};
+  const pass=a<=RESUME_GATE_MS&&b<=RESUME_GATE_MS&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed;
+  state.resumeVerdict={pass,a_ms:a,b_ms:b,gate_ms:RESUME_GATE_MS,known_mismatch_submissions:state.staleSubmissions,race_lost_409_responses:state.raceLostResponses,unclassified_stale_responses:state.unclassifiedStaleResponses};
+  state.resumeArmed=false;
   setText('resume-result',pass?'PASS · A '+Math.round(a)+' ms · B '+Math.round(b)+' ms':'FAIL',pass?'ok':'bad');
   emit('resume_gate',{...state.resumeVerdict});
 }
@@ -171,16 +185,37 @@ function installChildInstrumentation(win,role){
     const post=(kind,data={})=>channel?.postMessage({schema:'FAE_MTS12_EVENT_V2',event:{at_ms:Date.now(),perf_ms:now(),kind,role:ROLE,...data}});
     window.__FAE_MTS12_POST=post;
     const nativeFetch=window.fetch.bind(window);
+    let lastStatus=null,submitSeq=0;
     window.fetch=async(input,options)=>{
+      const url=String(input),isApi=url.startsWith(API),path=isApi?url.slice(API.length):'';
+      let submitMeta=null;
+      if(path.startsWith('/submit-block')){
+        let header={};
+        try{header=JSON.parse(String(options?.body||'{}')).header||{}}catch{}
+        const requestId=ROLE+'-'+(++submitSeq)+'-'+Date.now();
+        const knownMismatch=lastStatus&&Number.isSafeInteger(Number(header.height))&&/^[0-9a-f]{64}$/.test(String(header.previous_hash||''))
+          ?(Number(header.height)!==Number(lastStatus.height)+1||String(header.previous_hash)!==String(lastStatus.tip_hash))
+          :null;
+        submitMeta={
+          request_id:requestId,
+          header_height:Number(header.height),
+          previous_hash:String(header.previous_hash||''),
+          known_status_height:lastStatus?Number(lastStatus.height):null,
+          known_tip_hash:lastStatus?String(lastStatus.tip_hash||''):null,
+          known_mismatch_at_start:knownMismatch
+        };
+        post('submit_started',submitMeta);
+      }
       const response=await nativeFetch(input,options);
       try{
-        const url=String(input);
-        if(url.startsWith(API)){
-          const path=url.slice(API.length);
+        if(isApi){
           const payload=await response.clone().json().catch(()=>({}));
-          if(path.startsWith('/status'))post('status_observation',{height:Number(payload.height),tip_hash:String(payload.tip_hash||''),http_status:response.status});
+          if(path.startsWith('/status')){
+            lastStatus={height:Number(payload.height),tip_hash:String(payload.tip_hash||'')};
+            post('status_observation',{height:lastStatus.height,tip_hash:lastStatus.tip_hash,http_status:response.status});
+          }
           if(path.startsWith('/template'))post('template_observation',{height:Number(payload.header?.height),previous_hash:String(payload.header?.previous_hash||''),http_status:response.status});
-          if(path.startsWith('/submit-block'))post('submit_result',{http_status:response.status,stale:payload.error==='stale_tip'||payload.reason==='stale_tip'||payload.reason==='race_lost'});
+          if(path.startsWith('/submit-block'))post('submit_result',{...(submitMeta||{}),http_status:response.status,stale:payload.error==='stale_tip'||payload.reason==='stale_tip'||payload.reason==='race_lost'});
         }
       }catch(error){post('instrumentation_error',{error:error.message})}
       return response;
@@ -244,13 +279,13 @@ function openChild(role){
 function bothMinersRunning(){return Boolean(state.contexts.a.miningStartedAt&&state.contexts.b.miningStartedAt)}
 function armTip(){
   if(!bothMinersRunning()){setText('tip-result','Waiting · open A and B first','warn');emit('tip_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
-  state.tipArmed=true;state.tipBaseline=null;state.tipTarget=null;state.firstObservedNewTipAt=null;
+  state.tipArmed=true;state.tipVerdict=null;state.tipBaseline=null;state.tipTarget=null;state.firstObservedNewTipAt=null;
   for(const r of ['a','b']){delete state.contexts[r].convergedAt;delete state.contexts[r].convergenceMs}
   setText('tip-result','Armed · waiting for next real tip','warn');startControllerPoll();emit('tip_acceptance_armed');
 }
 function armResume(){
   if(!bothMinersRunning()){setText('resume-result','Waiting · open A and B first','warn');emit('resume_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
-  state.resumeArmed=true;state.hiddenAt=null;state.visibleAt=null;
+  state.resumeArmed=true;state.resumeVerdict=null;state.hiddenAt=null;state.visibleAt=null;
   for(const r of ['a','b']){delete state.contexts[r].resumeStatusAt;delete state.contexts[r].resumeLatencyMs}
   setText('resume-result','Armed · background Safari, then return','warn');emit('resume_acceptance_armed');
 }
@@ -261,7 +296,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 function exportEvidence(){
   state.completedAt=new Date().toISOString();
-  state.verdict=state.tipVerdict?.pass&&state.resumeVerdict?.pass&&state.staleSubmissions===0&&!state.manualRestartUsed?'PASS':'INCOMPLETE_OR_FAIL';
+  state.verdict=state.tipVerdict?.pass&&state.resumeVerdict?.pass&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed?'PASS':'INCOMPLETE_OR_FAIL';
   const payload={schema:'FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V2',state,events};
   const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fae-mts-12-ipad-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
