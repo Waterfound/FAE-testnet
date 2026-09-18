@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FAE PQ-12 Light Physical Test</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f6f7f9}
+*{box-sizing:border-box}body{margin:0;padding:24px}.wrap{max-width:760px;margin:auto}.card{background:#fff;border:1px solid #ddd;border-radius:18px;padding:20px;margin:0 0 16px;box-shadow:0 2px 10px #0000000d}
+h1{font-size:26px;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}p{line-height:1.45;margin:8px 0}button,select{font:inherit;border-radius:12px;padding:12px 14px;border:1px solid #aaa;background:#fff}
+button.primary{width:100%;background:#111;color:#fff;border-color:#111;font-weight:700}button:disabled{opacity:.5}.small{font-size:13px;color:#555}
+.status{font-weight:700}.grid{display:grid;grid-template-columns:1fr;gap:8px}.row{display:grid;grid-template-columns:1.35fr repeat(3,.85fr);gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+.row.head{font-weight:700}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;word-break:break-word;background:#0d1117;color:#e6edf3;padding:14px;border-radius:12px;max-height:360px;overflow:auto}
+.ok{color:#087a2f}.warn{color:#8a5a00}.err{color:#b42318}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>FAE PQ-12 — Light Physical Test</h1>
+    <p>Optional physical-device evidence for the FAE post-quantum research path. This page measures only local browser performance.</p>
+    <p class="small"><strong>No wallet is used.</strong> No seed phrase or private key is requested. Test keys are ephemeral and remain in this browser session. There is no backend submission.</p>
+  </div>
+
+  <div class="card">
+    <h2>How to run</h2>
+    <p>Run this test by itself, with the screen on. Avoid running the RTX/ASIC test or another benchmark at the same time.</p>
+    <p>The light matrix uses one warm-up plus three measured rounds for Ed25519 and ML-DSA-44/65/87. It is intentionally bounded.</p>
+    <button id="run" class="primary">Run light PQ-12 test</button>
+    <p id="status" class="status">Ready.</p>
+  </div>
+
+  <div class="card" id="resultsCard" hidden>
+    <h2>Measured result</h2>
+    <div class="row head"><div>Algorithm</div><div>Keygen</div><div>Sign</div><div>Verify</div></div>
+    <div id="rows"></div>
+    <p class="small">Times are median milliseconds from three measured rounds after one warm-up.</p>
+    <label for="thermal"><strong>How did the device feel immediately after the test?</strong></label>
+    <select id="thermal">
+      <option value="not_recorded">Not recorded</option>
+      <option value="cool">Cool / unchanged</option>
+      <option value="warm">Warm</option>
+      <option value="hot">Hot / uncomfortable</option>
+    </select>
+    <p><button id="copy">Copy result JSON</button></p>
+    <div id="copyStatus" class="small"></div>
+    <div id="json" class="mono"></div>
+  </div>
+</div>
+
+<script type="module">
+const runBtn=document.getElementById('run');
+const statusEl=document.getElementById('status');
+const resultsCard=document.getElementById('resultsCard');
+const rowsEl=document.getElementById('rows');
+const jsonEl=document.getElementById('json');
+const copyBtn=document.getElementById('copy');
+const thermalEl=document.getElementById('thermal');
+const copyStatus=document.getElementById('copyStatus');
+let result=null;
+
+const median=a=>{const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const mad=a=>{const m=median(a);return median(a.map(x=>Math.abs(x-m)))};
+const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
+const sleep0=()=>new Promise(r=>setTimeout(r,0));
+function stats(a){return{median_ms:+median(a).toFixed(3),mad_ms:+mad(a).toFixed(3),min_ms:+Math.min(...a).toFixed(3),max_ms:+Math.max(...a).toFixed(3),samples:a.length}}
+async function bench(fn){
+  await nextFrame();fn();await sleep0();
+  const times=[];let last;
+  for(let i=0;i<3;i++){await nextFrame();const t=performance.now();last=fn();times.push(performance.now()-t);await sleep0()}
+  return{last,stats:stats(times)};
+}
+async function benchAsync(fn){
+  await nextFrame();await fn();await sleep0();
+  const times=[];let last;
+  for(let i=0;i<3;i++){await nextFrame();const t=performance.now();last=await fn();times.push(performance.now()-t);await sleep0()}
+  return{last,stats:stats(times)};
+}
+function row(name,k,s,v){
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML='<div>'+name+'</div><div>'+k.median_ms.toFixed(3)+' ms</div><div>'+s.median_ms.toFixed(3)+' ms</div><div>'+v.median_ms.toFixed(3)+' ms</div>';
+  rowsEl.appendChild(d);
+}
+function refreshJson(){if(!result)return;result.subjective_thermal=thermalEl.value;jsonEl.textContent=JSON.stringify(result,null,2)}
+
+runBtn.addEventListener('click',async()=>{
+  runBtn.disabled=true;rowsEl.innerHTML='';resultsCard.hidden=true;statusEl.className='status';statusEl.textContent='Loading pinned post-quantum library…';
+  try{
+    const loadStart=performance.now();
+    const {ml_dsa44,ml_dsa65,ml_dsa87}=await import('https://esm.sh/@noble/post-quantum@0.7.1/ml-dsa.js');
+    const moduleLoad=performance.now()-loadStart;
+    const msg=new TextEncoder().encode('FAE PQ-12 physical device light benchmark');
+    const device={
+      user_agent:navigator.userAgent,
+      platform:navigator.platform||null,
+      hardware_concurrency:navigator.hardwareConcurrency||null,
+      device_memory_gb:navigator.deviceMemory||null,
+      screen_css_px:{width:screen.width,height:screen.height,pixel_ratio:devicePixelRatio},
+      language:navigator.language,
+      memory_api_available:!!performance.memory
+    };
+    const measurements=[];
+    const testStart=performance.now();
+
+    statusEl.textContent='Running Ed25519 baseline…';
+    let edRow=null;
+    try{
+      const edKeygen=await benchAsync(()=>crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify']));
+      const edKeys=edKeygen.last;
+      const edSign=await benchAsync(()=>crypto.subtle.sign('Ed25519',edKeys.privateKey,msg));
+      const sig=edSign.last;
+      const edVerify=await benchAsync(()=>crypto.subtle.verify('Ed25519',edKeys.publicKey,sig,msg));
+      const spki=new Uint8Array(await crypto.subtle.exportKey('spki',edKeys.publicKey));
+      edRow={algorithm:'Ed25519',public_key_spki_bytes:spki.length,signature_bytes:new Uint8Array(sig).length,keygen:edKeygen.stats,sign:edSign.stats,verify:edVerify.stats,result:edVerify.last?'PASS':'FAIL'};
+      measurements.push(edRow);row('Ed25519',edRow.keygen,edRow.sign,edRow.verify);
+    }catch(e){
+      measurements.push({algorithm:'Ed25519',result:'UNAVAILABLE_IN_THIS_BROWSER',detail:String(e?.message||e)});
+    }
+
+    const schemes=[['ML-DSA-44',ml_dsa44],['ML-DSA-65',ml_dsa65],['ML-DSA-87',ml_dsa87]];
+    let offset=17;
+    for(const [name,scheme] of schemes){
+      statusEl.textContent='Running '+name+'…';
+      const seed=crypto.getRandomValues(new Uint8Array(scheme.lengths.seed));
+      const kg=await bench(()=>scheme.keygen(seed));
+      const keys=kg.last;
+      const sg=await bench(()=>scheme.sign(msg,keys.secretKey,{extraEntropy:false}));
+      const sig=sg.last;
+      const vf=await bench(()=>scheme.verify(sig,msg,keys.publicKey));
+      if(!vf.last)throw new Error(name+' verification failed');
+      const rec={algorithm:name,public_key_bytes:scheme.lengths.publicKey,private_key_bytes:scheme.lengths.secretKey,signature_bytes:scheme.lengths.signature,keygen:kg.stats,sign:sg.stats,verify:vf.stats,result:'PASS'};
+      measurements.push(rec);row(name,rec.keygen,rec.sign,rec.verify);offset+=13;await sleep0();
+    }
+
+    const total=performance.now()-testStart;
+    result={
+      schema:'FAE_PQ12_LIGHT_PHYSICAL_DEVICE_RESULT_V1',
+      result:'PASS',
+      test_profile:'LIGHT_1_WARMUP_3_MEASURED',
+      library:'@noble/post-quantum@0.7.1',
+      module_load_ms:+moduleLoad.toFixed(3),
+      total_test_ms:+total.toFixed(3),
+      device,
+      measurements,
+      subjective_thermal:thermalEl.value,
+      private_material_emitted:false,
+      wallet_used:false,
+      backend_submission:false,
+      active_fae_network_used:false,
+      activation_authorized:false
+    };
+    statusEl.textContent='Complete. Copy the JSON below and send it back to me.';
+    statusEl.className='status ok';resultsCard.hidden=false;refreshJson();
+  }catch(e){
+    statusEl.textContent='Test failed: '+String(e?.message||e);
+    statusEl.className='status err';
+  }finally{runBtn.disabled=false}
+});
+thermalEl.addEventListener('change',refreshJson);
+copyBtn.addEventListener('click',async()=>{refreshJson();try{await navigator.clipboard.writeText(JSON.stringify(result,null,2));copyStatus.textContent='Copied.'}catch{copyStatus.textContent='Copy failed; select the JSON manually.'}});
+</script>
+</body>
+</html>
