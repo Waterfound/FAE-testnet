@@ -13,6 +13,7 @@ const contract=await readJson('docs/security/FAE_PSR18_SECURITY_VERDICT_CONTRACT
 const plan=await readJson('docs/FAE_PUBLIC_CODE_SECURITY_READINESS_BUILD_COLONY_RUN.json');
 const psr16=await readJson('docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json');
 const psr17=await readJson('docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json');
+const expected=await readJson('docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json');
 
 if(contract.schema!=='FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_CONTRACT_V1')throw new Error('psr18_contract_schema_invalid');
 const allowed=new Set(contract.allowed_verdicts||[]);
@@ -57,6 +58,10 @@ let verdict;
 if(findings.length>0)verdict='BLOCKED_BY_SECURITY_FINDINGS';
 else if(missing.length>0)verdict='BLOCKED_BY_MISSING_EVIDENCE';
 else verdict='BASELINE_READY_FOR_RECURRING_ASSURANCE';
+
+if(expected.schema!=='FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1')throw new Error('psr18_expected_verdict_schema_invalid');
+if(expected.verdict!==verdict)missing.push('committed_verdict_mismatch:'+expected.verdict+':'+verdict);
+if(missing.some(x=>x.startsWith('committed_verdict_mismatch:')))verdict='BLOCKED_BY_MISSING_EVIDENCE';
 
 const report={
   schema:'FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_REPORT_V1',
