@@ -36,6 +36,9 @@ if(authority.current_frontier==='BE-02'){
   }
   assert(JSON.stringify(authority.be02_authority.explorer_methods)===JSON.stringify(['GET','OPTIONS']),'BE-02 method authority drift');
 }else if(authority.current_frontier==='BE-03'){
+  assert(authority.be03_authority?.state==='LAB_VERIFIED_FROZEN','BE-03 must be frozen before combined-main admission');
+  assert(authority.be03_authority?.application_writes_frozen===true,'BE-03 frozen marker missing');
+  assert(authority.explorer_application_write_authorized===false,'BE-03 application write authority must be closed');
   assert(authority.current_stage_runtime_write_authorized===false,'BE-03 active-runtime authority drift');
   assert(authority.node_query_surface_write_authorized===false,'BE-03 node-query authority drift');
   assert(authority.explorer_application_live_authorized===false,'BE-03 LIVE authority drift');
