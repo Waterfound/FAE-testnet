@@ -21,9 +21,15 @@ for(const key of [
   'transaction_submission_authorized','mining_authority_authorized','chain_selection_authority_authorized'
 ]) assert(authority[key]===false,key+' unexpectedly authorized');
 if(authority.current_frontier==='BE-02'){
-  assert(authority.node_query_surface_write_authorized===true,'BE-02 node query write must be explicit');
-  assert(authority.current_stage_runtime_write_authorized===true,'BE-02 bounded runtime write must be explicit');
-  assert(authority.be02_authority?.state==='AUTHORIZED_BOUNDED','BE-02 authority state mismatch');
+  const phase=authority.be02_authority?.state;
+  assert(['AUTHORIZED_BOUNDED','LAB_VERIFIED_FROZEN'].includes(phase),'BE-02 authority state mismatch');
+  if(phase==='AUTHORIZED_BOUNDED'){
+    assert(authority.node_query_surface_write_authorized===true,'BE-02 node query write must be explicit');
+    assert(authority.current_stage_runtime_write_authorized===true,'BE-02 bounded runtime write must be explicit');
+  }else{
+    assert(authority.node_query_surface_write_authorized===false,'verified BE-02 query writes must be frozen');
+    assert(authority.current_stage_runtime_write_authorized===false,'verified BE-02 runtime writes must be frozen');
+  }
   assert(JSON.stringify(authority.be02_authority.explorer_methods)===JSON.stringify(['GET','OPTIONS']),'BE-02 method authority drift');
 }else{
   assert(authority.node_query_surface_write_authorized===false,'BE-01 node query authority drift');
