@@ -1,0 +1,105 @@
+{
+  "schema": "FAE_PQ_PARAMETER_SET_INVENTORY_V1",
+  "source_basis": {
+    "ml_dsa": "NIST FIPS 204 Table 2",
+    "slh_dsa": "NIST FIPS 205 Table 2"
+  },
+  "ml_dsa": [
+    {
+      "name": "ML-DSA-44",
+      "security_category": 2,
+      "private_key_bytes": 2560,
+      "public_key_bytes": 1312,
+      "signature_bytes": 2420
+    },
+    {
+      "name": "ML-DSA-65",
+      "security_category": 3,
+      "private_key_bytes": 4032,
+      "public_key_bytes": 1952,
+      "signature_bytes": 3309
+    },
+    {
+      "name": "ML-DSA-87",
+      "security_category": 5,
+      "private_key_bytes": 4896,
+      "public_key_bytes": 2592,
+      "signature_bytes": 4627
+    }
+  ],
+  "slh_dsa": [
+    {
+      "name": "SLH-DSA-SHA2-128s",
+      "security_category": 1,
+      "public_key_bytes": 32,
+      "signature_bytes": 7856
+    },
+    {
+      "name": "SLH-DSA-SHAKE-128s",
+      "security_category": 1,
+      "public_key_bytes": 32,
+      "signature_bytes": 7856
+    },
+    {
+      "name": "SLH-DSA-SHA2-128f",
+      "security_category": 1,
+      "public_key_bytes": 32,
+      "signature_bytes": 17088
+    },
+    {
+      "name": "SLH-DSA-SHAKE-128f",
+      "security_category": 1,
+      "public_key_bytes": 32,
+      "signature_bytes": 17088
+    },
+    {
+      "name": "SLH-DSA-SHA2-192s",
+      "security_category": 3,
+      "public_key_bytes": 48,
+      "signature_bytes": 16224
+    },
+    {
+      "name": "SLH-DSA-SHAKE-192s",
+      "security_category": 3,
+      "public_key_bytes": 48,
+      "signature_bytes": 16224
+    },
+    {
+      "name": "SLH-DSA-SHA2-192f",
+      "security_category": 3,
+      "public_key_bytes": 48,
+      "signature_bytes": 35664
+    },
+    {
+      "name": "SLH-DSA-SHAKE-192f",
+      "security_category": 3,
+      "public_key_bytes": 48,
+      "signature_bytes": 35664
+    },
+    {
+      "name": "SLH-DSA-SHA2-256s",
+      "security_category": 5,
+      "public_key_bytes": 64,
+      "signature_bytes": 29792
+    },
+    {
+      "name": "SLH-DSA-SHAKE-256s",
+      "security_category": 5,
+      "public_key_bytes": 64,
+      "signature_bytes": 29792
+    },
+    {
+      "name": "SLH-DSA-SHA2-256f",
+      "security_category": 5,
+      "public_key_bytes": 64,
+      "signature_bytes": 49856
+    },
+    {
+      "name": "SLH-DSA-SHAKE-256f",
+      "security_category": 5,
+      "public_key_bytes": 64,
+      "signature_bytes": 49856
+    }
+  ],
+  "selection_authority": "INVENTORY_ONLY_NO_CANDIDATE_PROMOTION"
+}
