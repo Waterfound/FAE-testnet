@@ -290,3 +290,20 @@ Branch: `colony/fae-public-code-security-psr18-r3`
 The previous candidate passed PSR-18 #2, PSR-17 #6, canonical #594, cross-Lab #52 and CodeQL #75, but main advanced before integration. The intervening changes canonically admit PQ-11 as shadow-only and add MTS-12 physical-attempt/harness evidence. Neither grants active authority: PQ activation remains unauthorized and MTS active-runtime writes remain unauthorized.
 
 Because PSR-17 explicitly attacks PQ/MTS authority boundaries, the verdict is rebound again instead of reusing stale evidence. Fresh PSR-18, PSR-17 replay, canonical, cross-Lab and CodeQL evidence are required on this exact candidate.
+
+
+## Frontier execution — PSR-19
+
+Execution date: 2026-09-18  
+Bound source: `c050cf7263238ed35a93551f91250e9d216386a8`  
+Branch: `colony/fae-public-code-security-psr19`
+
+PSR-18 is normalized to GREEN from the integrated verdict `BASELINE_READY_FOR_RECURRING_ASSURANCE`, with zero open security findings and zero missing required evidence.
+
+PSR-19 does not create a new security system. It closes the bounded PSR-00→19 hardening project into recurring Project Assurance.
+
+Every PR and main push is classified. Changes touching consensus/economics, cryptography/wallets, critical networking/mining, release/provenance/authority boundaries, or security controls trigger the existing 17-case PSR-15 white-box campaign. Unrelated changes receive the classifier/contract check without automatically incurring the full campaign.
+
+Any deep-review campaign must finish 17/17 with zero findings and an unchanged target. Scanner success cannot waive a finding.
+
+PSR-19 becomes GREEN only after the recurring-assurance workflow, canonical verification, cross-Lab integration and CodeQL all succeed on the exact candidate and that candidate integrates. On success the bounded project terminates and only recurring Project Assurance remains.
