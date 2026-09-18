@@ -55,7 +55,7 @@ const fetch=async(url,options={})=>{
     }
   }
   const path=text.split(ACTIVE)[1]||'';let body={};
-  if(path.startsWith('/status'))body={height:150,issued_fae:'1500',max_supply_fae:'12000000',halving_era_blocks:600000,difficulty_bits:18,node_version:5};
+  if(path.startsWith('/status'))body={ok:true,network:NETWORK,height:150,tip_hash:'a'.repeat(64),issued_fae:'1500',max_supply_fae:'12000000',halving_era_blocks:600000,difficulty_bits:18,node_version:5};
   else if(path.startsWith('/state'))body={recent:[]};
   else if(path.startsWith('/balance'))body={balance_fae:'0'};
   else if(path.startsWith('/spendable'))body={spendable_fae:'0',utxos:[]};

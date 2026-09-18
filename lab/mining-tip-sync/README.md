@@ -4,32 +4,37 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-- MTS-00 — Boundary Freeze
-- MTS-01 — Baseline Reproduction
+**MTS-07 — Rapid tips, CPU load, and network failures**
 
-During this frontier, active runtime files are protected. In particular, `mining.js` must remain byte-identical to the integration base. Candidate miner edits are intentionally gated until the current bug is reproduced deterministically.
+MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
-## Authority
+## Frozen invariants
 
-Network state is authoritative. The current v4 backend already exposes `height` and `tip_hash` through `/status`, while direct templates bind work to `header.height` and `header.previous_hash`.
+- Network state is authoritative.
+- Direct-work parent identity is `header.height - 1 + header.previous_hash`.
+- The authoritative observation is `/status height + tip_hash`.
+- A chain-tip change invalidates current PoW work.
+- A mempool-only change does not invalidate current PoW work.
+- A late callback from an old Worker generation cannot mutate the active generation.
+- No direct solution may reach `/submit-block` without a fresh authoritative parent check.
+- Ambiguous/unavailable freshness fails closed: no block submission.
+- Cross-tab signaling may accelerate revalidation but is never chain authority.
+- Correctness is independent of choosing a 180s or 300s block target.
 
-A cross-tab mechanism such as BroadcastChannel may later accelerate revalidation, but it cannot become chain authority.
+## Verified path
 
-Snapshot semantics remain intact: mempool-only changes do not invalidate existing PoW work. Chain-tip changes do.
+MTS-01 reproduced the original stale-work gap deterministically.
 
-## MTS-01 reproduction
+MTS-02/03 froze work identity, Worker generations, and the authoritative tip classifier.
 
-Run:
+MTS-04 cancels stale direct PoW automatically and reacquires fresh work.
 
-```bash
-node lab/mining-tip-sync/baseline-reproduction.mjs
-```
+MTS-05 closes post-cancellation races and the nonce-to-submit race.
 
-The test executes the current unmodified `core.js` and `mining.js` in a deterministic VM harness with a controllable Worker and network.
+MTS-06 provides the deterministic VM/fake-Worker/fake-network regression harness.
 
-It proves two baseline behaviors:
+## MTS-07 objective
 
-1. a normal `refresh()` can observe a newer `height + tip_hash` while the existing PoW Worker continues hashing the old parent;
-2. stale work is rejected only after the old Worker produces a solution and the client submits it, while manual Worker stop followed by a new direct iteration reacquires a fresh template.
+Stress the integrated MTS-04/05 behavior under rapid consecutive tip changes, delayed event-loop/CPU scheduling, transient status failures, repeated recovery, and combinations of those conditions. The gate remains fail-closed: no stale or freshness-unknown direct block may be submitted.
 
-The harness performs no real mining and uses no wallet secrets.
+No wallet secrets or real Proof of Work are required for deterministic MTS-07 testing.
