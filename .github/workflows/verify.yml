@@ -89,6 +89,13 @@ jobs:
           node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
           node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
 
+      - name: Verify PSR-10 hostile corpus, property fuzzing and stress
+        run: |
+          node --test tests/public-code-security-fuzz.mjs
+          node sovereign-forge/tests/activation-reorg-differential-fuzz.mjs
+          node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+          node --test lab/mining-tip-sync/tests/mts-07-stress.test.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
