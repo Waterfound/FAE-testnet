@@ -97,6 +97,12 @@ jobs:
           node --test lab/mining-tip-sync/tests/mts-07-stress.test.mjs
           node --test lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs
 
+      - name: Verify PSR-11 differential and alternative implementations
+        run: |
+          node --test tests/public-code-security-differential.mjs
+          node sovereign-forge/tests/activation-state-transition-core-differential.mjs
+          node sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
