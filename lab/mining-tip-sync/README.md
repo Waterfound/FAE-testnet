@@ -57,4 +57,4 @@ MTS-11 is GREEN with no runtime patch. Chromium measured payload-free hint-to-au
 
 Confirm the complete user-facing behavior on a physical iPad/Safari deployment: Start Mining once, multiple tabs, remote/same-device tip advances, background/foreground recovery, and no manual Stop -> Start merely because the chain advanced.
 
-MTS-12 is validation-only. It introduces no telemetry, secrets, runtime authority, consensus change, economics change, or block-time change.
+MTS-12 is validation-only. Its local-only acceptance runner and evidence contract have passed deterministic, Chromium, WebKit, canonical, and CodeQL preflight. Physical iPad evidence has not started yet, so MTS-12 is not GREEN. It introduces no telemetry, secrets, runtime authority, consensus change, economics change, or block-time change.
