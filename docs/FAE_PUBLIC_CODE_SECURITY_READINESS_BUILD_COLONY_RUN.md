@@ -219,3 +219,16 @@ The first PSR-11 candidate was prepared against `930d757f7a286eb83be637d32197342
 PSR-10 is normalized to GREEN based on integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical run #465 SUCCESS and current-main replay run #476 SUCCESS.
 
 PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this rebound candidate integrates.
+
+
+## Frontier execution — PSR-12 || PSR-14 (rebound)
+
+Execution date: 2026-09-18  
+Bound source: `df015bd4d9a0d998bba7176755d817a855d95358`  
+Branch: `colony/fae-public-code-security-psr12-14-r2`
+
+The first PSR-12/14 candidate passed canonical run #512 and CodeQL run #1, but `main` advanced by five commits before integration. The intervening change is PQ-08 shadow-only differential work, including one new workflow. That workflow was reviewed as `contents: read`, with no direct `secrets.*` use and no `pull_request_target`.
+
+The frontier is rebound rather than merging stale evidence. The 45 baseline workflows plus the new CodeQL workflow are subject to the executable hygiene guard. Apache-2.0 licensing remains root-level only so the protected Sovereign Forge snapshot stays byte-identical.
+
+PSR-12 requires fresh canonical + CodeQL success on this rebound candidate. PSR-14 requires fresh canonical success and integration.
