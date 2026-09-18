@@ -1,0 +1,45 @@
+{
+  "schema": "FAE_PQ07_FAILURE_LEDGER_V1",
+  "preservation_rule": "Adversarial findings and harness defects remain evidence and are never erased by later success.",
+  "entries": [
+    {
+      "workflow_run_id": 35359022021,
+      "head": "2a4345ce098524b3d003821453a2d2b1b67b9dd8",
+      "artifact_id": 10553501815,
+      "artifact_sha256": "13afd426ff74a7bb620706e7eeecc51b09705f2bbe3de15a6b28af7f53df20ce",
+      "case_count": 114,
+      "result": "FAIL",
+      "findings": [
+        {
+          "classification": "TRANSACTION_POLYGLOT_DUAL_ACCEPTANCE",
+          "cases": [
+            "ML-DSA-44:polyglot-dual-acceptance",
+            "ML-DSA-65:polyglot-dual-acceptance",
+            "ML-DSA-87:polyglot-dual-acceptance"
+          ],
+          "root_cause": "The shadow transaction parser ignored legacy active-v2 fields, allowing one object to carry independently valid active and hybrid views.",
+          "disposition": "HARDEN_SHADOW_EXACT_FIELD_SCHEMA"
+        },
+        {
+          "classification": "WALLET_METADATA_POLYGLOT_DUAL_ACCEPTANCE",
+          "cases": [
+            "wallet:unexpected-extra-field",
+            "wallet:polyglot-dual-acceptance"
+          ],
+          "root_cause": "The PQ public-metadata parser accepted unknown fields, including an embedded legacy private JWK shape.",
+          "disposition": "HARDEN_PQ_PUBLIC_METADATA_EXACT_FIELD_SCHEMA"
+        }
+      ],
+      "harness_defects": [
+        {
+          "classification": "TEST_MUTATION_NOOP",
+          "case": "ML-DSA-65:noncanonical-mldsa-base64",
+          "root_cause": "ML-DSA-65 signature Base64 had no trailing padding, so removing '=' produced the original valid string.",
+          "disposition": "GUARANTEE_MUTATION_BY_STRIP_PADDING_OR_APPEND_INVALID_PADDING"
+        }
+      ],
+      "cryptographic_divergence_observed": false,
+      "active_runtime_change_required": false
+    }
+  ]
+}
