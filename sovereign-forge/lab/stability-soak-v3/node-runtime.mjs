@@ -3,9 +3,9 @@ import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
-import {createAuthoritativeV4PeerNode} from '../node/authoritative/fae-v4-peer-node.mjs';
-import {prepareIndependentNodeStorage} from '../node/authoritative/node-state-recovery.mjs';
-import {loadNodeIdentity} from '../node/authoritative/node-identity.mjs';
+import {createAuthoritativeV4PeerNode} from '../../node/authoritative/fae-v4-peer-node.mjs';
+import {prepareIndependentNodeStorage} from '../../node/authoritative/node-state-recovery.mjs';
+import {loadNodeIdentity} from '../../node/authoritative/node-identity.mjs';
 
 const role=(process.env.FAE_V3_ROLE||'').trim();
 const runId=(process.env.FAE_V3_RUN_ID||'PREPARED_NOT_STARTED').trim();
