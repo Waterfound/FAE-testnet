@@ -646,5 +646,64 @@
       "root_cause_hypothesis": "temporary host denies the nested iframe browsing context used by the original runner"
     },
     "correction": "Replace embedded iframe child architecture with real same-origin top-level Safari tabs opened directly at the FAE app root; keep runtime miner bytes frozen."
+  },
+  "mts_12_physical_attempt_2": {
+    "status": "HARNESS_FALSE_NEGATIVE_RACE_CLASSIFICATION_INSUFFICIENT",
+    "source_artifact": {
+      "schema": "FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V2",
+      "sha256": "890030ccadb309c3caf66a6c7b3bcd41266f98b69bb727f71f9fb91fee23d512",
+      "bytes": 713121,
+      "started_at": "2026-09-18T16:42:28.216Z",
+      "completed_at": "2026-09-18T17:02:42.189Z"
+    },
+    "physical_device": {
+      "ipad": true,
+      "safari_version": "26.6.1",
+      "exact_miner_sha_matches": true,
+      "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+      "worker": true,
+      "broadcast_channel": true,
+      "lifecycle": true,
+      "top_level_tabs": true
+    },
+    "tip_gate": {
+      "armed": true,
+      "baseline_height": 417,
+      "target_height": 418,
+      "a_convergence_ms": 1983,
+      "b_convergence_ms": 2307,
+      "gate_ms": 3500,
+      "first_gate_result": "PASS",
+      "first_pass_ms_after_arm": 31074,
+      "manual_restart_used": false
+    },
+    "late_stale_response": {
+      "count": 1,
+      "occurred_ms_after_first_pass": 234865,
+      "http_status": 409,
+      "role": "a",
+      "classification": "UNCLASSIFIED_BY_V2_RECORDER",
+      "reason": "V2 recorded submit_result only after the response and did not record submit_started. Therefore it cannot prove whether the request was initiated before or after local authoritative mismatch observation.",
+      "nearby_observations": {
+        "b_submit_accepted_ms_before_stale_response": 632,
+        "a_last_old_tip_status_ms_before_stale_response": 622,
+        "a_new_tip_status_ms_before_stale_response": 51,
+        "b_new_tip_status_ms_before_stale_response": 18
+      }
+    },
+    "conclusion": {
+      "miner_runtime_failure_proven": false,
+      "miner_write_authorized": false,
+      "physical_tip_convergence_observed": true,
+      "physical_tip_gate_passed_before_recorder_flip": true,
+      "background_foreground_not_yet_tested": true
+    },
+    "recorder_correction": [
+      "Latch the first completed tip verdict so later unrelated events cannot rewrite PASS to FAIL.",
+      "Record submit_started before network dispatch with submitted parent and latest locally known authoritative status.",
+      "Count only submit requests started after a known mismatch as stale-after-known-mismatch.",
+      "Record 409 responses from requests that started while locally current as race-lost responses, not hidden failures.",
+      "Fail closed on unclassified stale responses."
+    ]
   }
 }
