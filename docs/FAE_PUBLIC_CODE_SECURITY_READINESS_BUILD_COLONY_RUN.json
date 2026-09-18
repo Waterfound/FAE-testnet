@@ -126,7 +126,7 @@
     {
       "id": "PSR-01",
       "name": "Formal Public-Code Threat Model",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-00"
       ],
@@ -135,7 +135,7 @@
     {
       "id": "PSR-02",
       "name": "Existing Security Gate and Evidence Inventory",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-00"
       ],
@@ -144,7 +144,7 @@
     {
       "id": "PSR-03",
       "name": "Attack-Surface Matrix and Invariant Registry",
-      "state": "READY_ON_SUCCESSFUL_PSR01_02_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-01",
         "PSR-02"
@@ -154,7 +154,7 @@
     {
       "id": "PSR-04",
       "name": "Responsible Disclosure Baseline",
-      "state": "READY_ON_SUCCESSFUL_PSR01_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-01"
       ],
@@ -163,7 +163,7 @@
     {
       "id": "PSR-05",
       "name": "Consensus and Economic Hostile Gates",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -172,7 +172,7 @@
     {
       "id": "PSR-06",
       "name": "Wallet, Keys and Signature Hostile Gates",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -181,7 +181,7 @@
     {
       "id": "PSR-07",
       "name": "P2P, Discovery and Eclipse Hostile Gates",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -190,7 +190,7 @@
     {
       "id": "PSR-08",
       "name": "Persistence, Reorg and Recovery Hostile Gates",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -199,7 +199,7 @@
     {
       "id": "PSR-09",
       "name": "Browser, Frontend, API and Backend Boundary Gates",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -389,6 +389,54 @@
         "downstream_unlock_on_green": [
           "PSR-03",
           "PSR-04"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-03||PSR-04",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "83a6adff3a6232026e78321062fe58e68174d9cd",
+      "branch": "colony/fae-public-code-security-psr03-04",
+      "executor_attached": true,
+      "outputs": [
+        "docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.json",
+        "docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.md",
+        "SECURITY.md",
+        "tests/public-code-security-contract.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "matrix": {
+        "invariant_count": 16,
+        "attack_surface_count": 11,
+        "downstream_owner_gates": [
+          "PSR-05",
+          "PSR-06",
+          "PSR-07",
+          "PSR-08",
+          "PSR-09",
+          "PSR-12",
+          "PSR-13",
+          "PSR-15",
+          "PSR-16"
+        ]
+      },
+      "disclosure": {
+        "public_sensitive_details_forbidden": true,
+        "preferred_private_route": "GitHub Report a vulnerability / private vulnerability reporting when exposed by repository Security UI",
+        "fallback": "request a private channel through the maintainer's publicly listed GitHub profile contact method without vulnerability details",
+        "bounty_commitment": false
+      },
+      "evidence_binding": {
+        "structural_contract_guard": "tests/public-code-security-contract.mjs",
+        "canonical_verification": "required before GREEN",
+        "runtime_or_consensus_change": false,
+        "downstream_unlock_on_green": [
+          "PSR-05",
+          "PSR-06",
+          "PSR-07",
+          "PSR-08",
+          "PSR-09"
         ]
       }
     }
