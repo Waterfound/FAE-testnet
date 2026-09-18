@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-02 — Independent Node Explorer Query Surface ACTIVE**
+Status: **BE-02 — LAB_VERIFIED / integration candidate**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -92,3 +92,7 @@ Implemented surface:
 Address cursors are bound to the observed tip hash. A tip change invalidates the old cursor with `tip_changed_retry`; the Explorer never tries to reconcile or choose a chain itself.
 
 BE-02 does not add an indexer, database, cache authority, transaction submission, wallet operation, mining operation, or consensus rule.
+
+## BE-02 verification result
+
+The bounded BE-02 candidate passed the dedicated Explorer tests, real HTTP integration, Independent Node hardening, canonical-source verification, recurring Project Assurance, CodeQL, and pre-integration cross-Lab verification. Runtime write authority is now frozen. The remaining step is serialized integration into canonical `main` followed by exact combined-main verification.
