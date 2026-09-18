@@ -75,6 +75,41 @@ if(embeddedControllerEnabled&&controllerNodes.some(n=>!/^https?:\/\//.test(n.url
 if(embeddedRunStarted&&!embeddedMinerAddress)throw new Error('embedded started controller requires FAE_V3_MINER_ADDRESS');
 const embeddedController={enabled:embeddedControllerEnabled,run_started:embeddedRunStarted,t0_utc:embeddedRunStarted?new Date(controllerT0).toISOString():null,last_slot:-1,last_error:null,last_block:null};
 let controllerTimer=null;
+const localEvents=[];let localEventSeq=0,tipWatchTimer=null,peerProbeTimer=null;
+const peerReachability=new Map(peers.map(peer=>[peer,{reachable:null,outage_start_ms:null,fail_emitted:false}]));
+function pushLocalEvent(event,payload={}){
+  const row={seq:++localEventSeq,event,run_id:runId,node_role:role,boot_id:bootId,at:new Date().toISOString(),at_ms:Date.now(),...payload};
+  localEvents.push(row);if(localEvents.length>10000)localEvents.splice(0,localEvents.length-10000);
+  console.log(JSON.stringify(row));return row;
+}
+let lastObservedTip=node.tipSnapshot();
+function observeLocalTip(){
+  const current=node.tipSnapshot();
+  if(current.hash!==lastObservedTip.hash){
+    pushLocalEvent('FAE_V3_TIP_FIRST_SEEN',{node:role,height:current.height,hash:current.hash,previous_hash:lastObservedTip.hash,first_seen_ms:Date.now()});
+    lastObservedTip=current;
+  }
+}
+async function probePeer(peer){
+  const state=peerReachability.get(peer),now=Date.now();
+  try{
+    const response=await fetch(`${peer.replace(/\/$/,'')}/v3/health`,{signal:AbortSignal.timeout(700)});
+    if(!response.ok)throw new Error(`http_${response.status}`);
+    if(state.reachable===false&&state.outage_start_ms!==null){
+      pushLocalEvent('FAE_V3_PEER_TRANSPORT_RECOVERED',{peer,duration_ms:now-state.outage_start_ms,outage_start_ms:state.outage_start_ms,recovered_at_ms:now});
+    }
+    state.reachable=true;state.outage_start_ms=null;state.fail_emitted=false;
+  }catch(error){
+    if(state.reachable!==false){
+      state.reachable=false;state.outage_start_ms=now;state.fail_emitted=false;
+      pushLocalEvent('FAE_V3_PEER_TRANSPORT_LOSS',{peer,error:error.message,outage_start_ms:now});
+    }else if(state.outage_start_ms!==null&&!state.fail_emitted&&now-state.outage_start_ms>180000){
+      state.fail_emitted=true;
+      pushLocalEvent('FAE_V3_FAIL',{reason:'peer_transport_outage_exceeded',peer,duration_ms:now-state.outage_start_ms,bound_ms:180000});
+    }
+  }
+}
+async function probePeers(){await Promise.allSettled(peers.map(probePeer))}
 
 let checkpointBusy=false,checkpointTimer=null,keepaliveTimer=null,stopping=false;
 async function checkpoint(reason){
@@ -137,6 +172,10 @@ const proxy=http.createServer(async(req,res)=>{
       const raw=url.searchParams.get('anchor_height'),anchor=raw===null?null:Number(raw);
       return json(res,200,meta(Number.isSafeInteger(anchor)?anchor:null));
     }
+    if(url.pathname==='/v3/events'){
+      const after=Number(url.searchParams.get('after_seq')||0),limit=Math.max(1,Math.min(5000,Number(url.searchParams.get('limit')||2000)));
+      return json(res,200,{ok:true,run_id:runId,role,boot_id:bootId,last_seq:localEventSeq,events:localEvents.filter(e=>e.seq>after).slice(0,limit)});
+    }
     if(url.pathname==='/v3/chain-summary'){
       const state=node.getState();
       return json(res,200,{ok:true,run_id:runId,role,boot_id:bootId,node_identity:identityRecord.identity.id,blocks:state.chain.map(b=>({height:b.height,hash:b.hash,previous_hash:b.previous_hash,timestamp_ms:b.timestamp_ms}))});
@@ -171,11 +210,13 @@ async function embeddedControllerTick(){
   catch(error){embeddedController.last_error=error.message;console.error(JSON.stringify({event:'FAE_V3_EMBEDDED_MINE_ERROR',run_id:runId,role,boot_id:bootId,slot,node:target.name,error:error.message,at:new Date().toISOString()}))}
 }
 
+tipWatchTimer=setInterval(observeLocalTip,25);tipWatchTimer.unref?.();
+peerProbeTimer=setInterval(()=>void probePeers(),1000);peerProbeTimer.unref?.();void probePeers();
 if(embeddedControllerEnabled){controllerTimer=setInterval(()=>void embeddedControllerTick(),1000);controllerTimer.unref?.();void embeddedControllerTick();}
 
 async function stop(signal){
   if(stopping)return;stopping=true;
-  clearInterval(checkpointTimer);if(keepaliveTimer)clearInterval(keepaliveTimer);if(controllerTimer)clearInterval(controllerTimer);
+  clearInterval(checkpointTimer);if(keepaliveTimer)clearInterval(keepaliveTimer);if(controllerTimer)clearInterval(controllerTimer);if(tipWatchTimer)clearInterval(tipWatchTimer);if(peerProbeTimer)clearInterval(peerProbeTimer);
   console.log(JSON.stringify({event:'FAE_V3_NODE_STOP',run_id:runId,role,boot_id:bootId,signal,at:new Date().toISOString()}));
   try{await checkpoint('shutdown')}catch{}
   await new Promise(resolve=>proxy.close(()=>resolve())).catch(()=>{});
