@@ -6,6 +6,7 @@ on:
       - 'sovereign-forge/tests/stability-soak-v3-preflight.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-preflight.test.mjs'
       - 'sovereign-forge/release/stability-soak-v3-preflight.json'
+      - 'sovereign-forge/evidence/STABILITY_SOAK_V3_RENDER_FREE_PREFLIGHT.json'
       - '.github/workflows/stability-soak-v3-preflight.yml'
   workflow_dispatch:
 
@@ -30,3 +31,6 @@ jobs:
       - name: Confirm prepared manifest cannot accidentally start V3
         run: |
           node sovereign-forge/tests/stability-soak-v3-preflight.mjs sovereign-forge/release/stability-soak-v3-preflight.json && exit 1 || test $? -eq 2
+      - name: Confirm observed Render Free topology fails V3 preflight
+        run: |
+          node sovereign-forge/tests/stability-soak-v3-preflight.mjs sovereign-forge/evidence/STABILITY_SOAK_V3_RENDER_FREE_PREFLIGHT.json && exit 1 || test $? -eq 2
