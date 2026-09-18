@@ -1,0 +1,50 @@
+{
+  "schema": "FAE_PQ10_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "admitted_head": "2beb8c804f92640010cde1a893c495173eeb1125",
+  "integrated_commit": "ac99bedb04f347d780fa97f6c4265ec8280abba3",
+  "executor_run_id": 35363356923,
+  "executor_run_number": 2,
+  "canonical_run_id": 35363356805,
+  "canonical_run_number": 524,
+  "pq_lab_standards_run_id": 35363357003,
+  "pq_lab_standards_run_number": 131,
+  "artifact_id": 10555054036,
+  "artifact_sha256": "b7442cbf139d4709233410d3ff492fbf2dd8370f3b975689d7cc407ec7abf223",
+  "lifecycle": {
+    "parameter_sets": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
+    "create_phase": "PASS",
+    "persisted_shadow_entries": 3,
+    "isolated_shadow_mempool_count": 3,
+    "deterministic_in_run_replay": "PASS",
+    "duplicate_rejection": "PASS",
+    "invalid_before_mutation": "PASS",
+    "restart_reconstruction": "PASS",
+    "public_metadata_reverified": "PASS",
+    "transactions_reverified": "PASS",
+    "txids_reverified": "PASS",
+    "stripped_rejection_before_mutation": "PASS",
+    "pq07_regression_replay": {
+      "result": "PASS",
+      "case_count": 114,
+      "failed_case_ids": []
+    },
+    "browser_facing": {
+      "result": "PASS",
+      "webcrypto_ed25519": "PASS",
+      "noble_mldsa": "PASS",
+      "entries_verified": 3
+    }
+  },
+  "private_material_emitted": false,
+  "rpc_used": false,
+  "active_state_mutated": false,
+  "active_runtime_files_unchanged": true,
+  "result": "GREEN"
+}
