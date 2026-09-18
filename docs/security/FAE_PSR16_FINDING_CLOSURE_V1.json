@@ -1,0 +1,293 @@
+{
+  "schema": "FAE_PSR16_FINDING_CLOSURE_V1",
+  "psr": "PSR-16",
+  "status": "CANDIDATE_ZERO_FINDING_CLOSURE_PENDING_VERIFICATION_AND_INTEGRATION",
+  "source_revision": "ed0141c035645c0f0044f68b5d024822a482d10e",
+  "prerequisite": {
+    "psr15": "GREEN",
+    "pr": 190,
+    "candidate_head": "c4fe3fb5f2db32dbc50024af2e39db9c625d3117",
+    "merge_commit": "ed0141c035645c0f0044f68b5d024822a482d10e",
+    "dedicated_run": {
+      "id": 35370317678,
+      "run_number": 1,
+      "status": "SUCCESS"
+    },
+    "canonical_run": {
+      "id": 35370317594,
+      "run_number": 563,
+      "status": "SUCCESS"
+    },
+    "cross_lab_run": {
+      "id": 35370317536,
+      "run_number": 21,
+      "status": "SUCCESS"
+    },
+    "codeql_run": {
+      "id": 35370317541,
+      "run_number": 44,
+      "status": "SUCCESS_SIGNAL_ONLY"
+    },
+    "report_summary": {
+      "schema": "FAE_PSR15_PROJECT_ASSURANCE_REPORT_V1",
+      "status": "PASS_NO_BASELINE_BLOCKING_FINDINGS",
+      "planned": 17,
+      "executed": 17,
+      "passed": 17,
+      "failed": 0,
+      "findings": 0,
+      "target_unchanged": true,
+      "authority": "NONE"
+    },
+    "preserved_artifact": {
+      "artifact_id": 10558810983,
+      "zip_sha256": "107f4b06651cc98c0d028f7b239fca3117152c84e72672852e9ed24632be11f3",
+      "retention_days": 14
+    }
+  },
+  "closure": {
+    "admitted_findings": [],
+    "fixed_findings": [],
+    "residual_risk_acceptances": [],
+    "open_blockers": [],
+    "fix_regressions_required": 0,
+    "rationale": "The exact PSR-15 campaign admitted zero findings. PSR-16 therefore performs zero-finding closure verification and proves all attack cases remain promoted as executable regressions; it does not invent fixes or residual-risk acceptances."
+  },
+  "regression_promotion": {
+    "campaign_manifest": "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json",
+    "dedicated_workflow": ".github/workflows/psr15-project-assurance.yml",
+    "promoted_count": 17,
+    "attacks": [
+      {
+        "attack_id": "WB-01",
+        "title": "Cross-surface white-box composition probes",
+        "command": [
+          "node",
+          "--test",
+          "tests/public-code-security-whitebox.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-02",
+        "title": "Hostile consensus/wallet/P2P/browser frontier replay",
+        "command": [
+          "node",
+          "--test",
+          "tests/public-code-security-hostile-frontier.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-03",
+        "title": "Hostile corpus/property/fuzz replay",
+        "command": [
+          "node",
+          "--test",
+          "tests/public-code-security-fuzz.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-04",
+        "title": "Independent implementation differential attack",
+        "command": [
+          "node",
+          "--test",
+          "tests/public-code-security-differential.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-05",
+        "title": "Authoritative v4 consensus candidate-boundary replay",
+        "command": [
+          "node",
+          "--test",
+          "sovereign-forge/tests/authoritative-v4-core.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-06",
+        "title": "Difficulty/timestamp white-box red team",
+        "command": [
+          "node",
+          "--test",
+          "sovereign-forge/tests/difficulty-timestamp-redteam.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-07",
+        "title": "Authenticated P2P replay/tamper/resource attack",
+        "command": [
+          "node",
+          "--test",
+          "sovereign-forge/tests/authoritative-p2p-security.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-08",
+        "title": "Eclipse/diversity Sybil composition attack",
+        "command": [
+          "node",
+          "--test",
+          "sovereign-forge/tests/authoritative-peer-diversity.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-09",
+        "title": "Hard-crash and semantic recovery attack",
+        "command": [
+          "node",
+          "--test",
+          "sovereign-forge/tests/independent-node-v11-process-recovery.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-10",
+        "title": "Mining stale-work lifecycle stress",
+        "command": [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-11",
+        "title": "Public-repo/supply-chain hygiene attack",
+        "command": [
+          "node",
+          "tests/public-repo-hygiene.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-12",
+        "title": "Release provenance tamper/reproduction attack",
+        "command": [
+          "node",
+          "--test",
+          "tests/public-code-release-provenance.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-13",
+        "title": "Cross-Lab authority composition attack",
+        "command": [
+          "node",
+          "tools/verify-lab-integration.mjs",
+          "--run"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-14",
+        "title": "PQ lab active-authority isolation attack",
+        "command": [
+          "node",
+          "lab/post-quantum-signatures/boundary-guard.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-15",
+        "title": "Mining lab authority-isolation attack",
+        "command": [
+          "node",
+          "lab/mining-tip-sync/boundary-guard.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-16",
+        "title": "Security contract/findings lifecycle self-check",
+        "command": [
+          "node",
+          "tests/public-code-security-contract.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      },
+      {
+        "attack_id": "WB-17",
+        "title": "MTS-12 Safari preflight/privacy and physical-evidence boundary attack",
+        "command": [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-12-preflight.test.mjs"
+        ],
+        "severity": "baseline_blocking",
+        "regression_status": "PROMOTED_PERMANENT_CAMPAIGN_CASE",
+        "owner_workflow": ".github/workflows/psr15-project-assurance.yml"
+      }
+    ],
+    "failure_policy": "Any removed/mutated attack, missing executable asset, newly admitted finding, target mutation, or nonzero campaign failure blocks PSR-16."
+  },
+  "authority": {
+    "target_writes": false,
+    "production_actions": false,
+    "consensus_change": false,
+    "runtime_change": false,
+    "release_authority": false,
+    "mainnet_authority": false
+  },
+  "exit_binding": {
+    "static_closure_contract": "required",
+    "dynamic_psr15_rerun": "required",
+    "canonical_verification": "required",
+    "cross_lab_integration": "required",
+    "exact_source_binding": "required before merge",
+    "downstream_on_green": [
+      "PSR-17"
+    ]
+  },
+  "rebinding": {
+    "previous_source_revision": "9c00d6409ad96f8158270bb0b087f5849c7bffce",
+    "intervening_commits": 5,
+    "reviewed_scope": [
+      "lab/mining-tip-sync/authority.json",
+      "lab/mining-tip-sync/evidence/mts-12-physical-attempt-002.json",
+      "lab/mining-tip-sync/mts-12-ipad-acceptance.html",
+      "lab/mining-tip-sync/tests/mts-12-preflight.test.mjs"
+    ],
+    "note": "WB-17 directly executes mts-12-preflight.test.mjs; prior PSR-16 run cannot satisfy the rebound candidate."
+  }
+}
