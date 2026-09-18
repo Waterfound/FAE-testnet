@@ -152,6 +152,26 @@ The H2 freeze still leaves production-specific values unselected, including:
 
 These must remain unset until their own evidence and explicit authority gates are satisfied.
 
+## Cross-Lab integration rule
+
+Lab-local success does not automatically make a result canonical or live.
+
+Required status separation:
+
+- `LAB_VERIFIED` — bounded Lab evidence passed;
+- `INTEGRATED_MAIN` — the result is present in canonical `main`;
+- `COMBINED_MAIN_VERIFIED` — the exact combined `main` revision passes the cross-Lab integration gate;
+- `LIVE` — deployment/runtime evidence binds the running system to that exact integrated revision or artifact.
+
+Before a Lab result is merged, its candidate branch must contain the latest canonical `main`. If `main` advances, the Lab branch must be reconciled again before final integration. Independent Lab passes do not prove combined behavior.
+
+Primary references:
+
+- `docs/FAE_LAB_INTEGRATION_PROTOCOL.md`
+- `lab/integration/registry.json`
+- `tools/verify-lab-integration.mjs`
+- `.github/workflows/lab-integration-gate.yml`
+
 ## Working rule for future conversations and automations
 
 For FAE work:
