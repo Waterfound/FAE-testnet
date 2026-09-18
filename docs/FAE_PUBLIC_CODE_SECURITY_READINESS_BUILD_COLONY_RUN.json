@@ -144,7 +144,7 @@
     {
       "id": "PSR-03",
       "name": "Attack-Surface Matrix and Invariant Registry",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-01",
         "PSR-02"
@@ -154,7 +154,7 @@
     {
       "id": "PSR-04",
       "name": "Responsible Disclosure Baseline",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-01"
       ],
@@ -163,7 +163,7 @@
     {
       "id": "PSR-05",
       "name": "Consensus and Economic Hostile Gates",
-      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -172,7 +172,7 @@
     {
       "id": "PSR-06",
       "name": "Wallet, Keys and Signature Hostile Gates",
-      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -181,7 +181,7 @@
     {
       "id": "PSR-07",
       "name": "P2P, Discovery and Eclipse Hostile Gates",
-      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -190,7 +190,7 @@
     {
       "id": "PSR-08",
       "name": "Persistence, Reorg and Recovery Hostile Gates",
-      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -199,7 +199,7 @@
     {
       "id": "PSR-09",
       "name": "Browser, Frontend, API and Backend Boundary Gates",
-      "state": "READY_ON_SUCCESSFUL_PSR03_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-03"
       ],
@@ -208,7 +208,7 @@
     {
       "id": "PSR-10",
       "name": "Hostile Corpus, Property Testing and Fuzzing",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR05_09_INTEGRATION",
       "depends_on": [
         "PSR-05",
         "PSR-06",
@@ -431,6 +431,70 @@
           "PSR-07",
           "PSR-08",
           "PSR-09"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-05||PSR-06||PSR-07||PSR-08||PSR-09",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "9f5ab833946aaec9569a83c6dd5af35f0c33aa92",
+      "branch": "colony/fae-public-code-security-psr05-09",
+      "executor_attached": true,
+      "outputs": [
+        "tests/public-code-security-hostile-frontier.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "promoted_existing_evidence": [
+        "sovereign-forge/tests/independent-node-v11-process-recovery.mjs",
+        "lab/mining-tip-sync/tests/mts-02-03.test.mjs",
+        "lab/mining-tip-sync/tests/mts-04-06.test.mjs"
+      ],
+      "coverage": {
+        "PSR_05": [
+          "maximum-supply boundary",
+          "invalid consensus fields",
+          "duplicate tx list",
+          "lower-work fork rejection",
+          "deterministic equal-work tie"
+        ],
+        "PSR_06": [
+          "invalid signature",
+          "malformed public key",
+          "wrong network",
+          "duplicate inputs",
+          "overspend",
+          "replayed txid",
+          "recovery address/public-key mismatch"
+        ],
+        "PSR_07": [
+          "source/network-group/unverified peer flood bounds",
+          "wrong network descriptor",
+          "expired descriptor",
+          "invalid endpoint scheme",
+          "probe-failure demotion",
+          "same-group Sybil diversity failure"
+        ],
+        "PSR_08": [
+          "detached transaction deterministic reaccept",
+          "conflicting detached transaction rejection",
+          "hard-crash recovery",
+          "corrupted raw-state recovery from durable snapshot"
+        ],
+        "PSR_09": [
+          "hostile address inputs",
+          "hostile amount inputs",
+          "backend error/non-JSON fail-closed",
+          "stale-work generation/tip invalidation",
+          "direct stale PoW cancellation"
+        ]
+      },
+      "evidence_binding": {
+        "canonical_verification": "required before GREEN",
+        "runtime_or_consensus_change": false,
+        "secrets_persisted": false,
+        "downstream_unlock_on_green": [
+          "PSR-10"
         ]
       }
     }

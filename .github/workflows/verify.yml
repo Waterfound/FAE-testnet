@@ -82,6 +82,13 @@ jobs:
       - name: Verify public-code security contracts
         run: node tests/public-code-security-contract.mjs
 
+      - name: Verify PSR-05 through PSR-09 hostile security frontier
+        run: |
+          node --test tests/public-code-security-hostile-frontier.mjs
+          node --test sovereign-forge/tests/independent-node-v11-process-recovery.mjs
+          node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
+          node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
