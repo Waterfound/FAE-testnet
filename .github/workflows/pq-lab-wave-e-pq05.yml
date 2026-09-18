@@ -35,18 +35,35 @@ jobs:
           else
             node lab/post-quantum-signatures/boundary-guard.mjs
           fi
+      - name: Enforce executor binding
+        id: binding
+        shell: bash
+        run: |
+          if [ -f "lab/post-quantum-signatures/wave-e/pq05/test.mjs" ]; then
+            echo "bound=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$GITHUB_HEAD_REF" = "colony/pq-wave-e-harness" ]; then
+            echo "bound=false" >> "$GITHUB_OUTPUT"
+            echo "Harness bootstrap: implementation intentionally absent."
+            exit 0
+          fi
+          echo "Missing required Wave E test: lab/post-quantum-signatures/wave-e/pq05/test.mjs" >&2
+          exit 1
       - name: Verify PQ-03 prerequisite
         run: node -e "const s=require('./lab/post-quantum-signatures/gate-status.json'); if(s.gates['PQ-03']?.status!=='GREEN'||s.activation_authorized!==false)process.exit(1)"
       - name: Install pinned PQ dependencies
+        if: steps.binding.outputs.bound == 'true'
         working-directory: lab/post-quantum-signatures
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Execute PQ-05 frozen shadow matrix
+        if: steps.binding.outputs.bound == 'true'
         run: |
           set -o pipefail
           mkdir -p lab/post-quantum-signatures/evidence/wave-e
           node lab/post-quantum-signatures/wave-e/pq05/test.mjs | tee lab/post-quantum-signatures/evidence/wave-e/pq05.json
       - name: Upload PQ-05 evidence
-        if: always()
+        if: always() && steps.binding.outputs.bound == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: pq05-hybrid-transaction-shadow
