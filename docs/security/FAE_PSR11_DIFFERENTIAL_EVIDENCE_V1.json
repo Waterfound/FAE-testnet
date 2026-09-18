@@ -1,0 +1,81 @@
+{
+  "schema": "FAE_PSR11_DIFFERENTIAL_EVIDENCE_V1",
+  "psr": "PSR-11",
+  "status": "CANDIDATE_COMPLETE_PENDING_CANONICAL_VERIFICATION_AND_INTEGRATION",
+  "source_revision": "930d757f7a286eb83be637d32197342c030d63a0",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "active_v4_independent_implementation": {
+    "implementation": "sovereign-forge/node/fae-node.mjs",
+    "harness": "tests/public-code-security-differential.mjs",
+    "independence_fence": [
+      "standalone node must not import/reference fae-v4-core.mjs",
+      "standalone node must not import/reference consensus-v3-shadow",
+      "standalone node must not import/reference activation reorg/state-transition candidate implementations"
+    ],
+    "compared_properties": [
+      "genesis network/height/difficulty/chain-work",
+      "mining-template consensus fields and tx commitment",
+      "block acceptance and resulting tip/issued supply/chain work",
+      "balance and spendable-state equivalence",
+      "transaction txid and fee equivalence",
+      "confirmed transaction state equivalence",
+      "invalid-signature rejection class",
+      "wrong-network transaction rejection class",
+      "stale-block rejection class",
+      "invalid-reward rejection class",
+      "duplicate/replayed transaction rejection class",
+      "rejected cases do not mutate canonical chain tip"
+    ],
+    "divergence_policy": "FAIL_CLOSED"
+  },
+  "promoted_specialized_differential_evidence": [
+    {
+      "path": "sovereign-forge/tests/activation-state-transition-core-differential.mjs",
+      "authority": "CANDIDATE_BOUNDARY_ONLY",
+      "purpose": "Proves parity between v4 core and independent transition oracle before the declared future maturity divergence boundary."
+    },
+    {
+      "path": "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+      "authority": "CANDIDATE_BOUNDARY_ONLY",
+      "purpose": "128 seeded reorg/fork-choice cases against independent referenceEvaluate/referenceCompare plus restart replay; already executed by PSR-10 canonical step."
+    },
+    {
+      "path": "sovereign-forge/tests/activation-network-composition-runtime-differential.mjs",
+      "authority": "CANDIDATE_BOUNDARY_ONLY",
+      "purpose": "Compares independent reconnect/selection oracle against executable shadow runtime under HOLD/READY, stronger-branch adoption, lower-work rejection and persisted restart."
+    },
+    {
+      "path": "sovereign-forge/tests/consensus-v3-shadow-activation.mjs",
+      "authority": "SHADOW_ONLY",
+      "purpose": "Dual-validation parity/error-class/state-equality for current-v4 blocks and transactions through a separately fenced codec/harness; already canonical."
+    }
+  ],
+  "non_claims": [
+    "Candidate/shadow parity does not activate candidate consensus.",
+    "The standalone independent node is evidence for active-v4 equivalence, not a second source of consensus authority.",
+    "Differential agreement does not prove both implementations are free of the same specification error.",
+    "Post-quantum shadow code is not counted as active-v4 differential authority."
+  ],
+  "prerequisite_evidence": {
+    "PSR_10": {
+      "integrated_commit": "d32ede90f91f065cfbfdfd1d6d150780635dfc72",
+      "canonical_pr_run": 465,
+      "current_main_replay_run": 476,
+      "current_main_replay_status": "SUCCESS"
+    }
+  },
+  "downstream_effect_on_green": {
+    "psr11": "GREEN",
+    "remaining_parallel_ready": [
+      "PSR-12",
+      "PSR-14"
+    ],
+    "psr13": "remains blocked until PSR-12",
+    "psr15": "remains blocked until PSR-12 and PSR-13 are GREEN"
+  },
+  "authority": {
+    "runtime_or_consensus_change": false,
+    "mainnet_authority": false,
+    "activation_authority": false
+  }
+}
