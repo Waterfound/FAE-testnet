@@ -1,0 +1,56 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_PREFLIGHT_V1",
+  "status": "PREPARED_NOT_STARTED",
+  "software_commit": "745faec3c2ee3fd214199b60293f46e7b9d5a92b",
+  "harness_commit": null,
+  "authority": {
+    "public_testnet_v4_unchanged": true,
+    "new_economy_activation": false,
+    "candidate_promoted": false,
+    "mainnet_authorized": false
+  },
+  "duration_hours": 96,
+  "margin_hours": 12,
+  "max_transient_outage_seconds": 180,
+  "phase_hours": [24, 24, 24, 24],
+  "nodes": [],
+  "controller": null,
+  "observer": null,
+  "telemetry": {
+    "process_boot_id": true,
+    "process_started_at": true,
+    "provider_instance_id": true,
+    "state_height": true,
+    "state_tip_hash": true,
+    "state_generation": true,
+    "peer_directory_count": true,
+    "peer_directory_digest": true,
+    "configured_peer_count": true,
+    "bootstrap_attempts": true,
+    "bootstrap_last_error": true,
+    "transport_reachability": true,
+    "restart_classification": true,
+    "outage_start_end": true,
+    "recovery_duration_ms": true,
+    "propagation_p95": true,
+    "stale_count": true,
+    "reorg_count": true
+  },
+  "statistics": {
+    "wilson_one_sided_confidence": 0.95,
+    "stale_rate_threshold": 0.01,
+    "wilson_upper_threshold": 0.01,
+    "propagation_p95_max_ms": 5000
+  },
+  "infrastructure_evidence": {
+    "billing_or_quota_clear": false,
+    "no_known_96h_suspension_limit": false
+  },
+  "run_started": false,
+  "notes": [
+    "This manifest prepares V3 only; it does not authorize or start a 96h soak.",
+    "A provider/runtime restart is observable evidence, not an automatic failure, provided recovery remains within the frozen 180s bound and state is not lost.",
+    "No redeploy, code change, economy activation, consensus activation, candidate promotion, or public-testnet authority change is permitted during the 96h run.",
+    "Infrastructure must prove 96h plus at least 12h margin before run start."
+  ]
+}
