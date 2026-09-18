@@ -1,16 +1,16 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
+  "status": "BE_02_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
   "source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
-  "current_frontier": "BE-01",
-  "authority_ceiling": "READ_ONLY_EXPLORER_CONTRACT",
+  "current_frontier": "BE-02",
+  "authority_ceiling": "BOUNDED_READ_ONLY_NODE_QUERY_SURFACE",
   "explorer_principle": "Explorer observes FAE; it never authorizes FAE.",
-  "current_stage_runtime_write_authorized": false,
-  "node_query_surface_write_authorized": false,
+  "current_stage_runtime_write_authorized": true,
+  "node_query_surface_write_authorized": true,
   "wallet_write_authorized": false,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -72,8 +72,48 @@
     }
   },
   "be02_authority": {
-    "state": "NOT_YET_AUTHORIZED",
-    "prerequisite": "BE-01 integrated and combined-main verified",
-    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority."
-  }
+    "state": "AUTHORIZED_BOUNDED",
+    "prerequisite": "BE-01 is COMBINED_MAIN_VERIFIED at c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority.",
+    "allowed_write_scopes": [
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "sovereign-forge/node/fae-node.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/explorer-read.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/README.md"
+      }
+    ],
+    "forbidden_runtime_effects": [
+      "change block validity",
+      "change fork choice",
+      "change transaction validity",
+      "change mining/template semantics",
+      "change wallet or key handling",
+      "change monetary policy",
+      "trust raw feed or Explorer cache as canonical truth",
+      "add Explorer mutation endpoints"
+    ],
+    "explorer_methods": [
+      "GET",
+      "OPTIONS"
+    ],
+    "state_source": "in-memory snapshot of already independently validated node state",
+    "pagination_binding": "address cursors must bind to observed_tip_hash and fail closed across tip change"
+  },
+  "frontier_source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/node/fae-node.mjs",
+    "sovereign-forge/node/explorer-read.mjs",
+    "sovereign-forge/node/README.md"
+  ]
 }
