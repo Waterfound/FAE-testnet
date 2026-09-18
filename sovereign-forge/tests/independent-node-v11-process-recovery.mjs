@@ -21,9 +21,19 @@ async function waitStatus(base,height){let lastError=null;for(let i=0;i<200;i++)
 async function waitDurableHeight(path,height){let last=null;for(let i=0;i<120;i++){try{const envelope=JSON.parse(await readFile(path,'utf8'));last=envelope?.state?.chain?.length;if(last===height)return envelope}catch{}await delay(50)}throw new Error(`durable snapshot did not reach height ${height}; last=${last}`)}
 async function waitLog(child,pattern,{timeoutMs=3000}={}){const deadline=Date.now()+timeoutMs;while(Date.now()<deadline){const logs=child.logs();if(pattern.test(logs.stdout))return logs;if(child.exitCode!==null||child.signalCode!==null)throw new Error(`child exited before log ${pattern}: ${JSON.stringify(logs)}`);await delay(20)}throw new Error(`timed out waiting for log ${pattern}: ${JSON.stringify(child.logs())}`)}
 async function mine(base,address){const template=await json(`${base}/template?address=${encodeURIComponent(address)}`);let nonce=0,hash='';for(;nonce<12_000_000;nonce++){hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)break}if(nonce>=12_000_000)throw new Error('PoW search exhausted');await json(`${base}/submit-block`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({header:template.header,nonce,hash,txids:template.txids||[],coinbase_outputs:template.coinbase_outputs??null})});return hash}
-function startProcess({port,dataFile,durableFile,identityFile,trustFile}){
-  const child=spawn(process.execPath,[entrypoint],{env:{...process.env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),FAE_DATA_FILE:dataFile,FAE_DURABLE_STATE_FILE:durableFile,FAE_IDENTITY_FILE:identityFile,FAE_PEER_TRUST_FILE:trustFile,FAE_SYNC:'0',FAE_DURABLE_CHECKPOINT_MS:'1000'},stdio:['ignore','pipe','pipe']});
+function startProcess({port,dataFile,durableFile,identityFile,trustFile,peers='',sync='0'}){
+  const child=spawn(process.execPath,[entrypoint],{env:{...process.env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),FAE_DATA_FILE:dataFile,FAE_DURABLE_STATE_FILE:durableFile,FAE_IDENTITY_FILE:identityFile,FAE_PEER_TRUST_FILE:trustFile,FAE_PEERS:peers,FAE_SYNC:sync,FAE_SYNC_MS:'5000',FAE_DURABLE_CHECKPOINT_MS:'1000'},stdio:['ignore','pipe','pipe']});
   let stdout='',stderr='';child.stdout.on('data',chunk=>stdout+=chunk);child.stderr.on('data',chunk=>stderr+=chunk);child.logs=()=>({stdout,stderr});return child;
+}
+async function waitAnyStatus(base,{timeoutMs=10_000}={}){
+  const deadline=Date.now()+timeoutMs;let lastError=null;
+  while(Date.now()<deadline){try{return await json(`${base}/status`)}catch(error){lastError=error}await delay(50)}
+  throw new Error(`node did not become reachable: ${lastError?.message||'timeout'}`);
+}
+async function waitStatusWithin(base,height,{timeoutMs=45_000}={}){
+  const started=Date.now(),deadline=started+timeoutMs;let last=null,lastError=null;
+  while(Date.now()<deadline){try{last=await json(`${base}/status`);if(last.height===height)return{status:last,elapsedMs:Date.now()-started}}catch(error){lastError=error}await delay(100)}
+  throw new Error(`node did not reach height ${height} within ${timeoutMs}ms; last=${last?.height??lastError?.message??'unknown'}`);
 }
 async function hardStop(child){
   if(!child||child.exitCode!==null||child.signalCode!==null)return;
@@ -56,4 +66,48 @@ test('P2P v6 candidate survives hard crash and recovers corrupted raw state from
   const logs=await waitLog(child,/fae-node-online/);
   const repaired=JSON.parse(await readFile(dataFile,'utf8'));assert.equal(repaired.chain.length,12,'raw state must be healed before node startup');
   assert.doesNotMatch(logs.stderr,/unrecoverable|uncaught/i);
+});
+
+
+test('Frankfurt-style hard restart retains chain state, configured peer bootstrap, and recovers below frozen 180s bound',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-frankfurt-replay-'));context.after(()=>rm(dir,{recursive:true,force:true}));
+  const aPort=await freePort(),bPort=await freePort(),aBase=`http://127.0.0.1:${aPort}`,bBase=`http://127.0.0.1:${bPort}`,address=wallet();
+  const files=name=>({
+    dataFile:join(dir,`${name}-state.json`),
+    durableFile:join(dir,`${name}-state.durable`),
+    identityFile:join(dir,`${name}-identity.json`),
+    trustFile:join(dir,`${name}-trust.json`)
+  });
+  const a=files('a'),b=files('b'),initial=`${JSON.stringify(legacyState(),null,2)}\n`;
+  await writeFile(a.dataFile,initial);await writeFile(b.dataFile,initial);
+  let aChild=startProcess({port:aPort,...a}),bChild=startProcess({port:bPort,...b,peers:aBase,sync:'1'});
+  context.after(()=>Promise.allSettled([hardStop(aChild),hardStop(bChild)]));
+
+  await waitStatus(aBase,11);
+  const initialB=await waitStatus(bBase,11);
+  assert.equal(initialB.configured_peers,1,'peer bootstrap must be process configuration, not volatile controller state');
+  await waitDurableHeight(b.durableFile,11);
+
+  const recoveries=[];
+  for(let cycle=1;cycle<=3;cycle++){
+    await hardStop(bChild);
+    await mine(aBase,address);
+    const target=11+cycle;
+    await waitStatus(aBase,target);
+
+    const restartAt=Date.now();
+    bChild=startProcess({port:bPort,...b,peers:aBase,sync:'1'});
+    const first=await waitAnyStatus(bBase);
+    assert.notEqual(first.height,0,'restart must not reproduce historical height=0 state loss');
+    assert.ok(first.height>=target-1,`restart must retain pre-crash state; first height=${first.height}, target=${target}`);
+    assert.equal(first.configured_peers,1,'restart must not reproduce historical peerCount/configured_peers=0');
+    const recovered=await waitStatusWithin(bBase,target,{timeoutMs:45_000});
+    const elapsedMs=Date.now()-restartAt;
+    assert.ok(elapsedMs<180_000,`recovery exceeded frozen 180s bound: ${elapsedMs}ms`);
+    assert.equal(recovered.status.tip_hash,(await json(`${aBase}/status`)).tip_hash,'restarted node must converge to the live peer tip');
+    await waitDurableHeight(b.durableFile,target);
+    recoveries.push({cycle,target,firstHeight:first.height,configuredPeers:first.configured_peers,recoveryMs:elapsedMs});
+  }
+
+  console.log(JSON.stringify({event:'FAE_FRANKFURT_RESTART_REPLAY',ok:true,cycles:recoveries,frozenBoundMs:180_000}));
 });
