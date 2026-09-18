@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07100b">
+<title>FAE MTS-12 iPad Acceptance</title>
+<style>
+:root{color-scheme:dark;--bg:#07100b;--surface:#0e1a13;--line:#294733;--text:#edf8ef;--muted:#9eb3a4;--accent:#b8ffc8;--bad:#ff9d9d;--warn:#ffd58a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:auto;padding:18px 14px 56px}h1{font-size:clamp(28px,6vw,40px);margin:12px 0 8px}h2{font-size:18px;margin:0 0 10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0}.small{color:var(--muted);font-size:13px}.mono{font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{background:#07110b;border:1px solid var(--line);border-radius:10px;padding:9px}.metric b{display:block;margin-top:3px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}button,a.button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:#061108;font-weight:760;text-decoration:none;cursor:pointer}
+button.alt,a.button.alt{background:#24392b;color:var(--text);border:1px solid #395744}button:disabled{opacity:.45}.ok{color:var(--accent)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+pre{white-space:pre-wrap;word-break:break-word;background:#06100a;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:320px;overflow:auto}
+iframe{width:100%;height:420px;border:1px solid var(--line);border-radius:12px;background:#000}.hidden{display:none!important}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.actions{display:grid}.actions>*{width:100%;text-align:center}}
+</style>
+</head>
+<body>
+<main>
+  <h1>FAE MTS-12 · Physical iPad Acceptance</h1>
+  <p class="small">Local-only validation. No telemetry, seed phrase, private key, wallet backup, or reusable secret is collected. Testnet coins are valueless.</p>
+
+  <section class="card">
+    <h2>Frozen identity</h2>
+    <div class="grid">
+      <div class="metric"><span class="small">Expected miner SHA-256</span><b id="expected" class="mono">e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c</b></div>
+      <div class="metric"><span class="small">Loaded miner</span><b id="miner-sha" class="mono">Checking…</b></div>
+      <div class="metric"><span class="small">Device</span><b id="device">Checking…</b></div>
+      <div class="metric"><span class="small">Browser primitives</span><b id="primitives">Checking…</b></div>
+    </div>
+  </section>
+
+  <section id="controller-card" class="card">
+    <h2>Physical run</h2>
+    <p>This acceptance uses two real Safari tabs. Each tab embeds the exact deployed FAE app, switches it to a fixed watch-only address, starts mining once, and reports only timing/status events back to this controller tab.</p>
+    <p class="small">Watch-only reward address: <span class="mono" id="watch-address">faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k</span></p>
+    <div class="actions">
+      <button id="open-a">1 · Open Miner A tab</button>
+      <button id="open-b">2 · Open Miner B tab</button>
+      <button id="arm-tip" class="alt">3 · Arm real-tip acceptance</button>
+      <button id="arm-resume" class="alt">4 · Arm background/foreground</button>
+      <button id="export" class="alt">Export local JSON</button>
+    </div>
+    <p id="instruction" class="small">Open A and B, then return here and arm the real-tip acceptance. Do not press Stop/Start when the chain advances.</p>
+  </section>
+
+  <section class="card">
+    <h2>Acceptance status</h2>
+    <div class="grid">
+      <div class="metric"><span class="small">Miner A</span><b id="status-a">Not opened</b></div>
+      <div class="metric"><span class="small">Miner B</span><b id="status-b">Not opened</b></div>
+      <div class="metric"><span class="small">Real tip convergence</span><b id="tip-result">Not armed</b></div>
+      <div class="metric"><span class="small">Background → foreground</span><b id="resume-result">Not armed</b></div>
+      <div class="metric"><span class="small">Stale submissions</span><b id="stale-count">0</b></div>
+      <div class="metric"><span class="small">Manual Stop → Start used</span><b id="manual-restart">No</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Local evidence</h2>
+    <pre id="log">Initializing…</pre>
+  </section>
+
+  <section id="child-card" class="card hidden">
+    <h2 id="child-title">Miner context</h2>
+    <p class="small">Keep this tab open. Mining starts once using the watch-only address. Return to the controller tab after both A and B show Running.</p>
+    <div id="child-state" class="metric">Loading FAE app…</div>
+    <iframe id="app" src="./index.html?mts12=physical"></iframe>
+  </section>
+</main>
+<script>
+'use strict';
+const EXPECTED_MINER_SHA='e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c';
+const WATCH_ADDRESS='faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k';
+const API='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4';
+const CONTROL_CHANNEL='fae-mts12-control-v1';
+const TIP_GATE_MS=3500;
+const RESUME_GATE_MS=1500;
+const params=new URLSearchParams(location.search);
+const role=params.get('role');
+const events=[];
+const state={role:role||'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleSubmissions:0,manualRestartUsed:false,verdict:null};
+const $=id=>document.getElementById(id);
+function now(){return performance.timeOrigin+performance.now()}
+function emit(kind,data={}){const event={at_ms:Date.now(),perf_ms:now(),kind,...data};events.push(event);renderLog();return event}
+function renderLog(){const el=$('log');if(el)el.textContent=JSON.stringify({state,events:events.slice(-80)},null,2)}
+function setText(id,text,kind=''){const el=$(id);if(!el)return;el.textContent=text;el.className=kind}
+function deviceLabel(){
+  const touch=Number(navigator.maxTouchPoints||0),platform=navigator.platform||'',ua=navigator.userAgent||'';
+  const ipad=/iPad/i.test(ua)||(platform==='MacIntel'&&touch>1);
+  return{ipad,touch,platform,ua};
+}
+async function sha256Text(text){const bytes=new TextEncoder().encode(text),digest=await crypto.subtle.digest('SHA-256',bytes);return[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function preflight(){
+  state.device=deviceLabel();
+  state.primitives={secureContext:isSecureContext,worker:typeof Worker==='function',broadcastChannel:typeof BroadcastChannel==='function',subtle:Boolean(crypto?.subtle),visibility:'visibilityState'in document,pageshow:'onpageshow'in window};
+  setText('device',state.device.ipad?'iPad/iPadOS detected':'Non-iPad environment',state.device.ipad?'ok':'warn');
+  const primitivePass=Object.entries(state.primitives).filter(([k])=>k!=='secureContext').every(([,v])=>v===true);
+  setText('primitives',primitivePass?'Worker + BroadcastChannel + crypto + lifecycle ready':'Missing browser primitive',primitivePass?'ok':'bad');
+  try{
+    const miner=await fetch('./mining.js',{cache:'no-store'}).then(r=>r.text());
+    state.minerSha=await sha256Text(miner);
+    setText('miner-sha',state.minerSha,state.minerSha===EXPECTED_MINER_SHA?'ok':'bad');
+    emit('preflight',{miner_sha:state.minerSha,expected_sha:EXPECTED_MINER_SHA,device:state.device,primitives:state.primitives});
+  }catch(error){setText('miner-sha','ERROR: '+error.message,'bad');emit('preflight_error',{error:error.message})}
+}
+const control=typeof BroadcastChannel==='function'?new BroadcastChannel(CONTROL_CHANNEL):null;
+if(control)control.addEventListener('message',event=>handleControl(event.data));
+function handleControl(message){
+  if(!message||message.schema!=='FAE_MTS12_EVENT_V1')return;
+  events.push(message.event);
+  const r=message.event.role;
+  if((r==='a'||r==='b')&&message.event.kind==='child_ready'){state.contexts[r].ready=true;setText('status-'+r.toUpperCase(),'Ready','ok')}
+  if((r==='a'||r==='b')&&message.event.kind==='mining_started'){state.contexts[r].miningStartedAt=message.event.perf_ms;setText('status-'+r.toUpperCase(),'Running','ok')}
+  if(message.event.kind==='manual_restart')state.manualRestartUsed=true;
+  if(message.event.kind==='submit_result'&&message.event.stale===true)state.staleSubmissions++;
+  if(message.event.kind==='status_observation')observeTip(message.event.height,message.event.tip_hash,message.event.perf_ms,r);
+  if(message.event.kind==='template_observation')observeTemplate(r,message.event);
+  if(message.event.kind==='resume_status')observeResume(r,message.event);
+  $('stale-count').textContent=String(state.staleSubmissions);
+  $('manual-restart').textContent=state.manualRestartUsed?'YES':'No';
+  evaluateTipGate();evaluateResumeGate();renderLog();
+}
+function observeTip(height,hash,at,source){
+  if(!Number.isSafeInteger(Number(height))||!/^[0-9a-f]{64}$/.test(String(hash||'')))return;
+  if(!state.tipBaseline){state.tipBaseline={height:Number(height),hash:String(hash)};emit('controller_tip_baseline',{height:Number(height),tip_hash:String(hash),source});return}
+  if(Number(height)===state.tipBaseline.height&&String(hash)===state.tipBaseline.hash)return;
+  if(!state.tipTarget){state.tipTarget={height:Number(height),hash:String(hash)};state.firstObservedNewTipAt=at;emit('controller_tip_changed',{height:Number(height),tip_hash:String(hash),source,first_observed_perf_ms:at})}
+}
+function observeTemplate(role,event){
+  if(role!=='a'&&role!=='b')return;
+  state.contexts[role].lastTemplate={height:event.height,previous_hash:event.previous_hash,perf_ms:event.perf_ms};
+  if(state.tipTarget&&event.previous_hash===state.tipTarget.hash&&!state.contexts[role].convergedAt){
+    state.contexts[role].convergedAt=event.perf_ms;
+    state.contexts[role].convergenceMs=Math.max(0,event.perf_ms-state.firstObservedNewTipAt);
+    emit('context_converged',{role,latency_ms:state.contexts[role].convergenceMs,previous_hash:event.previous_hash});
+  }
+}
+function evaluateTipGate(){
+  if(!state.tipArmed||!state.tipTarget)return;
+  const a=state.contexts.a.convergenceMs,b=state.contexts.b.convergenceMs;
+  if(a===undefined||b===undefined)return;
+  const pass=a<=TIP_GATE_MS&&b<=TIP_GATE_MS&&state.staleSubmissions===0&&!state.manualRestartUsed;
+  state.tipVerdict={pass,a_ms:a,b_ms:b,gate_ms:TIP_GATE_MS,tip:state.tipTarget};
+  setText('tip-result',pass?'PASS · A '+Math.round(a)+' ms · B '+Math.round(b)+' ms':'FAIL',''+(pass?'ok':'bad'));
+  emit('tip_gate',{...state.tipVerdict});
+}
+function observeResume(role,event){
+  if(role!=='a'&&role!=='b'||!state.resumeArmed)return;
+  state.contexts[role].resumeStatusAt=event.perf_ms;
+  state.contexts[role].resumeLatencyMs=Math.max(0,event.perf_ms-state.visibleAt);
+}
+function evaluateResumeGate(){
+  if(!state.resumeArmed||!state.visibleAt)return;
+  const a=state.contexts.a.resumeLatencyMs,b=state.contexts.b.resumeLatencyMs;
+  if(a===undefined||b===undefined)return;
+  const pass=a<=RESUME_GATE_MS&&b<=RESUME_GATE_MS&&state.staleSubmissions===0&&!state.manualRestartUsed;
+  state.resumeVerdict={pass,a_ms:a,b_ms:b,gate_ms:RESUME_GATE_MS};
+  setText('resume-result',pass?'PASS · A '+Math.round(a)+' ms · B '+Math.round(b)+' ms':'FAIL',pass?'ok':'bad');
+  emit('resume_gate',{...state.resumeVerdict});
+}
+async function controllerPoll(){
+  if(role)return;
+  try{
+    const status=await fetch(API+'/status',{cache:'no-store'}).then(r=>r.json());
+    observeTip(Number(status.height),String(status.tip_hash||''),now(),'controller');
+  }catch(error){emit('controller_status_error',{error:error.message})}
+}
+let pollTimer=null;
+function startControllerPoll(){if(pollTimer)return;controllerPoll();pollTimer=setInterval(controllerPoll,500)}
+function openChild(name){const url=location.pathname+'?role='+name+'&v='+encodeURIComponent(EXPECTED_MINER_SHA.slice(0,12));const child=window.open(url,'mts12-'+name);if(!child)emit('popup_blocked',{role:name});else emit('child_opened',{role:name})}
+function armTip(){state.tipArmed=true;state.tipBaseline=null;state.tipTarget=null;state.firstObservedNewTipAt=null;for(const r of ['a','b']){delete state.contexts[r].convergedAt;delete state.contexts[r].convergenceMs}setText('tip-result','Armed · waiting for next real tip','warn');startControllerPoll();emit('tip_acceptance_armed')}
+function armResume(){state.resumeArmed=true;state.hiddenAt=null;state.visibleAt=null;for(const r of ['a','b']){delete state.contexts[r].resumeStatusAt;delete state.contexts[r].resumeLatencyMs}setText('resume-result','Armed · background Safari, then return','warn');emit('resume_acceptance_armed')}
+document.addEventListener('visibilitychange',()=>{
+  if(role||!state.resumeArmed)return;
+  if(document.hidden){state.hiddenAt=now();emit('controller_hidden',{perf_ms:state.hiddenAt})}
+  else{state.visibleAt=now();emit('controller_visible',{perf_ms:state.visibleAt});control?.postMessage({schema:'FAE_MTS12_COMMAND_V1',command:'resume_probe',at:state.visibleAt})}
+});
+function exportEvidence(){
+  state.completedAt=new Date().toISOString();
+  state.verdict=state.tipVerdict?.pass&&state.resumeVerdict?.pass&&state.staleSubmissions===0&&!state.manualRestartUsed?'PASS':'INCOMPLETE_OR_FAIL';
+  const payload={schema:'FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V1',state,events};
+  const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fae-mts-12-ipad-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+async function waitFor(condition,timeout=15000){const started=Date.now();while(Date.now()-started<timeout){if(condition())return true;await new Promise(r=>setTimeout(r,100))}throw new Error('timeout')}
+function postChild(kind,data={}){const event={at_ms:Date.now(),perf_ms:now(),kind,role,...data};events.push(event);control?.postMessage({schema:'FAE_MTS12_EVENT_V1',event});renderLog()}
+async function childSetup(){
+  $('controller-card').classList.add('hidden');$('child-card').classList.remove('hidden');$('child-title').textContent='Miner '+role.toUpperCase();
+  const frame=$('app');
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const win=frame.contentWindow,doc=frame.contentDocument;
+  const nativeFetch=win.fetch.bind(win);
+  win.fetch=async(input,options)=>{
+    const response=await nativeFetch(input,options);
+    try{
+      const url=String(input);
+      if(url.startsWith(API)){
+        const path=url.slice(API.length);
+        const payload=await response.clone().json().catch(()=>({}));
+        if(path.startsWith('/status'))postChild('status_observation',{height:Number(payload.height),tip_hash:String(payload.tip_hash||''),http_status:response.status});
+        if(path.startsWith('/template'))postChild('template_observation',{height:Number(payload.header?.height),previous_hash:String(payload.header?.previous_hash||''),http_status:response.status});
+        if(path.startsWith('/submit-block'))postChild('submit_result',{http_status:response.status,stale:payload.error==='stale_tip'||payload.reason==='stale_tip'||payload.reason==='race_lost'});
+      }
+    }catch(error){postChild('instrumentation_error',{error:error.message})}
+    return response;
+  };
+  const NativeWorker=win.Worker;
+  if(typeof NativeWorker==='function'){
+    function WrappedWorker(...args){const worker=new NativeWorker(...args);postChild('worker_started');const terminate=worker.terminate.bind(worker);worker.terminate=()=>{postChild('worker_terminated');return terminate()};return worker}
+    WrappedWorker.prototype=NativeWorker.prototype;Object.setPrototypeOf(WrappedWorker,NativeWorker);win.Worker=WrappedWorker;
+  }
+  await waitFor(()=>doc.getElementById('netstatus')?.dataset.state==='online',20000);
+  const external=doc.getElementById('existingaddr');external.value=WATCH_ADDRESS;external.dispatchEvent(new Event('input',{bubbles:true}));
+  doc.getElementById('useaddr').click();
+  doc.getElementById('tab-mining').click();
+  await waitFor(()=>!doc.getElementById('mine').disabled,5000);
+  const mineButton=doc.getElementById('mine');
+  let starts=0;
+  mineButton.addEventListener('click',()=>{starts++;if(starts>1)postChild('manual_restart')});
+  mineButton.click();
+  postChild('mining_started',{watch_only_address:WATCH_ADDRESS});
+  setText('child-state','Running · do not Stop/Start on tip changes','ok');
+  postChild('child_ready');
+  control?.addEventListener('message',async event=>{
+    if(event.data?.schema!=='FAE_MTS12_COMMAND_V1'||event.data.command!=='resume_probe')return;
+    const before=Date.now();
+    try{
+      const response=await win.fetch(API+'/status',{cache:'no-store'}),payload=await response.clone().json();
+      postChild('resume_status',{height:Number(payload.height),tip_hash:String(payload.tip_hash||''),wall_latency_ms:Date.now()-before});
+    }catch(error){postChild('resume_status_error',{error:error.message})}
+  });
+}
+$('open-a')?.addEventListener('click',()=>openChild('a'));
+$('open-b')?.addEventListener('click',()=>openChild('b'));
+$('arm-tip')?.addEventListener('click',armTip);
+$('arm-resume')?.addEventListener('click',armResume);
+$('export')?.addEventListener('click',exportEvidence);
+preflight().then(()=>{if(role==='a'||role==='b')childSetup().catch(error=>{setText('child-state','ERROR: '+error.message,'bad');postChild('child_error',{error:error.message})});else{startControllerPoll();renderLog()}});
+</script>
+</body>
+</html>
