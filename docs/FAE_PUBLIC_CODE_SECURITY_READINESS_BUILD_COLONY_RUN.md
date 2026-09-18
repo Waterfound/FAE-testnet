@@ -241,3 +241,15 @@ Branch: `colony/fae-public-code-security-psr13-r2`
 The first PSR-13 candidate was prepared against `53531a1f61cf190760e3234831ebab07c1dc9c27`, but main advanced by six commits before PR creation. The intervening work adds the cross-Lab canonical integration gate and MTS-12 preparation. The new integration workflow is read-only and does not add release authority.
 
 PSR-13 is therefore rebound to the integrated current tree. GREEN requires canonical verification, the dedicated PSR-13 clean-room/Git-oracle/container workflow, the cross-Lab integration gate, and exact-source integration.
+
+
+## Frontier execution — PSR-15 (rebound)
+
+Execution date: 2026-09-18  
+Source baseline: `30df85b754feb8dfcaade9b10e7dabce1dc06a6b`  
+Branch: `colony/fae-public-code-security-psr15-r2`  
+Project Assurance method: `Waterfound/Red-Team@095a9c2eb5b2b3bdec0132238120583ef28a6d8c`
+
+PSR-15 is rebound to current main after eight MTS-12 Safari-acceptance commits. The campaign now contains 17 attacks; WB-17 checks the MTS-12 preflight/privacy/authority boundary but explicitly does not synthesize physical iPad evidence.
+
+GREEN still requires dedicated campaign, canonical and cross-Lab SUCCESS on the exact PR HEAD plus anti-stale integration.
