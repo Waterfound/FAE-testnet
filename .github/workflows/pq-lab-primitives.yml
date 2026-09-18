@@ -1,0 +1,221 @@
+name: pq-lab-primitives
+
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/**'
+      - '.github/workflows/pq-lab-primitives.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - name: PQ-00 boundary guard
+        env:
+          PQ_BOUNDARY_BASE: \${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: \${{ github.event.pull_request.head.sha }}
+        run: node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+      - name: PQ-01 pinned standards replay
+        run: node lab/post-quantum-signatures/tools/observe-standards.mjs
+
+  noble-official-replay:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PQ_ACVP_DIR: \${{ runner.temp }}/fae-pq-acvp
+      PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - name: Prepare evidence
+        run: mkdir -p "$PQ_EVIDENCE_DIR"
+      - name: Install exact Noble candidate
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Materialize all frozen ACVP inputs
+        env:
+          PQ_ACVP_FAMILY: ALL
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/prepare-acvp.mjs \
+            | tee "$PQ_EVIDENCE_DIR/acvp-acquisition.log"
+          cp "$PQ_ACVP_DIR/acquisition-evidence.json" "$PQ_EVIDENCE_DIR/acvp-acquisition.json"
+      - name: PQ-03 full ML-DSA + PQ-04 bounded SLH-DSA Noble replay
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/run-noble-acvp.mjs \
+            | tee "$PQ_EVIDENCE_DIR/noble-acvp.json"
+      - name: Upload Noble evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq-wave-d-noble
+          path: lab/post-quantum-signatures/evidence/wave-d
+          if-no-files-found: warn
+
+  circl-mldsa:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PQ_ACVP_DIR: \${{ runner.temp }}/fae-pq03-acvp
+      CIRCL_DIR: \${{ runner.temp }}/circl
+      PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d-pq03-circl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: Checkout exact CIRCL verifier
+        run: |
+          git init "$CIRCL_DIR"
+          git -C "$CIRCL_DIR" remote add origin https://github.com/cloudflare/circl.git
+          git -C "$CIRCL_DIR" fetch --depth 1 origin 2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          git -C "$CIRCL_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$CIRCL_DIR" rev-parse HEAD)" = "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0"
+      - name: Inject frozen ML-DSA corpus
+        env:
+          PQ_ACVP_FAMILY: ML-DSA
+        run: |
+          mkdir -p "$PQ_EVIDENCE_DIR"
+          node lab/post-quantum-signatures/primitives/prepare-acvp.mjs
+      - name: PQ-03 CIRCL full ML-DSA ACVP
+        run: |
+          set -o pipefail
+          cd "$CIRCL_DIR"
+          go test ./sign/mldsa/mldsa44 ./sign/mldsa/mldsa65 ./sign/mldsa/mldsa87 \
+            -run '^TestACVP$' -count=1 -timeout=15m -json \
+            | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-mldsa-acvp.json"
+      - name: Summarize and require zero skips
+        env:
+          PQ_GO_TEST_JSON: lab/post-quantum-signatures/evidence/wave-d-pq03-circl/circl-mldsa-acvp.json
+          PQ_EVIDENCE_PATH: lab/post-quantum-signatures/evidence/wave-d-pq03-circl/circl-mldsa-summary.json
+          PQ_GO_TEST_LABEL: PQ-03-CIRCL-FULL-ACVP
+        run: |
+          node lab/post-quantum-signatures/primitives/summarize-go-test.mjs
+          node -e "const x=require('./lab/post-quantum-signatures/evidence/wave-d-pq03-circl/circl-mldsa-summary.json'); if(x.counts.skip!==0) throw new Error('unexpected PQ-03 skips: '+x.counts.skip)"
+      - name: Upload CIRCL ML-DSA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq03-circl-mldsa
+          path: lab/post-quantum-signatures/evidence/wave-d-pq03-circl
+          if-no-files-found: warn
+
+  circl-slhdsa:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PQ_ACVP_DIR: \${{ runner.temp }}/fae-pq04-acvp
+      CIRCL_DIR: \${{ runner.temp }}/circl
+      PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d-pq04-circl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: Checkout exact CIRCL verifier
+        run: |
+          git init "$CIRCL_DIR"
+          git -C "$CIRCL_DIR" remote add origin https://github.com/cloudflare/circl.git
+          git -C "$CIRCL_DIR" fetch --depth 1 origin 2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          git -C "$CIRCL_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$CIRCL_DIR" rev-parse HEAD)" = "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0"
+      - name: Inject frozen SLH-DSA corpus
+        env:
+          PQ_ACVP_FAMILY: SLH-DSA
+        run: |
+          mkdir -p "$PQ_EVIDENCE_DIR"
+          node lab/post-quantum-signatures/primitives/prepare-acvp.mjs
+      - name: PQ-04 CIRCL native SLH-DSA ACVP
+        run: |
+          set -o pipefail
+          cd "$CIRCL_DIR"
+          go test ./sign/slhdsa -run '^TestACVP$' -count=1 -timeout=20m -json \
+            | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-slhdsa-acvp.json"
+      - name: Summarize CIRCL SLH-DSA replay
+        env:
+          PQ_GO_TEST_JSON: lab/post-quantum-signatures/evidence/wave-d-pq04-circl/circl-slhdsa-acvp.json
+          PQ_EVIDENCE_PATH: lab/post-quantum-signatures/evidence/wave-d-pq04-circl/circl-slhdsa-summary.json
+          PQ_GO_TEST_LABEL: PQ-04-CIRCL-NATIVE-ACVP
+        run: node lab/post-quantum-signatures/primitives/summarize-go-test.mjs
+      - name: Upload CIRCL SLH-DSA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq04-circl-slhdsa
+          path: lab/post-quantum-signatures/evidence/wave-d-pq04-circl
+          if-no-files-found: warn
+
+  cross-implementation:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CIRCL_DIR: \${{ runner.temp }}/circl
+      PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d-cross
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: Prepare evidence
+        run: mkdir -p "$PQ_EVIDENCE_DIR"
+      - name: Install exact Noble candidate
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Checkout exact CIRCL verifier
+        run: |
+          git init "$CIRCL_DIR"
+          git -C "$CIRCL_DIR" remote add origin https://github.com/cloudflare/circl.git
+          git -C "$CIRCL_DIR" fetch --depth 1 origin 2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          git -C "$CIRCL_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$CIRCL_DIR" rev-parse HEAD)" = "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0"
+      - name: Noble produces forward corpus
+        run: node lab/post-quantum-signatures/primitives/cross-generate-noble.mjs "$PQ_EVIDENCE_DIR/noble-to-circl.json"
+      - name: CIRCL verifies Noble and produces reverse corpus
+        run: |
+          set -euo pipefail
+          mkdir -p "$CIRCL_DIR/cmd/fae-pq-cross"
+          cp lab/post-quantum-signatures/primitives/cross-circl.go "$CIRCL_DIR/cmd/fae-pq-cross/main.go"
+          (
+            cd "$CIRCL_DIR"
+            go run ./cmd/fae-pq-cross \
+              "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/noble-to-circl.json" \
+              "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-to-noble.json"
+          ) | tee "$PQ_EVIDENCE_DIR/cross-circl.log"
+      - name: Noble verifies CIRCL reverse corpus
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/cross-verify-noble.mjs \
+            "$PQ_EVIDENCE_DIR/circl-to-noble.json" \
+            | tee "$PQ_EVIDENCE_DIR/cross-final.json"
+      - name: Upload cross-implementation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq-wave-d-cross-implementation
+          path: lab/post-quantum-signatures/evidence/wave-d-cross
+          if-no-files-found: warn
