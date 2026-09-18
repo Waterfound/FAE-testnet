@@ -152,6 +152,30 @@ The H2 freeze still leaves production-specific values unselected, including:
 
 These must remain unset until their own evidence and explicit authority gates are satisfied.
 
+## Block Explorer engineering state
+
+The Block Explorer remains a separate, read-only FAE application boundary.
+
+Accepted implementation state carried by canonical main after BE-02 integration:
+
+- BE-01 read-model/authority contract: verified;
+- BE-02 Independent Node `/explorer/*` read surface: verified;
+- Explorer data source: coherent snapshots of independently validated node state;
+- supported read resources: status, latest blocks, block lookup, transaction lookup, address events/balance, universal search;
+- address history includes transfer and mining/reward events;
+- address pagination cursors bind to the observed tip hash and fail closed across tip change;
+- Explorer mutating methods: forbidden;
+- Explorer database/indexer: not required; any future cache/index remains derived disposable state;
+- consensus, fork choice, wallet ownership/signing, transaction admission, mining, economics, network survival and mainnet authority: unchanged;
+- standalone Explorer application/deployment: not yet LIVE at the BE-02 boundary.
+
+Primary references:
+
+- `lab/block-explorer/read-model-v1.json`
+- `lab/block-explorer/authority.json`
+- `sovereign-forge/node/explorer-read.mjs`
+- `lab/block-explorer/tests/be-02-query-surface.test.mjs`
+
 ## Cross-Lab integration rule
 
 Lab-local success does not automatically make a result canonical or live.
