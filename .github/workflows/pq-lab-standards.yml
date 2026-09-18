@@ -1,9 +1,6 @@
 name: pq-lab-standards
 
 on:
-  push:
-    branches:
-      - colony/pq-00-pq-01-boundary-standards
   pull_request:
     paths:
       - 'lab/post-quantum-signatures/**'
@@ -21,18 +18,58 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24.8.0'
       - name: PQ-00 boundary guard
-        run: node lab/post-quantum-signatures/boundary-guard.mjs --base f3561ec8bf53d25c646f2f4c880af506cc1f5a65
-      - name: PQ-01 observe or verify pinned standards
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: PQ-01 verify pinned standards
         run: node lab/post-quantum-signatures/tools/observe-standards.mjs
-      - name: Show standards observation
-        if: always()
-        run: cat lab/post-quantum-signatures/standards/standards-observation.json || true
       - name: Upload standards observation
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pq-standards-observation
           path: lab/post-quantum-signatures/standards/standards-observation.json
+          if-no-files-found: error
+
+  implementation-independence:
+    needs: boundary-and-standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: Install exact Noble candidate
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Probe Noble browser-facing implementation
+        run: |
+          mkdir -p lab/post-quantum-signatures/evidence
+          node lab/post-quantum-signatures/probes/noble-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-noble.json
+      - name: Probe Node crypto tertiary path
+        run: node lab/post-quantum-signatures/probes/node-crypto-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-node-crypto.json
+      - name: Probe Cloudflare CIRCL independent verifier
+        run: |
+          mkdir -p /tmp/fae-pq-circl
+          cp lab/post-quantum-signatures/probes/circl-probe.go /tmp/fae-pq-circl/main.go
+          cd /tmp/fae-pq-circl
+          go mod init fae-pq02-probe
+          go get github.com/cloudflare/circl@2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          go run main.go | tee "$GITHUB_WORKSPACE/lab/post-quantum-signatures/evidence/pq02-circl.json"
+      - name: Upload PQ-02 implementation probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq02-implementation-independence
+          path: lab/post-quantum-signatures/evidence/pq02-*.json
           if-no-files-found: error
