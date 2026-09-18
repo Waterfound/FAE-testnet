@@ -297,15 +297,50 @@
     },
     "PQ-10": {
       "name": "End-to-End Shadow Lifecycle",
-      "status": "READY",
+      "status": "GREEN",
       "authority": "RESEARCH_SHADOW_ONLY",
       "depends_on": [
         "PQ-08",
         "PQ-09"
       ],
-      "frozen_manifest": "lab/post-quantum-signatures/wave-h/manifest.json"
+      "evidence": {
+        "admitted_head": "2beb8c804f92640010cde1a893c495173eeb1125",
+        "integrated_commit": "ac99bedb04f347d780fa97f6c4265ec8280abba3",
+        "executor_run_id": 35363356923,
+        "canonical_run_id": 35363356805,
+        "pq_lab_standards_run_id": 35363357003,
+        "artifact_id": 10555054036,
+        "artifact_sha256": "b7442cbf139d4709233410d3ff492fbf2dd8370f3b975689d7cc407ec7abf223",
+        "parameter_sets": [
+          "ML-DSA-44",
+          "ML-DSA-65",
+          "ML-DSA-87"
+        ],
+        "persisted_shadow_entries": 3,
+        "deterministic_in_run_replay": "PASS",
+        "restart_reconstruction": "PASS",
+        "pq07_regression_replay": {
+          "result": "PASS",
+          "case_count": 114,
+          "failed_case_ids": []
+        },
+        "browser_facing": "PASS",
+        "private_material_emitted": false,
+        "rpc_used": false,
+        "active_state_mutated": false
+      },
+      "meaning": "All three ML-DSA hybrid variants completed the frozen create/sign/serialize/isolated-shadow-submit/restart/reload/reverify lifecycle with PQ-07 regression replay and browser-facing verification. No active FAE authority changed."
+    },
+    "PQ-11": {
+      "name": "Software-Only Ceiling Verdict",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-10"
+      ],
+      "frozen_manifest": "lab/post-quantum-signatures/wave-i/manifest.json"
     }
   },
-  "active_frontier": "PQ-10",
+  "active_frontier": "PQ-11",
   "activation_authorized": false
 }
