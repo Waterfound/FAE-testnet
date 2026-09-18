@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_01_CONTRACT_CANDIDATE",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -23,7 +23,8 @@
   "chain_selection_authority_authorized": false,
   "allowed_write_prefixes": [
     "lab/block-explorer/",
-    ".github/workflows/block-explorer-lab.yml"
+    ".github/workflows/block-explorer-lab.yml",
+    "lab/integration/registry.json"
   ],
   "protected_active_paths": [
     "index.html",
@@ -55,5 +56,24 @@
     "pplns_coinbase_activation_height": null
   },
   "deletion_invariant": "Removing lab/block-explorer and its Lab-only workflow must not change active FAE wallet, mining, consensus, economics, node behavior, public-testnet behavior, or network survival.",
-  "failure_policy": "Fail closed on network identity, tip binding, provenance, or read-model ambiguity. Contract evidence cannot authorize runtime, consensus, wallet, mining, or deployment changes."
+  "failure_policy": "Fail closed on network identity, tip binding, provenance, or read-model ambiguity. Contract evidence cannot authorize runtime, consensus, wallet, mining, or deployment changes.",
+  "completed_gates": {
+    "BE-01": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35400808978,
+      "lab_workflow_job_id": 105780014123,
+      "boundary_guard": "PASS",
+      "contract_tests": "6/6 PASS",
+      "codeql_workflow_run_id": 35400808968,
+      "canonical_workflow_run_id": 35400808963,
+      "recurring_assurance_workflow_run_id": 35400808983,
+      "cross_lab_preintegration_workflow_run_id": 35400809055,
+      "note": "Pre-integration gates GREEN on exact candidate 9fce098ad577067aee96039bbc303d2eeb6bee13. Registry serialization follows as a separate shared-state step."
+    }
+  },
+  "be02_authority": {
+    "state": "NOT_YET_AUTHORIZED",
+    "prerequisite": "BE-01 integrated and combined-main verified",
+    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority."
+  }
 }
