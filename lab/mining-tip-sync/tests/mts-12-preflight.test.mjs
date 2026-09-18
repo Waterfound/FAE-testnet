@@ -69,6 +69,15 @@ test('MTS-12 runner is local-only and does not add telemetry or secret collectio
   assert.deepEqual([...new Set(externalUrls)],['https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4']);
 });
 
+
+
+test('MTS-12 child contexts never navigate an iframe to the host root',()=>{
+  assert.doesNotMatch(page,/<iframe[^>]+src=["']\/?\?mts12=physical["']/);
+  assert.match(page,/<iframe id="app" src="about:blank"><\/iframe>/);
+  assert.match(page,/frame\.srcdoc=appHtml/);
+  assert.match(page,/fetch\(new URL\('\/'\,location\.origin\)\.toString\(\),\{cache:'no-store'\}\)/);
+});
+
 test('MTS-12 completion cannot be claimed without physical iPad evidence',()=>{
   assert.match(authority.mts_12_authority?.completion_rule||'',/cannot be GREEN without evidence produced on a physical iPad Safari session/);
 });
