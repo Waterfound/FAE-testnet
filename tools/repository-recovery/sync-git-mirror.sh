@@ -32,10 +32,15 @@ fi
 
 git -C "$source_repo" remote add backup "$DEST_URL"
 
+push_refspecs=()
 while IFS=' ' read -r object ref; do
   [ -n "$ref" ] || continue
-  git -C "$source_repo" push --force backup "$ref:$ref"
+  push_refspecs+=("$ref:$ref")
 done < "$source_manifest"
+
+if [ "${#push_refspecs[@]}" -gt 0 ]; then
+  git -C "$source_repo" push --force backup "${push_refspecs[@]}"
+fi
 
 git ls-remote "$DEST_URL" 'refs/heads/*' 'refs/tags/*' 'refs/notes/*' \
   | awk '$2 !~ /\^\{\}$/ { print $1 " " $2 }' \
@@ -44,10 +49,15 @@ git ls-remote "$DEST_URL" 'refs/heads/*' 'refs/tags/*' 'refs/notes/*' \
 awk '{print $2}' "$source_manifest" | LC_ALL=C sort > "$source_names"
 awk -v control="$CONTROL_REF" '$2 != control {print $2}' "$dest_manifest" | LC_ALL=C sort > "$dest_names"
 
-comm -13 "$source_names" "$dest_names" | while IFS= read -r stale_ref; do
+delete_refspecs=()
+while IFS= read -r stale_ref; do
   [ -n "$stale_ref" ] || continue
-  git -C "$source_repo" push backup ":$stale_ref"
-done
+  delete_refspecs+=(":$stale_ref")
+done < <(comm -13 "$source_names" "$dest_names")
+
+if [ "${#delete_refspecs[@]}" -gt 0 ]; then
+  git -C "$source_repo" push backup "${delete_refspecs[@]}"
+fi
 
 git ls-remote "$DEST_URL" 'refs/heads/*' 'refs/tags/*' 'refs/notes/*' \
   | awk '$2 !~ /\^\{\}$/ { print $1 " " $2 }' \
