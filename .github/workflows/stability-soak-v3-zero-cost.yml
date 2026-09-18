@@ -10,6 +10,8 @@ on:
       - 'sovereign-forge/lab/stability-soak-v3/**'
       - 'sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs'
+      - 'sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-prestart.test.mjs'
       - 'wan-lab/wan-node.mjs'
       - 'wan-lab/stability-soak-controller.mjs'
       - 'wan-lab/result-logger.mjs'
@@ -38,6 +40,8 @@ jobs:
           node --check sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs
           node --check sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
           node --check sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
           node --check wan-lab/wan-node.mjs
           node --check wan-lab/stability-soak-controller.mjs
           node --check wan-lab/result-logger.mjs
@@ -49,5 +53,7 @@ jobs:
         run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
       - name: Verify V3 evidence analyzer and historical Wilson discipline
         run: node --test sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+      - name: Verify fail-closed frozen-topology prestart gate
+        run: node --test sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
       - name: Smoke-test restart-aware node controller observer harness
         run: node --test sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
