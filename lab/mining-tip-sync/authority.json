@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_08_STRESS_ACTIVE",
+  "status": "MTS_08_PATCH_AUTHORIZED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -11,7 +11,7 @@
   "current_frontier": [
     "MTS-08"
   ],
-  "current_stage_active_miner_write_authorized": false,
+  "current_stage_active_miner_write_authorized": true,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -24,10 +24,12 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab"
+    ".github/workflows/mining-tip-sync-lab",
+    "mining.js",
+    "sovereign-forge/browser/mining.js",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "current_stage_protected_paths": [
-    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
@@ -35,8 +37,7 @@
     "index.html",
     "tests/",
     "supabase/",
-    "sovereign-forge/",
-    "FAE_FORGE_MAIN.sha256"
+    "sovereign-forge/"
   ],
   "future_candidate_paths": [
     "mining.js",
@@ -176,7 +177,9 @@
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
   },
-  "current_stage_protected_path_exceptions": [],
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/browser/mining.js"
+  ],
   "miner_mirror_authorization_basis": {
     "canonical_failure": {
       "workflow_run_id": 35344168583,
@@ -262,5 +265,38 @@
     "required_property": "Returning from background/suspension must trigger immediate authoritative revalidation of active direct PoW instead of waiting for a throttled polling timer.",
     "safety_property": "Even if lifecycle revalidation is delayed, pre-submit freshness must still prevent stale submission.",
     "runtime_patch_gate": "Only a deterministic lifecycle reproduction may authorize a miner patch."
+  },
+  "mts_08_reproduction": {
+    "workflow_run_id": 35347490391,
+    "workflow_job_id": 105607372933,
+    "tests": {
+      "total": 4,
+      "pass": 2,
+      "fail": 2
+    },
+    "passed": [
+      "stale solution after suspension remains blocked by pre-submit freshness",
+      "unchanged authoritative tip does not false-cancel on synthetic resume events"
+    ],
+    "failed": [
+      "visibilitychange to visible did not immediately revalidate/cancel stale direct work",
+      "pageshow did not immediately revalidate/cancel stale direct work"
+    ]
+  },
+  "mts_08_patch_authorization": {
+    "scope": "mining.js + byte-identical Sovereign Forge mirror + exact protected hash renewal",
+    "required_behavior": [
+      "visibilitychange to visible triggers immediate authoritative revalidation of active direct work",
+      "pageshow triggers immediate authoritative revalidation of active direct work",
+      "unknown/unavailable lifecycle freshness fails closed without block submission",
+      "lifecycle hook does not affect coordinator/PPLNS work when no direct observer is active"
+    ],
+    "forbidden": [
+      "backend changes",
+      "consensus changes",
+      "economic changes",
+      "block-time changes",
+      "BroadcastChannel authority"
+    ]
   }
 }
