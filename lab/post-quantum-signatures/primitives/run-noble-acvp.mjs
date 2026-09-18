@@ -12,7 +12,7 @@ import {
   slh_dsa_shake_256s, slh_dsa_shake_256f
 } from '@noble/post-quantum/slh-dsa.js';
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from '@noble/hashes/sha2.js';
-import { sha3_224, sha3_256, sha3_384, sha3_512, shake128, shake256 } from '@noble/hashes/sha3.js';
+import { sha3_224, sha3_256, sha3_384, sha3_512, shake128_32, shake256_64 } from '@noble/hashes/sha3.js';
 
 const base = process.env.PQ_ACVP_DIR;
 if (!base) throw new Error('PQ_ACVP_DIR is required');
@@ -35,8 +35,8 @@ const HASHES = {
   'SHA2-224': sha224, 'SHA2-256': sha256, 'SHA2-384': sha384, 'SHA2-512': sha512,
   'SHA2-512/224': sha512_224, 'SHA2-512/256': sha512_256,
   'SHA3-224': sha3_224, 'SHA3-256': sha3_256, 'SHA3-384': sha3_384, 'SHA3-512': sha3_512,
-  'SHAKE-128': Object.assign((m) => shake128(m, { dkLen: 32 }), { outputLen: 32 }),
-  'SHAKE-256': Object.assign((m) => shake256(m, { dkLen: 64 }), { outputLen: 64 })
+  'SHAKE-128': shake128_32,
+  'SHAKE-256': shake256_64
 };
 
 const hex = (s='') => Uint8Array.from(Buffer.from(s, 'hex'));
