@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_04_06_GREEN",
+  "status": "MTS_05_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,7 +9,7 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-05"
+    "MTS-07"
   ],
   "current_stage_active_miner_write_authorized": true,
   "future_candidate_miner_write_requires_gate": true,
@@ -125,6 +125,27 @@
       "status": "GREEN",
       "workflow_run_id": 35344645796,
       "workflow_job_id": 105598288073
+    },
+    "MTS-05": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35346308540,
+      "lab_workflow_job_id": 105603588314,
+      "canonical_workflow_run_id": 35346308512,
+      "canonical_workflow_job_id": 105603612197,
+      "adversarial_checks": {
+        "late_callback_generation_fenced": true,
+        "post_nonce_tip_advance_blocks_submit": true,
+        "authoritative_status_outage_fails_closed": true,
+        "unchanged_authoritative_tip_submits_once": true
+      },
+      "race_freshness_tests": "4/4 PASS",
+      "combined_mts_04_05_06_tests": "9/9 PASS",
+      "candidate_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e"
+    },
+    "canonical_regression_mts_05": {
+      "status": "GREEN",
+      "workflow_run_id": 35346308512,
+      "workflow_job_id": 105603612197
     }
   },
   "miner_write_authorization_basis": {
@@ -196,5 +217,13 @@
     },
     "exact_fixture_path": "tests/mining-coordinator-smoke.mjs",
     "purpose": "Make canonical direct-fallback smoke fixture match the already-live /status height+tip_hash contract. No runtime relaxation."
-  }
+  },
+  "mts_05_intermediate_failure": {
+    "workflow_run_id": 35346219525,
+    "workflow_job_id": 105603303520,
+    "failure": "TIP_FRESHNESS_UNKNOWN in canonical coordinator/direct-fallback smoke",
+    "cause": "canonical smoke /status fixture omitted tip_hash even though production v4 /status already exposes it",
+    "resolution": "align the exact smoke fixture with production height+tip_hash contract; retain fail-closed runtime behavior"
+  },
+  "current_protected_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e"
 }
