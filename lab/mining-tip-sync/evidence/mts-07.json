@@ -1,0 +1,44 @@
+{
+  "schema": "FAE_MTS_07_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "verified_candidate_head": "e0bc6a99f3d0ca7b5ce454895554598e64d45a26",
+  "runtime_patch_required": false,
+  "lab_workflow": {
+    "run_id": 35346915716,
+    "job_id": 105605551723,
+    "conclusion": "success",
+    "stress_tests": {"total": 4, "pass": 4, "fail": 0}
+  },
+  "canonical_workflow": {
+    "run_id": 35346915626,
+    "job_id": 105605551964,
+    "conclusion": "success"
+  },
+  "stress_matrix": {
+    "rapid_consecutive_tips": {
+      "count": 12,
+      "automatic_replacements": 12,
+      "stale_submissions": 0,
+      "max_active_workers": 1
+    },
+    "delayed_scheduling_cpu_pressure": {
+      "progress_callbacks_before_solution": 2000,
+      "observer_poll_delayed": true,
+      "pre_submit_freshness_blocked_stale_solution": true,
+      "stale_submissions": 0
+    },
+    "transient_status_outage": {
+      "consecutive_failures": 3,
+      "worker_survived_outage": true,
+      "stale_tip_cancelled_after_recovery": true,
+      "automatic_template_reacquisition": true
+    },
+    "solution_during_status_outage": {
+      "fail_closed": "TIP_FRESHNESS_UNKNOWN",
+      "stale_submissions": 0,
+      "mining_loop_recovered": true
+    }
+  },
+  "next_frontier": ["MTS-08"],
+  "MTS-08_scope": "Background, browser throttling, suspend and return."
+}
