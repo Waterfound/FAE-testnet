@@ -7,8 +7,8 @@ const root = process.cwd();
 const sourcePath = path.join(root, 'lab/post-quantum-signatures/standards/sources.json');
 const manifest = JSON.parse(await readFile(sourcePath, 'utf8'));
 const outDir = process.env.PQ_ACVP_DIR;
-const circlDir = process.env.CIRCL_DIR;
-if (!outDir || !circlDir) throw new Error('PQ_ACVP_DIR and CIRCL_DIR are required');
+const circlDir = process.env.CIRCL_DIR || null;
+if (!outDir) throw new Error('PQ_ACVP_DIR is required');
 
 const wanted = manifest.resources.filter(r =>
   r.kind === 'nist_acvp_sample_corpus' &&
@@ -32,11 +32,11 @@ for (const resource of wanted) {
   await mkdir(localDir, { recursive: true });
   await writeFile(path.join(localDir, fileName), bytes);
 
-  if (dirName.startsWith('ML-DSA-')) {
+  if (circlDir && dirName.startsWith('ML-DSA-')) {
     const targetDir = path.join(circlDir, 'sign/mldsa/testdata', dirName);
     await mkdir(targetDir, { recursive: true });
     await writeFile(path.join(targetDir, fileName + '.gz'), gzipSync(bytes));
-  } else {
+  } else if (circlDir) {
     const mode = dirName.match(/SLH-DSA-(keyGen|sigGen|sigVer)-FIPS205/)?.[1];
     if (!mode) throw new Error('unrecognized SLH-DSA mode: ' + dirName);
     const base = mode === 'sigVer' ? 'verify' : mode;
