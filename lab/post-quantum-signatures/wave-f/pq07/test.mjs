@@ -43,6 +43,10 @@ function flipB64(value){
   if(b.length) b[0]^=1;
   return b.toString('base64');
 }
+function nonCanonicalB64(value){
+  const stripped=value.replace(/=+$/,'');
+  return stripped!==value?stripped:value+'=';
+}
 function sha256Hex(value){return createHash('sha256').update(value).digest('hex')}
 function hybridAccept(obj){try{return verifyHybridTransaction(obj).ok===true}catch{return false}}
 function activeAccept(obj){try{return verifyTxCrypto(obj).ok===true}catch{return false}}
@@ -149,9 +153,9 @@ for(let s=0;s<parameterSets.length;s++){
   x=clone(hybridA); x.mldsa_signature='%%%';
   record(parameterSet+':malformed-mldsa-signature-base64','transaction',false,hybridAccept(x));
 
-  x=clone(hybridA); x.ed25519_signature=hybridA.ed25519_signature.replace(/=+$/,'');
+  x=clone(hybridA); x.ed25519_signature=nonCanonicalB64(hybridA.ed25519_signature);
   record(parameterSet+':noncanonical-ed25519-base64','transaction',false,hybridAccept(x));
-  x=clone(hybridA); x.mldsa_signature=hybridA.mldsa_signature.replace(/=+$/,'');
+  x=clone(hybridA); x.mldsa_signature=nonCanonicalB64(hybridA.mldsa_signature);
   record(parameterSet+':noncanonical-mldsa-base64','transaction',false,hybridAccept(x));
 
   x=clone(hybridA); x.ed25519_signature=mutateBytesB64(hybridA.ed25519_signature);
