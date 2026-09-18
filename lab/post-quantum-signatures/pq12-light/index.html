@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>FAE PQ-12 Light Test</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color-scheme:light dark;--bg:#0b0c0f;--card:#15171c;--muted:#9aa0aa;--line:#2b2f37;--accent:#d9ff63;--text:#f3f5f7;--good:#87ef9a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}main{max-width:760px;margin:0 auto}h1{font-size:clamp(28px,5vw,42px);margin:0 0 10px;letter-spacing:-.03em}.lead{color:var(--muted);line-height:1.55;margin:0 0 22px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}.note{font-size:14px;color:var(--muted);line-height:1.45}.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);padding:7px 10px;border-radius:999px;font-size:13px;color:var(--muted);margin-bottom:14px}.dot{width:8px;height:8px;border-radius:50%;background:var(--good)}button{width:100%;border:0;border-radius:14px;padding:15px 18px;font-size:17px;font-weight:700;background:var(--accent);color:#10120a;cursor:pointer}button:disabled{opacity:.5;cursor:default}#status{margin-top:14px;color:var(--muted);min-height:24px}.progress{height:8px;border-radius:99px;background:#242831;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:var(--accent);transition:width .2s ease}.hidden{display:none}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}td.num{text-align:right;font-variant-numeric:tabular-nums}pre{white-space:pre-wrap;word-break:break-word;background:#0e1014;border:1px solid var(--line);border-radius:12px;padding:12px;max-height:260px;overflow:auto;font-size:12px}details summary{cursor:pointer;color:var(--muted);margin:10px 0}.ok{color:var(--good);font-weight:700}.footer{margin-top:20px;color:var(--muted);font-size:13px;line-height:1.5}
+@media (prefers-color-scheme:light){:root{--bg:#f6f7f8;--card:#fff;--muted:#66707c;--line:#dfe3e7;--text:#11151a;--accent:#b8e635;--good:#238b45}pre{background:#f8fafb}}
+</style>
+</head>
+<body>
+<main>
+  <div class="pill"><span class="dot"></span> FAE · PQ-12 physical-device evidence</div>
+  <h1>PQ-12 Light Test</h1>
+  <p class="lead">A short, browser-only benchmark for ML-DSA on your iPad or iPhone. It uses ephemeral test keys only and does not connect to the FAE network.</p>
+
+  <section class="card">
+    <strong>Light profile</strong>
+    <p class="note">ML-DSA-44, 65 and 87 · 1 warmup + 3 measured runs each · keygen / sign / verify. No SLH-DSA. No wallet import. No RPC. No persistent storage. Results stay on this device unless you copy them.</p>
+    <button id="start">Start PQ-12 Light Test</button>
+    <div id="status">Ready.</div>
+    <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+  </section>
+
+  <section id="resultsCard" class="card hidden">
+    <div id="done" class="ok">Test complete</div>
+    <p id="summary" class="note"></p>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Scheme</th><th class="num">Keygen</th><th class="num">Sign</th><th class="num">Verify</th><th class="num">Sig bytes</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <details><summary>Show JSON result</summary><pre id="json"></pre></details>
+    <button id="copy">Copy Results</button>
+  </section>
+
+  <div class="footer">
+    Physical-device evidence only — no activation authority.<br>
+    If the device becomes noticeably warm, you can simply close the tab; the test has no persistent state.
+  </div>
+</main>
+<script type="module">
+const startBtn=document.getElementById('start');
+const copyBtn=document.getElementById('copy');
+const statusEl=document.getElementById('status');
+const bar=document.getElementById('bar');
+const card=document.getElementById('resultsCard');
+const rowsEl=document.getElementById('rows');
+const jsonEl=document.getElementById('json');
+const summaryEl=document.getElementById('summary');
+let result=null;
+
+const sleep=()=>new Promise(r=>setTimeout(r,0));
+const median=a=>{const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const round=n=>Math.round(n*1000)/1000;
+const fixedMessage=new TextEncoder().encode('FAE PQ-12 light physical-device benchmark');
+
+async function run(){
+  startBtn.disabled=true;card.classList.add('hidden');bar.style.width='3%';
+  try{
+    const totalStart=performance.now();
+    statusEl.textContent='Loading pinned ML-DSA module…';
+    const moduleStart=performance.now();
+    const mod=await import('https://esm.sh/@noble/post-quantum@0.7.1/ml-dsa.js');
+    const moduleLoadMs=performance.now()-moduleStart;
+    const schemes=[['ML-DSA-44',mod.ml_dsa44],['ML-DSA-65',mod.ml_dsa65],['ML-DSA-87',mod.ml_dsa87]];
+    const out=[];
+    let step=0;
+    for(const [name,scheme] of schemes){
+      statusEl.textContent='Testing '+name+'…';
+      const seed=new Uint8Array(scheme.lengths.seed);crypto.getRandomValues(seed);
+      const warmKeys=scheme.keygen(seed);
+      const warmSig=scheme.sign(fixedMessage,warmKeys.secretKey,{extraEntropy:false});
+      if(!scheme.verify(warmSig,fixedMessage,warmKeys.publicKey))throw new Error(name+' warmup verify failed');
+      await sleep();
+      const keygen=[],sign=[],verify=[];
+      let keys=warmKeys,sig=warmSig;
+      for(let i=0;i<3;i++){
+        let t=performance.now();keys=scheme.keygen(seed);keygen.push(performance.now()-t);
+        t=performance.now();sig=scheme.sign(fixedMessage,keys.secretKey,{extraEntropy:false});sign.push(performance.now()-t);
+        t=performance.now();const ok=scheme.verify(sig,fixedMessage,keys.publicKey);verify.push(performance.now()-t);
+        if(!ok)throw new Error(name+' verify failed');
+        await sleep();
+      }
+      out.push({
+        scheme:name,
+        keygen_median_ms:round(median(keygen)),
+        sign_median_ms:round(median(sign)),
+        verify_median_ms:round(median(verify)),
+        public_key_bytes:scheme.lengths.publicKey,
+        private_key_bytes:scheme.lengths.secretKey,
+        signature_bytes:scheme.lengths.signature
+      });
+      step++;bar.style.width=(8+step*29)+'%';
+    }
+    result={
+      schema:'FAE_PQ12_LIGHT_PHYSICAL_DEVICE_V1',
+      result:'PASS',
+      measured_at:new Date().toISOString(),
+      overall_elapsed_ms:round(performance.now()-totalStart),
+      module_load_ms:round(moduleLoadMs),
+      device:{
+        user_agent:navigator.userAgent,
+        hardware_concurrency:navigator.hardwareConcurrency??null,
+        webcrypto_available:!!globalThis.crypto?.getRandomValues
+      },
+      profile:{warmup_per_scheme:1,measured_iterations_per_scheme:3,slh_dsa:false},
+      schemes:out,
+      results_transmitted:false,
+      private_material_emitted:false,
+      activation_authorized:false
+    };
+    rowsEl.innerHTML=out.map(r=>'<tr><td>'+r.scheme+'</td><td class="num">'+r.keygen_median_ms+' ms</td><td class="num">'+r.sign_median_ms+' ms</td><td class="num">'+r.verify_median_ms+' ms</td><td class="num">'+r.signature_bytes+'</td></tr>').join('');
+    jsonEl.textContent=JSON.stringify(result,null,2);
+    summaryEl.textContent='Total elapsed: '+result.overall_elapsed_ms+' ms · WebCrypto: '+(result.device.webcrypto_available?'available':'unavailable')+'.';
+    card.classList.remove('hidden');statusEl.textContent='Finished. Copy the result and send it back to ChatGPT.';bar.style.width='100%';
+  }catch(err){
+    result={schema:'FAE_PQ12_LIGHT_PHYSICAL_DEVICE_V1',result:'FAIL',error:String(err?.message||err),user_agent:navigator.userAgent};
+    jsonEl.textContent=JSON.stringify(result,null,2);card.classList.remove('hidden');statusEl.textContent='Test failed: '+result.error;bar.style.width='100%';
+  }finally{startBtn.disabled=false}
+}
+startBtn.addEventListener('click',run);
+copyBtn.addEventListener('click',async()=>{
+  if(!result)return;
+  const text=JSON.stringify(result,null,2);
+  try{await navigator.clipboard.writeText(text);copyBtn.textContent='Copied';setTimeout(()=>copyBtn.textContent='Copy Results',1400)}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();copyBtn.textContent='Copied';setTimeout(()=>copyBtn.textContent='Copy Results',1400)}
+});
+</script>
+</body>
+</html>
