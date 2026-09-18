@@ -28,7 +28,10 @@ for(const key of falseFlags){
 }
 if(manifest.future_candidate_miner_write_requires_gate!==true)fail('future miner write must require an explicit later gate');
 if(manifest.authority_ceiling!=='LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE')fail('unexpected authority ceiling');
-if(!Array.isArray(manifest.current_frontier)||manifest.current_frontier.join(',')!=='MTS-00,MTS-01')fail('unexpected current frontier');
+const frontier=Array.isArray(manifest.current_frontier)?manifest.current_frontier.join(','):'';
+if(manifest.status==='BOUNDARY_FROZEN_MTS_00_01'&&frontier!=='MTS-00,MTS-01')fail('unexpected pre-verification frontier');
+if(manifest.status==='MTS_00_01_GREEN'&&frontier!=='MTS-02,MTS-03')fail('unexpected post-verification frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN'].includes(manifest.status))fail('unexpected authority status');
 if(manifest.cross_tab_policy?.is_chain_authority!==false)fail('cross-tab signaling must never be chain authority');
 if(manifest.snapshot_semantics?.mempool_only_change_invalidates_work!==false)fail('snapshot semantics must preserve mempool-only validity');
 if(manifest.snapshot_semantics?.chain_tip_change_invalidates_work!==true)fail('chain tip change must invalidate work');
