@@ -163,7 +163,7 @@
     {
       "id": "PSR-05",
       "name": "Consensus and Economic Hostile Gates",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-03"
       ],
@@ -172,7 +172,7 @@
     {
       "id": "PSR-06",
       "name": "Wallet, Keys and Signature Hostile Gates",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-03"
       ],
@@ -181,7 +181,7 @@
     {
       "id": "PSR-07",
       "name": "P2P, Discovery and Eclipse Hostile Gates",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-03"
       ],
@@ -190,7 +190,7 @@
     {
       "id": "PSR-08",
       "name": "Persistence, Reorg and Recovery Hostile Gates",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-03"
       ],
@@ -199,7 +199,7 @@
     {
       "id": "PSR-09",
       "name": "Browser, Frontend, API and Backend Boundary Gates",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-03"
       ],
@@ -208,7 +208,7 @@
     {
       "id": "PSR-10",
       "name": "Hostile Corpus, Property Testing and Fuzzing",
-      "state": "READY_ON_SUCCESSFUL_PSR05_09_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-05",
         "PSR-06",
@@ -221,7 +221,7 @@
     {
       "id": "PSR-11",
       "name": "Differential and Alternative-Implementation Verification",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR10_INTEGRATION",
       "depends_on": [
         "PSR-10"
       ],
@@ -495,6 +495,47 @@
         "secrets_persisted": false,
         "downstream_unlock_on_green": [
           "PSR-10"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-10",
+      "run_kind": "REAL_EXECUTION_IN_PLACE_REBIND",
+      "execution_date": "2026-09-18",
+      "source_revision": "7a975a1fdc3103e9a3c9bec4f29aa98775ea735a",
+      "branch": "colony/fae-public-code-security-psr10-r4",
+      "executor_attached": true,
+      "prior_verified_candidates": [
+        {
+          "head": "17c49869ae7d694e96c4873180b741eb39b0bd7f",
+          "canonical_run": 454,
+          "status": "SUCCESS"
+        },
+        {
+          "head": "4294177b23fd6896d665d68f1bf907fde9b7258a",
+          "canonical_run": 462,
+          "status": "SUCCESS"
+        }
+      ],
+      "rebinding": {
+        "previous_source_revision": "3643cec06b4b1382c18e0b4c525f398bb32a60d5",
+        "intervening_commits": 5,
+        "reviewed_scope": "independent PQ Wave E executor workflows only"
+      },
+      "fixed_corpus_cases": 53,
+      "deterministic_property_cases": 1984,
+      "seed": "0xfae51010",
+      "promoted_specialized_evidence": [
+        "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+        "sovereign-forge/tests/difficulty-timestamp-redteam.mjs",
+        "lab/mining-tip-sync/tests/mts-07-stress.test.mjs",
+        "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+      ],
+      "evidence_binding": {
+        "canonical_verification": "required_again_on_current_branch_head_before_GREEN",
+        "runtime_or_consensus_change": false,
+        "downstream_unlock_on_green": [
+          "PSR-11"
         ]
       }
     }
