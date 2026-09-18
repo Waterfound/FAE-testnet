@@ -1,0 +1,113 @@
+{
+  "schema": "FAE_PQ_IMPLEMENTATION_INDEPENDENCE_SELECTION_V1",
+  "status": "PROBE_REQUIRED",
+  "recorded_at": "2026-09-18",
+  "fae_source_revision": "d69ebf05895692760fc5c917a394c65b9709894c",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "prerequisite_gates": {
+    "PQ-00": "GREEN",
+    "PQ-01": "GREEN"
+  },
+  "required_independence": {
+    "minimum_meaningfully_independent_implementation_paths": 2,
+    "official_vector_baseline_required": true,
+    "cross_implementation_agreement_required": true,
+    "all_runs_must_pass": true,
+    "selective_retry_forbidden": true
+  },
+  "candidates": [
+    {
+      "id": "noble-js",
+      "role": "BROWSER_INTEGRATION_CANDIDATE",
+      "project": "@noble/post-quantum",
+      "version": "0.7.1",
+      "repository": "paulmillr/noble-post-quantum",
+      "release_commit": "a23736036d4d5b34dd3a9e0ee312fd43d00154ac",
+      "language": "TypeScript/JavaScript",
+      "runtime_targets": [
+        "browser",
+        "Node.js",
+        "Deno",
+        "Bun"
+      ],
+      "algorithms": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA all 12 FIPS 205 parameter sets"
+      ],
+      "independence_class": "ANCHOR_A",
+      "selection_basis": [
+        "Direct JavaScript/TypeScript implementation rather than an FFI wrapper.",
+        "Supports FIPS 204 ML-DSA and FIPS 205 SLH-DSA in the browser-facing ecosystem needed by FAE.",
+        "Pinned release rather than floating main."
+      ]
+    },
+    {
+      "id": "cloudflare-circl",
+      "role": "INDEPENDENT_VERIFIER",
+      "project": "Cloudflare CIRCL",
+      "repository": "cloudflare/circl",
+      "commit": "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0",
+      "language": "Go",
+      "runtime_targets": [
+        "native verifier",
+        "CI"
+      ],
+      "algorithms": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA all 12 FIPS 205 parameter sets"
+      ],
+      "independence_class": "ANCHOR_B",
+      "selection_basis": [
+        "Separate repository, implementation language and API surface from Noble.",
+        "Direct FIPS 204 ML-DSA and FIPS 205 SLH-DSA packages.",
+        "Repository includes ACVP-oriented tests; FAE still uses its own frozen PQ-01 corpus."
+      ],
+      "independence_caveat": "Counted as meaningfully independent from Noble on current evidence; later source-lineage evidence can revoke this classification."
+    },
+    {
+      "id": "node-crypto",
+      "role": "TERTIARY_CROSS_RUNTIME_VERIFIER",
+      "project": "Node.js node:crypto",
+      "version_floor": "24.8.0",
+      "release_commit": "33966adc65f79377bf2f383f817ebcbc64e7d5db",
+      "language": "C++/JavaScript API backed by Node crypto provider stack",
+      "runtime_targets": [
+        "Node.js verifier",
+        "CI"
+      ],
+      "algorithms": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA all 12 FIPS 205 parameter sets via KeyObject/sign/verify"
+      ],
+      "independence_class": "TERTIARY_NOT_COUNTED_TOWARD_MINIMUM",
+      "selection_basis": [
+        "Provides a third runtime/API path already available in modern Node.",
+        "ML-DSA support arrived in Node 24.6; SLH-DSA KeyObject/sign/verify in 24.8."
+      ],
+      "independence_caveat": "Not counted as the required second independent anchor because provider/upstream lineage is distinct from the API surface and must not be assumed from runtime branding alone."
+    }
+  ],
+  "rejected_as_primary_independence_anchors": [
+    {
+      "id": "liboqs",
+      "disposition": "DEFERRED_NOT_REJECTED",
+      "reason": "Useful additional implementation ecosystem, but current liboqs algorithm inventory delegates ML-DSA and SLH-DSA to upstream implementation packages. It is not needed to satisfy the current minimum and would require a separate lineage analysis before being counted as an additional independent anchor."
+    }
+  ],
+  "decision": {
+    "browser_candidate": "noble-js",
+    "independent_anchor_pair": [
+      "noble-js",
+      "cloudflare-circl"
+    ],
+    "tertiary_cross_runtime": "node-crypto",
+    "activation_authorized": false,
+    "primitive_correctness_authorized_only_after_probe_pass": true
+  }
+}
