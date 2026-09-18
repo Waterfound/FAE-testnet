@@ -1,0 +1,89 @@
+{
+  "schema": "FAE_PQ_WAVE_G_FREEZE_V1",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION",
+  "recorded_at": "2026-09-18",
+  "base_revision": "140699091e4f58771fd09b93ac047ee9f00b45f4",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-07": "GREEN"
+  },
+  "parallelization": "PQ-08 and PQ-09 may execute independently; shared-state admission remains serialized.",
+  "PQ-08": {
+    "name": "Independent Differential Verification",
+    "objective": "Replace independent-human-operator evidence with independent method across the complete shadow migration surface.",
+    "required_paths": [
+      "Noble JavaScript verifier path",
+      "Cloudflare CIRCL independent verifier path where applicable",
+      "separate transaction-envelope verifier code path",
+      "separate wallet/public-metadata verifier code path"
+    ],
+    "required_matrix": [
+      "replay pinned official ML-DSA vectors",
+      "replay pinned SLH-DSA diversity vectors",
+      "cross-implementation signature verification",
+      "independently regenerate negative transaction cases without importing PQ-07 verdicts",
+      "independently regenerate negative wallet cases without importing PQ-07 verdicts",
+      "differential agreement on valid hybrid envelopes",
+      "differential agreement on malformed/stripped/polyglot envelopes",
+      "differential agreement on valid wallet public metadata",
+      "differential agreement on malformed/polyglot wallet metadata",
+      "no shared verdict cache",
+      "all-runs-must-pass",
+      "no selective retry"
+    ],
+    "anti_post_hoc_rule": "Independent verifier inputs and expected boundary classes are frozen before observing verifier agreement.",
+    "gate": "No unexplained disagreement remains between the primary shadow implementation and independent verifier paths."
+  },
+  "PQ-09": {
+    "name": "Resource Economics",
+    "objective": "Measure exact software-runtime costs instead of selecting a post-quantum candidate by theory.",
+    "comparison_set": [
+      "Ed25519 baseline",
+      "Ed25519 + ML-DSA-44 hybrid",
+      "Ed25519 + ML-DSA-65 hybrid",
+      "Ed25519 + ML-DSA-87 hybrid",
+      "SLH-DSA-SHA2-128s",
+      "SLH-DSA-SHAKE-128f",
+      "SLH-DSA-SHA2-192s",
+      "SLH-DSA-SHAKE-192f",
+      "SLH-DSA-SHA2-256s",
+      "SLH-DSA-SHAKE-256f"
+    ],
+    "measured_metrics": [
+      "public-key bytes",
+      "private-key bytes where safe to measure without emitting material",
+      "signature bytes",
+      "serialized transaction bytes",
+      "incremental bytes versus Transaction v2",
+      "block-payload implication",
+      "mempool/storage implication",
+      "network-transfer implication",
+      "keygen latency",
+      "sign latency",
+      "verify latency",
+      "CPU time where measurable",
+      "peak/process memory delta where measurable",
+      "module initialization cost",
+      "Node runtime compatibility",
+      "browser-facing implementation compatibility"
+    ],
+    "benchmark_rules": [
+      "warmup and measured iterations are frozen before execution",
+      "report medians and dispersion rather than one timing",
+      "do not use physical-device claims from CI",
+      "do not infer iPhone/iPad performance from GitHub runners",
+      "PQ-12 remains the physical-device evidence gate",
+      "no candidate wins by theory-only argument"
+    ],
+    "gate": "An exact reproducible software-runtime cost matrix exists for the frozen comparison set; no operational winner is promoted automatically."
+  },
+  "invariants": [
+    "Ed25519 remains authoritative in active FAE",
+    "Transaction v2 remains unchanged",
+    "active wallet/address formats remain unchanged",
+    "public testnet and consensus remain unchanged",
+    "Wave G has no activation authority"
+  ],
+  "next_if_green": "PQ-10 End-to-End Shadow Lifecycle"
+}
