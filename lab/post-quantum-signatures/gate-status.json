@@ -142,7 +142,16 @@
         "parameter_substitution_rejection": "PASS",
         "domain_replay_rejection": "PASS",
         "active_v2_rejects_shadow": "PASS",
-        "shadow_rejects_active_v2": "PASS"
+        "shadow_rejects_active_v2": "PASS",
+        "post_pq07_hardening": {
+          "verified_head": "e624cc0ccb293c6da1d2fd486dc817003d8d05ca",
+          "executor_run_id": 35359213437,
+          "run_number": 17,
+          "artifact_id": 10554395842,
+          "artifact_sha256": "b69d1175adfe743a3dc66b8bc1dd4df99613b905dc60c035e8b5fa97433cea11",
+          "exact_field_schema_hardening": "PASS",
+          "regression_matrix": "PASS"
+        }
       },
       "meaning": "The FAE hybrid Ed25519 + ML-DSA transaction path is viable in shadow for all three ML-DSA parameter sets under the frozen Wave E matrix. This does not authorize Transaction v2, wallet, consensus, testnet or mainnet changes."
     },
@@ -172,20 +181,79 @@
         "corrupted_backup_rejection": "PASS",
         "wrong_passphrase_rejection": "PASS",
         "corrupted_mnemonic_rejection": "PASS",
-        "private_material_emitted": false
+        "private_material_emitted": false,
+        "post_pq07_hardening": {
+          "verified_head": "e624cc0ccb293c6da1d2fd486dc817003d8d05ca",
+          "executor_run_id": 35359213498,
+          "run_number": 15,
+          "artifact_id": 10553387072,
+          "artifact_sha256": "6944b673ad8ba043d51de12ce633fc7a6692fe12ca0687dc285483e54b68ed12",
+          "exact_public_metadata_schema_hardening": "PASS",
+          "regression_matrix": "PASS"
+        }
       },
       "meaning": "Legacy Ed25519 wallet identity remains compatible while PQ key material is deterministically and independently derived in shadow. No active wallet/address authority is changed."
     },
     "PQ-07": {
       "name": "Adversarial Downgrade, Replay and Stripping",
+      "status": "GREEN",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-05",
+        "PQ-06"
+      ],
+      "evidence": {
+        "final_head": "e624cc0ccb293c6da1d2fd486dc817003d8d05ca",
+        "integrated_commit": "140699091e4f58771fd09b93ac047ee9f00b45f4",
+        "executor_run_id": 35359213441,
+        "executor_run_number": 9,
+        "canonical_run_id": 35359213492,
+        "canonical_run_number": 502,
+        "pq_lab_standards_run_id": 35359213428,
+        "pq_lab_standards_run_number": 126,
+        "artifact_id": 10553631953,
+        "artifact_sha256": "1aba20c10082ed8c03ef658825f1a8ee8c8bee973b7e7a261f3556f5113bb665",
+        "case_count": 114,
+        "failed_case_ids": [],
+        "unauthorized_dual_acceptance": 0,
+        "unauthorized_downgrade_acceptance": 0,
+        "private_material_emitted": false,
+        "first_finding_run": {
+          "run_id": 35359022021,
+          "artifact_id": 10553501815,
+          "artifact_sha256": "13afd426ff74a7bb620706e7eeecc51b09705f2bbe3de15a6b28af7f53df20ce",
+          "transaction_polyglot_findings": 3,
+          "wallet_schema_findings": 2,
+          "harness_noop_cases": 1,
+          "preserved_in": "lab/post-quantum-signatures/wave-f/pq07/failure-ledger.json"
+        }
+      },
+      "meaning": "The frozen adversarial downgrade/replay/stripping corpus passes after shadow-only exact-schema hardening. Transaction and wallet polyglot ambiguities discovered by PQ-07 were preserved and removed without modifying active FAE."
+    },
+    "PQ-08": {
+      "name": "Independent Differential Verification",
       "status": "READY",
       "authority": "RESEARCH_SHADOW_ONLY",
       "depends_on": [
+        "PQ-03",
+        "PQ-04",
+        "PQ-05",
+        "PQ-06",
+        "PQ-07"
+      ]
+    },
+    "PQ-09": {
+      "name": "Resource Economics",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-03",
+        "PQ-04",
         "PQ-05",
         "PQ-06"
       ]
     }
   },
-  "active_frontier": "PQ-07",
+  "active_frontier": "PQ-08+PQ-09",
   "activation_authorized": false
 }
