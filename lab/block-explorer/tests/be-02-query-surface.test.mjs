@@ -12,7 +12,7 @@ const ZERO='0'.repeat(64);
 const HASH1='1'.repeat(64);
 const HASH2='2'.repeat(64);
 const HASH3='3'.repeat(64);
-const TXID=HASH2;
+const TXID='a'.repeat(64);
 const ADDRESS='faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k';
 
 function fixture(){
@@ -156,9 +156,18 @@ test('address cursor is bound to tip hash and fails closed after tip change',()=
 });
 
 test('64-hex universal search checks block and transaction namespaces',()=>{
-  const result=route('/explorer/search?q='+TXID);
+  const state=fixture();
+  state.transactions[HASH2]={...state.transactions[TXID],txid:HASH2};
+  const result=route('/explorer/search?q='+HASH2,{state});
   assert.equal(result.status,200);
   assert.deepEqual(result.payload.matches.map(match=>match.type).sort(),['block','transaction']);
+});
+
+test('digit-only 64-hex digest is never misclassified as a block height',()=>{
+  const result=route('/explorer/search?q='+HASH2);
+  assert.equal(result.status,200);
+  assert.equal(result.payload.matches[0].type,'block');
+  assert.equal(result.payload.matches[0].hash,HASH2);
 });
 
 test('search fails closed on malformed or absent objects',()=>{
