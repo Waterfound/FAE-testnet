@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07100b">
+<title>FAE MTS-12 iPad Acceptance</title>
+<!-- MTS-12 host generation: portable-rawcdn-v3-lifecycle-metric -->
+<style>
+:root{color-scheme:dark;--bg:#07100b;--surface:#0e1a13;--line:#294733;--text:#edf8ef;--muted:#9eb3a4;--accent:#b8ffc8;--bad:#ff9d9d;--warn:#ffd58a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:auto;padding:18px 14px 56px}h1{font-size:clamp(28px,6vw,40px);margin:12px 0 8px}h2{font-size:18px;margin:0 0 10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0}.small{color:var(--muted);font-size:13px}.mono{font-family:ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{background:#07110b;border:1px solid var(--line);border-radius:10px;padding:9px}.metric b{display:block;margin-top:3px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:#061108;font-weight:760;cursor:pointer}
+button.alt{background:#24392b;color:var(--text);border:1px solid #395744}button:disabled{opacity:.45}.ok{color:var(--accent)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+pre{white-space:pre-wrap;word-break:break-word;background:#06100a;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:360px;overflow:auto}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.actions{display:grid}.actions>*{width:100%;text-align:center}}
+</style>
+</head>
+<body>
+<main>
+  <h1>FAE MTS-12 · Physical iPad Acceptance</h1>
+  <p class="small">Local-only validation. No telemetry, seed phrase, private key, wallet backup, or reusable secret is collected. Testnet coins are valueless.</p>
+
+  <section class="card">
+    <h2>Frozen identity</h2>
+    <div class="grid">
+      <div class="metric"><span class="small">Expected miner SHA-256</span><b id="expected" class="mono">e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c</b></div>
+      <div class="metric"><span class="small">Loaded miner</span><b id="miner-sha" class="mono">Checking…</b></div>
+      <div class="metric"><span class="small">Device</span><b id="device">Checking…</b></div>
+      <div class="metric"><span class="small">Browser primitives</span><b id="primitives">Checking…</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Physical run</h2>
+    <p>This acceptance uses two real top-level Safari tabs. Each tab opens the deployed FAE app directly, switches it to a fixed watch-only address, starts mining once, and reports only timing/status events back to this controller tab.</p>
+    <p class="small">Watch-only reward address: <span class="mono">faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k</span></p>
+    <div class="actions">
+      <button id="open-a">1 · Open Miner A tab</button>
+      <button id="open-b">2 · Open Miner B tab</button>
+      <button id="arm-tip" class="alt">3 · Arm real-tip acceptance</button>
+      <button id="arm-resume" class="alt">4 · Arm background/foreground</button>
+      <button id="export" class="alt">Export local JSON</button>
+    </div>
+    <p id="instruction" class="small">Open A and B. Wait until both show Running, then arm real-tip acceptance. After PASS, arm background/foreground, switch to Miner A, then background Safari and return directly to Miner A. Do not press Stop/Start.</p>
+  </section>
+
+  <section class="card">
+    <h2>Acceptance status</h2>
+    <div class="grid">
+      <div class="metric"><span class="small">Miner A</span><b id="status-a">Not opened</b></div>
+      <div class="metric"><span class="small">Miner B</span><b id="status-b">Not opened</b></div>
+      <div class="metric"><span class="small">Real tip convergence</span><b id="tip-result">Not armed</b></div>
+      <div class="metric"><span class="small">Background → foreground</span><b id="resume-result">Not armed</b></div>
+      <div class="metric"><span class="small">Stale after known mismatch</span><b id="stale-count">0</b></div>
+      <div class="metric"><span class="small">Race-lost 409 responses</span><b id="race-count">0</b></div>
+      <div class="metric"><span class="small">Unclassified stale responses</span><b id="unclassified-count">0</b></div>
+      <div class="metric"><span class="small">Manual Stop → Start used</span><b id="manual-restart">No</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Local evidence</h2>
+    <pre id="log">Initializing…</pre>
+  </section>
+</main>
+<script>
+'use strict';
+const EXPECTED_MINER_SHA='e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c';
+const WATCH_ADDRESS='faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k';
+const API='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4';
+const CONTROL_CHANNEL='fae-mts12-control-v2';
+const TIP_GATE_MS=3500;
+const RESUME_GATE_MS=1500;
+const events=[];
+const childWindows={a:null,b:null};
+const state={role:'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,resumeTargetRole:'a',resumeMetric:'foreground_event_to_authoritative_status_request_start',tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleResponses:0,staleSubmissions:0,raceLostResponses:0,unclassifiedStaleResponses:0,manualRestartUsed:false,verdict:null};
+const $=id=>document.getElementById(id);
+const now=()=>performance.timeOrigin+performance.now();
+function emit(kind,data={}){const event={at_ms:Date.now(),perf_ms:now(),kind,...data};events.push(event);renderLog();return event}
+function renderLog(){$('log').textContent=JSON.stringify({state,events:events.slice(-100)},null,2)}
+function setText(id,text,kind=''){const el=$(id);if(!el)return;el.textContent=text;el.className=kind}
+function deviceLabel(){const touch=Number(navigator.maxTouchPoints||0),platform=navigator.platform||'',ua=navigator.userAgent||'';return{ipad:/iPad/i.test(ua)||(platform==='MacIntel'&&touch>1),touch,platform,ua}}
+async function sha256Bytes(bytes){const digest=await crypto.subtle.digest('SHA-256',bytes);return[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function preflight(){
+  state.device=deviceLabel();
+  state.primitives={secureContext:isSecureContext,worker:typeof Worker==='function',broadcastChannel:typeof BroadcastChannel==='function',subtle:Boolean(crypto?.subtle),visibility:'visibilityState'in document,pageshow:'onpageshow'in window,topLevelTabs:typeof window.open==='function'};
+  setText('device',state.device.ipad?'iPad/iPadOS detected':'Non-iPad environment',state.device.ipad?'ok':'warn');
+  const primitivePass=Object.values(state.primitives).every(Boolean);
+  setText('primitives',primitivePass?'Worker + BroadcastChannel + crypto + lifecycle + top-level tabs ready':'Missing browser primitive',primitivePass?'ok':'bad');
+  try{
+    const miner=await fetch('./mining.js',{cache:'no-store'}).then(r=>r.arrayBuffer());
+    state.minerSha=await sha256Bytes(miner);
+    setText('miner-sha',state.minerSha,state.minerSha===EXPECTED_MINER_SHA?'ok':'bad');
+    emit('preflight',{miner_sha:state.minerSha,expected_sha:EXPECTED_MINER_SHA,device:state.device,primitives:state.primitives});
+  }catch(error){setText('miner-sha','ERROR: '+error.message,'bad');emit('preflight_error',{error:error.message})}
+}
+const control=typeof BroadcastChannel==='function'?new BroadcastChannel(CONTROL_CHANNEL):null;
+if(control)control.addEventListener('message',event=>handleControl(event.data));
+function handleControl(message){
+  if(!message||message.schema!=='FAE_MTS12_EVENT_V2')return;
+  const event=message.event;events.push(event);
+  const r=event.role;
+  if((r==='a'||r==='b')&&event.kind==='child_ready'){state.contexts[r].ready=true;setText('status-'+r,'Ready','ok')}
+  if((r==='a'||r==='b')&&event.kind==='mining_started'){state.contexts[r].miningStartedAt=event.perf_ms;setText('status-'+r,'Running','ok')}
+  if(event.kind==='manual_restart')state.manualRestartUsed=true;
+  if(event.kind==='submit_result'&&event.stale===true){
+    state.staleResponses++;
+    if(event.known_mismatch_at_start===true)state.staleSubmissions++;
+    else if(event.known_mismatch_at_start===false)state.raceLostResponses++;
+    else state.unclassifiedStaleResponses++;
+  }
+  if(event.kind==='status_observation'){
+    if(r==='a'||r==='b')state.contexts[r].lastStatus={height:Number(event.height),tip_hash:String(event.tip_hash||''),perf_ms:event.perf_ms};
+    observeTip(event.height,event.tip_hash,event.perf_ms,r);
+  }
+  if(event.kind==='template_observation')observeTemplate(r,event);
+  if(event.kind==='resume_stage_ready'&&r===state.resumeTargetRole){
+    state.contexts[r].resumeStageReadyAt=event.perf_ms;
+    setText('resume-result','Miner A ready · background Safari now','warn');
+    $('instruction').textContent='With Miner A visible, put Safari in background for 30–60 seconds, reopen Safari directly to Miner A, wait a moment, then return to this controller.';
+  }
+  if(event.kind==='resume_revalidation_started')observeResumeStart(r,event);
+  if(event.kind==='resume_revalidation_result')observeResumeResult(r,event);
+  if(event.kind==='resume_revalidation_error')observeResumeError(r,event);
+  $('stale-count').textContent=String(state.staleSubmissions);
+  $('race-count').textContent=String(state.raceLostResponses);
+  $('unclassified-count').textContent=String(state.unclassifiedStaleResponses);
+  $('manual-restart').textContent=state.manualRestartUsed?'YES':'No';
+  evaluateTipGate();evaluateResumeGate();renderLog();
+}
+function observeTip(height,hash,at,source){
+  if(!Number.isSafeInteger(Number(height))||!/^[0-9a-f]{64}$/.test(String(hash||'')))return;
+  if(!state.tipBaseline){state.tipBaseline={height:Number(height),hash:String(hash)};emit('controller_tip_baseline',{height:Number(height),tip_hash:String(hash),source});return}
+  if(Number(height)===state.tipBaseline.height&&String(hash)===state.tipBaseline.hash)return;
+  if(!state.tipTarget){state.tipTarget={height:Number(height),hash:String(hash)};state.firstObservedNewTipAt=at;emit('controller_tip_changed',{height:Number(height),tip_hash:String(hash),source,first_observed_perf_ms:at})}
+}
+function observeTemplate(role,event){
+  if(role!=='a'&&role!=='b')return;
+  state.contexts[role].lastTemplate={height:event.height,previous_hash:event.previous_hash,perf_ms:event.perf_ms};
+  if(state.tipTarget&&event.previous_hash===state.tipTarget.hash&&!state.contexts[role].convergedAt){
+    state.contexts[role].convergedAt=event.perf_ms;
+    state.contexts[role].convergenceMs=Math.max(0,event.perf_ms-state.firstObservedNewTipAt);
+    emit('context_converged',{role,latency_ms:state.contexts[role].convergenceMs,previous_hash:event.previous_hash});
+  }
+}
+function evaluateTipGate(){
+  if(state.tipVerdict||!state.tipArmed||!state.tipTarget)return;
+  const a=state.contexts.a.convergenceMs,b=state.contexts.b.convergenceMs;
+  if(a===undefined||b===undefined)return;
+  const pass=a<=TIP_GATE_MS&&b<=TIP_GATE_MS&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed;
+  state.tipVerdict={pass,a_ms:a,b_ms:b,gate_ms:TIP_GATE_MS,tip:state.tipTarget,known_mismatch_submissions:state.staleSubmissions,race_lost_409_responses:state.raceLostResponses,unclassified_stale_responses:state.unclassifiedStaleResponses};
+  state.tipArmed=false;
+  setText('tip-result',pass?'PASS · A '+Math.round(a)+' ms · B '+Math.round(b)+' ms':'FAIL',pass?'ok':'bad');
+  emit('tip_gate',{...state.tipVerdict});
+}
+function observeResumeStart(role,event){
+  if(role!==state.resumeTargetRole||!state.resumeArmed)return;
+  const ctx=state.contexts[role];
+  if(ctx.resumeLocalStartMs!==undefined)return;
+  ctx.resumeVisibleAt=event.visible_perf_ms;
+  ctx.resumeRequestStartedAt=event.request_started_perf_ms;
+  ctx.resumeLocalStartMs=Math.max(0,Number(event.local_latency_ms));
+}
+function observeResumeResult(role,event){
+  if(role!==state.resumeTargetRole||!state.resumeArmed)return;
+  const ctx=state.contexts[role];
+  if(ctx.resumeResultAt!==undefined)return;
+  ctx.resumeResultAt=event.perf_ms;
+  ctx.resumeNetworkResponseMs=Math.max(0,Number(event.network_response_ms));
+  ctx.resumeStatus={height:Number(event.height),tip_hash:String(event.tip_hash||''),http_status:Number(event.http_status)};
+}
+function observeResumeError(role,event){
+  if(role!==state.resumeTargetRole||!state.resumeArmed)return;
+  state.contexts[role].resumeError=String(event.error||'unknown');
+}
+function evaluateResumeGate(){
+  if(state.resumeVerdict||!state.resumeArmed)return;
+  const role=state.resumeTargetRole,ctx=state.contexts[role];
+  if(ctx.resumeError){
+    state.resumeVerdict={pass:false,role,gate_ms:RESUME_GATE_MS,error:ctx.resumeError,metric:state.resumeMetric};
+  }else{
+    if(ctx.resumeLocalStartMs===undefined||!ctx.resumeStatus)return;
+    const pass=ctx.resumeLocalStartMs<=RESUME_GATE_MS&&ctx.resumeStatus.http_status===200&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed;
+    state.resumeVerdict={pass,role,local_start_ms:ctx.resumeLocalStartMs,network_response_ms:ctx.resumeNetworkResponseMs,gate_ms:RESUME_GATE_MS,metric:state.resumeMetric,http_status:ctx.resumeStatus.http_status,known_mismatch_submissions:state.staleSubmissions,race_lost_409_responses:state.raceLostResponses,unclassified_stale_responses:state.unclassifiedStaleResponses};
+  }
+  state.resumeArmed=false;
+  const v=state.resumeVerdict;
+  setText('resume-result',v.pass?'PASS · A local '+Math.round(v.local_start_ms)+' ms · WAN '+Math.round(v.network_response_ms)+' ms':'FAIL',v.pass?'ok':'bad');
+  emit('resume_gate',{...v});
+}
+async function controllerPoll(){
+  try{
+    const status=await fetch(API+'/status',{cache:'no-store'}).then(r=>r.json());
+    observeTip(Number(status.height),String(status.tip_hash||''),now(),'controller');
+  }catch(error){emit('controller_status_error',{error:error.message})}
+}
+let pollTimer=null;
+function startControllerPoll(){if(pollTimer)return;controllerPoll();pollTimer=setInterval(controllerPoll,500)}
+async function waitFor(condition,timeout=20000){const started=Date.now();while(Date.now()-started<timeout){try{if(condition())return true}catch{}await new Promise(r=>setTimeout(r,100))}throw Error('timeout')}
+function installChildInstrumentation(win,role){
+  const source=`(() => {
+    if(window.__FAE_MTS12_INSTRUMENTED)return;
+    window.__FAE_MTS12_INSTRUMENTED=true;
+    const API=${JSON.stringify(API)};
+    const ROLE=${JSON.stringify(role)};
+    const CHANNEL=${JSON.stringify(CONTROL_CHANNEL)};
+    const channel=typeof BroadcastChannel==='function'?new BroadcastChannel(CHANNEL):null;
+    const now=()=>performance.timeOrigin+performance.now();
+    const post=(kind,data={})=>channel?.postMessage({schema:'FAE_MTS12_EVENT_V2',event:{at_ms:Date.now(),perf_ms:now(),kind,role:ROLE,...data}});
+    window.__FAE_MTS12_POST=post;
+    const nativeFetch=window.fetch.bind(window);
+    let lastStatus=null,submitSeq=0;
+    let resumePhase='idle',resumeVisibleAt=null,resumeRequestMeta=null;
+    const markResumeVisible=trigger=>{
+      if(resumePhase==='await_initial_visible'){
+        resumePhase='await_hidden';
+        post('resume_stage_ready',{trigger});
+        return;
+      }
+      if(resumePhase!=='await_return')return;
+      resumePhase='measuring';
+      resumeVisibleAt=now();
+      resumeRequestMeta=null;
+      post('child_visible',{trigger,visible_perf_ms:resumeVisibleAt});
+    };
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){
+        if(resumePhase==='await_hidden'){resumePhase='await_return';post('child_hidden',{hidden_perf_ms:now()})}
+        return;
+      }
+      markResumeVisible('visibilitychange');
+    },true);
+    window.addEventListener('pageshow',()=>markResumeVisible('pageshow'),true);
+    window.fetch=async(input,options)=>{
+      const url=String(input),isApi=url.startsWith(API),path=isApi?url.slice(API.length):'';
+      let submitMeta=null;
+      if(path.startsWith('/status')&&resumePhase==='measuring'&&!resumeRequestMeta){
+        const requestStarted=now();
+        resumeRequestMeta={request_started_perf_ms:requestStarted,visible_perf_ms:resumeVisibleAt,local_latency_ms:Math.max(0,requestStarted-resumeVisibleAt)};
+        post('resume_revalidation_started',resumeRequestMeta);
+      }
+      if(path.startsWith('/submit-block')){
+        let header={};
+        try{header=JSON.parse(String(options?.body||'{}')).header||{}}catch{}
+        const requestId=ROLE+'-'+(++submitSeq)+'-'+Date.now();
+        const knownMismatch=lastStatus&&Number.isSafeInteger(Number(header.height))&&/^[0-9a-f]{64}$/.test(String(header.previous_hash||''))
+          ?(Number(header.height)!==Number(lastStatus.height)+1||String(header.previous_hash)!==String(lastStatus.tip_hash))
+          :null;
+        submitMeta={
+          request_id:requestId,
+          header_height:Number(header.height),
+          previous_hash:String(header.previous_hash||''),
+          known_status_height:lastStatus?Number(lastStatus.height):null,
+          known_tip_hash:lastStatus?String(lastStatus.tip_hash||''):null,
+          known_mismatch_at_start:knownMismatch
+        };
+        post('submit_started',submitMeta);
+      }
+      let response;
+      try{response=await nativeFetch(input,options)}
+      catch(error){
+        if(path.startsWith('/status')&&resumeRequestMeta&&resumePhase==='measuring'){
+          post('resume_revalidation_error',{...resumeRequestMeta,error:error.message});
+          resumePhase='done';
+        }
+        throw error;
+      }
+      try{
+        if(isApi){
+          const payload=await response.clone().json().catch(()=>({}));
+          if(path.startsWith('/status')){
+            lastStatus={height:Number(payload.height),tip_hash:String(payload.tip_hash||'')};
+            post('status_observation',{height:lastStatus.height,tip_hash:lastStatus.tip_hash,http_status:response.status});
+            if(resumeRequestMeta&&resumePhase==='measuring'){
+              post('resume_revalidation_result',{...resumeRequestMeta,network_response_ms:Math.max(0,now()-resumeRequestMeta.request_started_perf_ms),height:lastStatus.height,tip_hash:lastStatus.tip_hash,http_status:response.status});
+              resumePhase='done';
+            }
+          }
+          if(path.startsWith('/template'))post('template_observation',{height:Number(payload.header?.height),previous_hash:String(payload.header?.previous_hash||''),http_status:response.status});
+          if(path.startsWith('/submit-block'))post('submit_result',{...(submitMeta||{}),http_status:response.status,stale:payload.error==='stale_tip'||payload.reason==='stale_tip'||payload.reason==='race_lost'});
+        }
+      }catch(error){post('instrumentation_error',{error:error.message})}
+      return response;
+    };
+    const NativeWorker=window.Worker;
+    if(typeof NativeWorker==='function'){
+      function WrappedWorker(...args){const worker=new NativeWorker(...args);post('worker_started');const terminate=worker.terminate.bind(worker);worker.terminate=()=>{post('worker_terminated');return terminate()};return worker}
+      WrappedWorker.prototype=NativeWorker.prototype;Object.setPrototypeOf(WrappedWorker,NativeWorker);window.Worker=WrappedWorker;
+    }
+    channel?.addEventListener('message',event=>{
+      if(event.data?.schema!=='FAE_MTS12_COMMAND_V2'||event.data.command!=='arm_resume_lifecycle'||event.data.role!==ROLE)return;
+      resumePhase='await_initial_visible';
+      resumeVisibleAt=null;
+      resumeRequestMeta=null;
+      post('resume_armed_child');
+    });
+  })();`;
+  win.eval(source);
+}
+function injectChildBanner(doc,role){
+  let banner=doc.getElementById('mts12-physical-banner');
+  if(banner)return;
+  banner=doc.createElement('div');banner.id='mts12-physical-banner';
+  banner.textContent='MTS-12 Miner '+role.toUpperCase()+' · watch-only physical acceptance';
+  Object.assign(banner.style,{position:'fixed',left:'8px',right:'8px',bottom:'8px',zIndex:'99999',padding:'10px 12px',borderRadius:'10px',background:'#b8ffc8',color:'#061108',font:'700 13px system-ui',textAlign:'center'});
+  doc.body.appendChild(banner);
+}
+async function configureChild(role,child){
+  setText('status-'+role,'Opening…','warn');
+  await waitFor(()=>!child.closed&&child.location.origin===location.origin&&child.document.readyState==='complete',20000);
+  const doc=child.document;
+  installChildInstrumentation(child,role);
+  injectChildBanner(doc,role);
+  await waitFor(()=>doc.getElementById('netstatus')?.dataset.state==='online',20000);
+  const external=doc.getElementById('existingaddr');
+  if(!external)throw Error('watch-only address field unavailable');
+  external.value=WATCH_ADDRESS;
+  external.dispatchEvent(new child.Event('input',{bubbles:true}));
+  doc.getElementById('useaddr')?.click();
+  doc.getElementById('tab-mining')?.click();
+  await waitFor(()=>!doc.getElementById('mine')?.disabled,7000);
+  const mineButton=doc.getElementById('mine');
+  let starts=0;
+  mineButton.addEventListener('click',()=>{starts++;if(starts>1)child.__FAE_MTS12_POST?.('manual_restart')});
+  child.__FAE_MTS12_POST?.('child_ready',{watch_only_address:WATCH_ADDRESS});
+  mineButton.click();
+  child.__FAE_MTS12_POST?.('mining_started',{watch_only_address:WATCH_ADDRESS});
+  injectChildBanner(doc,role);
+}
+function openChild(role){
+  const url=new URL('./index.html',location.href);
+  url.searchParams.set('mts12','physical');
+  url.searchParams.set('role',role);
+  url.searchParams.set('v',EXPECTED_MINER_SHA.slice(0,12));
+  const child=window.open(url.toString(),'mts12-miner-'+role);
+  if(!child){setText('status-'+role,'Popup blocked','bad');emit('popup_blocked',{role});return}
+  childWindows[role]=child;emit('child_opened',{role,url:url.pathname});
+  configureChild(role,child).catch(error=>{setText('status-'+role,'ERROR: '+error.message,'bad');emit('child_error',{role,error:error.message})});
+}
+function bothMinersRunning(){return Boolean(state.contexts.a.miningStartedAt&&state.contexts.b.miningStartedAt)}
+function armTip(){
+  if(!bothMinersRunning()){setText('tip-result','Waiting · open A and B first','warn');emit('tip_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
+  state.tipArmed=true;state.tipVerdict=null;state.tipBaseline=null;state.tipTarget=null;state.firstObservedNewTipAt=null;
+  for(const r of ['a','b']){delete state.contexts[r].convergedAt;delete state.contexts[r].convergenceMs}
+  setText('tip-result','Armed · waiting for next real tip','warn');startControllerPoll();emit('tip_acceptance_armed');
+}
+function armResume(){
+  if(!bothMinersRunning()){setText('resume-result','Waiting · open A and B first','warn');emit('resume_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
+  if(!state.tipVerdict?.pass){setText('resume-result','Waiting · real-tip gate must PASS first','warn');emit('resume_arm_blocked',{reason:'TIP_GATE_NOT_PASS'});return}
+  const role=state.resumeTargetRole;
+  state.resumeArmed=true;state.resumeVerdict=null;
+  const ctx=state.contexts[role];
+  for(const key of ['resumeStageReadyAt','resumeVisibleAt','resumeRequestStartedAt','resumeLocalStartMs','resumeResultAt','resumeNetworkResponseMs','resumeStatus','resumeError'])delete ctx[key];
+  setText('resume-result','Armed · switch to Miner A first','warn');
+  $('instruction').textContent='Switch to Miner A. Once its MTS banner is visible, background Safari for 30–60 seconds. Reopen Safari directly to Miner A, wait a moment, then return to this controller.';
+  control?.postMessage({schema:'FAE_MTS12_COMMAND_V2',command:'arm_resume_lifecycle',role});
+  emit('resume_acceptance_armed',{role,metric:state.resumeMetric,gate_ms:RESUME_GATE_MS});
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)emit('controller_hidden',{perf_ms:now()});
+  else emit('controller_visible',{perf_ms:now()});
+});
+function exportEvidence(){
+  state.completedAt=new Date().toISOString();
+  state.verdict=state.tipVerdict?.pass&&state.resumeVerdict?.pass&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed?'PASS':'INCOMPLETE_OR_FAIL';
+  const payload={schema:'FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V3',state,events};
+  const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fae-mts-12-ipad-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+$('open-a').addEventListener('click',()=>openChild('a'));
+$('open-b').addEventListener('click',()=>openChild('b'));
+$('arm-tip').addEventListener('click',armTip);
+$('arm-resume').addEventListener('click',armResume);
+$('export').addEventListener('click',exportEvidence);
+preflight().then(()=>{startControllerPoll();renderLog()});
+</script>
+</body>
+</html>
