@@ -1,0 +1,40 @@
+{
+  "schema": "FAE_MTS_05_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "verified_candidate_head": "2c6110ae6a604926e251b039d684f1d73d17eb76",
+  "candidate_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e",
+  "lab_workflow": {
+    "run_id": 35346308540,
+    "job_id": 105603588314,
+    "conclusion": "success",
+    "mts_02_03_tests": {"total": 9, "pass": 9, "fail": 0},
+    "mts_04_05_06_tests": {"total": 9, "pass": 9, "fail": 0}
+  },
+  "canonical_workflow": {
+    "run_id": 35346308512,
+    "job_id": 105603612197,
+    "conclusion": "success"
+  },
+  "retained_intermediate_failure": {
+    "run_id": 35346219525,
+    "job_id": 105603303520,
+    "failed_gate": "Verify browser wallet, client, coordinator fallback, trust and rotation flows",
+    "observed_error": "TIP_FRESHNESS_UNKNOWN",
+    "cause": "tests/mining-coordinator-smoke.mjs simulated /status without tip_hash",
+    "production_contract_evidence": "supabase/functions/fae-public-testnet-v4/index.ts returns authoritative height + tip_hash",
+    "resolution": "Update only the canonical smoke fixture to match the production contract. Runtime fail-closed semantics were preserved."
+  },
+  "MTS-05": {
+    "worker_generation_fencing": true,
+    "late_invalidated_worker_callback_ignored": true,
+    "pre_submit_authoritative_freshness_barrier": true,
+    "tip_advance_after_nonce_before_submit": "TIP_INVALIDATED; zero submit",
+    "status_unavailable_after_nonce_before_submit": "TIP_FRESHNESS_UNKNOWN; zero submit",
+    "current_tip_after_nonce": "exactly one submit",
+    "backend_change_required": false,
+    "consensus_change_required": false,
+    "block_time_change_required": false
+  },
+  "next_frontier": ["MTS-07"],
+  "MTS-07_scope": "Rapid tips, CPU load, and network failures."
+}
