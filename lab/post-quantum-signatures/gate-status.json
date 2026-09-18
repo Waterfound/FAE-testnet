@@ -32,10 +32,35 @@
     },
     "PQ-02": {
       "name": "Implementation Independence Selection",
+      "status": "GREEN",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "evidence": {
+        "replay_head_sha": "065ba6d8bfa1679fbb070d67af7a9028157cf301",
+        "workflow_run_id": 35343855349,
+        "implementation_probe": "PASS",
+        "artifact_id": 10546367175,
+        "artifact_digest": "sha256:b1e36871ef2526efd5079cea977b6eaa34d3d9771dfd39e058144a40fd0f1c80",
+        "canonical_source_run_id": 35343855347,
+        "canonical_source": "PASS",
+        "independent_anchor_pair": [
+          "noble-js",
+          "cloudflare-circl"
+        ],
+        "tertiary_path": "node-crypto"
+      },
+      "meaning": "Two meaningfully independent implementation paths were selected and executed successfully; a third cross-runtime path passed but is not counted toward the independence minimum."
+    },
+    "PQ-03": {
+      "name": "ML-DSA Primitive Correctness",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY"
+    },
+    "PQ-04": {
+      "name": "SLH-DSA Diversity Study",
       "status": "READY",
       "authority": "RESEARCH_SHADOW_ONLY"
     }
   },
-  "active_frontier": "PQ-02",
+  "active_frontier": "PQ-03/PQ-04",
   "activation_authorized": false
 }
