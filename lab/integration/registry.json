@@ -98,7 +98,9 @@
         "tests/public-code-security-contract.mjs",
         "tests/public-code-security-hostile-frontier.mjs",
         "tests/public-code-security-fuzz.mjs",
-        "tests/public-code-security-differential.mjs"
+        "tests/public-code-security-differential.mjs",
+        "tests/public-code-security-whitebox.mjs",
+        "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json"
       ],
       "combined_checks": [
         [
@@ -119,6 +121,11 @@
           "node",
           "--test",
           "tests/public-code-security-differential.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "tests/public-code-security-whitebox.mjs"
         ]
       ]
     }
