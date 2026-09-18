@@ -26,7 +26,7 @@ if(runStarted&&role==='controller'&&(!Number.isSafeInteger(startHeight)||startHe
 
 const state=new Map(nodes.map(n=>[n.name,{reachable:null,bootId:null,height:null,tip:null,lastHealthyAt:null,outageStart:null,recoveryStart:null}]));
 const blockSeen=new Map();
-let lastHeartbeat=0,lastMineSlot=-1,failed=false,loopBusy=false;
+let lastHeartbeat=0,lastPeerPing=0,lastMineSlot=-1,failed=false,loopBusy=false;
 
 function emit(event,payload={}){console.log(JSON.stringify({event,run_id:runId,monitor_role:role,monitor_boot_id:bootId,render_instance_id:process.env.RENDER_INSTANCE_ID||null,render_git_commit:process.env.RENDER_GIT_COMMIT||null,at:new Date().toISOString(),...payload}))}
 emit('FAE_V3_MONITOR_BOOT',{process_started_at:startedAt,run_started:runStarted,t0_utc:runStarted?new Date(t0).toISOString():null});
@@ -58,7 +58,8 @@ function observeBlock(nodeName,meta,now){
   }
 }
 function markFail(reason,payload){
-  if(!failed)failed=true;
+  if(failed)return;
+  failed=true;
   emit('FAE_V3_FAIL',{reason,...payload});
 }
 async function mine(nodeUrl){
@@ -74,12 +75,12 @@ async function mine(nodeUrl){
 async function maybeMine(rows,now){
   if(role!=='controller'||!runStarted||now<t0)return;
   const slot=Math.floor((now-t0)/blockIntervalMs);
-  if(slot<0||slot===lastMineSlot)return;
+  if(slot<1||slot===lastMineSlot)return;
   const slotStart=t0+slot*blockIntervalMs;
   const latestTs=Math.max(...rows.filter(r=>r.ok).flatMap(r=>r.meta.tail||[]).map(b=>Number(b.timestamp_ms)||0),0);
   lastMineSlot=slot;
   if(latestTs>=slotStart){emit('FAE_V3_MINE_SLOT_SKIPPED',{slot,reason:'block_already_observed_in_slot'});return}
-  const target=nodes[slot%nodes.length];
+  const target=nodes[(slot-1)%nodes.length];
   try{
     const result=await mine(target.url);
     emit('FAE_V3_BLOCK_MINED',{slot,node:target.name,height:result.height,hash:result.hash});
@@ -131,7 +132,7 @@ async function sample(){
       observeBlock(row.node.name,m,now);
       s.reachable=true;s.bootId=m.boot_id;s.height=st.height;s.tip=st.tip_hash;s.lastHealthyAt=now;
 
-      if(s.recoveryStart&&consensus&&st.height===consensus.height&&st.tip_hash===consensus.tip){
+      if(s.recoveryStart&&consensus?.votes>=2&&st.height===consensus.height&&st.tip_hash===consensus.tip){
         const duration=now-s.recoveryStart;
         emit('FAE_V3_NODE_RECOVERED',{node:row.node.name,duration_ms:duration,height:st.height,tip:st.tip_hash,bound_ms:boundMs});
         if(duration>boundMs)markFail('recovery_exceeded',{node:row.node.name,duration_ms:duration,bound_ms:boundMs});
@@ -146,7 +147,8 @@ async function sample(){
       emit('FAE_V3_HEARTBEAT',{failed,run_started:runStarted,nodes:rows.map(r=>r.ok?{node:r.node.name,ok:true,boot_id:r.meta.boot_id,instance_id:r.meta.render_instance_id,height:r.meta.status.height,tip:r.meta.status.tip_hash,peers:r.meta.status.configured_peers}:{node:r.node.name,ok:false,error:r.error}),consensus});
     }
     await maybeMine(rows,now);
-    if(peerMonitor&&now%60_000<pollMs){
+    if(peerMonitor&&now-lastPeerPing>=60_000){
+      lastPeerPing=now;
       fetch(`${peerMonitor}/v3/health`,{signal:AbortSignal.timeout(4000)}).catch(()=>{});
     }
   }finally{loopBusy=false}
