@@ -1,39 +1,38 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-18",
-  "frontier": "BE-02",
+  "frontier": "BE-03",
   "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
-  "source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
-  "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
+  "source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
+  "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
   "evidence": {
     "block_explorer_lab": {
-      "run_id": 35406136085,
-      "job_id": 105796163820,
+      "run_id": 35407126578,
+      "job_id": 105799092827,
       "status": "GREEN",
-      "tests": "11/11 PASS"
-    },
-    "independent_node_hardening": {
-      "run_id": 35406136129,
-      "status": "GREEN"
+      "tests": "BE-03 12/12; BE-02 11/11; BE-01 6/6"
     },
     "canonical_source": {
-      "run_id": 35406136145,
-      "status": "GREEN"
+      "run_id": 35407126576,
+      "status": "GREEN",
+      "substantive_gates": "40/40"
     },
     "codeql": {
-      "run_id": 35406136116,
+      "run_id": 35407126583,
       "status": "GREEN"
     },
     "recurring_assurance": {
-      "run_id": 35406136133,
+      "run_id": 35407126613,
       "status": "GREEN"
     },
     "cross_lab_preintegration": {
-      "run_id": 35406136167,
+      "run_id": 35407126571,
       "status": "GREEN"
     }
   },
   "be02_authorized": false,
-  "integration_required_before_be02": true,
-  "integration_required_before_next_frontier": true
+  "integration_required_before_be02": false,
+  "integration_required_before_next_frontier": true,
+  "be03_authorized": false,
+  "integration_required_before_be03": false
 }
