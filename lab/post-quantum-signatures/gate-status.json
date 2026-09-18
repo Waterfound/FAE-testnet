@@ -232,7 +232,7 @@
     },
     "PQ-08": {
       "name": "Independent Differential Verification",
-      "status": "READY",
+      "status": "GREEN",
       "authority": "RESEARCH_SHADOW_ONLY",
       "depends_on": [
         "PQ-03",
@@ -240,20 +240,72 @@
         "PQ-05",
         "PQ-06",
         "PQ-07"
-      ]
+      ],
+      "evidence": {
+        "admitted_head": "7c56774b0ce91f72b230222cc4c1f31a2424cba1",
+        "integrated_commit": "df015bd4d9a0d998bba7176755d817a855d95358",
+        "executor_run_id": 35361939758,
+        "canonical_run_id": 35361939624,
+        "pq_lab_standards_run_id": 35361939574,
+        "artifact_id": 10554871457,
+        "artifact_sha256": "5fde3a046b23347ecb75f730eb78220fc36803435ff1d957da3e48f006717f78",
+        "case_count": 66,
+        "valid_cases": 6,
+        "invalid_cases": 60,
+        "primary_replay": "PASS",
+        "independent_native_verifier": "PASS",
+        "official_vector_and_circl_replay": "PASS",
+        "no_shared_verdict_cache": true,
+        "unexplained_disagreements": 0
+      },
+      "meaning": "The complete shadow migration surface has an independently regenerated differential corpus with matching primary and separate native-verifier verdicts, plus the pinned independent primitive replay. No active FAE authority changes."
     },
     "PQ-09": {
       "name": "Resource Economics",
-      "status": "READY",
+      "status": "GREEN",
       "authority": "RESEARCH_SHADOW_ONLY",
       "depends_on": [
         "PQ-03",
         "PQ-04",
         "PQ-05",
         "PQ-06"
-      ]
+      ],
+      "evidence": {
+        "admitted_head": "9ea07e5686562c9f1ea993f45e5c7019c481fd4f",
+        "integrated_commit": "a5af028770debfaf46656f39e902eb8278d4312e",
+        "executor_run_id": 35361945002,
+        "canonical_run_id": 35361945013,
+        "pq_lab_standards_run_id": 35361945028,
+        "artifact_id": 10554451615,
+        "artifact_sha256": "9a426674e30deaaf42eb564cf3f721798e619f5f9bdf4bd0041ea387a3b99aa0",
+        "transaction_bytes": {
+          "ed25519_v2": 408,
+          "hybrid_ml_dsa_44": 5517,
+          "hybrid_ml_dsa_65": 7553,
+          "hybrid_ml_dsa_87": 10165
+        },
+        "incremental_bytes_vs_v2": {
+          "ml_dsa_44": 5109,
+          "ml_dsa_65": 7145,
+          "ml_dsa_87": 9757
+        },
+        "browser_facing_smoke": "PASS",
+        "physical_device_claims": false,
+        "operational_winner_promoted": false
+      },
+      "meaning": "The frozen software-runtime comparison set has a reproducible measured cost matrix. The measurements inform later decisions but promote no PQ parameter set and make no physical-device claim."
+    },
+    "PQ-10": {
+      "name": "End-to-End Shadow Lifecycle",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-08",
+        "PQ-09"
+      ],
+      "frozen_manifest": "lab/post-quantum-signatures/wave-h/manifest.json"
     }
   },
-  "active_frontier": "PQ-08+PQ-09",
+  "active_frontier": "PQ-10",
   "activation_authorized": false
 }
