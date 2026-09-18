@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_02_03_GREEN",
+  "status": "MTS_04_06_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,8 +9,7 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-04",
-    "MTS-06"
+    "MTS-05"
   ],
   "current_stage_active_miner_write_authorized": true,
   "future_candidate_miner_write_requires_gate": true,
@@ -26,7 +25,9 @@
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
     ".github/workflows/mining-tip-sync-lab",
-    "mining.js"
+    "mining.js",
+    "sovereign-forge/browser/mining.js",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "current_stage_protected_paths": [
     "core.js",
@@ -102,6 +103,27 @@
       "status": "GREEN",
       "workflow_run_id": 35343576784,
       "workflow_job_id": 105594833294
+    },
+    "MTS-04": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35344645791,
+      "lab_workflow_job_id": 105598271890,
+      "canonical_workflow_run_id": 35344645796,
+      "canonical_workflow_job_id": 105598288073,
+      "direct_cancellation_tests": "4 behavior checks PASS",
+      "candidate_miner_sha256": "dc8bca3de833f4fbabaf5a345fd04ec21e97989593058ca7e4047776ac0aa393"
+    },
+    "MTS-06": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35344645791,
+      "lab_workflow_job_id": 105598271890,
+      "deterministic_harness": "PASS",
+      "real_pow_required": false
+    },
+    "canonical_regression_mts_04_06": {
+      "status": "GREEN",
+      "workflow_run_id": 35344645796,
+      "workflow_job_id": 105598288073
     }
   },
   "miner_write_authorization_basis": {
@@ -114,5 +136,40 @@
     "canonical_workflow_job_id": 105594833294,
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
+  },
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/browser/mining.js"
+  ],
+  "miner_mirror_authorization_basis": {
+    "canonical_failure": {
+      "workflow_run_id": 35344168583,
+      "workflow_job_id": 105596749190,
+      "failing_gate": "Verify deployed browser security sources match Forge snapshot",
+      "condition": "cmp mining.js sovereign-forge/browser/mining.js"
+    },
+    "historical_protocol": [
+      "97ac27ba77ad5aa8c4d6a7579520157017f193ae",
+      "b16873289cd066e10e4acc65884213f7975b59ee"
+    ],
+    "candidate_sha256": "dc8bca3de833f4fbabaf5a345fd04ec21e97989593058ca7e4047776ac0aa393",
+    "authorized_exact_paths": [
+      "sovereign-forge/browser/mining.js",
+      "FAE_FORGE_MAIN.sha256"
+    ],
+    "purpose": "byte-identical browser miner mirror plus integrity-manifest renewal only"
+  },
+  "provenance_resolution": {
+    "retained_failed_run": {
+      "workflow_run_id": 35344168583,
+      "workflow_job_id": 105596749190,
+      "failure": "root mining.js diverged from sovereign-forge/browser/mining.js"
+    },
+    "resolution": "Mirror candidate miner byte-for-byte into sovereign-forge/browser/mining.js and renew only its FAE_FORGE_MAIN.sha256 entry, following established repository protocol.",
+    "final_integrity": {
+      "root_and_forge_byte_identical": true,
+      "sha256": "dc8bca3de833f4fbabaf5a345fd04ec21e97989593058ca7e4047776ac0aa393",
+      "lab_manifest_check": "PASS",
+      "canonical_source_check": "PASS"
+    }
   }
 }

@@ -8,6 +8,9 @@ const coordinatorProofHistory=new Map();
 const MAX_COORDINATORS=8;
 const MAX_PROTOCOL_BACKOFF_MS=5*60_000;
 const MAX_EQUIVOCATION_BACKOFF_MS=30*60_000;
+const DIRECT_TIP_OBSERVER_INTERVAL_MS=2000;
+let directTipObserverTimer=null;
+let directTipObserverToken=0;
 
 function normalizeCoordinatorUrl(value){
   try{
@@ -54,6 +57,39 @@ function stopWorker(reason=''){
   if(worker){worker.terminate();worker=null}
   if(workerUrl){URL.revokeObjectURL(workerUrl);workerUrl=null}
   if(reason&&powReject){const reject=powReject;powReject=null;reject(Error(reason))}
+}
+
+function directWorkTipState(header,status){
+  const parentHeight=Number(header?.height)-1,parentHash=String(header?.previous_hash||''),observedHeight=Number(status?.height),observedHash=String(status?.tip_hash||'');
+  if(!Number.isSafeInteger(parentHeight)||parentHeight<0||!/^[0-9a-f]{64}$/.test(parentHash))return'unknown';
+  if(!Number.isSafeInteger(observedHeight)||observedHeight<0||!/^[0-9a-f]{64}$/.test(observedHash))return'unknown';
+  if(observedHeight<parentHeight)return'unknown';
+  if(observedHeight===parentHeight&&observedHash===parentHash)return'current';
+  return'stale';
+}
+function clearDirectTipObserver(token=null){
+  if(token!==null&&token!==directTipObserverToken)return;
+  directTipObserverToken++;
+  if(directTipObserverTimer!==null){clearTimeout(directTipObserverTimer);directTipObserverTimer=null}
+}
+function startDirectTipObserver(header){
+  clearDirectTipObserver();
+  const token=directTipObserverToken;
+  const poll=async()=>{
+    if(token!==directTipObserverToken)return;
+    try{
+      const status=await api('/status'),state=directWorkTipState(header,status);
+      if(token!==directTipObserverToken)return;
+      if(state==='stale'){
+        clearDirectTipObserver(token);
+        stopWorker('TIP_INVALIDATED');
+        return;
+      }
+    }catch{}
+    if(token===directTipObserverToken)directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
+  };
+  directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
+  return()=>clearDirectTipObserver(token);
 }
 
 function localPow(header,targetBits=Number(header?.difficulty_bits),workLabel='block'){
@@ -182,10 +218,13 @@ async function mineCoordinatorIteration(base,rewardAddress){
 }
 
 async function mineDirectIteration(rewardAddress,{fallbackFailures=0}={}){
-  const template=await api('/template?address='+encodeURIComponent(rewardAddress)),pow=await localPow(template.header,Number(template.header.difficulty_bits),'block'),submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
-  if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
-  const accepted=await api('/submit-block',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(submission)});
-  return{mode:'direct',template,pow,accepted,attempts:pow.attempts||0,fallbackFailures};
+  const template=await api('/template?address='+encodeURIComponent(rewardAddress)),stopTipObserver=startDirectTipObserver(template.header);
+  try{
+    const pow=await localPow(template.header,Number(template.header.difficulty_bits),'block'),submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
+    if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
+    const accepted=await api('/submit-block',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(submission)});
+    return{mode:'direct',template,pow,accepted,attempts:pow.attempts||0,fallbackFailures};
+  }finally{stopTipObserver()}
 }
 
 async function mineOneIteration(rewardAddress){
@@ -223,6 +262,7 @@ async function miningLoop(){
         }
       }catch(error){
         if(error?.message==='STOP')break;
+        if(error?.message==='TIP_INVALIDATED'){setStatus('mstate','Network tip advanced. Replacing stale mining work automatically…','warn');await refresh();continue}
         const errorCode=error.data?.error,reason=error.data?.reason;
         if(errorCode==='stale_tip'||reason==='stale_tip'||reason==='race_lost'||/stale/i.test(error.message||'')){setStatus('mstate','Mining work became stale. Fetching the new tip and continuing…','warn');await refresh();continue}
         throw error;
@@ -232,7 +272,7 @@ async function miningLoop(){
   finally{stopWorker();mining=false;renderMiningControls()}
 }
 
-function stopMining(){if(!mining)return;mining=false;stopWorker('STOP');setStatus('mstate','Mining stopped locally.');renderMiningControls()}
+function stopMining(){if(!mining)return;mining=false;clearDirectTipObserver();stopWorker('STOP');setStatus('mstate','Mining stopped locally.');renderMiningControls()}
 
 $('mine').addEventListener('click',miningLoop);
 $('stop').addEventListener('click',stopMining);

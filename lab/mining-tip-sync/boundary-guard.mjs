@@ -31,8 +31,9 @@ const frontier=Array.isArray(manifest.current_frontier)?manifest.current_frontie
 if(manifest.status==='BOUNDARY_FROZEN_MTS_00_01'&&frontier!=='MTS-00,MTS-01')fail('unexpected pre-verification frontier');
 if(manifest.status==='MTS_00_01_GREEN'&&frontier!=='MTS-02,MTS-03')fail('unexpected post-baseline frontier');
 if(manifest.status==='MTS_02_03_GREEN'&&frontier!=='MTS-04,MTS-06')fail('unexpected post-contract frontier');
-if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN'].includes(manifest.status))fail('unexpected authority status');
-if(manifest.status==='MTS_02_03_GREEN'){
+if(manifest.status==='MTS_04_06_GREEN'&&frontier!=='MTS-05')fail('unexpected post-direct-cancellation frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN'].includes(manifest.status))fail('unexpected authority status');
+if(manifest.status==='MTS_02_03_GREEN'||manifest.status==='MTS_04_06_GREEN'){
   if(manifest.current_stage_active_miner_write_authorized!==true)fail('MTS-04 frontier requires explicit miner write authorization');
   if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('mining.js must be explicitly scoped for MTS-04');
   if(manifest.current_stage_protected_paths.includes('mining.js'))fail('mining.js cannot remain protected after explicit MTS-04 authorization');
@@ -66,10 +67,11 @@ if(baseIndex!==-1){
     for(const file of changed){
       const allowed=manifest.current_stage_allowed_write_prefixes.some(prefix=>file.startsWith(prefix));
       if(!allowed)fail(`changed path outside MTS-00/01 authority: ${file}`);
-      const protectedHit=manifest.current_stage_protected_paths.some(protectedPath=>
+      const exception=Array.isArray(manifest.current_stage_protected_path_exceptions)&&manifest.current_stage_protected_path_exceptions.includes(file);
+      const protectedHit=!exception&&manifest.current_stage_protected_paths.some(protectedPath=>
         protectedPath.endsWith('/')?file.startsWith(protectedPath):file===protectedPath
       );
-      if(protectedHit)fail(`protected active path changed during MTS-00/01: ${file}`);
+      if(protectedHit)fail(`protected active path changed during current MTS frontier: ${file}`);
     }
   }
 }
