@@ -149,3 +149,26 @@ Produced:
 Inventory at the bound source discovered 41 repository workflows and 100 test/lab assets under the PSR-02 criteria. Existence alone receives no PASS credit; canonical PR gates, content-inspected gates, specialized noncanonical evidence and path-only discovery are separated.
 
 PSR-01 and PSR-02 become GREEN only after successful canonical verification and integration. On that integration, PSR-03 becomes READY and PSR-04 becomes READY from the PSR-01 dependency.
+
+
+## Frontier execution — PSR-03 || PSR-04
+
+Execution date: 2026-09-18  
+Bound source: `83a6adff3a6232026e78321062fe58e68174d9cd`  
+Branch: `colony/fae-public-code-security-psr03-04`
+
+This is a real execution, not methodology-only.
+
+Produced:
+
+- `docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.json` — machine-readable surface/invariant/owner/gap routing contract;
+- `docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.md` — human-readable matrix;
+- `SECURITY.md` — responsible vulnerability disclosure baseline;
+- `tests/public-code-security-contract.mjs` — structural regression guard;
+- canonical verification now executes that guard.
+
+The registry freezes 16 invariant definitions across 11 attack surfaces. Security findings must identify surfaces and invariants; missing evidence remains fail-closed; candidate/lab evidence cannot silently satisfy active authority.
+
+The disclosure policy forbids sensitive public reports, prefers GitHub private vulnerability reporting when exposed by the repository Security UI, provides a no-details fallback to request a private channel, and explicitly creates no bug-bounty commitment.
+
+PSR-03 and PSR-04 become GREEN only after successful canonical verification and integration. PSR-03 GREEN unlocks PSR-05 through PSR-09 for bounded parallel execution.
