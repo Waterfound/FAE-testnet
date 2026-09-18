@@ -1,0 +1,64 @@
+name: pq-lab-wave-h-pq10
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/wave-h/pq10/**'
+      - '.github/workflows/pq-lab-wave-h-pq10.yml'
+  push:
+    branches:
+      - 'colony/pq10-*'
+    paths:
+      - 'lab/post-quantum-signatures/wave-h/pq10/**'
+      - '.github/workflows/pq-lab-wave-h-pq10.yml'
+permissions:
+  contents: read
+jobs:
+  end-to-end-shadow-lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24.8.0' }
+      - name: PQ boundary
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Verify frozen prerequisites
+        run: node -e "const s=require('./lab/post-quantum-signatures/gate-status.json');for(const g of ['PQ-08','PQ-09'])if(s.gates[g]?.status!=='GREEN')process.exit(1);if(s.gates['PQ-10']?.status!=='READY'||s.activation_authorized!==false)process.exit(1)"
+      - name: Install pinned Lab dependencies
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Create ephemeral lifecycle and persist public state only
+        run: |
+          mkdir -p lab/post-quantum-signatures/evidence/wave-h
+          node lab/post-quantum-signatures/wave-h/pq10/create.mjs /tmp/pq10-public-state.json | tee lab/post-quantum-signatures/evidence/wave-h/pq10-create.json
+          cp /tmp/pq10-public-state.json lab/post-quantum-signatures/evidence/wave-h/pq10-public-state.json
+      - name: Restart process and reconstruct from public state
+        run: node lab/post-quantum-signatures/wave-h/pq10/restart.mjs /tmp/pq10-public-state.json | tee lab/post-quantum-signatures/evidence/wave-h/pq10-restart.json
+      - name: Browser-facing verification
+        env:
+          NODE_OPTIONS: --conditions=browser
+        run: node lab/post-quantum-signatures/wave-h/pq10/browser-smoke.mjs /tmp/pq10-public-state.json | tee lab/post-quantum-signatures/evidence/wave-h/pq10-browser.json
+      - name: Evidence secret-field guard
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),p='lab/post-quantum-signatures/evidence/wave-h/pq10-public-state.json';
+          const raw=fs.readFileSync(p,'utf8');
+          for(const forbidden of ['mnemonic','passphrase','privateKey','secretKey','mldsaSecretKey','legacyPrivateKey']){
+            if(raw.includes(forbidden))throw new Error('forbidden secret field in evidence: '+forbidden);
+          }
+          console.log('PQ-10 evidence secret-field guard PASS');
+          NODE
+      - name: Upload PQ-10 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq10-end-to-end-shadow-lifecycle
+          path: lab/post-quantum-signatures/evidence/wave-h/pq10-*.json
+          if-no-files-found: error
