@@ -1,0 +1,51 @@
+name: mining-tip-sync-lab
+
+on:
+  push:
+    branches:
+      - 'colony/mts-*'
+    paths:
+      - 'lab/mining-tip-sync/**'
+      - 'docs/FAE_MINING_TIP_SYNC_*'
+      - '.github/workflows/mining-tip-sync-lab.yml'
+  pull_request:
+    paths:
+      - 'lab/mining-tip-sync/**'
+      - 'docs/FAE_MINING_TIP_SYNC_*'
+      - '.github/workflows/mining-tip-sync-lab.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mts-00-01:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check active reference files
+        run: |
+          node --check core.js
+          node --check mining.js
+
+      - name: MTS-00 boundary guard
+        run: node lab/mining-tip-sync/boundary-guard.mjs --base d69ebf05895692760fc5c917a394c65b9709894c
+
+      - name: MTS-01 deterministic baseline reproduction
+        run: node lab/mining-tip-sync/baseline-reproduction.mjs --output mts-01-baseline-evidence.json
+
+      - name: Upload MTS-01 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mts-01-baseline-evidence
+          path: mts-01-baseline-evidence.json
+          if-no-files-found: error
