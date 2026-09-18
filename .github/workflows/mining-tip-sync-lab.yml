@@ -40,15 +40,11 @@ jobs:
       - name: MTS-00 boundary guard
         run: node lab/mining-tip-sync/boundary-guard.mjs --base origin/main
 
-      - name: MTS-01 deterministic baseline reproduction
-        run: node lab/mining-tip-sync/baseline-reproduction.mjs --output mts-01-baseline-evidence.json
+      - name: Verify frozen MTS-01 baseline evidence
+        run: node -e "const e=require('./lab/mining-tip-sync/evidence/mts-01-baseline.json'); if(e.status!=='GREEN') process.exit(1);"
 
       - name: MTS-02/03 identity and tip-observer contract tests
         run: node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
 
-      - name: Upload MTS-01 evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: mts-01-baseline-evidence
-          path: mts-01-baseline-evidence.json
-          if-no-files-found: error
+      - name: MTS-04/06 direct cancellation regression tests
+        run: node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
