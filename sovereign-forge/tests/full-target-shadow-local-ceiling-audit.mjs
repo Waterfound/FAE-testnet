@@ -12,7 +12,8 @@ import {activatedBlockRecord} from '../node/authoritative/full-target-headers-sy
 import {createFullTargetShadowPeerNode} from '../node/lab/full-target-shadow-peer-node.mjs';
 
 function h(label){return createHash('sha256').update(String(label)).digest('hex')}
-function trustedPrefix(count,{startMs=Date.now()-count*180_000-60_000}={}){
+// Fixed historical start keeps the accelerated 6h branch inside arrival bounds.
+function trustedPrefix(count,{startMs=1_760_000_000_000}={}){
   const chain=[];
   for(let height=1;height<=count;height++){
     const previous=chain.at(-1),bits=nextDifficulty(chain);

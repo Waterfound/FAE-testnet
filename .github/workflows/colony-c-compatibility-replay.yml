@@ -1,0 +1,36 @@
+name: colony-c-compatibility-replay
+
+on:
+  push:
+    branches:
+      - 'colony/c-compatibility-replay-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs'
+      - 'sovereign-forge/tests/compatibility-replay-colony-c.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_C_COMPATIBILITY_REPLAY.md'
+      - '.github/workflows/colony-c-compatibility-replay.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check compatibility orchestrator
+        run: node --check sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs
+      - name: Genesis, late-join and stale-node replay gate
+        run: node sovereign-forge/tests/compatibility-replay-colony-c.mjs
+      - name: Existing activation policy negotiation gate
+        run: node sovereign-forge/tests/activation-policy-peer-negotiation.mjs
+      - name: Existing headers-first mixed-regime gate
+        run: node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+      - name: Preserve candidate-only authority boundary
+        run: |
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/compatibility-replay-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs

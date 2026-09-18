@@ -1,0 +1,97 @@
+{
+  "format": "FAE_SOFTWARE_ONLY_CEILING_FREEZE_V1",
+  "status": "software-only-pre-mainnet-ceiling-reached",
+  "scope": "pre-mainnet-software-only",
+  "authority": {
+    "consensus_candidate_promoted": false,
+    "candidate_to_authoritative": false,
+    "mainnet_launch_authorized": false,
+    "automatic_go_path": false,
+    "production_activation_height_selected": false
+  },
+  "milestones": {
+    "difficulty_timestamp_lab_gate": "e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510",
+    "colony_a_d_g_h_integration": "02b68016815b3c9e7d2359a408826a790ae5608e",
+    "post_colony_differential_hardening": "cfd08a88f0f4f2e66560811cdd7eac6f8eec9cf9",
+    "release_reproducibility_e_v2": "92088ac1d60043f870b2e1eec06d7a0817325896",
+    "mainnet_rehearsal_f_v2": "20a37c26125c5a11ba4c6808c1b4e1d6a07afd88",
+    "independent_release_mainnet_verifier_g2": "bd5425e6245dee558422438fad7f56ad79b6721b"
+  },
+  "software_ceilings": {
+    "A_activation_boundary": {
+      "status": "GREEN",
+      "authority": "candidate-only"
+    },
+    "B_state_wallet_utxo_transition": {
+      "status": "GREEN",
+      "authority": "candidate-only"
+    },
+    "C_compatibility_replay": {
+      "status": "GREEN",
+      "authority": "candidate-only"
+    },
+    "D_network_composition": {
+      "status": "GREEN",
+      "authority": "lab-and-candidate-only"
+    },
+    "E_release_reproducibility": {
+      "status": "GREEN",
+      "authority": "packaging-only",
+      "release_format": "FAE_SOURCE_RELEASE_V2"
+    },
+    "F_mainnet_rehearsal_package": {
+      "status": "GREEN",
+      "authority": "rehearsal-only",
+      "rehearsal_format": "FAE_MAINNET_REHEARSAL_PACKAGE_V2"
+    },
+    "G2_independent_release_mainnet_verifier": {
+      "status": "GREEN",
+      "authority": "verification-only",
+      "oracle": "git"
+    },
+    "H2_serialized_integration_freeze": {
+      "status": "GATED_BY_THIS_FREEZE",
+      "authority": "integration-only"
+    }
+  },
+  "canonical_public_testnet": {
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_subsidy_fae": 10,
+    "halving_era_blocks": 600000
+  },
+  "preferred_future_candidate": {
+    "target_seconds": 300,
+    "initial_subsidy_fae": 14,
+    "halving_era_blocks": 430000,
+    "theoretical_max_supply_fae": 12040000,
+    "coinbase_maturity_blocks": 200,
+    "activation_height": null,
+    "status": "not-authorized"
+  },
+  "unresolved_external_evidence": [
+    "physical_hfb",
+    "representative_device",
+    "operational_soak",
+    "independent_operators"
+  ],
+  "unresolved_final_freeze": [
+    "genesis_timestamp_ms",
+    "initial_target_hex",
+    "genesis_miner_address",
+    "release_artifact_sha256",
+    "release_manifest_sha256",
+    "release_source_commit",
+    "release_source_tree",
+    "release_config_sha256",
+    "live_activation_height",
+    "bootstrap_requirements",
+    "bootstrap_nodes"
+  ],
+  "ceiling_statement": {
+    "software_only_work_remaining_before_external_evidence": false,
+    "external_or_physical_evidence_still_required": true,
+    "final_explicit_authorization_still_required": true,
+    "mainnet_ready_claimed": false
+  }
+}

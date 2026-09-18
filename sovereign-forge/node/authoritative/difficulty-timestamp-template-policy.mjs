@@ -33,8 +33,9 @@ export function honestClockPairAccepted({producerSkewMs,receiverSkewMs,relayDela
 export function guaranteedClockSkewBudget({clockSkewBudgetMs=CLOCK_SKEW_BUDGET_MS,relayDelayBudgetMs=RELAY_DELAY_BUDGET_MS,futureDriftMs=FUTURE_DRIFT_MS}={}){
   const skew=safeInt(clockSkewBudgetMs,'clock_skew_budget_ms'),relay=safeInt(relayDelayBudgetMs,'relay_delay_budget_ms'),drift=safeInt(futureDriftMs,'future_drift_ms');
   if(skew<0||relay<0||drift<0)throw new Error('negative_clock_budget');
-  // Worst honest pair is producer +skew, receiver -skew. Relay delay helps the
-  // receiver's wall clock advance before validation.
-  const worstFutureLead=Math.max(0,2*skew-relay);
+  // relayDelayBudgetMs is an upper bound, so zero-delay delivery is included.
+  // A guarantee over the whole interval cannot spend hoped-for relay delay.
+  const worstFutureLead=2*skew;
+  if(!Number.isSafeInteger(worstFutureLead))throw new Error('clock_budget_overflow');
   return{ok:worstFutureLead<=drift,worst_future_lead_ms:worstFutureLead,headroom_ms:drift-worstFutureLead};
 }
