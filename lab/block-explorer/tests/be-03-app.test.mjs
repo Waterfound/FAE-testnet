@@ -177,3 +177,28 @@ test('Explorer deletion boundary stays physically separate from active root site
   assert.ok(authority.be03_authority.allowed_write_scopes.some(scope=>scope.prefix==='explorer/'));
   assert.equal(authority.current_stage_protected_path_exceptions.length,0);
 });
+
+
+test('HTML shell contains every DOM binding required by app.mjs',async()=>{
+  const html=await read('explorer/index.html');
+  for(const id of [
+    'network-pill','network-label','api-origin','search-form','search-input',
+    'refresh-button','home-button','latest-blocks','detail-eyebrow','detail-title',
+    'detail-content','notice','metric-height','metric-supply','metric-target','metric-mempool'
+  ]){
+    assert.ok(html.includes('id="'+id+'"'),'missing Explorer DOM binding: '+id);
+  }
+});
+
+test('stale address cursor remains a node-owned fail-closed retry signal',async()=>{
+  await withServer((req,res)=>{
+    res.writeHead(503,{'content-type':'application/json'});
+    res.end(JSON.stringify({ok:false,error:'tip_changed_retry',detail:'cursor_tip_mismatch'}));
+  },async base=>{
+    const client=createExplorerClient({apiBase:base});
+    await assert.rejects(
+      ()=>client.address({address:ADDRESS,limit:2,cursor:TIP+':2'}),
+      error=>error instanceof ExplorerClientError&&error.code==='tip_changed_retry'&&error.status===503
+    );
+  });
+});
