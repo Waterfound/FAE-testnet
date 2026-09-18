@@ -241,3 +241,15 @@ Branch: `colony/fae-public-code-security-psr13-r2`
 The first PSR-13 candidate was prepared against `53531a1f61cf190760e3234831ebab07c1dc9c27`, but main advanced by six commits before PR creation. The intervening work adds the cross-Lab canonical integration gate and MTS-12 preparation. The new integration workflow is read-only and does not add release authority.
 
 PSR-13 is therefore rebound to the integrated current tree. GREEN requires canonical verification, the dedicated PSR-13 clean-room/Git-oracle/container workflow, the cross-Lab integration gate, and exact-source integration.
+
+
+## Frontier execution — PSR-15
+
+Execution date: 2026-09-18  
+Source baseline: `a0be46e22e5ecf3400922f9fa3f267c35bd46916`  
+Branch: `colony/fae-public-code-security-psr15`  
+Project Assurance method: `Waterfound/Red-Team@095a9c2eb5b2b3bdec0132238120583ef28a6d8c`
+
+PSR-15 freezes a 16-attack white-box campaign covering all 11 attack surfaces and every active baseline invariant. The runner records the exact clean PR HEAD/tree, executes with a reduced non-credential environment, stores output digests rather than raw child output, verifies the tracked target remained unchanged, and converts every failed baseline-blocking case into an unwaived OPEN_BLOCKER.
+
+The campaign is also bound into the cross-Lab integration registry. PSR-15 becomes GREEN only after dedicated campaign, canonical and cross-Lab SUCCESS on the exact candidate plus integration. Findings, if any, flow to PSR-16.
