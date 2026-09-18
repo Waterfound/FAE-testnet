@@ -1,0 +1,38 @@
+{
+  "schema": "FAE_PQ_WAVE_D_FAILURE_LEDGER_V1",
+  "preservation_rule": "Harness failures remain evidence and are not erased by later success.",
+  "entries": [
+    {
+      "workflow_run_id": 35345685181,
+      "run_number": 28,
+      "head": "74e7422c46483e21fc5ef5990ca31002abcb6777",
+      "classification": "HARNESS_API_SHAPE_MISMATCH",
+      "first_failure": "Noble public sign received internal-only externalMu option",
+      "cryptographic_divergence_observed": false,
+      "artifact_id": 10547285323,
+      "artifact_sha256": "f5dddaaede64da9d43c0781e68b23eb7a511431fce3ab062221e4a0869d8b382"
+    },
+    {
+      "workflow_run_id": 35345944566,
+      "run_number": 30,
+      "head": "d168f740c55447dc9e08cba9008bbd9daeff5dd2",
+      "classification": "HARNESS_HASH_WRAPPER_MISMATCH",
+      "first_failure": "Custom SHAKE wrapper lacked Noble hash create/OID contract",
+      "cryptographic_divergence_observed": false,
+      "artifact_id": 10545859834,
+      "artifact_sha256": "98f699cd7cafec428b50a960770577ba1e02d6b6dddec586dce663a7a13be2d8"
+    },
+    {
+      "workflow_run_id": 35346202542,
+      "run_number": 41,
+      "head": "a264d647b26cda95c90dadb3dd3fdb25fb878253",
+      "classification": "UPSTREAM_ACVP_SCHEMA_MISMATCH",
+      "first_failure": "Pinned CIRCL legacy ML-DSA ACVP runner does not interpret modern signatureInterface/preHash/context/externalMu corpus layout",
+      "noble_full_replay": "PASS",
+      "circl_keygen": "PASS",
+      "cryptographic_divergence_observed": false,
+      "artifact_id": 10546902143,
+      "artifact_sha256": "9a4d7a259af5513e102941a7acb45c92dee18be1d8736f6529d014d31c4bbe44"
+    }
+  ]
+}
