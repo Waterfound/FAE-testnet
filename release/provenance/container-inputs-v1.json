@@ -1,0 +1,30 @@
+{
+  "format": "FAE_CONTAINER_INPUT_LOCK_V1",
+  "status": "candidate-provenance-only",
+  "frozen_on": "2026-09-18",
+  "image": "docker.io/library/node",
+  "tag_at_freeze": "22-bookworm-slim",
+  "index_digest": "sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
+  "platform_manifests": {
+    "linux/amd64": "sha256:4d676821dff059fd00d277ee4261ef34ea712317fed0737c03941481b5760c96"
+  },
+  "protected_dockerfiles": [
+    "sovereign-forge/node/Dockerfile",
+    "sovereign-forge/node/Dockerfile.v6-candidate",
+    "sovereign-forge/node/Dockerfile.coordinator-candidate",
+    "sovereign-forge/node/Dockerfile.full-target-shadow-validation"
+  ],
+  "policy": {
+    "protected_dockerfiles_remain_byte_identical": true,
+    "release_verification_generates_pinned_derivatives": true,
+    "pinned_from": "node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5",
+    "oci_image_byte_reproducibility_claimed": false,
+    "base_input_digest_pinned": true
+  },
+  "authority": {
+    "runtime_change": false,
+    "consensus_change": false,
+    "release_authorized": false,
+    "mainnet_authorized": false
+  }
+}

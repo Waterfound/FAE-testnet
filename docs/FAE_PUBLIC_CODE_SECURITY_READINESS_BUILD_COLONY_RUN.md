@@ -230,3 +230,14 @@ Branch: `colony/fae-public-code-security-psr12-14-r4`
 The previous exact candidate passed canonical #518 and CodeQL #2, but main advanced before integration. The intervening 13 commits add MTS-11 real-browser validation and PQ Wave G/H bookkeeping. No new workflow was added; `mining-tip-sync-lab.yml` remains `contents: read`, without direct `secrets.*` access or `pull_request_target`.
 
 The candidate is rebound again rather than accepting stale evidence. PSR-12 requires fresh canonical + CodeQL SUCCESS on this revision; PSR-14 requires fresh canonical SUCCESS and integration.
+
+
+## Frontier execution — PSR-13 (rebound)
+
+Execution date: 2026-09-18  
+Bound source: `9e7b5925c2ca5d0dda93b228aaaa727308f8888f`  
+Branch: `colony/fae-public-code-security-psr13-r2`
+
+The first PSR-13 candidate was prepared against `53531a1f61cf190760e3234831ebab07c1dc9c27`, but main advanced by six commits before PR creation. The intervening work adds the cross-Lab canonical integration gate and MTS-12 preparation. The new integration workflow is read-only and does not add release authority.
+
+PSR-13 is therefore rebound to the integrated current tree. GREEN requires canonical verification, the dedicated PSR-13 clean-room/Git-oracle/container workflow, the cross-Lab integration gate, and exact-source integration.
