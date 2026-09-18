@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_07_GREEN",
+  "status": "MTS_08_STRESS_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -251,5 +251,16 @@
     "scope": "background/throttling/suspend-return",
     "initial_mode": "STRESS_FIRST",
     "runtime_write_authorized": false
+  },
+  "mts_08_authority": {
+    "phase": "STRESS_FIRST",
+    "runtime_write_authorized": false,
+    "lifecycle_events": [
+      "visibilitychange:visible",
+      "pageshow"
+    ],
+    "required_property": "Returning from background/suspension must trigger immediate authoritative revalidation of active direct PoW instead of waiting for a throttled polling timer.",
+    "safety_property": "Even if lifecycle revalidation is delayed, pre-submit freshness must still prevent stale submission.",
+    "runtime_patch_gate": "Only a deterministic lifecycle reproduction may authorize a miner patch."
   }
 }
