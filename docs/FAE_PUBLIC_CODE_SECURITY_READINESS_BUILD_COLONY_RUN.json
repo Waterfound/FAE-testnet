@@ -258,7 +258,7 @@
     {
       "id": "PSR-15",
       "name": "Project Assurance White-Box Attack Campaign",
-      "state": "GREEN_ON_SUCCESSFUL_CAMPAIGN_CANONICAL_CROSSLAB_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-04",
         "PSR-05",
@@ -276,7 +276,7 @@
     {
       "id": "PSR-16",
       "name": "Finding Closure and Regression Promotion",
-      "state": "READY_ON_SUCCESSFUL_PSR15_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_CLOSURE_CANONICAL_CROSSLAB_INTEGRATION",
       "depends_on": [
         "PSR-15"
       ],
@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR16_INTEGRATION",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -711,6 +711,46 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-16"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-16",
+      "run_kind": "REAL_EXECUTION_REBOUND",
+      "execution_date": "2026-09-18",
+      "source_revision": "ed0141c035645c0f0044f68b5d024822a482d10e",
+      "branch": "colony/fae-public-code-security-psr16-r2",
+      "executor_attached": true,
+      "rebinding": {
+        "previous_source_revision": "9c00d6409ad96f8158270bb0b087f5849c7bffce",
+        "intervening_commits": 5,
+        "reviewed_scope": "MTS-12 physical recorder correction; WB-17 preflight changed",
+        "prior_candidate": {
+          "head": "bc50da21f26a7b70cdd65a3e5daac451705bb659",
+          "psr16_run": 1,
+          "psr15_run": 5,
+          "canonical_run": 568,
+          "cross_lab_run": 26,
+          "codeql_run": 49,
+          "result": "SUCCESS_BUT_STALE_AFTER_MAIN_ADVANCE"
+        }
+      },
+      "closure": {
+        "admitted_findings": 0,
+        "fixed_findings": 0,
+        "residual_risk_acceptances": 0,
+        "open_blockers": 0,
+        "promoted_regressions": 17,
+        "mode": "ZERO_FINDING_CLOSURE_VERIFICATION"
+      },
+      "evidence_binding": {
+        "static_contract": "required_again_on_rebound",
+        "dynamic_psr15_rerun": "required_again_on_rebound",
+        "canonical_verification": "required_again_on_rebound",
+        "cross_lab_integration": "required_again_on_rebound",
+        "exact_source_binding": "required before merge",
+        "downstream_on_green": [
+          "PSR-17"
         ]
       }
     }
