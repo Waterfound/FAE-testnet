@@ -2,6 +2,7 @@
 set -euo pipefail
 
 : "${SOURCE_URL:?SOURCE_URL is required}"
+: "${EXPECTED_REF:?EXPECTED_REF is required}"
 : "${EXPECTED_COMMIT:?EXPECTED_COMMIT is required}"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -49,18 +50,19 @@ fi
 
 git --git-dir="$target" show-ref --verify --quiet refs/heads/backup-control
 
-main_sha="$(git --git-dir="$target" rev-parse refs/heads/main)"
-if [ "$main_sha" != "$EXPECTED_COMMIT" ]; then
-  echo "ERROR: mirrored main mismatch: expected $EXPECTED_COMMIT got $main_sha" >&2
+mirrored_sha="$(git --git-dir="$target" rev-parse "$EXPECTED_REF")"
+if [ "$mirrored_sha" != "$EXPECTED_COMMIT" ]; then
+  echo "ERROR: mirrored ref mismatch: expected $EXPECTED_COMMIT got $mirrored_sha at $EXPECTED_REF" >&2
   exit 53
 fi
 
-if ! grep -Fq "head_sha=$EXPECTED_COMMIT" "$manifest"; then
-  echo "ERROR: manifest does not bind expected source HEAD" >&2
+if ! grep -Fq "$EXPECTED_COMMIT $EXPECTED_REF" "$manifest"; then
+  echo "ERROR: manifest does not bind expected candidate ref" >&2
   exit 54
 fi
 
 printf 'GITLAB_CONTROL_SELFTEST_GREEN\n'
+printf 'expected_ref=%s\n' "$EXPECTED_REF"
 printf 'expected_commit=%s\n' "$EXPECTED_COMMIT"
-printf 'mirrored_main=%s\n' "$main_sha"
+printf 'mirrored_commit=%s\n' "$mirrored_sha"
 printf 'control_sha=%s\n' "$(git --git-dir="$target" rev-parse refs/heads/backup-control)"
