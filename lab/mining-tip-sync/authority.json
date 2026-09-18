@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_09_STRESS_ACTIVE",
+  "status": "MTS_09_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,7 +9,7 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-09"
+    "MTS-10"
   ],
   "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
@@ -189,6 +189,30 @@
       "status": "GREEN",
       "workflow_run_id": 35347707810,
       "workflow_job_id": 105608171021
+    },
+    "MTS-09": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35354959816,
+      "lab_workflow_job_id": 105631947234,
+      "canonical_workflow_run_id": 35354960017,
+      "canonical_workflow_job_id": 105631948457,
+      "stress_tests": "4/4 PASS",
+      "runtime_patch_required": false,
+      "contexts_exercised": [
+        "same-device tab A",
+        "same-device tab B",
+        "isolated other-device context"
+      ],
+      "remote_tip_advance_independent_convergence": true,
+      "per_context_status_outage_isolated": true,
+      "nonce_to_submit_remote_race_blocked": true,
+      "same_height_parent_replacement_independent": true,
+      "stale_submissions_observed": 0
+    },
+    "canonical_regression_mts_09": {
+      "status": "GREEN",
+      "workflow_run_id": 35354960017,
+      "workflow_job_id": 105631948457
     }
   },
   "miner_write_authorization_basis": {
@@ -356,5 +380,16 @@
       "same-device hints are optional acceleration only and never correctness authority"
     ],
     "runtime_patch_gate": "Only a deterministic MTS-09 reproduction exposing a correctness defect may authorize runtime writes."
+  },
+  "mts_10_authority_preview": {
+    "scope": "BroadcastChannel optional optimization",
+    "dependencies": [
+      "MTS-08",
+      "MTS-09"
+    ],
+    "initial_mode": "OPTIMIZATION_ONLY",
+    "runtime_write_authorized": false,
+    "invariant": "BroadcastChannel may only trigger faster authoritative /status revalidation. It may never declare the chain tip, cancel work by itself, or become required for correctness.",
+    "failure_policy": "Removing or disabling BroadcastChannel must preserve all MTS-09 correctness guarantees."
   }
 }
