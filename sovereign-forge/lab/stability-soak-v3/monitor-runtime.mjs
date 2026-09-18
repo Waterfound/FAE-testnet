@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
-import {hashHex,leadingZeroBits} from '../node/authoritative/crypto.mjs';
+import {hashHex,leadingZeroBits} from '../../node/authoritative/crypto.mjs';
 
 const role=(process.env.FAE_V3_ROLE||'').trim();
 if(!['controller','observer'].includes(role))throw new Error('FAE_V3_ROLE must be controller or observer');
