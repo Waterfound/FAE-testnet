@@ -167,7 +167,12 @@ Accepted implementation state carried by canonical main after BE-02 integration:
 - Explorer mutating methods: forbidden;
 - Explorer database/indexer: not required; any future cache/index remains derived disposable state;
 - consensus, fork choice, wallet ownership/signing, transaction admission, mining, economics, network survival and mainnet authority: unchanged;
-- standalone Explorer application/deployment: not yet LIVE at the BE-02 boundary.
+- BE-03 standalone Explorer application source: verified as a separate static read-only application under `explorer/`;
+- Explorer application transport: fixed to the verified `/explorer/*` GET surface, with no generic arbitrary-path client;
+- Explorer UI: status metrics, latest blocks, universal search, block/TX/address details, reward + transfer activity and tip-bound pagination;
+- Explorer application network binding: fail closed unless successful responses identify `fairyelf-public-testnet-v4` and include a valid observed tip binding;
+- Explorer application imports from Wallet/Mining active site: none;
+- Explorer application deployment state: `NOT_LIVE`; public URL and public HTTPS Independent Node binding remain unresolved.
 
 Primary references:
 
@@ -175,6 +180,10 @@ Primary references:
 - `lab/block-explorer/authority.json`
 - `sovereign-forge/node/explorer-read.mjs`
 - `lab/block-explorer/tests/be-02-query-surface.test.mjs`
+- `explorer/README.md`
+- `explorer/api-client.mjs`
+- `explorer/app.mjs`
+- `lab/block-explorer/tests/be-03-app.test.mjs`
 
 ## Cross-Lab integration rule
 
