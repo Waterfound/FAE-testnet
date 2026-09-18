@@ -1,0 +1,83 @@
+{
+  "schema": "FAE_PQ_WAVE_E_FREEZE_V1",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION",
+  "recorded_at": "2026-09-18",
+  "base_revision": "74ddd2b24d4b4653ec620d7c208809c98f6633e2",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-03": "GREEN"
+  },
+  "invariants": [
+    "Ed25519 remains authoritative in active FAE",
+    "Transaction v2 is not modified",
+    "current faet addresses are not modified",
+    "active wallet files remain outside write authority",
+    "active runtime may not import Lab code",
+    "no seed phrase, private key, or reusable secret material may be committed or emitted as evidence"
+  ],
+  "PQ-05": {
+    "name": "FAE Hybrid Transaction Shadow",
+    "candidate": "Ed25519 + ML-DSA; both signatures required",
+    "shadow_kind": "FAE_PQ_HYBRID_TX_V1",
+    "signing_domain": "FAIRYELF_PQ_HYBRID_TX_V1",
+    "supported_mldsa_parameter_sets": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
+    "anti_post_hoc_rule": "PQ-05 must not select a resource-economics winner; parameter-set comparison remains PQ-09.",
+    "required_fields": [
+      "kind",
+      "shadow_version",
+      "network",
+      "inputs",
+      "outputs",
+      "ed25519_public_key_spki",
+      "mldsa_parameter_set",
+      "mldsa_public_key",
+      "ed25519_signature",
+      "mldsa_signature"
+    ],
+    "required_tests": [
+      "canonical serialization",
+      "both signatures required",
+      "tamper rejection",
+      "wrong-key rejection",
+      "signature stripping rejection",
+      "algorithm/parameter substitution rejection",
+      "legacy Transaction v2 rejected by shadow parser",
+      "shadow transaction rejected by active Transaction v2 verifier",
+      "domain replay rejection",
+      "deterministic txid over complete signed shadow envelope"
+    ],
+    "gate": "No shadow transaction can be accepted as Transaction v2, no Transaction v2 can be accepted as shadow, and stripping/downgrade/substitution fails deterministically."
+  },
+  "PQ-06": {
+    "name": "Wallet Derivation, Recovery and Migration Shadow",
+    "legacy_domain": "FAIRYELF_ED25519_ADDRESS_V1",
+    "pq_derivation_salt": "FAIRYELF_PQ_SHADOW_V1",
+    "pq_derivation_info": "FAIRYELF_PQ_MLDSA_DERIVATION_V1:<parameter-set>:<index>",
+    "pq_seed_bytes": 32,
+    "supported_mldsa_parameter_sets": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
+    "required_tests": [
+      "ephemeral 24-word mnemonic recovery",
+      "optional passphrase deterministic re-derivation",
+      "legacy Ed25519 address identity parity against active wallet code",
+      "PQ key material deterministic re-derivation",
+      "PQ parameter-set domain separation",
+      "address-index domain separation",
+      "blank-passphrase legacy compatibility",
+      "different passphrase separation",
+      "restart/persistence roundtrip using public metadata only",
+      "corrupted backup rejection",
+      "no private material in test evidence"
+    ],
+    "gate": "Legacy Ed25519 recovery remains identity-compatible while PQ derivation is deterministic, independently domain-separated and incapable of changing active wallet state."
+  },
+  "parallelization": "PQ-05 and PQ-06 may execute independently after this freeze; shared-state integration remains serialized."
+}
