@@ -196,7 +196,7 @@ async function childSetup(){
   if(!appResponse.ok)throw Error('FAE app shell unavailable: HTTP '+appResponse.status);
   let appHtml=await appResponse.text();
   if(!/id=["']netstatus["']/.test(appHtml)||!/id=["']mine["']/.test(appHtml))throw Error('FAE app shell invalid');
-  appHtml=appHtml.replace(/\\b(src|href)=(["'])\\/([^"']+)\\2/g,(_,attribute,quote,path)=>attribute+'='+quote+FAE_SNAPSHOT_BASE+path+quote);
+  appHtml=appHtml.replace(/\b(src|href)=(["'])\/([^"']+)\2/g,(_,attribute,quote,path)=>attribute+'='+quote+FAE_SNAPSHOT_BASE+path+quote);
   const loaded=new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
   frame.srcdoc=appHtml;
   await loaded;
