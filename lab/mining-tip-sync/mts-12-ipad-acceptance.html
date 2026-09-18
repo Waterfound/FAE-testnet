@@ -76,7 +76,7 @@ iframe{width:100%;height:420px;border:1px solid var(--line);border-radius:12px;b
 const EXPECTED_MINER_SHA='e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c';
 const WATCH_ADDRESS='faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k';
 const API='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4';
-const FAE_SNAPSHOT_BASE='https://raw.githack.com/Waterfound/FAE-testnet/a0be46e22e5ecf3400922f9fa3f267c35bd46916/';
+const FAE_SNAPSHOT_BASE=new URL('../../',location.href).toString();
 const CONTROL_CHANNEL='fae-mts12-control-v1';
 const TIP_GATE_MS=3500;
 const RESUME_GATE_MS=1500;
