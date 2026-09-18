@@ -43,6 +43,9 @@ jobs:
       - name: MTS-01 deterministic baseline reproduction
         run: node lab/mining-tip-sync/baseline-reproduction.mjs --output mts-01-baseline-evidence.json
 
+      - name: MTS-02/03 identity and tip-observer contract tests
+        run: node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
+
       - name: Upload MTS-01 evidence
         uses: actions/upload-artifact@v4
         with:
