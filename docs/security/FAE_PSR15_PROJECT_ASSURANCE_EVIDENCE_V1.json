@@ -1,0 +1,92 @@
+{
+  "schema": "FAE_PSR15_PROJECT_ASSURANCE_EVIDENCE_V1",
+  "psr": "PSR-15",
+  "status": "CANDIDATE_COMPLETE_PENDING_CAMPAIGN_CANONICAL_CROSSLAB_INTEGRATION",
+  "source_baseline": "30df85b754feb8dfcaade9b10e7dabce1dc06a6b",
+  "target_binding": "EXACT_PR_HEAD_AT_EXECUTION",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "project_assurance_method": {
+    "repository": "Waterfound/Red-Team",
+    "revision": "095a9c2eb5b2b3bdec0132238120583ef28a6d8c",
+    "release": "v0.1.2",
+    "mode": "Project Assurance",
+    "permanent_target_pin_changed": false,
+    "authority": "NONE"
+  },
+  "campaign": {
+    "manifest": "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json",
+    "runner": "scripts/psr15-project-assurance.mjs",
+    "dedicated_workflow": ".github/workflows/psr15-project-assurance.yml",
+    "composition_test": "tests/public-code-security-whitebox.mjs",
+    "attacks": 17,
+    "surfaces": 11,
+    "invariant_policy": "Every active baseline invariant must be covered by at least one attack; I-MATURITY-01 is additionally exercised as candidate-boundary evidence.",
+    "output": "FAE_PSR15_PROJECT_ASSURANCE_REPORT_V1",
+    "report_retention_days": 14
+  },
+  "novel_whitebox_probes": [
+    "Semantic persisted-state corruption is replayed through verifyPersistedState and forged UTXO/mempool state must disappear.",
+    "Resource ceilings are checked at consensus, HTTP, secure-channel, peer-directory and PeerGuard boundaries.",
+    "Active core/browser source is checked for direct PQ/shadow/lab authority coupling.",
+    "PQ/MTS authority flags, release authority fences and cross-Lab ancestry semantics are checked together.",
+    "Supply-chain provenance remains source-bound and no scanner is allowed to become authority.",
+    "MTS-12 Safari acceptance preflight/privacy boundaries are attacked without treating CI as physical-device evidence."
+  ],
+  "replayed_adversarial_evidence": [
+    "PSR-05 through PSR-09 hostile frontier",
+    "PSR-10 fuzz/property corpus",
+    "PSR-11 independent differential verification",
+    "difficulty/timestamp red-team",
+    "authenticated P2P security",
+    "peer diversity/eclipse resistance",
+    "hard-crash/recovery",
+    "Mining Tip Sync lifecycle stress",
+    "PSR-12 repo hygiene",
+    "PSR-13 release provenance",
+    "cross-Lab integration",
+    "PQ and MTS boundary guards"
+  ],
+  "finding_contract": {
+    "baseline_blocking_failure": "OPEN_BLOCKER",
+    "automatic_waiver": false,
+    "scanner_override": false,
+    "missing_evidence": "FAIL_CLOSED",
+    "report_stores_raw_stdout_stderr": false,
+    "report_stores_output_digests": true,
+    "fix_requires_regression_where_feasible": true
+  },
+  "target_integrity": {
+    "clean_git_required_before": true,
+    "exact_head_tree_recorded": true,
+    "tracked_tree_unchanged_after": true,
+    "target_writes": false,
+    "credentials_forwarded_to_cases": false,
+    "production_actions": false
+  },
+  "exit_binding": {
+    "dedicated_psr15_workflow": "required SUCCESS with zero OPEN_BLOCKER findings",
+    "canonical_verification": "required SUCCESS",
+    "cross_lab_integration": "required SUCCESS",
+    "codeql": "signal only; may be SUCCESS but cannot waive campaign findings",
+    "exact_source_binding": "required before merge"
+  },
+  "downstream": {
+    "no_findings_on_green": "PSR-16 becomes READY as zero-finding closure verification / regression-promotion gate",
+    "findings_present": "PSR-16 receives each OPEN_BLOCKER for fix/regression closure",
+    "psr17": "remains blocked until PSR-16"
+  },
+  "authority": {
+    "consensus_change": false,
+    "runtime_change": false,
+    "wallet_or_address_change": false,
+    "release_authority": false,
+    "mainnet_authority": false
+  },
+  "rebinding": {
+    "previous_source_baseline": "a0be46e22e5ecf3400922f9fa3f267c35bd46916",
+    "source_baseline": "30df85b754feb8dfcaade9b10e7dabce1dc06a6b",
+    "intervening_commits": 8,
+    "reviewed_scope": "MTS-12 top-level Safari acceptance harness and preflight only",
+    "physical_evidence_note": "Physical iPad acceptance remains external evidence and is not synthesized by PSR-15."
+  }
+}
