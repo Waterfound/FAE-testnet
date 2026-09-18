@@ -10,6 +10,9 @@ on:
       - 'sovereign-forge/lab/stability-soak-v3/**'
       - 'sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs'
+      - 'wan-lab/wan-node.mjs'
+      - 'wan-lab/stability-soak-controller.mjs'
+      - 'wan-lab/result-logger.mjs'
       - '.github/workflows/stability-soak-v3-zero-cost.yml'
   workflow_dispatch:
 
@@ -35,6 +38,9 @@ jobs:
           node --check sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs
           node --check sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
           node --check sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+          node --check wan-lab/wan-node.mjs
+          node --check wan-lab/stability-soak-controller.mjs
+          node --check wan-lab/result-logger.mjs
       - name: Prove fresh bootstrap after total ephemeral state loss
         run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
       - name: Prove 96h-sized chain fresh bootstrap stays below 180s
