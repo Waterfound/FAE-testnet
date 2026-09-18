@@ -50,13 +50,15 @@ for(const name of workflowFiles){
   if(/\bsecrets\.[A-Za-z0-9_]+/m.test(content))fail(name+': direct secrets.* reference requires explicit security review');
 
   const writes=[...String(permissions).matchAll(/^([a-z-]+):\s*write$/gmi)].map(m=>m[1]);
-  if(name==='codeql.yml'){
-    const allowed=new Set(['security-events']);
-    for(const perm of writes)if(!allowed.has(perm))fail(name+': unexpected write permission '+perm);
-    if(!writes.includes('security-events'))fail(name+': CodeQL requires security-events: write');
-  }else if(writes.length){
-    fail(name+': unexpected write permissions: '+writes.join(', '));
-  }
+  const exactWriteAllowlist={
+    'codeql.yml':['security-events'],
+    'full-target-shadow-clock-health-wan.yml':['issues'],
+    'full-target-shadow-free-real-wan.yml':['issues'],
+    'peer-isolation-eclipse-real-wan.yml':['issues']
+  };
+  const allowedWrites=new Set(exactWriteAllowlist[name]??[]);
+  for(const perm of writes)if(!allowedWrites.has(perm))fail(name+': unexpected write permission '+perm);
+  for(const perm of allowedWrites)if(!writes.includes(perm))fail(name+': expected reviewed write permission missing '+perm);
 
   for(const match of content.matchAll(/\buses:\s*([^\s#]+)/g)){
     const ref=match[1];
