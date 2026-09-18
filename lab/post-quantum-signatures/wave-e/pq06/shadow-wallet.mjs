@@ -86,7 +86,7 @@ export function parsePublicMetadata(raw){
 }
 export function serializePublicMetadata(metadata){
   const m=parsePublicMetadata(metadata);
-  return JSON.stringify(Object.fromEntries(Object.keys(m).sort().map(k=>[k,m[k])));
+  return JSON.stringify(Object.fromEntries(Object.keys(m).sort().map(k=>[k,m[k]])));
 }
 export function recoverAgainstMetadata(mnemonic,passphrase,metadata,wordList){
   const expected=parsePublicMetadata(metadata);
