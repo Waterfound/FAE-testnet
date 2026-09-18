@@ -1,0 +1,61 @@
+name: psr16-finding-closure
+
+on:
+  pull_request:
+    paths:
+      - 'docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json'
+      - 'tests/public-code-security-finding-closure.mjs'
+      - 'scripts/psr16-finding-closure.mjs'
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'scripts/psr15-project-assurance.mjs'
+      - '.github/workflows/psr16-finding-closure.yml'
+      - '.github/workflows/verify.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json'
+      - 'tests/public-code-security-finding-closure.mjs'
+      - 'scripts/psr16-finding-closure.mjs'
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'scripts/psr15-project-assurance.mjs'
+      - '.github/workflows/psr16-finding-closure.yml'
+      - '.github/workflows/verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Checkout exact closure candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify static PSR-16 closure contract
+        run: node --test tests/public-code-security-finding-closure.mjs
+
+      - name: Re-run PSR-15 campaign on exact PSR-16 candidate
+        run: node scripts/psr15-project-assurance.mjs --out "$RUNNER_TEMP/psr15-rerun-report.json"
+
+      - name: Verify zero-finding closure dynamically
+        run: |
+          node scripts/psr16-finding-closure.mjs             --report "$RUNNER_TEMP/psr15-rerun-report.json"             --out "$RUNNER_TEMP/psr16-finding-closure-report.json"
+
+      - name: Preserve PSR-16 closure evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-psr16-finding-closure
+          path: |
+            ${{ runner.temp }}/psr15-rerun-report.json
+            ${{ runner.temp }}/psr16-finding-closure-report.json
+          if-no-files-found: error
+          retention-days: 14
