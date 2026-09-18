@@ -258,7 +258,7 @@
     {
       "id": "PSR-15",
       "name": "Project Assurance White-Box Attack Campaign",
-      "state": "GREEN_ON_SUCCESSFUL_CAMPAIGN_CANONICAL_CROSSLAB_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-04",
         "PSR-05",
@@ -276,7 +276,7 @@
     {
       "id": "PSR-16",
       "name": "Finding Closure and Regression Promotion",
-      "state": "READY_ON_SUCCESSFUL_PSR15_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_CLOSURE_CANONICAL_CROSSLAB_INTEGRATION",
       "depends_on": [
         "PSR-15"
       ],
@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR16_INTEGRATION",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -711,6 +711,46 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-16"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-16",
+      "run_kind": "REAL_EXECUTION_REBOUND_R3",
+      "execution_date": "2026-09-18",
+      "source_revision": "a9ae1980206c8b0d73cd391c4a970b76b70336e0",
+      "branch": "colony/fae-public-code-security-psr16-r3",
+      "executor_attached": true,
+      "rebinding": {
+        "previous_source_revision": "ed0141c035645c0f0044f68b5d024822a482d10e",
+        "intervening_commits": 4,
+        "reviewed_scope": "Git host independence repository recovery proof; supply-chain/repository resilience surface",
+        "prior_candidate": {
+          "head": "886194fa0e71f886d742534f7f2d71f1a401ac41",
+          "psr16_run": 2,
+          "psr15_run": 6,
+          "canonical_run": 572,
+          "cross_lab_run": 30,
+          "codeql_run": 53,
+          "result": "SUCCESS_BUT_STALE_AFTER_MAIN_ADVANCE"
+        }
+      },
+      "closure": {
+        "admitted_findings": 0,
+        "fixed_findings": 0,
+        "residual_risk_acceptances": 0,
+        "open_blockers": 0,
+        "promoted_regressions": 17,
+        "mode": "ZERO_FINDING_CLOSURE_VERIFICATION"
+      },
+      "evidence_binding": {
+        "static_contract": "required_again_on_r3",
+        "dynamic_psr15_rerun": "required_again_on_r3",
+        "canonical_verification": "required_again_on_r3",
+        "cross_lab_integration": "required_again_on_r3",
+        "exact_source_binding": "required before merge",
+        "downstream_on_green": [
+          "PSR-17"
         ]
       }
     }
