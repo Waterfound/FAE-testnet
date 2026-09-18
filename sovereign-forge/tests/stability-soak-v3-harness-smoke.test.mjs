@@ -46,7 +46,7 @@ test('V3 node wrapper rematerializes stable identity, proxies P2P, and fresh-boo
   };
   let child=childWithLogs(nodeEntrypoint,env);t.after(()=>kill(child));
   const base=`http://127.0.0.1:${externalPort}`;
-  const first=await waitJson(`${base}/v3/meta?anchor_height=11`,x=>x?.status?.height===11);
+  let first;try{first=await waitJson(`${base}/v3/meta?anchor_height=11`,x=>x?.status?.height===11)}catch(error){throw new Error(`${error.message}; node_child=${JSON.stringify(child.logs())}`)}
   assert.equal(first.node_identity,identity.id);assert.equal(first.status.configured_peers,2);
   assert.equal(first.anchor.hash,first.status.tip_hash);
   assert.equal((await getJson(`${base}/status`)).height,11,'proxy must expose canonical P2P status');
@@ -54,7 +54,7 @@ test('V3 node wrapper rematerializes stable identity, proxies P2P, and fresh-boo
   await kill(child);await rm(stateDir,{recursive:true,force:true});
 
   child=childWithLogs(nodeEntrypoint,env);
-  const second=await waitJson(`${base}/v3/meta`,x=>x?.status?.height===11);
+  let second;try{second=await waitJson(`${base}/v3/meta`,x=>x?.status?.height===11)}catch(error){throw new Error(`${error.message}; restarted_node_child=${JSON.stringify(child.logs())}`)}
   assert.equal(second.node_identity,identity.id,'identity must be rematerialized from stable config');
   assert.notEqual(second.boot_id,firstBoot,'restart must have a new process boot id');
   assert.equal(second.status.height,11,'empty local filesystem must fresh-bootstrap from peers');
