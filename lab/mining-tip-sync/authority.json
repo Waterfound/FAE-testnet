@@ -8,7 +8,10 @@
   "evidence_source_revision": "f3561ec8bf53d25c646f2f4c880af506cc1f5a65",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
-  "current_frontier": ["MTS-00", "MTS-01"],
+  "current_frontier": [
+    "MTS-00",
+    "MTS-01"
+  ],
   "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
@@ -21,7 +24,8 @@
   "mainnet_launch_authorized": false,
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
-    "docs/FAE_MINING_TIP_SYNC_"
+    "docs/FAE_MINING_TIP_SYNC_",
+    ".github/workflows/mining-tip-sync-lab"
   ],
   "current_stage_protected_paths": [
     "mining.js",
@@ -43,8 +47,14 @@
   ],
   "network_authority": {
     "source": "/status",
-    "identity": ["height", "tip_hash"],
-    "work_parent_identity": ["header.height - 1", "header.previous_hash"]
+    "identity": [
+      "height",
+      "tip_hash"
+    ],
+    "work_parent_identity": [
+      "header.height - 1",
+      "header.previous_hash"
+    ]
   },
   "snapshot_semantics": {
     "mempool_only_change_invalidates_work": false,
