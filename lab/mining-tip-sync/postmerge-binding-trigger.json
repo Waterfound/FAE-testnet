@@ -1,5 +1,0 @@
-{
-  "schema": "FAE_MTS_11_POSTMERGE_BINDING_TRIGGER_V1",
-  "target_main": "448c6c83bae0edb1cadf4e8957d9487c2d174783",
-  "purpose": "Trigger validation before deleting this file so the final branch tree exactly matches integrated main."
-}
