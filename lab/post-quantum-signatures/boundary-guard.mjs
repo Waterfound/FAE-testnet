@@ -57,17 +57,20 @@ for (const relative of activeFiles) {
 const baseIndex = process.argv.indexOf('--base');
 if (baseIndex !== -1) {
   const base = process.argv[baseIndex + 1];
+  const headIndex = process.argv.indexOf('--head');
+  const head = headIndex !== -1 ? process.argv[headIndex + 1] : 'HEAD';
   if (!base) fail('--base requires a git revision');
+  else if (!head) fail('--head requires a git revision when present');
   else {
     let changed = [];
     try {
-      const output = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], {
+      const output = execFileSync('git', ['diff', '--name-only', `${base}...${head}`], {
         cwd: root,
         encoding: 'utf8'
       });
       changed = output.split(/\r?\n/).filter(Boolean);
     } catch (error) {
-      fail(`unable to inspect git diff from ${base}: ${error.message}`);
+      fail(`unable to inspect git diff from ${base} to ${head}: ${error.message}`);
     }
     for (const file of changed) {
       const allowed = manifest.allowed_write_prefixes.some(prefix =>
