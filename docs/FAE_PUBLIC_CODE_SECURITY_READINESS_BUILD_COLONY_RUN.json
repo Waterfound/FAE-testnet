@@ -258,7 +258,7 @@
     {
       "id": "PSR-15",
       "name": "Project Assurance White-Box Attack Campaign",
-      "state": "GREEN_ON_SUCCESSFUL_CAMPAIGN_CANONICAL_CROSSLAB_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-04",
         "PSR-05",
@@ -276,7 +276,7 @@
     {
       "id": "PSR-16",
       "name": "Finding Closure and Regression Promotion",
-      "state": "READY_ON_SUCCESSFUL_PSR15_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_CLOSURE_CANONICAL_CROSSLAB_INTEGRATION",
       "depends_on": [
         "PSR-15"
       ],
@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR16_INTEGRATION",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -711,6 +711,52 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-16"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-16",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "9c00d6409ad96f8158270bb0b087f5849c7bffce",
+      "branch": "colony/fae-public-code-security-psr16",
+      "executor_attached": true,
+      "prerequisite_normalization": {
+        "PSR_15": "GREEN",
+        "pr": 190,
+        "candidate_head": "c4fe3fb5f2db32dbc50024af2e39db9c625d3117",
+        "integrated_commit": "9c00d6409ad96f8158270bb0b087f5849c7bffce",
+        "dedicated_run": 1,
+        "canonical_run": 563,
+        "cross_lab_run": 21,
+        "codeql_run": 44,
+        "campaign_result": "17/17 PASS; zero findings; target unchanged; authority NONE"
+      },
+      "outputs": [
+        "docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json",
+        "docs/security/FAE_PSR16_FINDING_CLOSURE_V1.md",
+        "tests/public-code-security-finding-closure.mjs",
+        "scripts/psr16-finding-closure.mjs",
+        ".github/workflows/psr16-finding-closure.yml",
+        ".github/workflows/verify.yml"
+      ],
+      "closure": {
+        "admitted_findings": 0,
+        "fixed_findings": 0,
+        "residual_risk_acceptances": 0,
+        "open_blockers": 0,
+        "promoted_regressions": 17,
+        "mode": "ZERO_FINDING_CLOSURE_VERIFICATION"
+      },
+      "evidence_binding": {
+        "static_contract": "required before GREEN",
+        "dynamic_psr15_rerun": "required before GREEN",
+        "canonical_verification": "required before GREEN",
+        "cross_lab_integration": "required before GREEN",
+        "exact_source_binding": "required before merge",
+        "runtime_or_consensus_change": false,
+        "downstream_on_green": [
+          "PSR-17"
         ]
       }
     }
