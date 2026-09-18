@@ -206,3 +206,16 @@ Branch: `colony/fae-public-code-security-psr10-r4`
 Canonical runs #454 and #462 both passed prior PSR-10 candidates, but main advanced before merge each time. The current branch was therefore repointed onto the latest main and the PSR-10 candidate reapplied in place.
 
 The intervening delta consists only of independent PQ Wave E executor workflows. The full canonical workflow is nevertheless required again on the new exact branch head.
+
+
+## Frontier execution — PSR-11 (rebound)
+
+Execution date: 2026-09-18  
+Bound source: `dd8a6ddf942d526687d223e28da9f0bc30c85999`  
+Branch: `colony/fae-public-code-security-psr11-r2`
+
+The first PSR-11 candidate was prepared against `930d757f7a286eb83be637d32197342c030d63a0`, but `main` advanced by four commits before PR creation. The intervening diff contains only PQ-06 shadow-wallet lab artifacts. PSR-11 was rebound to the current head; PQ-06 remains shadow-only and is not counted as active-v4 differential authority.
+
+PSR-10 is normalized to GREEN based on integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical run #465 SUCCESS and current-main replay run #476 SUCCESS.
+
+PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this rebound candidate integrates.

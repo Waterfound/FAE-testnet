@@ -208,7 +208,7 @@
     {
       "id": "PSR-10",
       "name": "Hostile Corpus, Property Testing and Fuzzing",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-05",
         "PSR-06",
@@ -221,7 +221,7 @@
     {
       "id": "PSR-11",
       "name": "Differential and Alternative-Implementation Verification",
-      "state": "READY_ON_SUCCESSFUL_PSR10_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-10"
       ],
@@ -536,6 +536,39 @@
         "runtime_or_consensus_change": false,
         "downstream_unlock_on_green": [
           "PSR-11"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-11",
+      "run_kind": "REAL_EXECUTION_REBOUND",
+      "execution_date": "2026-09-18",
+      "source_revision": "dd8a6ddf942d526687d223e28da9f0bc30c85999",
+      "branch": "colony/fae-public-code-security-psr11-r2",
+      "executor_attached": true,
+      "rebinding": {
+        "previous_source_revision": "930d757f7a286eb83be637d32197342c030d63a0",
+        "intervening_commits": 4,
+        "reviewed_scope": "PQ-06 shadow-wallet lab only"
+      },
+      "prerequisite_normalization": {
+        "PSR_10": "GREEN",
+        "integrated_commit": "d32ede90f91f065cfbfdfd1d6d150780635dfc72",
+        "canonical_run": 465,
+        "current_main_replay_run": 476
+      },
+      "outputs": [
+        "tests/public-code-security-differential.mjs",
+        "docs/security/FAE_PSR11_DIFFERENTIAL_EVIDENCE_V1.json",
+        ".github/workflows/verify.yml"
+      ],
+      "evidence_binding": {
+        "canonical_verification": "required before GREEN",
+        "divergence_policy": "FAIL_CLOSED",
+        "runtime_or_consensus_change": false,
+        "downstream_on_green": [
+          "PSR-12",
+          "PSR-14"
         ]
       }
     }
