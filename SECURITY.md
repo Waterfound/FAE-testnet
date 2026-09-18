@@ -101,5 +101,19 @@ The current public-code security baseline is defined by:
 - `docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md`
 - `docs/security/FAE_EXISTING_SECURITY_GATE_LEDGER_V1.json`
 - `docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.json`
+- `docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json`
+- `docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json`
+- `docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json`
 
 These documents describe threat assumptions, evidence status, attack surfaces and invariants. They do not claim mainnet readiness.
+
+
+## Recurring Project Assurance
+
+The bounded public-code hardening project reached the baseline verdict `BASELINE_READY_FOR_RECURRING_ASSURANCE`.
+
+That verdict is not inherited automatically by future changes. Pull requests and main-branch changes are classified under `docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json`.
+
+Changes affecting consensus/economics, cryptography/wallets, critical networking/mining, release/provenance/authority boundaries, or the security controls themselves require a fresh Project Assurance white-box campaign. Any baseline-blocking finding fails closed and cannot be waived by a scanner result.
+
+This recurring process does not grant release, consensus, economic, deployment, or mainnet authority.

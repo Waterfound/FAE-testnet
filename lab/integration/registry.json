@@ -100,7 +100,11 @@
         "tests/public-code-security-fuzz.mjs",
         "tests/public-code-security-differential.mjs",
         "tests/public-code-security-whitebox.mjs",
-        "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json"
+        "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+        "docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json",
+        "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json",
+        "tests/public-code-security-recurring-assurance.mjs"
       ],
       "combined_checks": [
         [
@@ -126,8 +130,14 @@
           "node",
           "--test",
           "tests/public-code-security-whitebox.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "tests/public-code-security-recurring-assurance.mjs"
         ]
-      ]
+      ],
+      "note": "Bounded PSR-00→19 security hardening closes into recurring Project Assurance. Combined-main verifies the static recurring-assurance contract; the dedicated recurring workflow classifies each change and reruns the 17-case white-box campaign when critical categories are touched."
     }
   ]
 }

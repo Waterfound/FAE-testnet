@@ -1,0 +1,108 @@
+{
+  "schema": "FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1",
+  "psr": "PSR-19",
+  "source_baseline": "c050cf7263238ed35a93551f91250e9d216386a8",
+  "baseline_verdict": {
+    "artifact": "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+    "expected": "BASELINE_READY_FOR_RECURRING_ASSURANCE"
+  },
+  "project_shape": {
+    "bounded_hardening_project": "CLOSE_ON_SUCCESSFUL_PSR19_INTEGRATION",
+    "recurring_mode": "REUSE_EXISTING_PROJECT_ASSURANCE",
+    "create_new_security_system": false,
+    "future_changes_inherit_verdict_automatically": false
+  },
+  "mandatory_deep_review_categories": [
+    "consensus_economics",
+    "cryptography_wallet",
+    "critical_networking_mining",
+    "authority_release_supply_chain",
+    "security_controls"
+  ],
+  "categories": {
+    "consensus_economics": {
+      "prefixes": [
+        "sovereign-forge/node/authoritative/",
+        "sovereign-forge/protocol/"
+      ],
+      "exact": [
+        "sovereign-forge/node/fae-node.mjs"
+      ]
+    },
+    "cryptography_wallet": {
+      "prefixes": [
+        "lab/post-quantum-signatures/"
+      ],
+      "exact": [
+        "wallet-crypto.js",
+        "core.js",
+        "sovereign-forge/node/authoritative/crypto.mjs",
+        "sovereign-forge/node/authoritative/address.mjs"
+      ]
+    },
+    "critical_networking_mining": {
+      "prefixes": [
+        "lab/mining-tip-sync/",
+        "sovereign-forge/node/authoritative/peer"
+      ],
+      "exact": [
+        "mining.js",
+        "sovereign-forge/browser/mining.js",
+        "sovereign-forge/node/fae-node.mjs",
+        "sovereign-forge/node/authoritative/secure-channel.mjs"
+      ]
+    },
+    "authority_release_supply_chain": {
+      "prefixes": [
+        "release/provenance/",
+        "sovereign-forge/release/"
+      ],
+      "exact": [
+        "lab/integration/registry.json",
+        "docs/FAE_LAB_INTEGRATION_PROTOCOL.md",
+        "sovereign-forge/node/Dockerfile",
+        "sovereign-forge/node/Dockerfile.v6-candidate",
+        "sovereign-forge/node/Dockerfile.coordinator-candidate",
+        "sovereign-forge/node/Dockerfile.full-target-shadow-validation"
+      ]
+    },
+    "security_controls": {
+      "prefixes": [
+        "docs/security/FAE_PSR",
+        "tests/public-code-security",
+        "scripts/psr1",
+        ".github/workflows/psr"
+      ],
+      "exact": [
+        "SECURITY.md",
+        ".github/workflows/verify.yml",
+        ".github/workflows/codeql.yml",
+        ".github/dependabot.yml"
+      ]
+    }
+  },
+  "deep_review": {
+    "runner": "scripts/psr15-project-assurance.mjs",
+    "expected_report_schema": "FAE_PSR15_PROJECT_ASSURANCE_REPORT_V1",
+    "expected_status": "PASS_NO_BASELINE_BLOCKING_FINDINGS",
+    "expected_attack_count": 17,
+    "expected_findings": 0,
+    "failure_policy": "FAIL_CLOSED"
+  },
+  "finding_policy": {
+    "scanners_cannot_waive_findings": true,
+    "automatic_finding_waiver": false,
+    "automatic_risk_acceptance": false,
+    "feasible_fix_requires_regression": true
+  },
+  "authority": {
+    "target_writes": false,
+    "production_actions": false,
+    "deployment": false,
+    "release_authority": false,
+    "consensus_activation": false,
+    "economic_activation": false,
+    "mainnet_authority": false,
+    "authority": "NONE"
+  }
+}

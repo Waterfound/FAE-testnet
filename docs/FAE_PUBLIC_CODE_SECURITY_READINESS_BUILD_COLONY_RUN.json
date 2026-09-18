@@ -295,7 +295,7 @@
     {
       "id": "PSR-18",
       "name": "Public-Code Security Baseline Verdict",
-      "state": "GREEN_ON_SUCCESSFUL_VERDICT_PSR17_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-17"
       ],
@@ -304,7 +304,7 @@
     {
       "id": "PSR-19",
       "name": "Bounded Project Closeout and Recurring Assurance Handoff",
-      "state": "READY_ON_SUCCESSFUL_PSR18_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_RECURRING_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-18"
       ],
@@ -871,6 +871,71 @@
           "PSR-19"
         ]
       }
+    },
+    {
+      "frontier": "PSR-19",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "c050cf7263238ed35a93551f91250e9d216386a8",
+      "branch": "colony/fae-public-code-security-psr19",
+      "executor_attached": true,
+      "prerequisite_normalization": {
+        "PSR_15": "GREEN",
+        "PSR_16": "GREEN",
+        "PSR_17": "GREEN",
+        "PSR_18": "GREEN",
+        "psr18_integration_commit": "c050cf7263238ed35a93551f91250e9d216386a8",
+        "verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+        "open_security_findings": 0,
+        "missing_required_evidence": 0
+      },
+      "outputs": [
+        "docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json",
+        "scripts/psr19-recurring-assurance.mjs",
+        "tests/public-code-security-recurring-assurance.mjs",
+        ".github/workflows/public-code-security-recurring-assurance.yml",
+        "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json",
+        "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.md",
+        "SECURITY.md",
+        "lab/integration/registry.json",
+        ".github/workflows/verify.yml"
+      ],
+      "recurring_assurance": {
+        "create_new_security_system": false,
+        "reuse_existing_project_assurance": true,
+        "classify_every_pr_and_main_push": true,
+        "mandatory_deep_review_categories": [
+          "consensus_economics",
+          "cryptography_wallet",
+          "critical_networking_mining",
+          "authority_release_supply_chain",
+          "security_controls"
+        ],
+        "white_box_attack_count": 17,
+        "required_findings": 0,
+        "failure_policy": "FAIL_CLOSED"
+      },
+      "closeout": {
+        "bounded_project": "CLOSE_ON_SUCCESSFUL_INTEGRATION",
+        "terminal_state": "BASELINE_READY_FOR_RECURRING_ASSURANCE__BOUNDED_PROJECT_CLOSED",
+        "future_changes_inherit_verdict_automatically": false
+      },
+      "evidence_binding": {
+        "recurring_assurance_workflow": "required before GREEN",
+        "canonical_verification": "required before GREEN",
+        "cross_lab_integration": "required before GREEN",
+        "codeql": "required signal on exact candidate",
+        "exact_source_binding": "required before merge",
+        "mainnet_authority": false,
+        "release_authority": false
+      }
     }
-  ]
+  ],
+  "bounded_project_closeout": {
+    "status": "CLOSE_ON_SUCCESSFUL_PSR19_INTEGRATION",
+    "verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+    "permanent_new_security_system": false,
+    "continuing_mechanism": "RECURRING_PROJECT_ASSURANCE",
+    "policy": "docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json"
+  }
 }
