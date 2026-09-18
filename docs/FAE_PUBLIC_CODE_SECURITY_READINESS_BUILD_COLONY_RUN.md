@@ -149,3 +149,26 @@ Produced:
 Inventory at the bound source discovered 41 repository workflows and 100 test/lab assets under the PSR-02 criteria. Existence alone receives no PASS credit; canonical PR gates, content-inspected gates, specialized noncanonical evidence and path-only discovery are separated.
 
 PSR-01 and PSR-02 become GREEN only after successful canonical verification and integration. On that integration, PSR-03 becomes READY and PSR-04 becomes READY from the PSR-01 dependency.
+
+
+## Frontier execution — PSR-03 || PSR-04
+
+Execution date: 2026-09-18  
+Bound source: `eb8409573e3ee4c37b925817a474a1c6e5dd4410`  
+Branch: `colony/fae-public-code-security-psr03-04-r2`
+
+This is a real execution, not methodology-only.
+
+The first PSR-03/04 candidate was prepared against `83a6adff3a6232026e78321062fe58e68174d9cd`, but `main` advanced by 13 commits before PR creation. The intervening diff was reviewed and was limited to Mining Tip Sync/browser mining plus the corresponding Forge hash. The frontier was therefore rebound instead of merging stale work.
+
+Produced:
+
+- `docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.json`;
+- `docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.md`;
+- `SECURITY.md`;
+- `tests/public-code-security-contract.mjs`;
+- canonical verification integration for the structural contract guard.
+
+The registry freezes 16 invariant definitions across 11 attack surfaces. MTS-04/06 is admitted as specialized AS-04 mining evidence, not silently promoted to universal security proof.
+
+PSR-03 and PSR-04 become GREEN only after successful canonical verification and integration.

@@ -79,6 +79,9 @@ jobs:
           node tests/coordinator-trust-smoke.mjs
           node tests/coordinator-rotation-smoke.mjs
 
+      - name: Verify public-code security contracts
+        run: node tests/public-code-security-contract.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
