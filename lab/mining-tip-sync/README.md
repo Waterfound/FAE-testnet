@@ -4,7 +4,7 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-**MTS-10 — BroadcastChannel optional revalidation acceleration**
+**MTS-11 — Real-browser integration and cancellation-latency gate**
 
 MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
@@ -45,8 +45,12 @@ MTS-08 is GREEN. The stress-first run reproduced a lifecycle gap: stale direct w
 
 MTS-09 is GREEN without a runtime patch. Two same-device tabs plus an isolated other-device context each discovered remote chain advancement independently through authoritative /status observation. A per-context status outage remained isolated, the delayed context converged after recovery, remote nonce-to-submit races were blocked locally, and same-height parent replacement converged independently. Final matrix: 4/4 PASS; stale submissions: 0; canonical verifier: 31/31 PASS.
 
-## MTS-10 objective
+## MTS-10 result
 
-Evaluate BroadcastChannel strictly as an optional latency optimization. A same-device hint may request immediate /status revalidation, but the hint itself may never declare the tip, cancel PoW, or become required for correctness. Disabling or deleting BroadcastChannel must leave all MTS-09 correctness guarantees intact.
+MTS-10 is GREEN as a latency optimization, not a correctness dependency. The frozen baseline measured a 2,000 ms independent polling bound (about 1,000 ms mean wait for uniformly phased tip changes). The admitted BroadcastChannel path carries only a revalidation hint: receivers query authoritative /status before any cancellation. Forged tip-looking payloads cannot cancel current work, hint-triggered status outages do not cancel work, disabling BroadcastChannel preserves independent polling convergence, and a locally accepted direct block can accelerate peer revalidation. Candidate matrix: 5/5 PASS; canonical verifier: PASS.
 
-MTS-10 depends on MTS-08 lifecycle hardening plus MTS-09 independent-convergence evidence.
+## MTS-11 objective
+
+Validate the integrated behavior under actual browser scheduling semantics and turn stale-work cancellation latency into an observed gate. Measure hint-to-authoritative-cancel latency, poll-only fallback latency, multi-tab behavior with BroadcastChannel enabled/disabled, and prepare the physical-device iPad validation step.
+
+MTS-11 starts validation-first with no new runtime authority.
