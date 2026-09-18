@@ -1,0 +1,18 @@
+{
+  "schema": "FAE_PQ12_LIGHT_PHYSICAL_DEVICE_TEST_V1",
+  "status": "READY_FOR_USER_RUN",
+  "purpose": "Optional light physical-device evidence for the post-quantum shadow research path.",
+  "intensity": "LIGHT",
+  "parameter_sets": ["ML-DSA-44","ML-DSA-65","ML-DSA-87"],
+  "slh_dsa": false,
+  "warmup_per_set": 1,
+  "measured_repetitions_per_operation": 3,
+  "operations": ["keygen","sign","verify"],
+  "browser_only": true,
+  "fae_rpc_used": false,
+  "backend_used": false,
+  "persistent_storage_used": false,
+  "real_wallet_material_used": false,
+  "private_material_exported": false,
+  "activation_authorized": false
+}
