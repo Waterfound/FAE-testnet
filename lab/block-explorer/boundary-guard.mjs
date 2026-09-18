@@ -13,13 +13,21 @@ const activation=await read('sovereign-forge/node/authoritative/pplns-activation
 
 function assert(condition,message){if(!condition)throw new Error(message)}
 
-assert(authority.current_frontier==='BE-01','wrong frontier');
+assert(['BE-01','BE-02'].includes(authority.current_frontier),'wrong frontier');
+const be02=authority.current_frontier==='BE-02';
 for(const key of [
-  'current_stage_runtime_write_authorized','node_query_surface_write_authorized','wallet_write_authorized',
-  'consensus_change_authorized','monetary_policy_change_authorized','private_key_or_seed_access_authorized',
-  'transaction_signing_authorized','transaction_submission_authorized','mining_authority_authorized',
-  'chain_selection_authority_authorized'
+  'wallet_write_authorized','consensus_change_authorized','monetary_policy_change_authorized',
+  'private_key_or_seed_access_authorized','transaction_signing_authorized','transaction_submission_authorized',
+  'mining_authority_authorized','chain_selection_authority_authorized'
 ]) assert(authority[key]===false,key+' must be false');
+if(be02){
+  assert(authority.current_stage_runtime_write_authorized===true,'BE-02 bounded runtime write must be explicit');
+  assert(authority.node_query_surface_write_authorized===true,'BE-02 query-surface write must be explicit');
+  assert(authority.be02_authority?.state==='AUTHORIZED_BOUNDED','BE-02 authority state mismatch');
+}else{
+  assert(authority.current_stage_runtime_write_authorized===false,'BE-01 runtime write must be false');
+  assert(authority.node_query_surface_write_authorized===false,'BE-01 node query write must be false');
+}
 
 assert(model.active_network.network==='fairyelf-public-testnet-v4','wrong network');
 assert(model.active_network.target_seconds===180,'wrong active target');
@@ -46,9 +54,18 @@ assert(authority.canonical_data_policy.optional_indexer_state==='DERIVED_DISPOSA
 const forbidden=/\b(private[_ -]?key|seed[_ -]?phrase)\b/i;
 assert(!forbidden.test(JSON.stringify(model)),'read model contains private secret material');
 
-const changed=execFileSync('git',['diff','--name-only',authority.source_revision+'..HEAD'],{encoding:'utf8'})
+const diffBase=be02?authority.frontier_source_revision:authority.source_revision;
+const changed=execFileSync('git',['diff','--name-only',diffBase+'..HEAD'],{encoding:'utf8'})
   .trim().split(/\r?\n/).filter(Boolean);
-const allowed=authority.allowed_write_prefixes;
-for(const path of changed)assert(allowed.some(prefix=>path===prefix||path.startsWith(prefix)), 'unauthorized BE-01 path: '+path);
+if(be02){
+  const scopes=authority.be02_authority?.allowed_write_scopes||[];
+  for(const path of changed){
+    const allowed=scopes.some(scope=>scope.path===path||(scope.prefix&&path.startsWith(scope.prefix)));
+    assert(allowed,'unauthorized BE-02 path: '+path);
+  }
+}else{
+  const allowed=authority.allowed_write_prefixes;
+  for(const path of changed)assert(allowed.some(prefix=>path===prefix||path.startsWith(prefix)), 'unauthorized BE-01 path: '+path);
+}
 
-console.log(JSON.stringify({ok:true,frontier:'BE-01',changed_paths:changed.length,network:model.active_network.network}));
+console.log(JSON.stringify({ok:true,frontier:authority.current_frontier,changed_paths:changed.length,network:model.active_network.network}));
