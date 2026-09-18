@@ -66,3 +66,6 @@ jobs:
 
       - name: MTS-10 BroadcastChannel optimization baseline
         run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-baseline.test.mjs
+
+      - name: MTS-10 BroadcastChannel candidate adversarial matrix
+        run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-candidate.test.mjs
