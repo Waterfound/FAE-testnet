@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 
 const contract=JSON.parse(await readFile(new URL('../docs/security/FAE_PSR18_SECURITY_VERDICT_CONTRACT_V1.json',import.meta.url),'utf8'));
 const result=JSON.parse(await readFile(new URL('../docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json',import.meta.url),'utf8'));
+const expected=JSON.parse(await readFile(new URL('../docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json',import.meta.url),'utf8'));
 const workflow=await readFile(new URL('../.github/workflows/psr18-security-verdict.yml',import.meta.url),'utf8');
 
 test('PSR-18 has exactly three fail-closed verdicts in required priority order',()=>{
@@ -17,6 +18,13 @@ test('PSR-18 has exactly three fail-closed verdicts in required priority order',
   assert.match(contract.decision_order[2],/BASELINE_READY_FOR_RECURRING_ASSURANCE/);
   assert.equal(contract.authority.mainnet_authority,false);
   assert.equal(contract.authority.release_authority,false);
+});
+
+test('Committed PSR-18 verdict is allowed and authority-free',()=>{
+  assert.ok(contract.allowed_verdicts.includes(expected.verdict));
+  assert.equal(expected.verdict,'BASELINE_READY_FOR_RECURRING_ASSURANCE');
+  assert.equal(expected.binding,'EXACT_PR_HEAD_AT_EXECUTION');
+  assert.equal(expected.authority.mainnet_authority,false);
 });
 
 test('PSR-17 integrated evidence is complete and authority-free',()=>{
