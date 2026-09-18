@@ -11,6 +11,7 @@ const MAX_EQUIVOCATION_BACKOFF_MS=30*60_000;
 const DIRECT_TIP_OBSERVER_INTERVAL_MS=2000;
 let directTipObserverTimer=null;
 let directTipObserverToken=0;
+let activeDirectTipObserver=null;
 let powGeneration=0;
 
 function normalizeCoordinatorUrl(value){
@@ -80,26 +81,58 @@ function clearDirectTipObserver(token=null){
 function startDirectTipObserver(header){
   clearDirectTipObserver();
   const token=directTipObserverToken;
-  let invalidated=false;
-  const poll=async()=>{
-    if(token!==directTipObserverToken)return;
+  let invalidationReason=null,observer=null;
+  const invalidate=reason=>{
+    if(token!==directTipObserverToken)return false;
+    invalidationReason=reason;
+    if(activeDirectTipObserver===observer)activeDirectTipObserver=null;
+    clearDirectTipObserver(token);
+    stopWorker(reason);
+    return true;
+  };
+  const revalidate=async({failClosed=false}={})=>{
+    if(token!==directTipObserverToken)return'superseded';
     try{
       const status=await api('/status'),state=directWorkTipState(header,status);
-      if(token!==directTipObserverToken)return;
-      if(state==='stale'){
-        invalidated=true;
-        clearDirectTipObserver(token);
-        stopWorker('TIP_INVALIDATED');
-        return;
-      }
-    }catch{}
-    if(token===directTipObserverToken)directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
+      if(token!==directTipObserverToken)return'superseded';
+      if(state==='stale'){invalidate('TIP_INVALIDATED');return'stale'}
+      if(state==='current')return'current';
+      if(failClosed)invalidate('TIP_FRESHNESS_UNKNOWN');
+      return'unknown';
+    }catch{
+      if(token!==directTipObserverToken)return'superseded';
+      if(failClosed)invalidate('TIP_FRESHNESS_UNKNOWN');
+      return'unknown';
+    }
+  };
+  const poll=async()=>{
+    const state=await revalidate();
+    if(token!==directTipObserverToken||state==='stale'||state==='superseded')return;
+    directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
   };
   directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
-  return Object.freeze({
-    stop:()=>clearDirectTipObserver(token),
-    invalidated:()=>invalidated
+  observer=Object.freeze({
+    stop:()=>{if(activeDirectTipObserver===observer)activeDirectTipObserver=null;clearDirectTipObserver(token)},
+    invalidated:()=>invalidationReason!==null,
+    failureReason:()=>invalidationReason,
+    revalidate
   });
+  activeDirectTipObserver=observer;
+  return observer;
+}
+
+function revalidateDirectWorkOnLifecycle(){
+  const observer=activeDirectTipObserver;
+  if(!observer)return;
+  observer.revalidate({failClosed:true}).catch(()=>{});
+}
+if(typeof document!=='undefined'&&typeof document.addEventListener==='function'){
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'||document.hidden===false)revalidateDirectWorkOnLifecycle();
+  });
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
+  window.addEventListener('pageshow',()=>revalidateDirectWorkOnLifecycle());
 }
 
 async function assertDirectWorkFresh(header){
@@ -247,9 +280,9 @@ async function mineDirectIteration(rewardAddress,{fallbackFailures=0}={}){
   const template=await api('/template?address='+encodeURIComponent(rewardAddress)),tipObserver=startDirectTipObserver(template.header);
   try{
     const pow=await localPow(template.header,Number(template.header.difficulty_bits),'block');
-    if(tipObserver.invalidated())throw Error('TIP_INVALIDATED');
+    if(tipObserver.invalidated())throw Error(tipObserver.failureReason()||'TIP_INVALIDATED');
     await assertDirectWorkFresh(template.header);
-    if(tipObserver.invalidated())throw Error('TIP_INVALIDATED');
+    if(tipObserver.invalidated())throw Error(tipObserver.failureReason()||'TIP_INVALIDATED');
     const submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
     if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
     const accepted=await api('/submit-block',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(submission)});
