@@ -44,7 +44,7 @@ jobs:
           NODE_OPTIONS: --conditions=browser
         run: node lab/post-quantum-signatures/wave-g/pq09/browser-smoke.mjs | tee lab/post-quantum-signatures/evidence/wave-g/pq09-browser.json
       - name: Upload PQ-09 evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pq09-resource-economics
           path: lab/post-quantum-signatures/evidence/wave-g/pq09-*.json

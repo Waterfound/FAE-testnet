@@ -111,7 +111,7 @@ jobs:
           ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
 
       - name: Preserve reproducibility evidence artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-release-candidate-reproducibility-e-v2
           path: |
