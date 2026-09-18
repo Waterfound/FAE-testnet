@@ -253,3 +253,16 @@ Project Assurance method: `Waterfound/Red-Team@095a9c2eb5b2b3bdec0132238120583ef
 PSR-15 is rebound to current main after eight MTS-12 Safari-acceptance commits. The campaign now contains 17 attacks; WB-17 checks the MTS-12 preflight/privacy/authority boundary but explicitly does not synthesize physical iPad evidence.
 
 GREEN still requires dedicated campaign, canonical and cross-Lab SUCCESS on the exact PR HEAD plus anti-stale integration.
+
+
+## Frontier execution — PSR-16
+
+Execution date: 2026-09-18  
+Bound source: `9c00d6409ad96f8158270bb0b087f5849c7bffce`  
+Branch: `colony/fae-public-code-security-psr16`
+
+PSR-15 is normalized to GREEN from merged PR #190, Project Assurance #1, canonical #563 and cross-Lab #21. The campaign executed 17/17 attacks successfully with zero admitted findings, target unchanged and authority NONE.
+
+PSR-16 therefore uses a zero-finding closure model: no synthetic fix or risk acceptance is created. All 17 attack cases are promoted as permanent executable regressions, and the dedicated PSR-16 workflow reruns PSR-15 on the exact closure candidate before accepting zero findings.
+
+PSR-16 becomes GREEN only after static closure verification, dynamic zero-finding rerun, canonical/cross-Lab SUCCESS and exact-source integration. On GREEN, PSR-17 becomes READY.
