@@ -1,0 +1,56 @@
+{
+  "schema": "FAE_MTS_12_PHYSICAL_ATTEMPT_003_SUMMARY_V1",
+  "status": "TIP_GATE_PASS_RESUME_METRIC_INVALID_FOR_RUNTIME_VERDICT",
+  "source_artifact": {
+    "schema": "FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V2",
+    "sha256": "0684b529fc38eec3c75f06653dcb9dd88ebf338811f8dc929fb375fa34bb97be",
+    "bytes": 53153
+  },
+  "tip_gate": {
+    "result": "PASS",
+    "baseline_height": 457,
+    "target_height": 458,
+    "a_ms": 2445.000244140625,
+    "b_ms": 1950,
+    "gate_ms": 3500,
+    "stale_responses": 0,
+    "known_mismatch_submissions": 0,
+    "race_lost_409_responses": 0,
+    "unclassified_stale_responses": 0,
+    "manual_restart_used": false
+  },
+  "background_foreground": {
+    "background_duration_ms": 152677,
+    "chain_advanced": false,
+    "tip_height": 458,
+    "v2_a_response_ms": 1860,
+    "v2_b_response_ms": 2000,
+    "v2_gate_ms": 1500,
+    "v2_result": "FAIL",
+    "validity": "NOT_A_RUNTIME_CORRECTNESS_VERDICT"
+  },
+  "diagnosis": {
+    "issue": "V2 measured the completion of a Lab-issued resume_probe fetch from hidden child tabs after the controller returned to foreground.",
+    "consequence": "The result combines local scheduling with WAN RTT and does not directly measure the production miner lifecycle hook.",
+    "miner_defect_proven": false,
+    "miner_write_authorized": false
+  },
+  "v3_metric": {
+    "gate_ms": 1500,
+    "metric": "real Miner A foreground event -> authoritative /status request start",
+    "network_rtt": "recorded separately, informational",
+    "lifecycle": [
+      "visibilitychange:visible",
+      "pageshow"
+    ],
+    "required_sequence": [
+      "tip gate PASS",
+      "arm resume",
+      "switch to Miner A",
+      "background Safari",
+      "return directly to Miner A",
+      "return to controller",
+      "export JSON"
+    ]
+  }
+}
