@@ -82,6 +82,25 @@ test('MTS-12 records submit start before classifying a stale response',()=>{
   assert.equal(page.includes("Race-lost 409 responses"),true);
 });
 
+test('MTS-12 lifecycle gate measures local revalidation start, not WAN completion',()=>{
+  assert.equal(page.includes("foreground_event_to_authoritative_status_request_start"),true);
+  assert.equal(page.includes("resume_revalidation_started"),true);
+  assert.equal(page.includes("resume_revalidation_result"),true);
+  assert.equal(page.includes("network_response_ms"),true);
+  assert.equal(page.includes("resume_probe"),false);
+  assert.equal(page.includes("arm_resume_lifecycle"),true);
+  assert.equal(page.includes("document.addEventListener('visibilitychange'"),true);
+  assert.equal(page.includes("window.addEventListener('pageshow'"),true);
+});
+
+test('MTS-12 background flow exercises real Miner A foreground lifecycle after tip PASS',()=>{
+  assert.equal(page.includes("Waiting · real-tip gate must PASS first"),true);
+  assert.equal(page.includes("switch to Miner A first"),true);
+  assert.equal(page.includes("background Safari for 30–60 seconds"),true);
+  assert.equal(page.includes("resumeTargetRole:'a'"),true);
+  assert.equal(page.includes("FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V3"),true);
+});
+
 test('MTS-12 runner is local-only and does not add telemetry or secret collection',()=>{
   assert.doesNotMatch(page,/sendBeacon\s*\(/);
   assert.doesNotMatch(page,/XMLHttpRequest\s*\(/);
