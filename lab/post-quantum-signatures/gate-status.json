@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_PQ_SIGNATURE_LAB_GATE_STATUS_V1",
+  "recorded_at": "2026-09-18",
+  "fae_bootstrap_revision": "aab16f58cec310781034b240c8321e533e45ca31",
+  "gates": {
+    "PQ-00": {
+      "name": "Boundary Freeze",
+      "status": "GREEN",
+      "evidence": {
+        "final_replay_run_id": 35342473473,
+        "boundary_guard": "PASS",
+        "canonical_source_run_id": 35342473456,
+        "canonical_source": "PASS"
+      },
+      "meaning": "The Lab is structurally shadow-only; active runtime has no dependency on Lab code and active FAE verification remained green."
+    },
+    "PQ-01": {
+      "name": "Standards and Evidence Pinning",
+      "status": "GREEN",
+      "evidence": {
+        "observation_run_id": 35342357516,
+        "frozen_replay_run_id": 35342473473,
+        "resources_sha256_matching": "21/21",
+        "acvp_git_blob_matching": "18/18",
+        "sha256_drift": 0,
+        "git_blob_mismatch": 0,
+        "acvp_commit": "975de31eb83d87039ec88934fdc47d8c312b892d",
+        "frozen_manifest": "lab/post-quantum-signatures/standards/sources.json",
+        "observation_evidence": "lab/post-quantum-signatures/standards/freeze-evidence.json"
+      },
+      "meaning": "The normative standards/errata and pinned NIST ACVP baseline can be reacquired byte-for-byte under the frozen manifest."
+    },
+    "PQ-02": {
+      "name": "Implementation Independence Selection",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY"
+    }
+  },
+  "active_frontier": "PQ-02",
+  "activation_authorized": false
+}
