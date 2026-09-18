@@ -107,3 +107,33 @@ jobs:
           path: /tmp/mts-11-browser-evidence.json
           if-no-files-found: ignore
           retention-days: 30
+
+
+  mts-12-pages-preview:
+    if: github.ref == 'refs/heads/colony/mts-12-srcdoc-host-fix'
+    runs-on: ubuntu-latest
+    needs: [mts-00-01, mts-11-real-browser]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload exact repository snapshot
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy MTS-12 temporary Pages snapshot
+        id: deployment
+        uses: actions/deploy-pages@v4
