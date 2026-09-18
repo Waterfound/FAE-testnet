@@ -219,3 +219,18 @@ The first PSR-11 candidate was prepared against `930d757f7a286eb83be637d32197342
 PSR-10 is normalized to GREEN based on integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical run #465 SUCCESS and current-main replay run #476 SUCCESS.
 
 PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this rebound candidate integrates.
+
+
+## Frontier execution — PSR-12 || PSR-14
+
+Execution date: 2026-09-18  
+Bound source: `b4925310c8241f9f15d07f00225c44c9df17c05b`  
+Branch: `colony/fae-public-code-security-psr12-14`
+
+PSR-12 adds weekly Dependabot coverage for GitHub Actions, npm and Docker; a CodeQL JavaScript/TypeScript workflow; and an executable public-repo hygiene guard in canonical verification. The guard reviews workflow permissions, forbids unreviewed writes, `write-all`, `pull_request_target`, floating action refs and direct `secrets.*` references, and scans for selected high-signal secret classes.
+
+Three pre-existing WAN workflows retain narrowly reviewed `issues: write`; CodeQL alone receives `security-events: write`. All other workflows remain read-only under the guard.
+
+PSR-14 selects Apache-2.0 and commits the root `LICENSE`. The protected Sovereign Forge snapshot remains byte-identical; no package metadata inside that snapshot was changed solely for licensing.
+
+PSR-12 becomes GREEN only after both canonical verification and CodeQL succeed on the exact candidate and it integrates. PSR-14 becomes GREEN after canonical verification and integration. On PSR-12 GREEN, PSR-13 becomes READY.
