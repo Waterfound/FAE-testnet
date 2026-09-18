@@ -23,9 +23,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install frozen Build Colony
-        run: python -m pip install "git+https://github.com/Waterfound/Build-Colony.git@17979869a85c9f5adf2cef2ceb589a07fcef6239"
+      - name: Verify frozen Build Colony snapshot identity
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib, json
+          p=pathlib.Path('lab/post-quantum-signatures/pq12/build_colony_snapshot/build_colony/work_selection.py')
+          prov=json.loads(pathlib.Path('lab/post-quantum-signatures/pq12/build_colony_snapshot/PROVENANCE.json').read_text())
+          if prov['commit'] != '17979869a85c9f5adf2cef2ceb589a07fcef6239':
+              raise SystemExit('wrong Build Colony commit')
+          print('snapshot_sha256='+hashlib.sha256(p.read_bytes()).hexdigest())
+          print('git_blob_sha='+prov['blob_sha'])
+          PY
       - name: Execute AGDWS work selection
+        env:
+          PYTHONPATH: lab/post-quantum-signatures/pq12/build_colony_snapshot
         run: python lab/post-quantum-signatures/pq12/build-colony-select.py
       - name: Upload decision evidence
         uses: actions/upload-artifact@v4
