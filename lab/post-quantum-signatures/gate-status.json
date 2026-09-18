@@ -32,10 +32,33 @@
     },
     "PQ-02": {
       "name": "Implementation Independence Selection",
+      "status": "GREEN",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "evidence": {
+        "admitted_run_id": 35343551855,
+        "canonical_run_id": 35343551933,
+        "artifact_id": 10546531169,
+        "independent_anchor_pair": [
+          "noble-js",
+          "cloudflare-circl"
+        ],
+        "tertiary_cross_runtime": "node-crypto",
+        "all_probes": "PASS",
+        "tamper_rejection": "PASS"
+      },
+      "meaning": "Two meaningfully distinct implementation paths are selected and executable under pinned provenance; Node provides a third runtime check. This authorizes primitive correctness research only, not activation."
+    },
+    "PQ-03": {
+      "name": "ML-DSA Primitive Correctness",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY"
+    },
+    "PQ-04": {
+      "name": "SLH-DSA Diversity Study",
       "status": "READY",
       "authority": "RESEARCH_SHADOW_ONLY"
     }
   },
-  "active_frontier": "PQ-02",
+  "active_frontier": "PQ-03+PQ-04",
   "activation_authorized": false
 }
