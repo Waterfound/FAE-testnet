@@ -253,3 +253,14 @@ Project Assurance method: `Waterfound/Red-Team@095a9c2eb5b2b3bdec0132238120583ef
 PSR-15 is rebound to current main after eight MTS-12 Safari-acceptance commits. The campaign now contains 17 attacks; WB-17 checks the MTS-12 preflight/privacy/authority boundary but explicitly does not synthesize physical iPad evidence.
 
 GREEN still requires dedicated campaign, canonical and cross-Lab SUCCESS on the exact PR HEAD plus anti-stale integration.
+
+
+## Frontier execution — PSR-16 (rebound revision 3)
+
+Execution date: 2026-09-18  
+Bound source: `a9ae1980206c8b0d73cd391c4a970b76b70336e0`  
+Branch: `colony/fae-public-code-security-psr16-r3`
+
+The revision-2 PSR-16 candidate passed closure #2, PSR-15 #6, canonical #572, cross-Lab #30 and CodeQL #53, but main advanced before merge with Git-host independence/repository-recovery proof. Because this changes the supply-chain/repository surface exercised by WB-11, those successes remain evidence history only.
+
+Revision 3 must reproduce zero findings and all 17 promoted regressions on the latest integrated tree before PSR-16 can become GREEN.
