@@ -124,7 +124,7 @@ test('PSR-06 transaction admission rejects duplicate inputs, overspend and repla
 test('PSR-06 browser recovery rejects mismatched address and public-key claims using ephemeral keys',async()=>{
   const elements=new Map();
   const context={
-    window:null,document:{getElementById(id){if(!elements.has(id))elements.set(id,{dataset:{},lastElementChild:null,querySelector(){return null}});return elements.get(id)}},
+    window:null,document:{getElementById(id){if(!elements.has(id))elements.set(id,{dataset:{},lastElementChild:null,hidden:false,tabIndex:0,addEventListener(){},setAttribute(){},focus(){},querySelector(){return null}});return elements.get(id)}},
     crypto:webcrypto,TextEncoder,TextDecoder,Uint8Array,Array,Map,Set,BigInt,Error,String,Number,Object,JSON,Date,Math,Promise,console,atob,btoa,
     fetch:async()=>new Response('{}',{status:200}),Response
   };
@@ -237,7 +237,7 @@ test('PSR-09 browser address and amount parsers reject hostile boundary inputs',
   const elements=new Map();
   let mode='ok';
   const context={
-    window:null,document:{getElementById(id){if(!elements.has(id))elements.set(id,{dataset:{},lastElementChild:null,querySelector(){return null}});return elements.get(id)}},
+    window:null,document:{getElementById(id){if(!elements.has(id))elements.set(id,{dataset:{},lastElementChild:null,hidden:false,tabIndex:0,addEventListener(){},setAttribute(){},focus(){},querySelector(){return null}});return elements.get(id)}},
     crypto:webcrypto,TextEncoder,TextDecoder,Uint8Array,Array,Map,Set,BigInt,Error,String,Number,Object,JSON,Date,Math,Promise,console,atob,btoa,Response,
     fetch:async()=>{
       if(mode==='error')return new Response(JSON.stringify({error:'hostile-backend-error'}),{status:400,headers:{'content-type':'application/json'}});
