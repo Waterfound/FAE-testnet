@@ -8,5 +8,7 @@
   ],
   "purpose": "Trigger the frozen Wave D primitive-correctness executor against the integrated main state.",
   "authority": "RESEARCH_SHADOW_ONLY",
-  "activation_authorized": false
+  "activation_authorized": false,
+  "pr_synchronize_probe": 2,
+  "note": "Second execution-only revision emitted after PR creation so the pull_request-triggered Wave D run is directly observable through the connected GitHub evidence interface."
 }
