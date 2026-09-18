@@ -264,3 +264,18 @@ Branch: `colony/fae-public-code-security-psr16-r3`
 The revision-2 PSR-16 candidate passed closure #2, PSR-15 #6, canonical #572, cross-Lab #30 and CodeQL #53, but main advanced before merge with Git-host independence/repository-recovery proof. Because this changes the supply-chain/repository surface exercised by WB-11, those successes remain evidence history only.
 
 Revision 3 must reproduce zero findings and all 17 promoted regressions on the latest integrated tree before PSR-16 can become GREEN.
+
+
+## Frontier execution — PSR-17
+
+Execution date: 2026-09-18  
+Bound source: `6c0e6f84105d0670b6e41c866e58029ff2580cfa`  
+Branch: `colony/fae-public-code-security-psr17`
+
+PSR-15 and PSR-16 are normalized to GREEN from the integrated zero-finding closure state: PSR-16 #3, PSR-15 #7, canonical #574, cross-Lab #32 and CodeQL #55 all succeeded on the exact candidate that merged as `6c0e6f84105d0670b6e41c866e58029ff2580cfa`.
+
+PSR-17 adds a single serial full-security replay. It reruns the 17-case white-box campaign, validates PSR-16 against the fresh report, replays the independent Git oracle, rebuilds two detached clean-room source releases for byte comparison, and rebuilds all protected container variants from the immutable base-image digest.
+
+Selective retry is forbidden. Each replay component has one attempt; the dedicated workflow sets `cancel-in-progress: false` and contains no `continue-on-error`.
+
+PSR-17 becomes GREEN only after the dedicated replay, canonical verification, cross-Lab integration and CodeQL all succeed on the same exact candidate and that candidate integrates. On GREEN, PSR-18 becomes READY.
