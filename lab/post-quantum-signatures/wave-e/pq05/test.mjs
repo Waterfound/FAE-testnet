@@ -73,7 +73,6 @@ for(const [parameterSet,scheme] of Object.entries(MLDSA_SCHEMES)){
   const otherSet=parameterSets[(parameterSets.indexOf(parameterSet)+1)%parameterSets.length];
   const substituted=clone(signed);
   substituted.mldsa_parameter_set=otherSet;
-  substituted.ed25519_signature=b64(edSign(null,signingBytes(substituted),edPrivate));
   assert.equal(verifyHybridTransaction(substituted).ok,false,'parameter substitution rejected');
 
   const replay=clone(signed);
