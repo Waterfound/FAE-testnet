@@ -57,7 +57,7 @@ async function makeHarness(){
   const NETWORK='fairyelf-public-testnet-v4';
   const rewardAddress='faet1mts0406labonly';
   const A='a'.repeat(64),B='b'.repeat(64),C='c'.repeat(64);
-  let height=100,tipHash=A;
+  let height=100,tipHash=A,failNextStatus=false;
   const templateRequests=[],submitRequests=[],statusRequests=[];
 
   class FakeWorker{
@@ -73,6 +73,7 @@ async function makeHarness(){
     const text=String(url),path=text.includes('fae-public-testnet-v4')?text.split('fae-public-testnet-v4')[1]:text;
     if(path.startsWith('/status')){
       statusRequests.push({height,tip_hash:tipHash});
+      if(failNextStatus){failNextStatus=false;throw new Error('simulated status outage')}
       return response({ok:true,node_version:5,network:NETWORK,height,tip_hash:tipHash,difficulty_bits:17,target_seconds:180,issued_atoms:'0',issued_fae:'0',max_supply_fae:'12000000',halving_era_blocks:600000});
     }
     if(path.startsWith('/state'))return response({ok:true,height,tip_hash:tipHash,recent:[]});
@@ -123,6 +124,7 @@ async function makeHarness(){
   return{
     context,timers,FakeWorker,templateRequests,submitRequests,statusRequests,A,B,C,rewardAddress,
     setTip(nextHeight,nextHash){height=nextHeight;tipHash=nextHash},
+    failNextStatus(){failNextStatus=true},
     getTip(){return{height,tipHash}}
   };
 }
@@ -206,4 +208,73 @@ test('MTS-06 harness is deterministic and uses no real Proof of Work',async()=>{
   await assert.rejects(iteration,/STOP/);
 });
 
-console.log('MTS-04 direct cancellation and MTS-06 deterministic harness tests passed.');
+console.log('MTS-04 direct cancellation, MTS-05 race/freshness and MTS-06 deterministic harness tests passed.');
+
+
+test('MTS-05 late callback from invalidated generation cannot affect replacement Worker',async()=>{
+  const h=await makeHarness();
+  const firstIteration=vm.runInContext('mineDirectIteration(wallet.address)',h.context);
+  await waitWorkers(h,1);
+  const first=h.FakeWorker.instances[0];
+
+  h.setTip(101,h.B);
+  await h.timers.runNext();
+  await assert.rejects(firstIteration,/TIP_INVALIDATED/);
+  assert.equal(first.terminated,true);
+
+  const secondIteration=vm.runInContext('mineDirectIteration(wallet.address)',h.context);
+  await waitWorkers(h,2);
+  const second=h.FakeWorker.instances[1];
+  assert.equal(second.messages[0].header.previous_hash,h.B);
+
+  first.emit({nonce:999,hash:'0'.repeat(64),attempts:999});
+  await flush();
+
+  assert.equal(second.terminated,false);
+  assert.equal(h.submitRequests.length,0);
+  vm.runInContext("stopWorker('STOP')",h.context);
+  await assert.rejects(secondIteration,/STOP/);
+});
+
+test('MTS-05 freshness barrier rejects tip advance after nonce but before submit',async()=>{
+  const h=await makeHarness();
+  const iteration=vm.runInContext('mineDirectIteration(wallet.address)',h.context);
+  await waitWorkers(h,1);
+  const worker=h.FakeWorker.instances[0];
+
+  worker.emit({nonce:11,hash:'0'.repeat(64),attempts:11});
+  h.setTip(101,h.B);
+
+  await assert.rejects(iteration,/TIP_INVALIDATED/);
+  assert.equal(h.submitRequests.length,0);
+  assert.ok(h.statusRequests.some(x=>x.height===101&&x.tip_hash===h.B));
+});
+
+test('MTS-05 freshness barrier fails closed when authoritative status is unavailable',async()=>{
+  const h=await makeHarness();
+  const iteration=vm.runInContext('mineDirectIteration(wallet.address)',h.context);
+  await waitWorkers(h,1);
+  const worker=h.FakeWorker.instances[0];
+
+  worker.emit({nonce:12,hash:'0'.repeat(64),attempts:12});
+  h.failNextStatus();
+
+  await assert.rejects(iteration,/TIP_FRESHNESS_UNKNOWN/);
+  assert.equal(h.submitRequests.length,0);
+});
+
+test('MTS-05 current authoritative tip permits exactly one direct submission',async()=>{
+  const h=await makeHarness();
+  const iteration=vm.runInContext('mineDirectIteration(wallet.address)',h.context);
+  await waitWorkers(h,1);
+  const worker=h.FakeWorker.instances[0];
+
+  worker.emit({nonce:13,hash:'0'.repeat(64),attempts:13});
+  const result=await iteration;
+
+  assert.equal(result.mode,'direct');
+  assert.equal(h.submitRequests.length,1);
+  assert.equal(h.submitRequests[0].header.height,101);
+  assert.equal(h.submitRequests[0].header.previous_hash,h.A);
+  assert.ok(h.statusRequests.some(x=>x.height===100&&x.tip_hash===h.A));
+});
