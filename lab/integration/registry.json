@@ -148,7 +148,10 @@
         "lab/block-explorer/gate-status.json",
         "lab/block-explorer/README.md",
         "lab/block-explorer/combined-guard.mjs",
-        "lab/block-explorer/tests/be-01-contract.test.mjs"
+        "lab/block-explorer/tests/be-01-contract.test.mjs",
+        "sovereign-forge/node/fae-node.mjs",
+        "sovereign-forge/node/explorer-read.mjs",
+        "FAE_FORGE_MAIN.sha256"
       ],
       "combined_checks": [
         [
@@ -159,9 +162,14 @@
           "node",
           "--test",
           "lab/block-explorer/tests/be-01-contract.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-02-query-surface.test.mjs"
         ]
       ],
-      "note": "BE-01 freezes the read-only Explorer authority/read-model contract. Combined-main checks live-network constant separation, no mutation authority, reward-event completeness, digest-search ambiguity, and derived-disposable index semantics. It grants no node-query runtime, consensus, economics, wallet, mining, deployment, or mainnet authority."
+      "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface. Combined-main rechecks authority isolation, source presence, BE-01 contract, BE-02 deterministic/HTTP behavior, exact Forge integrity, and no Explorer mutation/consensus authority."
     }
   ]
 }
