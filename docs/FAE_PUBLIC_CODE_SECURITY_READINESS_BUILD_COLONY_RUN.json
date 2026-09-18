@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "GREEN_ON_SUCCESSFUL_FULL_REPLAY_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -295,7 +295,7 @@
     {
       "id": "PSR-18",
       "name": "Public-Code Security Baseline Verdict",
-      "state": "READY_ON_SUCCESSFUL_PSR17_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_VERDICT_PSR17_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-17"
       ],
@@ -304,7 +304,7 @@
     {
       "id": "PSR-19",
       "name": "Bounded Project Closeout and Recurring Assurance Handoff",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR18_INTEGRATION",
       "depends_on": [
         "PSR-18"
       ],
@@ -802,6 +802,61 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-18"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-18",
+      "run_kind": "REAL_EXECUTION_REBOUND",
+      "execution_date": "2026-09-18",
+      "source_revision": "ed7d6381fa321847694a0078a7e92a163ecb05b8",
+      "branch": "colony/fae-public-code-security-psr18-r2",
+      "executor_attached": true,
+      "rebinding": {
+        "previous_source_revision": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+        "intervening_commits": 3,
+        "reviewed_scope": [
+          ".github/workflows/pq-lab-wave-i-pq11.yml",
+          "lab/post-quantum-signatures/wave-i/evaluate.mjs"
+        ],
+        "authority_note": "PQ-11 is shadow-only; activation remains unauthorized. Workflow is contents:read with no secrets.* and no pull_request_target.",
+        "stale_candidate": {
+          "pr": 208,
+          "head": "7be10b2289d86770bcd1e264e4ebaf859207ecc8",
+          "result": "NOT_USED_AFTER_MAIN_ADVANCED"
+        }
+      },
+      "prerequisite_normalization": {
+        "PSR_17": "GREEN",
+        "integration_commit": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+        "pr": 202,
+        "runs": {
+          "psr17": 1,
+          "canonical": 581,
+          "cross_lab": 39,
+          "codeql": 62,
+          "psr15": 11,
+          "psr16": 7
+        },
+        "replay": {
+          "planned": 17,
+          "passed": 17,
+          "failed": 0,
+          "target_unchanged": true,
+          "retry_violation": false
+        }
+      },
+      "expected_verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+      "evidence_binding": {
+        "dedicated_psr18_workflow": "required on rebound",
+        "psr17_full_replay": "required on rebound",
+        "canonical_verification": "required on rebound",
+        "cross_lab_integration": "required on rebound",
+        "codeql": "required signal on rebound",
+        "exact_source_binding": "required before merge",
+        "mainnet_authority": false,
+        "downstream_on_green": [
+          "PSR-19"
         ]
       }
     }
