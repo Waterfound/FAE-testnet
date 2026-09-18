@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 
@@ -59,6 +60,20 @@ if(manifest.cross_tab_policy?.is_chain_authority!==false)fail('cross-tab signali
 if(manifest.snapshot_semantics?.mempool_only_change_invalidates_work!==false)fail('snapshot semantics must preserve mempool-only validity');
 if(manifest.snapshot_semantics?.chain_tip_change_invalidates_work!==true)fail('chain tip change must invalidate work');
 
+const frozenDelta=manifest.status==='MTS_08_GREEN'?manifest.completed_runtime_delta:null;
+const frozenDeltaPaths=new Set(Array.isArray(frozenDelta?.exact_paths)?frozenDelta.exact_paths:[]);
+if(frozenDelta){
+  const expected=frozenDelta.miner_sha256;
+  if(!/^[0-9a-f]{64}$/.test(String(expected||'')))fail('MTS-08 frozen miner SHA-256 is invalid');
+  const digest=async relative=>createHash('sha256').update(await readFile(path.join(root,relative))).digest('hex');
+  const rootMinerHash=await digest('mining.js');
+  const forgeMinerHash=await digest('sovereign-forge/browser/mining.js');
+  if(rootMinerHash!==expected)fail('completed MTS-08 root miner bytes differ from frozen SHA-256');
+  if(forgeMinerHash!==expected)fail('completed MTS-08 Forge miner bytes differ from frozen SHA-256');
+  const forgeManifest=await readFile(path.join(root,'FAE_FORGE_MAIN.sha256'),'utf8');
+  if(!forgeManifest.includes(expected+'  sovereign-forge/browser/mining.js'))fail('completed MTS-08 Forge manifest does not bind frozen miner SHA-256');
+}
+
 const activeFiles=['mining.js','core.js','wallet.js','wallet-crypto.js','network-status.js'];
 for(const relative of activeFiles){
   const text=await readFile(path.join(root,relative),'utf8');
@@ -80,9 +95,10 @@ if(baseIndex!==-1){
       fail(`unable to inspect git diff from ${base}: ${error.message}`);
     }
     for(const file of changed){
-      const allowed=manifest.current_stage_allowed_write_prefixes.some(prefix=>file.startsWith(prefix));
-      if(!allowed)fail(`changed path outside MTS-00/01 authority: ${file}`);
-      const exception=Array.isArray(manifest.current_stage_protected_path_exceptions)&&manifest.current_stage_protected_path_exceptions.includes(file);
+      const completedFrozenDelta=frozenDeltaPaths.has(file);
+      const allowed=completedFrozenDelta||manifest.current_stage_allowed_write_prefixes.some(prefix=>file.startsWith(prefix));
+      if(!allowed)fail(`changed path outside current MTS authority: ${file}`);
+      const exception=completedFrozenDelta||(Array.isArray(manifest.current_stage_protected_path_exceptions)&&manifest.current_stage_protected_path_exceptions.includes(file));
       const protectedHit=!exception&&manifest.current_stage_protected_paths.some(protectedPath=>
         protectedPath.endsWith('/')?file.startsWith(protectedPath):file===protectedPath
       );
