@@ -1,0 +1,52 @@
+name: psr15-project-assurance
+
+on:
+  pull_request:
+    paths:
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'tests/public-code-security-whitebox.mjs'
+      - 'scripts/psr15-project-assurance.mjs'
+      - 'docs/security/FAE_PSR15_*'
+      - '.github/workflows/psr15-project-assurance.yml'
+      - '.github/workflows/verify.yml'
+      - 'lab/integration/registry.json'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'tests/public-code-security-whitebox.mjs'
+      - 'scripts/psr15-project-assurance.mjs'
+      - 'docs/security/FAE_PSR15_*'
+      - '.github/workflows/psr15-project-assurance.yml'
+      - '.github/workflows/verify.yml'
+      - 'lab/integration/registry.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  white-box:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact campaign candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run evidence-bound white-box Project Assurance campaign
+        run: node scripts/psr15-project-assurance.mjs --out "$RUNNER_TEMP/psr15-project-assurance-report.json"
+
+      - name: Preserve PSR-15 campaign report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-psr15-project-assurance
+          path: ${{ runner.temp }}/psr15-project-assurance-report.json
+          if-no-files-found: error
+          retention-days: 14
