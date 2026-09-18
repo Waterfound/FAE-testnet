@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_05_GREEN",
+  "status": "MTS_07_STRESS_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -11,7 +11,7 @@
   "current_frontier": [
     "MTS-07"
   ],
-  "current_stage_active_miner_write_authorized": true,
+  "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -24,20 +24,19 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab",
-    "mining.js",
-    "sovereign-forge/browser/mining.js",
-    "FAE_FORGE_MAIN.sha256",
-    "tests/mining-coordinator-smoke.mjs"
+    ".github/workflows/mining-tip-sync-lab"
   ],
   "current_stage_protected_paths": [
+    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
     "network-status.js",
     "index.html",
+    "tests/",
     "supabase/",
-    "sovereign-forge/"
+    "sovereign-forge/",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "future_candidate_paths": [
     "mining.js",
@@ -159,9 +158,7 @@
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
   },
-  "current_stage_protected_path_exceptions": [
-    "sovereign-forge/browser/mining.js"
-  ],
+  "current_stage_protected_path_exceptions": [],
   "miner_mirror_authorization_basis": {
     "canonical_failure": {
       "workflow_run_id": 35344168583,
@@ -225,5 +222,11 @@
     "cause": "canonical smoke /status fixture omitted tip_hash even though production v4 /status already exposes it",
     "resolution": "align the exact smoke fixture with production height+tip_hash contract; retain fail-closed runtime behavior"
   },
-  "current_protected_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e"
+  "current_protected_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e",
+  "mts_07_authority": {
+    "phase": "STRESS_FIRST",
+    "runtime_write_authorized": false,
+    "purpose": "Attempt to break the integrated MTS-04/05 behavior under rapid tips, delayed scheduling/CPU-like callback pressure, and transient network failures before authorizing any new runtime patch.",
+    "runtime_patch_gate": "Only if deterministic MTS-07 evidence exposes a reproducible defect."
+  }
 }
