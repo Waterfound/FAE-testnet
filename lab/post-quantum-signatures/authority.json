@@ -1,0 +1,46 @@
+{
+  "schema": "FAE_PQ_SIGNATURE_LAB_AUTHORITY_V1",
+  "status": "BOUNDARY_FREEZE_CANDIDATE",
+  "created": "2026-09-18",
+  "project": "FAE",
+  "source_revision": "f3561ec8bf53d25c646f2f4c880af506cc1f5a65",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "authority_ceiling": "RESEARCH_SHADOW_CANDIDATE_WRITE",
+  "activation_authorized": false,
+  "consensus_change_authorized": false,
+  "transaction_v2_change_authorized": false,
+  "active_wallet_format_change_authorized": false,
+  "active_address_change_authorized": false,
+  "public_testnet_change_authorized": false,
+  "candidate_to_authoritative": false,
+  "mainnet_launch_authorized": false,
+  "independent_human_operator_required": false,
+  "method_independence_required": true,
+  "allowed_write_prefixes": [
+    "lab/post-quantum-signatures/",
+    "docs/FAE_POST_QUANTUM_SIGNATURE_LAB_",
+    ".github/workflows/pq-lab-"
+  ],
+  "protected_active_paths": [
+    "wallet-crypto.js",
+    "wallet.js",
+    "core.js",
+    "mining.js",
+    "network-status.js",
+    "supabase/",
+    "sovereign-forge/node/authoritative/",
+    "sovereign-forge/supabase/",
+    "sovereign-forge/protocol/",
+    "sovereign-forge/release/"
+  ],
+  "active_runtime_must_not_reference": [
+    "lab/post-quantum-signatures",
+    "FAE_PQ_SHADOW",
+    "FAE_POST_QUANTUM_SIGNATURE_LAB"
+  ],
+  "lab_may_read_active_reference_code": true,
+  "active_runtime_may_import_lab_code": false,
+  "deletion_invariant": "Removing lab/post-quantum-signatures and PQ-only docs/workflows must not change active FAE behavior, consensus, wallet derivation, address derivation, Transaction v2 validation, mining, or public-testnet authority.",
+  "private_material_policy": "Seed phrases, private keys, and reusable secret material must never be committed to the Lab or emitted as evidence.",
+  "failure_policy": "Fail closed on boundary ambiguity. A failing boundary guard blocks integration; it never authorizes widening the Lab scope."
+}

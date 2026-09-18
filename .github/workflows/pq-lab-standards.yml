@@ -1,0 +1,38 @@
+name: pq-lab-standards
+
+on:
+  push:
+    branches:
+      - colony/pq-00-pq-01-boundary-standards
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/**'
+      - '.github/workflows/pq-lab-standards.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-and-standards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PQ-00 boundary guard
+        run: node lab/post-quantum-signatures/boundary-guard.mjs --base f3561ec8bf53d25c646f2f4c880af506cc1f5a65
+      - name: PQ-01 observe or verify pinned standards
+        run: node lab/post-quantum-signatures/tools/observe-standards.mjs
+      - name: Show standards observation
+        if: always()
+        run: cat lab/post-quantum-signatures/standards/standards-observation.json || true
+      - name: Upload standards observation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq-standards-observation
+          path: lab/post-quantum-signatures/standards/standards-observation.json
+          if-no-files-found: error
