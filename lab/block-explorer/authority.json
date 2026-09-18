@@ -91,6 +91,9 @@
       },
       {
         "path": "sovereign-forge/node/README.md"
+      },
+      {
+        "path": "FAE_FORGE_MAIN.sha256"
       }
     ],
     "forbidden_runtime_effects": [
@@ -108,7 +111,18 @@
       "OPTIONS"
     ],
     "state_source": "in-memory snapshot of already independently validated node state",
-    "pagination_binding": "address cursors must bind to observed_tip_hash and fail closed across tip change"
+    "pagination_binding": "address cursors must bind to observed_tip_hash and fail closed across tip change",
+    "integrity_manifest_write_authorization_basis": {
+      "canonical_workflow_run_id": 35405913496,
+      "canonical_workflow_job_id": 105795524721,
+      "failing_gate": "Verify imported Sovereign Forge snapshot",
+      "observed_mismatches": [
+        "sovereign-forge/node/fae-node.mjs",
+        "sovereign-forge/node/README.md"
+      ],
+      "new_runtime_file_to_admit": "sovereign-forge/node/explorer-read.mjs",
+      "scope": "Renew exact SHA-256 entries for BE-02 changed/new Sovereign Forge node files only."
+    }
   },
   "frontier_source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
   "current_stage_protected_path_exceptions": [
