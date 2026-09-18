@@ -1,0 +1,12 @@
+{
+  "schema": "FAE_PQ_WAVE_D_EXECUTION_REQUEST_V1",
+  "requested_at": "2026-09-18",
+  "base_revision": "9f5ab833946aaec9569a83c6dd5af35f0c33aa92",
+  "gates": [
+    "PQ-03",
+    "PQ-04"
+  ],
+  "purpose": "Trigger the frozen Wave D primitive-correctness executor against the integrated main state.",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false
+}
