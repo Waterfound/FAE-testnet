@@ -219,3 +219,16 @@ The first PSR-11 candidate was prepared against `930d757f7a286eb83be637d32197342
 PSR-10 is normalized to GREEN based on integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical run #465 SUCCESS and current-main replay run #476 SUCCESS.
 
 PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this rebound candidate integrates.
+
+
+## Frontier execution — PSR-12 || PSR-14 (rebound revision 3)
+
+Execution date: 2026-09-18  
+Bound source: `a5af028770debfaf46656f39e902eb8278d4312e`  
+Branch: `colony/fae-public-code-security-psr12-14-r3`
+
+After the prior rebound, `main` advanced again with PQ-09 shadow-only resource-economics work and one new read-only workflow. The new workflow was reviewed as `contents: read`, without direct `secrets.*` access or `pull_request_target`.
+
+The branch now covers 46 baseline workflows plus CodeQL. Earlier successful canonical/CodeQL runs are preserved as history but do not satisfy this binding.
+
+PSR-12 requires fresh canonical + CodeQL SUCCESS on this revision and integration. PSR-14 requires fresh canonical SUCCESS and integration.
