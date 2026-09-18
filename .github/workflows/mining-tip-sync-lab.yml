@@ -46,8 +46,11 @@ jobs:
       - name: MTS-02/03 identity and tip-observer contract tests
         run: node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
 
-      - name: Report candidate miner SHA-256
-        run: sha256sum mining.js
+      - name: Verify canonical browser miner mirror and integrity manifest
+        run: |
+          cmp mining.js sovereign-forge/browser/mining.js
+          sha256sum mining.js
+          sha256sum -c FAE_FORGE_MAIN.sha256
 
       - name: MTS-04/06 direct cancellation regression tests
         run: node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
