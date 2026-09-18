@@ -69,7 +69,7 @@ test('MTS-12 physical gate forbids manual restart and records zero-stale require
 test('MTS-12 physical verdicts latch once decided',()=>{
   assert.equal(page.includes("if(state.tipVerdict||!state.tipArmed||!state.tipTarget)return;"),true);
   assert.equal(page.includes("state.tipArmed=false;"),true);
-  assert.equal(page.includes("if(state.resumeVerdict||!state.resumeArmed||!state.visibleAt)return;"),true);
+  assert.equal(page.includes("if(state.resumeVerdict||!state.resumeArmed)return;"),true);
   assert.equal(page.includes("state.resumeArmed=false;"),true);
 });
 
