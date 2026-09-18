@@ -98,8 +98,8 @@ jobs:
     needs: implementation-independence
     runs-on: ubuntu-latest
     env:
-      PQ_ACVP_DIR: ${{ runner.temp }}/fae-pq-acvp
-      CIRCL_DIR: ${{ runner.temp }}/circl
+      PQ_ACVP_DIR: /tmp/fae-pq-acvp
+      CIRCL_DIR: /tmp/circl
       PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d
     steps:
       - uses: actions/checkout@v4
@@ -144,12 +144,12 @@ jobs:
           set -o pipefail
           node lab/post-quantum-signatures/primitives/run-noble-acvp.mjs | tee "$PQ_EVIDENCE_DIR/noble-acvp.json"
       - name: PQ-03 CIRCL full ML-DSA ACVP replay
-        working-directory: ${{ runner.temp }}/circl
+        working-directory: /tmp/circl
         run: |
           set -o pipefail
           go test ./sign/mldsa/mldsa44 ./sign/mldsa/mldsa65 ./sign/mldsa/mldsa87 -run TestACVP -count=1 -v | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-mldsa-acvp.log"
       - name: PQ-04 CIRCL native SLH-DSA ACVP replay
-        working-directory: ${{ runner.temp }}/circl
+        working-directory: /tmp/circl
         run: |
           set -o pipefail
           go test ./sign/slhdsa -run TestACVP -count=1 -v | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-slhdsa-acvp.log"
