@@ -145,6 +145,7 @@
       "required_paths": [
         "lab/block-explorer/authority.json",
         "lab/block-explorer/read-model-v1.json",
+        "lab/block-explorer/gate-status.json",
         "lab/block-explorer/README.md",
         "lab/block-explorer/combined-guard.mjs",
         "lab/block-explorer/tests/be-01-contract.test.mjs"
