@@ -327,5 +327,16 @@
     "initial_mode": "STRESS_FIRST",
     "runtime_write_authorized": false,
     "principle": "Each context must converge from authoritative network state independently; same-device hints may accelerate but cannot be required."
+  },
+  "completed_runtime_delta": {
+    "status": "FROZEN",
+    "frontier": "MTS-08",
+    "exact_paths": [
+      "mining.js",
+      "sovereign-forge/browser/mining.js",
+      "FAE_FORGE_MAIN.sha256"
+    ],
+    "miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
+    "rule": "These paths may appear in the closing PR delta only while their bytes remain equal to the frozen MTS-08 result. This does not authorize new runtime writes in MTS-09."
   }
 }
