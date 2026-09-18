@@ -193,4 +193,18 @@ test('MTS-08 resume with unchanged authoritative tip must not false-cancel direc
   vm.runInContext("stopWorker('STOP')",h.context);await result;
 });
 
+
+
+test('MTS-08 foreground resume with unavailable status fails closed immediately',async()=>{
+  const h=await makeHarness(),result=tracked(vm.runInContext('mineDirectIteration(wallet.address)',h.context)),worker=await waitWorker(h);
+  h.document.hidden=true;h.document.visibilityState='hidden';
+  h.failStatus(1);
+  h.document.hidden=false;h.document.visibilityState='visible';
+  h.document.dispatchEvent({type:'visibilitychange'});
+  const settled=await result;
+  assert.equal(worker.terminated,true);
+  assert.match(settled.error?.message||'',/TIP_FRESHNESS_UNKNOWN/);
+  assert.equal(h.submitRequests.length,0);
+});
+
 console.log('MTS-08 lifecycle stress matrix completed.');
