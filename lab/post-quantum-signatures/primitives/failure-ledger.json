@@ -33,6 +33,17 @@
       "cryptographic_divergence_observed": false,
       "artifact_id": 10546902143,
       "artifact_sha256": "9a4d7a259af5513e102941a7acb45c92dee18be1d8736f6529d014d31c4bbe44"
+    },
+    {
+      "workflow_run_id": 35347160887,
+      "run_number": 76,
+      "head": "570a6ca00136a60e4b1a81ce5a4602b852c4688f",
+      "classification": "INVALID_WORKFLOW_YAML",
+      "first_failure": "Stray shell fragment at pq-lab-standards.yml line 190 prevented workflow graph creation",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
     }
   ]
 }
