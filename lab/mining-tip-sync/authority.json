@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_09_GREEN",
+  "status": "MTS_10_BASELINE_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -391,5 +391,20 @@
     "runtime_write_authorized": false,
     "invariant": "BroadcastChannel may only trigger faster authoritative /status revalidation. It may never declare the chain tip, cancel work by itself, or become required for correctness.",
     "failure_policy": "Removing or disabling BroadcastChannel must preserve all MTS-09 correctness guarantees."
+  },
+  "mts_10_authority": {
+    "phase": "BASELINE_FIRST",
+    "runtime_write_authorized": false,
+    "current_poll_interval_ms": 2000,
+    "optimization_target": "same-device stale-work cancellation latency only",
+    "required_invariants": [
+      "BroadcastChannel message is never chain authority",
+      "hint payload is not trusted as height or tip_hash",
+      "receiver must call authoritative /status before cancellation",
+      "hint-triggered /status failure must not cancel work",
+      "removing BroadcastChannel preserves MTS-09 correctness",
+      "pre-submit freshness barrier remains unchanged"
+    ],
+    "patch_gate": "Authorize runtime change only if baseline proves measurable avoidable latency and the candidate can satisfy all invariants."
   }
 }
