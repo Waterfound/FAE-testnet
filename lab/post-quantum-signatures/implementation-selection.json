@@ -1,6 +1,6 @@
 {
   "schema": "FAE_PQ_IMPLEMENTATION_INDEPENDENCE_SELECTION_V1",
-  "status": "PROBE_REQUIRED",
+  "status": "GREEN",
   "recorded_at": "2026-09-18",
   "fae_source_revision": "d69ebf05895692760fc5c917a394c65b9709894c",
   "authority": "RESEARCH_SHADOW_ONLY",
@@ -108,6 +108,69 @@
     ],
     "tertiary_cross_runtime": "node-crypto",
     "activation_authorized": false,
-    "primitive_correctness_authorized_only_after_probe_pass": true
+    "primitive_correctness_authorized_only_after_probe_pass": false,
+    "primitive_correctness_unlocked": true
+  },
+  "evidence": {
+    "admitted_run_id": 35343551855,
+    "boundary_and_standards_job_id": 105594756219,
+    "implementation_independence_job_id": 105594849522,
+    "canonical_run_id": 35343551933,
+    "canonical_job_id": 105594757125,
+    "artifact_id": 10546531169,
+    "artifact_zip_sha256": "5fde47d3b9503bbf50a8185b073c2767cceb1055eabf84685fcd63667b114835",
+    "noble": {
+      "version": "0.7.1",
+      "npm_integrity": "sha512-+P9981IiAnVh+rmcubozzVwrEy3XsN/tMhTnvsjV9VDaYpOnNCqWqKo2FLWxbu92YHfjGIlE5XnW175UK+ln+Q==",
+      "npm_shasum": "b57156fab2b4661f965d3d2d9776a7dbd1310ff8",
+      "result": "PASS",
+      "exercised": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA-SHA2-128s",
+        "SLH-DSA-SHAKE-256f"
+      ],
+      "tamper_rejection": "PASS"
+    },
+    "circl": {
+      "commit": "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0",
+      "go_module_version": "v1.6.6-0.20260909114340-2ef8bf457d28",
+      "go_module_sum": "h1:ttcJETOVjoYQpvvPJlnP/SwxsGv333gFaWhHCHp7koE=",
+      "go_mod_sum": "h1:h5LNyxAc5nTue9DS5jT+48en2PSDYt3zdGnz5OstK6c=",
+      "result": "PASS",
+      "exercised": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA-SHA2-128s"
+      ],
+      "tamper_rejection": "PASS"
+    },
+    "node_crypto": {
+      "node": "v24.8.0",
+      "openssl": "3.5.2",
+      "result": "PASS",
+      "exercised": [
+        "ML-DSA-44",
+        "ML-DSA-65",
+        "ML-DSA-87",
+        "SLH-DSA-SHA2-128s",
+        "SLH-DSA-SHAKE-256f"
+      ],
+      "tamper_rejection": "PASS"
+    },
+    "non_admitted_runs": [
+      {
+        "run_id": 35343144782,
+        "reason": "HARNESS_FALSE_GREEN",
+        "detail": "CIRCL dependency resolution failed but pipeline status was masked by tee without pipefail. Preserved as invalid evidence."
+      },
+      {
+        "run_id": 35343452736,
+        "reason": "BOUNDARY_COMPARISON_FALSE_POSITIVE",
+        "detail": "Guard compared stale PR base to synthetic merge HEAD and correctly failed on unrelated Mining Tip Sync files. Harness was corrected to compare explicit PR base SHA to PR head SHA."
+      }
+    ]
   }
 }
