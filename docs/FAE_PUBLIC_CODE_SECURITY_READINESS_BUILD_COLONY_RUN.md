@@ -130,3 +130,22 @@ The two fail-closed alternatives are:
 - `BLOCKED_BY_MISSING_EVIDENCE`
 
 A GREEN security baseline still grants **no mainnet authority**. PSR-19 then closes the extraordinary workstream and leaves only ordinary recurring Project Assurance, with deeper review for consensus, crypto, economics, and critical networking changes.
+
+
+## Frontier execution — PSR-01 || PSR-02
+
+Execution date: 2026-09-18  
+Bound source: `a6721bb231471873ba069ab5bd6b2c8e5c6df92a`  
+Branch: `colony/fae-public-code-security-psr01-02`
+
+This is a real execution, not methodology-only.
+
+Produced:
+
+- `docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md` — formal full-source white-box threat model;
+- `docs/security/FAE_EXISTING_SECURITY_GATE_LEDGER_V1.json` — machine-readable exact-tree inventory;
+- `docs/security/FAE_EXISTING_SECURITY_GATE_LEDGER_V1.md` — human-readable evidence/gap map.
+
+Inventory at the bound source discovered 41 repository workflows and 100 test/lab assets under the PSR-02 criteria. Existence alone receives no PASS credit; canonical PR gates, content-inspected gates, specialized noncanonical evidence and path-only discovery are separated.
+
+PSR-01 and PSR-02 become GREEN only after successful canonical verification and integration. On that integration, PSR-03 becomes READY and PSR-04 becomes READY from the PSR-01 dependency.
