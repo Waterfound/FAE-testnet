@@ -66,10 +66,20 @@ test('MTS-12 runner is local-only and does not add telemetry or secret collectio
   assert.doesNotMatch(page,/sessionStorage\.setItem\s*\(/);
   assert.match(page,/No telemetry, seed phrase, private key, wallet backup, or reusable secret is collected/);
   const externalUrls=[...page.matchAll(/https:\/\/[^'"]+/g)].map(m=>m[0]);
-  assert.deepEqual([...new Set(externalUrls)],['https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4']);
+  assert.deepEqual([...new Set(externalUrls)].sort(),[
+    'https://raw.githack.com/Waterfound/FAE-testnet/a0be46e22e5ecf3400922f9fa3f267c35bd46916/',
+    'https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4'
+  ].sort());
 });
 
 
+
+test('MTS-12 standalone runner pins an immutable GitHub snapshot for the FAE shell and miner',()=>{
+  assert.match(page,/FAE_SNAPSHOT_BASE='https:\/\/raw\.githack\.com\/Waterfound\/FAE-testnet\/a0be46e22e5ecf3400922f9fa3f267c35bd46916\/'/);
+  assert.match(page,/new URL\('mining\.js',FAE_SNAPSHOT_BASE\)/);
+  assert.match(page,/new URL\('index\.html',FAE_SNAPSHOT_BASE\)/);
+  assert.match(page,/frame\.srcdoc=appHtml/);
+});
 
 test('MTS-12 child contexts never navigate an iframe to the host root',()=>{
   assert.doesNotMatch(page,/<iframe[^>]+src=["']\/?\?mts12=physical["']/);
