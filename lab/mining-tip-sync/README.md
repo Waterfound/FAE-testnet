@@ -4,7 +4,7 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-**MTS-11 — Real-browser integration and cancellation-latency gate**
+**MTS-12 — Physical-device iPad acceptance**
 
 MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
@@ -49,8 +49,12 @@ MTS-09 is GREEN without a runtime patch. Two same-device tabs plus an isolated o
 
 MTS-10 is GREEN as a latency optimization, not a correctness dependency. The frozen baseline measured a 2,000 ms independent polling bound (about 1,000 ms mean wait for uniformly phased tip changes). The admitted BroadcastChannel path carries only a revalidation hint: receivers query authoritative /status before any cancellation. Forged tip-looking payloads cannot cancel current work, hint-triggered status outages do not cancel work, disabling BroadcastChannel preserves independent polling convergence, and a locally accepted direct block can accelerate peer revalidation. Candidate matrix: 5/5 PASS; canonical verifier: PASS.
 
-## MTS-11 objective
+## MTS-11 result
 
-Validate the integrated behavior under actual browser scheduling semantics and turn stale-work cancellation latency into an observed gate. Measure hint-to-authoritative-cancel latency, poll-only fallback latency, multi-tab behavior with BroadcastChannel enabled/disabled, and prepare the physical-device iPad validation step.
+MTS-11 is GREEN with no runtime patch. Chromium measured payload-free hint-to-authoritative-cancel p95 at 8 ms versus a 1,976 ms poll-only fallback; WebKit measured p95 at 35 ms versus 1,949 ms poll-only. Forged hints and hint-triggered /status outages produced no false cancellation, BroadcastChannel-disabled fallback converged correctly, replacement templates bound the new authoritative parent, and stale submissions remained zero. The production Worker implementation and frozen MTS-10 miner SHA were used.
 
-MTS-11 starts validation-first with no new runtime authority.
+## MTS-12 objective
+
+Confirm the complete user-facing behavior on a physical iPad/Safari deployment: Start Mining once, multiple tabs, remote/same-device tip advances, background/foreground recovery, and no manual Stop -> Start merely because the chain advanced.
+
+MTS-12 is validation-only. It introduces no telemetry, secrets, runtime authority, consensus change, economics change, or block-time change.
