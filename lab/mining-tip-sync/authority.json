@@ -1,0 +1,92 @@
+{
+  "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
+  "status": "MTS_00_01_GREEN",
+  "created": "2026-09-18",
+  "project": "FAE",
+  "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
+  "integration_base_revision": "d69ebf05895692760fc5c917a394c65b9709894c",
+  "evidence_source_revision": "f3561ec8bf53d25c646f2f4c880af506cc1f5a65",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
+  "current_frontier": [
+    "MTS-02",
+    "MTS-03"
+  ],
+  "current_stage_active_miner_write_authorized": false,
+  "future_candidate_miner_write_requires_gate": true,
+  "consensus_change_authorized": false,
+  "monetary_policy_change_authorized": false,
+  "block_time_change_authorized": false,
+  "difficulty_rule_change_authorized": false,
+  "backend_consensus_semantics_change_authorized": false,
+  "wallet_or_key_material_change_authorized": false,
+  "public_testnet_promotion_authorized": false,
+  "mainnet_launch_authorized": false,
+  "current_stage_allowed_write_prefixes": [
+    "lab/mining-tip-sync/",
+    "docs/FAE_MINING_TIP_SYNC_",
+    ".github/workflows/mining-tip-sync-lab"
+  ],
+  "current_stage_protected_paths": [
+    "mining.js",
+    "core.js",
+    "wallet.js",
+    "wallet-crypto.js",
+    "network-status.js",
+    "index.html",
+    "supabase/",
+    "sovereign-forge/"
+  ],
+  "future_candidate_paths": [
+    "mining.js",
+    "tests/"
+  ],
+  "active_runtime_must_not_reference": [
+    "lab/mining-tip-sync",
+    "FAE_MINING_TIP_SYNC_LAB"
+  ],
+  "network_authority": {
+    "source": "/status",
+    "identity": [
+      "height",
+      "tip_hash"
+    ],
+    "work_parent_identity": [
+      "header.height - 1",
+      "header.previous_hash"
+    ]
+  },
+  "snapshot_semantics": {
+    "mempool_only_change_invalidates_work": false,
+    "chain_tip_change_invalidates_work": true
+  },
+  "cross_tab_policy": {
+    "may_accelerate_revalidation": true,
+    "is_chain_authority": false
+  },
+  "block_time_policy": "Correctness must hold independently of 180s versus 300s target selection.",
+  "private_material_policy": "Seed phrases, private keys, and reusable secret material must never enter Lab fixtures, logs, or evidence.",
+  "failure_policy": "Fail closed on authority ambiguity. MTS-00/01 may not edit active miner/runtime code. A later explicit gate is required before candidate mining.js writes.",
+  "deletion_invariant": "Removing lab/mining-tip-sync and its Lab-only documentation must not change active FAE mining, wallet, consensus, economics, or public-testnet behavior.",
+  "completed_gates": {
+    "MTS-00": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151298,
+      "workflow_job_id": 105593476901,
+      "boundary_guard": "PASS"
+    },
+    "MTS-01": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151298,
+      "workflow_job_id": 105593476901,
+      "reproduction": "CURRENT_BROWSER_MINER_REPRODUCES_TIP_DRIVEN_CANCELLATION_GAP",
+      "evidence_artifact_id": 10546141283,
+      "evidence_artifact_digest": "sha256:3a5b6eed8ad3033a7fe9ca8e2b65cf336646b9fe4fb34919fb36c506082edd51"
+    },
+    "canonical_regression": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151410,
+      "workflow_job_id": 105593477132
+    }
+  }
+}
