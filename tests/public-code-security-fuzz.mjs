@@ -98,6 +98,50 @@ function shrinkJson(value,fails){
   return current;
 }
 
+async function shrinkStringAsync(value,fails){
+  let current=String(value);
+  for(let width=Math.max(1,Math.floor(current.length/2));width>=1;width=Math.floor(width/2)){
+    let changed=true;
+    while(changed){
+      changed=false;
+      for(let start=0;start+width<=current.length;start++){
+        const candidate=current.slice(0,start)+current.slice(start+width);
+        if(await fails(candidate)){current=candidate;changed=true;break}
+      }
+    }
+    if(width===1)break;
+  }
+  return current;
+}
+
+async function shrinkJsonAsync(value,fails){
+  let current=structuredClone(value);
+  if(current&&typeof current==='object'&&!Array.isArray(current)){
+    for(const key of Object.keys(current)){
+      const candidate=structuredClone(current);
+      delete candidate[key];
+      if(await fails(candidate))current=candidate;
+    }
+    for(const key of Object.keys(current)){
+      if(typeof current[key]==='string'&&current[key].length){
+        current[key]=await shrinkStringAsync(current[key],async s=>{
+          const candidate=structuredClone(current);candidate[key]=s;return fails(candidate);
+        });
+      }
+      if(Array.isArray(current[key])){
+        let arr=[...current[key]];
+        while(arr.length>0){
+          const candidateArr=arr.slice(0,Math.floor(arr.length/2));
+          const candidate=structuredClone(current);candidate[key]=candidateArr;
+          if(await fails(candidate))arr=candidateArr;else break;
+        }
+        current[key]=arr;
+      }
+    }
+  }
+  return current;
+}
+
 async function property(name,count,generate,check,{shrink=null}={}){
   for(let i=0;i<count;i++){
     const value=generate(i);
@@ -326,9 +370,7 @@ test('PSR-10 property fuzz: arbitrary JSON-like transaction shapes never escape 
     assert.equal(normalizedJson(first),normalizedJson(second));
     assert.equal(typeof first.ok,'boolean');
     if(first.ok)assert.match(first.txid,/^[0-9a-f]{64}$/);
-  },{shrink:async(value,fails)=>shrinkJson(value,candidate=>{
-    let failed=false;fails(candidate).then(x=>{failed=x});return failed;
-  })});
+  },{shrink:(value,fails)=>shrinkJsonAsync(value,fails)});
 });
 
 test('PSR-10 property fuzz: signed semantic mutations either admit conservatively or reject without partial state mutation',async()=>{
