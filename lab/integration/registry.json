@@ -1,0 +1,126 @@
+{
+  "schema": "FAE_CROSS_LAB_INTEGRATION_REGISTRY_V1",
+  "version": 1,
+  "policy": "Lab verified != integrated main != combined-main verified != live.",
+  "canonical_branch": "main",
+  "require_latest_main_ancestry_before_merge": true,
+  "statuses": [
+    "LAB_VERIFIED",
+    "INTEGRATED_MAIN",
+    "COMBINED_MAIN_VERIFIED",
+    "LIVE"
+  ],
+  "labs": [
+    {
+      "id": "mining-tip-sync",
+      "label": "FAE Mining Tip Sync & Stale Work Recovery",
+      "required_paths": [
+        "lab/mining-tip-sync/authority.json",
+        "lab/mining-tip-sync/boundary-guard.mjs",
+        "lab/mining-tip-sync/README.md",
+        "mining.js",
+        "sovereign-forge/browser/mining.js"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "lab/mining-tip-sync/boundary-guard.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-02-03.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-04-06.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-07-stress.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-09-multicontext.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-10-broadcast-baseline.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-10-broadcast-candidate.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/mining-tip-sync/tests/mts-12-preflight.test.mjs"
+        ]
+      ],
+      "external_or_physical_not_synthesized": [
+        "MTS-12 physical iPad acceptance"
+      ]
+    },
+    {
+      "id": "post-quantum-signatures",
+      "label": "FAE Post-Quantum Signature Lab",
+      "required_paths": [
+        "lab/post-quantum-signatures/authority.json",
+        "lab/post-quantum-signatures/boundary-guard.mjs",
+        "lab/post-quantum-signatures/gate-status.json",
+        "lab/post-quantum-signatures/wave-h/admission.json",
+        "lab/post-quantum-signatures/wave-i/manifest.json"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "lab/post-quantum-signatures/boundary-guard.mjs"
+        ]
+      ],
+      "note": "Heavy primitive/vector evidence stays bound to the Lab artifacts; the combined-main gate rechecks active-runtime isolation and admitted evidence presence without inventing a new activation claim."
+    },
+    {
+      "id": "public-code-security",
+      "label": "FAE Public-Code Security Readiness",
+      "required_paths": [
+        "SECURITY.md",
+        "docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.json",
+        "tests/public-code-security-contract.mjs",
+        "tests/public-code-security-hostile-frontier.mjs",
+        "tests/public-code-security-fuzz.mjs",
+        "tests/public-code-security-differential.mjs"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "tests/public-code-security-contract.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "tests/public-code-security-hostile-frontier.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "tests/public-code-security-fuzz.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "tests/public-code-security-differential.mjs"
+        ]
+      ]
+    }
+  ]
+}
