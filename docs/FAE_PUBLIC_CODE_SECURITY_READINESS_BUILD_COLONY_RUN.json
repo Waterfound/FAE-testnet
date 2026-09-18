@@ -230,7 +230,7 @@
     {
       "id": "PSR-12",
       "name": "Supply-Chain and Public-Repo Hygiene",
-      "state": "GREEN_ON_SUCCESSFUL_CANONICAL_CODEQL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-00"
       ],
@@ -239,7 +239,7 @@
     {
       "id": "PSR-13",
       "name": "Reproducible Build and Release Provenance",
-      "state": "READY_ON_SUCCESSFUL_PSR12_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_CANONICAL_PSR13_INTEGRATION",
       "depends_on": [
         "PSR-02",
         "PSR-12"
@@ -249,7 +249,7 @@
     {
       "id": "PSR-14",
       "name": "Open-Source License Decision and Explicit License",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-00"
       ],
@@ -258,7 +258,7 @@
     {
       "id": "PSR-15",
       "name": "Project Assurance White-Box Attack Campaign",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR13_INTEGRATION",
       "depends_on": [
         "PSR-04",
         "PSR-05",
@@ -625,6 +625,51 @@
         "runtime_or_consensus_change": false,
         "downstream_unlock_on_green": [
           "PSR-13"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-13",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "53531a1f61cf190760e3234831ebab07c1dc9c27",
+      "branch": "colony/fae-public-code-security-psr13",
+      "executor_attached": true,
+      "prerequisite_normalization": {
+        "PSR_12": "GREEN",
+        "PSR_14": "GREEN",
+        "integrated_commit": "4918ee0823a9397fc6414f4e3631f0f1c2ac50d4",
+        "canonical_run": 521,
+        "codeql_run": 3
+      },
+      "outputs": [
+        "release/provenance/container-inputs-v1.json",
+        "scripts/psr13-pinned-dockerfile.mjs",
+        "scripts/psr13-release-provenance.mjs",
+        "tests/public-code-release-provenance.mjs",
+        ".github/workflows/psr13-release-provenance.yml",
+        "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json",
+        "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.md",
+        ".github/workflows/verify.yml"
+      ],
+      "promoted_prior_evidence": [
+        "sovereign-forge/scripts/build-reproducible-release.mjs",
+        "sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs",
+        "sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs"
+      ],
+      "claims": {
+        "source_release_byte_reproducible": true,
+        "independent_git_oracle_required": true,
+        "container_base_input_digest_pinned": true,
+        "oci_image_byte_reproducibility_claimed": false
+      },
+      "evidence_binding": {
+        "canonical_verification": "required before GREEN",
+        "psr13_release_provenance_workflow": "required before GREEN",
+        "exact_source_binding": "required before integration",
+        "runtime_or_consensus_change": false,
+        "downstream_on_green": [
+          "PSR-15"
         ]
       }
     }
