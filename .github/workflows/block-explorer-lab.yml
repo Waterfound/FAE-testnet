@@ -6,10 +6,12 @@ on:
       - "lab/block-explorer-*"
     paths:
       - "lab/block-explorer/**"
+      - "explorer/**"
       - ".github/workflows/block-explorer-lab.yml"
   pull_request:
     paths:
       - "lab/block-explorer/**"
+      - "explorer/**"
       - ".github/workflows/block-explorer-lab.yml"
 
 permissions:
@@ -32,6 +34,12 @@ jobs:
         run: node --test lab/block-explorer/tests/be-01-contract.test.mjs
       - name: BE-02 query-surface tests
         run: node --test lab/block-explorer/tests/be-02-query-surface.test.mjs
+      - name: BE-03 application tests
+        run: node --test lab/block-explorer/tests/be-03-app.test.mjs
+      - name: Check Explorer application syntax
+        run: |
+          node --check explorer/api-client.mjs
+          node --check explorer/app.mjs
       - name: Check Independent Node syntax
         run: |
           node --check sovereign-forge/node/explorer-read.mjs
