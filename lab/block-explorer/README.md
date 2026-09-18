@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-01 — Explorer Read Model Contract**
+Status: **BE-01 — LAB_VERIFIED / integration candidate**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -71,3 +71,7 @@ BE-01 is GREEN only if:
 6. branch changes remain inside the BE-01 authorized write scope.
 
 Passing BE-01 authorizes planning/execution of **BE-02 — Independent Node Explorer Query Surface**. It does not itself authorize those runtime writes.
+
+## BE-01 verification
+
+The exact contract candidate passed the dedicated Block Explorer Lab workflow, the canonical-source suite, CodeQL, recurring public-code assurance, and the pre-integration cross-Lab gate. BE-02 remains unauthorized until this contract is integrated into canonical `main` and the Block Explorer is registered in the cross-Lab combined verification set.
