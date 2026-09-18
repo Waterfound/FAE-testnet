@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MTS_12_PHYSICAL_ACCEPTANCE_PREP_V1",
-  "status": "PREPARED_NOT_STARTED",
+  "status": "READY_FOR_PHYSICAL_RUN",
   "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
   "watch_only_address": "faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k",
   "physical_device_required": true,
@@ -36,6 +36,32 @@
     "canonical": "PASS",
     "codeql": "PASS"
   },
-  "deployment_state": "AWAITING_CURRENT-MAIN_ACCESSIBLE_DEPLOYMENT",
-  "physical_run_state": "NOT_STARTED"
+  "deployment_state": "READY_TEMPORARY_SAME_ORIGIN_PREVIEW",
+  "physical_run_state": "NOT_STARTED",
+  "deployment_binding": {
+    "state": "READY",
+    "purpose": "temporary same-origin physical iPad acceptance host only",
+    "url": "https://fae-mts-12-ipad-acceptance-preview-0ytecs.v2.appdeploy.ai/lab/mining-tip-sync/mts-12-ipad-acceptance.html",
+    "host": "AppDeploy temporary preview",
+    "app_id": "fae-mts-12-ipad-acceptance-preview-0ytecs",
+    "source_snapshot_version": "1789747237774",
+    "fae_source_commit": "8e33d6b0276f67ee28d415015a96b09d0dbe8439",
+    "current_main_at_binding": "53531a1f61cf190760e3234831ebab07c1dc9c27",
+    "intervening_main_changes_touch_mts_or_runtime": false,
+    "exact_miner_transport": "base64 payload -> Uint8Array -> Blob classic script",
+    "exact_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "exact_miner_sha_verified": true,
+    "host_qa": {
+      "deployment_status": "ready",
+      "frontend_errors": 0,
+      "network_errors": 0
+    },
+    "host_compatibility_delta": [
+      "acceptance preflight reads the frozen miner from /mts12-mining.b64 rather than /mining.js",
+      "root page reconstructs the exact frozen mining.js bytes into a Blob before execution"
+    ],
+    "v4_network_authority": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4",
+    "production_promotion": false,
+    "note": "Vercel production remains stale and the daily API deployment quota was exhausted; this temporary preview avoids production mutation while preserving the protected miner bytes exactly."
+  }
 }
