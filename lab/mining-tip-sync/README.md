@@ -4,7 +4,7 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-**MTS-09 — Multi-tab, multi-context, other-device and remote-miner independence**
+**MTS-10 — BroadcastChannel optional revalidation acceleration**
 
 MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
@@ -41,8 +41,12 @@ MTS-07 is GREEN without a runtime patch: 12 consecutive tip replacements, 2,000 
 
 MTS-08 is GREEN. The stress-first run reproduced a lifecycle gap: stale direct work survived foreground visibility return and pageshow until the polling timer. The minimal miner patch now forces immediate authoritative revalidation on both lifecycle events and fails closed when freshness cannot be re-established. Final lifecycle matrix: 5/5 PASS; canonical verifier: 31/31 PASS.
 
-## MTS-09 objective
+## MTS-09 result
 
-Prove independent convergence across multiple tabs/contexts and externally advanced chain state. No tab, device, or remote miner may need a same-device signal to discover stale work. Optional cross-context hints remain acceleration-only and cannot become authority.
+MTS-09 is GREEN without a runtime patch. Two same-device tabs plus an isolated other-device context each discovered remote chain advancement independently through authoritative /status observation. A per-context status outage remained isolated, the delayed context converged after recovery, remote nonce-to-submit races were blocked locally, and same-height parent replacement converged independently. Final matrix: 4/4 PASS; stale submissions: 0; canonical verifier: 31/31 PASS.
 
-The initial MTS-09 phase remains stress-first and requires no wallet secrets or real Proof of Work.
+## MTS-10 objective
+
+Evaluate BroadcastChannel strictly as an optional latency optimization. A same-device hint may request immediate /status revalidation, but the hint itself may never declare the tip, cancel PoW, or become required for correctness. Disabling or deleting BroadcastChannel must leave all MTS-09 correctness guarantees intact.
+
+MTS-10 depends on MTS-08 lifecycle hardening plus MTS-09 independent-convergence evidence.
