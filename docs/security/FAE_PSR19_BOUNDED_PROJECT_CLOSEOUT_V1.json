@@ -1,0 +1,53 @@
+{
+  "schema": "FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1",
+  "psr": "PSR-19",
+  "source_revision": "c050cf7263238ed35a93551f91250e9d216386a8",
+  "baseline": {
+    "verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+    "verdict_artifact": "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+    "open_security_findings": 0,
+    "missing_required_evidence": 0,
+    "full_replay": {
+      "planned": 17,
+      "passed": 17,
+      "failed": 0,
+      "selective_retry": false
+    }
+  },
+  "closeout": {
+    "bounded_public_code_security_project": "CLOSE_ON_SUCCESSFUL_PSR19_INTEGRATION",
+    "permanent_new_security_system": false,
+    "continuing_mechanism": "Recurring Project Assurance via existing PSR-15 campaign",
+    "recurring_policy": "docs/security/FAE_PSR19_RECURRING_ASSURANCE_POLICY_V1.json",
+    "recurring_runner": "scripts/psr19-recurring-assurance.mjs",
+    "recurring_workflow": ".github/workflows/public-code-security-recurring-assurance.yml"
+  },
+  "mandatory_deep_review": [
+    "consensus changes",
+    "economic/monetary changes",
+    "cryptography or wallet changes",
+    "critical networking/mining changes",
+    "release/provenance or authority-boundary changes",
+    "security-control changes"
+  ],
+  "ordinary_change_rule": {
+    "classification_required": true,
+    "full_white_box_campaign_required_only_when_policy_matches": true,
+    "future_changes_inherit_psr18_verdict_automatically": false
+  },
+  "finding_rule": {
+    "any_baseline_blocking_failure": "BLOCK",
+    "scanners_can_waive_findings": false,
+    "automatic_waiver": false,
+    "automatic_risk_acceptance": false,
+    "feasible_fix_requires_regression": true
+  },
+  "authority": {
+    "mainnet_authority": false,
+    "release_authority": false,
+    "consensus_activation": false,
+    "economic_activation": false,
+    "deployment_authority": false
+  },
+  "terminal_state_on_success": "BASELINE_READY_FOR_RECURRING_ASSURANCE__BOUNDED_PROJECT_CLOSED"
+}
