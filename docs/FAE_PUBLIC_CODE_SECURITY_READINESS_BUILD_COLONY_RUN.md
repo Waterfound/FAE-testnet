@@ -195,3 +195,14 @@ Existing specialized evidence promoted into the canonical verification path:
 The hostile harness uses ephemeral cryptographic material only. It does not change runtime or consensus behavior.
 
 PSR-05 through PSR-09 become GREEN only after the full canonical workflow succeeds and this exact candidate integrates. On success, PSR-10 becomes READY.
+
+
+## Frontier execution — PSR-10 in-place rebound
+
+Execution date: 2026-09-18  
+Bound source: `7a975a1fdc3103e9a3c9bec4f29aa98775ea735a`  
+Branch: `colony/fae-public-code-security-psr10-r4`
+
+Canonical runs #454 and #462 both passed prior PSR-10 candidates, but main advanced before merge each time. The current branch was therefore repointed onto the latest main and the PSR-10 candidate reapplied in place.
+
+The intervening delta consists only of independent PQ Wave E executor workflows. The full canonical workflow is nevertheless required again on the new exact branch head.
