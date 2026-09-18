@@ -114,6 +114,9 @@ jobs:
       - name: Verify PSR-15 white-box composition contract
         run: node --test tests/public-code-security-whitebox.mjs
 
+      - name: Verify PSR-16 finding closure contract
+        run: node --test tests/public-code-security-finding-closure.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
