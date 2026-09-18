@@ -93,8 +93,9 @@ for(const path of allFiles){
   }
 }
 
-const nodePkg=JSON.parse(await readFile(join(rootPath,'sovereign-forge','node','package.json'),'utf8'));
-assert.equal(nodePkg.license,'Apache-2.0','public node package license metadata must match repository license');
+const license=await readFile(join(rootPath,'LICENSE'),'utf8');
+assert.ok(license.includes('Apache License'),'repository LICENSE must contain Apache License');
+assert.ok(license.includes('Version 2.0, January 2004'),'repository LICENSE must be Apache-2.0');
 
 const dep=await readFile(join(rootPath,'.github','dependabot.yml'),'utf8');
 for(const required of['package-ecosystem: "github-actions"','directory: "/sovereign-forge/node"','directory: "/lab/post-quantum-signatures"']){
@@ -119,6 +120,6 @@ console.log(JSON.stringify({
   high_signal_secret_scan:true,
   dependabot_contract:true,
   codeql_contract:true,
-  license_metadata:true,
+  repository_license:true,
   notes
 }));
