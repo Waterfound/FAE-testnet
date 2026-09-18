@@ -92,6 +92,36 @@ Primary references:
 - `sovereign-forge/protocol/AGENT_BUILD_COLONY_H2_FINAL_SERIALIZED_INTEGRATION.md`
 - `sovereign-forge/release/software-only-ceiling-freeze.json`
 
+## Stability Soak V3 operational state
+
+Current operational state:
+
+`PREPARED_NOT_STARTED`
+
+Frozen V3 source checkpoint:
+
+`600c131fff12251f426883ad1000a8e5a7f068c0`
+
+Frozen Render operational commit:
+
+`8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3`
+
+The historical V2 WAN-lab state remains preserved separately; do not reinterpret either interrupted historical soak as PASS.
+
+Preferred execution order:
+
+1. **Plan A — existing five Render Free services.** On or after 2026-10-01, first verify the workspace is unsuspended and that at least 540 Free instance-hours are available for the 108-hour envelope. Verify stable node identities, peer bootstrap, monitor URLs, frozen commit, health, three distinct node identities, at least two bootstrap peers per node, and controller/observer `run_started=false`. Only then may a future `T0` be assigned.
+2. **Plan B — hybrid fallback.** If Render works but a five-service/540h envelope is not comfortably available, keep only A/B/C on Render and move controller + independent observer to the Cloudflare Free control plane. Required Render envelope becomes 324 instance-hours. The 180-second recovery/outage bound remains unchanged.
+3. **Plan C — Render-independent fallback.** If Render remains unavailable or Plan B cannot satisfy the frozen prestart gates, use the admitted multi-provider candidate: Google Cloud Free Tier node in Oregon, Koyeb Free node in Frankfurt, Oracle Always Free node in São Paulo, with Cloudflare Free controller/observer. Provider free-tier eligibility, zero-cost status, geographic requirements, and all account prerequisites must be proven before `T0`; no paid upgrade or overage is authorized by this fallback.
+
+Fallback artifacts:
+
+- `sovereign-forge/release/stability-soak-v3-fallbacks.json`
+- `sovereign-forge/protocol/STABILITY_SOAK_V3_FALLBACKS.md`
+- `sovereign-forge/tests/stability-soak-v3-fallbacks.test.mjs`
+
+The V3 criteria must not be weakened to make any provider topology pass. In particular, the 180-second recovery/outage bound remains frozen.
+
 ## External evidence gates
 
 Current admitted state:
