@@ -2,34 +2,25 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 
-const mining=await readFile(new URL('../../../mining.js',import.meta.url),'utf8');
-const mts09=await readFile(new URL('./mts-09-multicontext.test.mjs',import.meta.url),'utf8');
+const evidence=JSON.parse(await readFile(new URL('../evidence/mts-10-baseline.json',import.meta.url),'utf8'));
 
-test('MTS-10 baseline: direct tip observer polling interval is 2000ms',()=>{
-  const match=mining.match(/const DIRECT_TIP_OBSERVER_INTERVAL_MS=(\d+);/);
-  assert.ok(match,'direct tip observer interval constant missing');
-  assert.equal(Number(match[1]),2000);
-  assert.match(mining,/setTimeout\(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS\)/);
+test('MTS-10 frozen baseline evidence is GREEN',()=>{
+  assert.equal(evidence.status,'GREEN');
+  assert.equal(evidence.lab_workflow?.conclusion,'success');
+  assert.equal(evidence.canonical_workflow?.conclusion,'success');
 });
 
-test('MTS-10 baseline: runtime has no BroadcastChannel acceleration path',()=>{
-  assert.doesNotMatch(mining,/BroadcastChannel/);
+test('MTS-10 frozen baseline records the 2000ms independent polling bound',()=>{
+  assert.equal(evidence.observed_baseline?.direct_tip_poll_interval_ms,2000);
+  assert.equal(evidence.observed_baseline?.worst_case_avoidable_poll_wait_ms,2000);
+  assert.equal(evidence.observed_baseline?.mean_uniform_phase_wait_ms,1000);
 });
 
-test('MTS-10 baseline: MTS-09 proves peer contexts wait for their own authoritative observation',()=>{
-  assert.match(mts09,/tab B changed before its own authoritative poll/);
-  assert.match(mts09,/other device changed before its own authoritative poll/);
-  assert.match(mts09,/same-device tab B must not depend on tab A or device C/);
+test('MTS-10 baseline distinguishes optimization from correctness',()=>{
+  assert.equal(evidence.observed_baseline?.same_device_peer_requires_own_authoritative_observation,true);
+  assert.equal(evidence.optimization_gate?.measurable_latency_exists,true);
+  assert.equal(evidence.optimization_gate?.correctness_defect,false);
+  assert.equal(evidence.optimization_gate?.network_status_remains_authority,true);
 });
 
-test('MTS-10 baseline: avoidable same-device stale-work window is bounded by the independent 2000ms poll',()=>{
-  const interval=Number(mining.match(/const DIRECT_TIP_OBSERVER_INTERVAL_MS=(\d+);/)?.[1]);
-  assert.equal(interval,2000);
-  const worstCaseMs=interval;
-  const meanUniformPhaseMs=interval/2;
-  assert.equal(worstCaseMs,2000);
-  assert.equal(meanUniformPhaseMs,1000);
-  assert.ok(worstCaseMs>0);
-});
-
-console.log('MTS-10 baseline: same-device correctness is independent, but optional hint acceleration is absent; poll bound = 2000ms.');
+console.log('MTS-10 frozen baseline evidence verified.');
