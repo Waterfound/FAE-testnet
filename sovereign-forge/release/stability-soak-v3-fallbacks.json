@@ -1,0 +1,105 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_FALLBACKS_V1",
+  "status": "FALLBACKS_PREPARED_NOT_AUTHORIZED",
+  "frozen_v3_source": "600c131fff12251f426883ad1000a8e5a7f068c0",
+  "frozen_render_operational_commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+  "common_invariants": {
+    "duration_hours": 96,
+    "margin_hours": 12,
+    "max_transient_outage_seconds": 180,
+    "phase_hours": [24,24,24,24],
+    "three_distinct_node_regions": true,
+    "controller_required": true,
+    "observer_required": true,
+    "public_testnet_v4_unchanged": true,
+    "new_economy_activation": false,
+    "candidate_promoted": false,
+    "mainnet_authorized": false,
+    "run_started": false
+  },
+  "plan_b": {
+    "name": "HYBRID_RENDER_NODES_CLOUDFLARE_CONTROL",
+    "use_when": [
+      "Render workspace is unsuspended but five-service Render budget/capacity is not comfortably available",
+      "at least 324 Render Free instance-hours remain for a 108-hour three-node envelope"
+    ],
+    "nodes": [
+      {"role":"node-a","provider":"render","region":"oregon","plan":"free"},
+      {"role":"node-b","provider":"render","region":"frankfurt","plan":"free"},
+      {"role":"node-c","provider":"render","region":"singapore","plan":"free"}
+    ],
+    "controller": {
+      "provider": "cloudflare",
+      "surface": "workflows-free",
+      "cadence_seconds": 300,
+      "estimated_steps_per_day_upper": 576
+    },
+    "observer": {
+      "provider": "cloudflare",
+      "surface": "workers-cron-plus-d1-free",
+      "cadence_seconds": 60,
+      "estimated_invocations_per_day": 1440,
+      "estimated_d1_rows_written_per_day_upper": 10000
+    },
+    "render_instance_hours_required": 324,
+    "zero_cost_assumption": "Render Free quota >=324h and Cloudflare Free limits remain available",
+    "remaining_render_dependency": true,
+    "promotion_authority": false
+  },
+  "plan_c": {
+    "name": "RENDER_INDEPENDENT_MULTI_PROVIDER",
+    "use_when": [
+      "Render remains suspended after refresh or is otherwise unusable for the V3 window",
+      "Plan B cannot satisfy the frozen V3 prestart gates"
+    ],
+    "nodes": [
+      {
+        "role":"node-a",
+        "provider":"google-cloud",
+        "region":"us-west1-oregon",
+        "plan":"e2-micro-free-tier",
+        "persistent_disk_gb":30,
+        "guard":"active billing account/free-tier eligibility must be proven; no paid upgrade is authorized"
+      },
+      {
+        "role":"node-b",
+        "provider":"koyeb",
+        "region":"frankfurt",
+        "plan":"free-web-service",
+        "guard":"incoming peer/controller/observer traffic must prevent the documented one-hour idle scale-to-zero"
+      },
+      {
+        "role":"node-c",
+        "provider":"oracle-cloud",
+        "region":"sa-saopaulo-1",
+        "plan":"always-free-compute",
+        "guard":"tenancy home region must be Sao Paulo; provision/restart close to T0 and verify no idle-reclamation risk during the 96h window"
+      }
+    ],
+    "controller": {
+      "provider":"cloudflare",
+      "surface":"workflows-free",
+      "cadence_seconds":300,
+      "estimated_steps_per_day_upper":576
+    },
+    "observer": {
+      "provider":"cloudflare",
+      "surface":"workers-cron-plus-d1-free",
+      "cadence_seconds":60,
+      "estimated_invocations_per_day":1440,
+      "estimated_d1_rows_written_per_day_upper":10000
+    },
+    "render_dependency": false,
+    "payment_verification_may_be_required": true,
+    "zero_cost_assumption": "all provider free-tier eligibility and quotas are independently proven before T0; no paid upgrade or overage is authorized",
+    "promotion_authority": false
+  },
+  "rejected_shortcuts": [
+    {"option":"github-actions-hosted-runners-as-continuous-nodes","reason":"hosted job execution is capped at 6 hours"},
+    {"option":"cloudflare-workers-as-pow-nodes","reason":"Free Workers CPU budget is unsuitable for continuous node/PoW runtime"},
+    {"option":"single-oracle-provider-three-region-topology","reason":"Always Free compute must run in the tenancy home region"},
+    {"option":"koyeb-only-three-node-topology","reason":"one Free Instance per organization"},
+    {"option":"raise_180s_recovery_bound","reason":"forbidden; would weaken the frozen V3 experiment"}
+  ],
+  "source_snapshot_date": "2026-09-18"
+}
