@@ -1,0 +1,64 @@
+{
+  "schema": "FAE_PSR17_FULL_SECURITY_BASELINE_EVIDENCE_V1",
+  "psr": "PSR-17",
+  "status": "CANDIDATE_PENDING_FULL_REPLAY_CANONICAL_CROSSLAB_CODEQL_AND_INTEGRATION",
+  "source_revision": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "prerequisite": {
+    "PSR_13": "GREEN",
+    "PSR_14": "GREEN",
+    "PSR_15": "GREEN",
+    "PSR_16": "GREEN",
+    "psr16_integration_commit": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+    "final_psr16_evidence": {
+      "psr16_run": 3,
+      "psr15_run": 7,
+      "canonical_run": 574,
+      "cross_lab_run": 32,
+      "codeql_run": 55,
+      "zero_findings": 0,
+      "promoted_regressions": 17
+    }
+  },
+  "replay": {
+    "manifest": "docs/security/FAE_PSR17_FULL_SECURITY_BASELINE_REPLAY_V1.json",
+    "runner": "scripts/psr17-full-security-replay.mjs",
+    "workflow": ".github/workflows/psr17-full-security-baseline.yml",
+    "static_contract": "tests/public-code-security-baseline-replay.mjs",
+    "single_attempt_policy": true,
+    "selective_retry_forbidden": true,
+    "campaign_replayed": true,
+    "finding_closure_replayed": true,
+    "git_oracle_replayed": true,
+    "clean_room_reproduction_replayed": true,
+    "pinned_container_builds_replayed": true,
+    "raw_stdout_stderr_stored": false,
+    "report_retention_days": 14
+  },
+  "exact_candidate_required_checks": [
+    "psr17-full-security-baseline",
+    "verify-canonical-source",
+    "cross-lab-integration-gate",
+    "codeql-security"
+  ],
+  "failure_semantics": {
+    "any_replay_failure": "BLOCKED_BY_BASELINE_REPLAY_FAILURE",
+    "any_campaign_finding": "BLOCKED_BY_SECURITY_FINDINGS",
+    "missing_required_check": "BLOCKED_BY_MISSING_EVIDENCE",
+    "stale_binding": "REBOUND_REQUIRED",
+    "prior_failed_run_erasure": false
+  },
+  "authority": {
+    "production_actions": false,
+    "target_writes": false,
+    "deployment": false,
+    "consensus_change": false,
+    "economic_change": false,
+    "wallet_or_address_change": false,
+    "release_authority": false,
+    "mainnet_authority": false
+  },
+  "downstream_on_green": [
+    "PSR-18"
+  ]
+}
