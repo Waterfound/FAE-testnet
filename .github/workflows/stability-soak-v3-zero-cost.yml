@@ -5,6 +5,8 @@ on:
     paths:
       - 'sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs'
+      - 'sovereign-forge/release/stability-soak-v3-zero-cost-candidate.json'
       - '.github/workflows/stability-soak-v3-zero-cost.yml'
   workflow_dispatch:
 
@@ -24,7 +26,10 @@ jobs:
         run: |
           node --check sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
           node --check sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
       - name: Prove fresh bootstrap after total ephemeral state loss
         run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
       - name: Prove 96h-sized chain fresh bootstrap stays below 180s
         run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+      - name: Gate zero-cost V3 quota and authority invariants
+        run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
