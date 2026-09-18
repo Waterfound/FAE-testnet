@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_MTS_12_PHYSICAL_ACCEPTANCE_PREP_V1",
+  "status": "PREPARED_NOT_STARTED",
+  "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+  "watch_only_address": "faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k",
+  "physical_device_required": true,
+  "required_browser": "Safari on physical iPad/iPadOS",
+  "local_only_recorder": true,
+  "telemetry": false,
+  "private_material_collected": false,
+  "runtime_write_authorized": false,
+  "tip_gate_ms": 3500,
+  "resume_gate_ms": 1500,
+  "required_evidence": [
+    "exact miner SHA matches",
+    "two real Safari tabs report mining_started once",
+    "real public-testnet tip advance is observed",
+    "both tabs reacquire templates bound to the new authoritative previous_hash",
+    "both convergence latencies are within the physical gate",
+    "background -> foreground produces prompt status revalidation",
+    "stale submissions remain zero",
+    "manual Stop -> Start remains false"
+  ],
+  "completion_rule": "Do not mark GREEN until exported FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V1 from a physical iPad Safari run satisfies every required gate.",
+  "preflight": {
+    "lab_workflow_run_id": 35363673463,
+    "deterministic_job_id": 105660814242,
+    "real_browser_job_id": 105660883637,
+    "canonical_workflow_run_id": 35363673456,
+    "canonical_job_id": 105660814414,
+    "codeql_workflow_run_id": 35363673404,
+    "codeql_job_id": 105660813251,
+    "deterministic": "PASS",
+    "chromium": "PASS",
+    "webkit": "PASS",
+    "canonical": "PASS",
+    "codeql": "PASS"
+  },
+  "deployment_state": "AWAITING_CURRENT-MAIN_ACCESSIBLE_DEPLOYMENT",
+  "physical_run_state": "NOT_STARTED"
+}
