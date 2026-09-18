@@ -123,6 +123,9 @@ jobs:
       - name: Verify PSR-18 security verdict contract
         run: node --test tests/public-code-security-verdict.mjs
 
+      - name: Verify PSR-19 closeout and recurring assurance contract
+        run: node --test tests/public-code-security-recurring-assurance.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
