@@ -21,22 +21,22 @@ const used=new Set();
 for(const surface of matrix.surfaces){
   assert.match(surface.id,/^AS-\d{2}$/);
   assert.ok(surface.name);
-  assert.ok(Array.isArray(surface.owner_gates)&&surface.owner_gates.length>0,\`\${surface.id} missing owner gate\`);
-  assert.ok(Array.isArray(surface.invariants)&&surface.invariants.length>0,\`\${surface.id} missing invariants\`);
-  assert.ok(Array.isArray(surface.ingress)&&surface.ingress.length>0,\`\${surface.id} missing ingress\`);
-  assert.ok(Array.isArray(surface.existing_strong_evidence),\`\${surface.id} missing evidence list\`);
-  assert.ok(Array.isArray(surface.specialized_evidence),\`\${surface.id} missing specialized evidence list\`);
-  assert.ok(Array.isArray(surface.known_gaps),\`\${surface.id} missing gap list\`);
-  assert.ok(surface.next_gate,\`\${surface.id} missing next gate\`);
+  assert.ok(Array.isArray(surface.owner_gates)&&surface.owner_gates.length>0,surface.id+' missing owner gate');
+  assert.ok(Array.isArray(surface.invariants)&&surface.invariants.length>0,surface.id+' missing invariants');
+  assert.ok(Array.isArray(surface.ingress)&&surface.ingress.length>0,surface.id+' missing ingress');
+  assert.ok(Array.isArray(surface.existing_strong_evidence),surface.id+' missing evidence list');
+  assert.ok(Array.isArray(surface.specialized_evidence),surface.id+' missing specialized evidence list');
+  assert.ok(Array.isArray(surface.known_gaps),surface.id+' missing gap list');
+  assert.ok(surface.next_gate,surface.id+' missing next gate');
   for(const id of surface.invariants){
-    assert.ok(invariants.has(id),\`\${surface.id} references unknown invariant \${id}\`);
+    assert.ok(invariants.has(id),surface.id+' references unknown invariant '+id);
     used.add(id);
   }
 }
 for(const [id,row] of invariants){
   if(row.active_v4===false)continue;
-  assert.ok(used.has(id),\`active invariant \${id} is not owned by any attack surface\`);
-  assert.equal(row.severity,'baseline_blocking',\`\${id} must remain baseline-blocking\`);
+  assert.ok(used.has(id),'active invariant '+id+' is not owned by any attack surface');
+  assert.equal(row.severity,'baseline_blocking',id+' must remain baseline-blocking');
 }
 
 for(const required of[
@@ -49,7 +49,7 @@ for(const required of[
   '## Disclosure handling',
   '## No bug bounty commitment',
   'does **not** currently promise a monetary bug bounty'
-]) assert.ok(security.includes(required),\`SECURITY.md missing required policy text: \${required}\`);
+]) assert.ok(security.includes(required),'SECURITY.md missing required policy text: '+required);
 
 for(const forbidden of['seed phrase here','private key here'])assert.ok(!security.toLowerCase().includes(forbidden));
 
