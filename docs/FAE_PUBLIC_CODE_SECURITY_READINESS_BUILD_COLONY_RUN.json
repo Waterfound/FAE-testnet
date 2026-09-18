@@ -276,7 +276,7 @@
     {
       "id": "PSR-16",
       "name": "Finding Closure and Regression Promotion",
-      "state": "GREEN_ON_SUCCESSFUL_CLOSURE_CANONICAL_CROSSLAB_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-15"
       ],
@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "READY_ON_SUCCESSFUL_PSR16_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_FULL_REPLAY_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -295,7 +295,7 @@
     {
       "id": "PSR-18",
       "name": "Public-Code Security Baseline Verdict",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR17_INTEGRATION",
       "depends_on": [
         "PSR-17"
       ],
@@ -751,6 +751,57 @@
         "exact_source_binding": "required before merge",
         "downstream_on_green": [
           "PSR-17"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-17",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+      "branch": "colony/fae-public-code-security-psr17",
+      "executor_attached": true,
+      "prerequisite_normalization": {
+        "PSR_15": "GREEN",
+        "PSR_16": "GREEN",
+        "psr16_integration_commit": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+        "final_runs": {
+          "psr16": 3,
+          "psr15": 7,
+          "canonical": 574,
+          "cross_lab": 32,
+          "codeql": 55
+        },
+        "zero_findings": 0,
+        "promoted_regressions": 17
+      },
+      "outputs": [
+        "docs/security/FAE_PSR17_FULL_SECURITY_BASELINE_REPLAY_V1.json",
+        "scripts/psr17-full-security-replay.mjs",
+        ".github/workflows/psr17-full-security-baseline.yml",
+        "tests/public-code-security-baseline-replay.mjs",
+        "docs/security/FAE_PSR17_FULL_SECURITY_BASELINE_EVIDENCE_V1.json",
+        "docs/security/FAE_PSR17_FULL_SECURITY_BASELINE_EVIDENCE_V1.md",
+        ".github/workflows/verify.yml"
+      ],
+      "replay_contract": {
+        "selective_retry_forbidden": true,
+        "per_step_attempts": 1,
+        "replay_psr15": true,
+        "replay_psr16": true,
+        "replay_git_oracle": true,
+        "replay_clean_room_release": true,
+        "replay_pinned_containers": true
+      },
+      "evidence_binding": {
+        "dedicated_psr17_workflow": "required before GREEN",
+        "canonical_verification": "required before GREEN",
+        "cross_lab_integration": "required before GREEN",
+        "codeql": "required signal on exact candidate",
+        "exact_source_binding": "required before merge",
+        "runtime_or_consensus_change": false,
+        "downstream_on_green": [
+          "PSR-18"
         ]
       }
     }
