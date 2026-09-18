@@ -63,3 +63,10 @@ Private keys and signing remain on the user's device. Browser Proof of Work rema
 FAE-RW1 is documented as an experimental ASIC-resistance candidate only. The live v4 network continues to validate its existing double-SHA-256 Proof of Work until explicit activation gates are satisfied.
 
 This source publication improves sovereignty and reproducibility; it does not make the prototype mainnet-ready or replace independent security review.
+
+
+## License
+
+This repository is licensed under the Apache License 2.0. See `LICENSE`.
+
+The license defines reuse/distribution terms only; it does not imply security review, consensus activation, monetary value, release authority or mainnet readiness.
