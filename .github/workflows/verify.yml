@@ -111,6 +111,9 @@ jobs:
           node --test tests/public-code-release-provenance.mjs
           node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
 
+      - name: Verify PSR-15 white-box composition contract
+        run: node --test tests/public-code-security-whitebox.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
