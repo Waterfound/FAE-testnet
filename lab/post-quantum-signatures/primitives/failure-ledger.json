@@ -44,6 +44,28 @@
       "cryptographic_divergence_observed": false,
       "artifact_id": null,
       "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347309627,
+      "run_number": 80,
+      "head": "d2a63ae9e7e68570be3238fa2c213c9508c0558e",
+      "classification": "INVALID_WORKFLOW_YAML_REMAINDER",
+      "first_failure": "Workflow graph creation failed after first syntax repair; malformed primitive step remained",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347314416,
+      "run_number": 81,
+      "head": "10fa39801956060504885b7fb3c8c7a5dfd6d39e",
+      "classification": "INVALID_WORKFLOW_YAML_DUPLICATE_KEYS",
+      "first_failure": "Primitive ML-DSA step still contained duplicated/malformed working-directory and run keys",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
     }
   ]
 }
