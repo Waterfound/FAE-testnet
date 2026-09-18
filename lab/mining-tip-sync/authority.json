@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_11_GREEN",
+  "status": "MTS_12_ACCEPTANCE_PREP",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -562,5 +562,46 @@
     ],
     "prerequisite": "MTS-11 Chromium + WebKit real-browser gate GREEN",
     "rule": "Physical-device evidence may validate deployment/browser integration; it cannot weaken authoritative /status semantics."
+  },
+  "mts_12_authority": {
+    "phase": "PHYSICAL_ACCEPTANCE_PREPARATION",
+    "runtime_write_authorized": false,
+    "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "target_device": "physical iPad / Safari",
+    "deployment_rule": "Use a preview built from the exact MTS-11 GREEN main plus Lab-only acceptance files; production promotion is not required for evidence.",
+    "privacy_rule": "All acceptance observations remain device-local unless the user explicitly exports the JSON artifact. No telemetry, seed phrase, private key, wallet backup, or reusable secret may be collected.",
+    "watch_only_address": "faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k",
+    "required_properties": [
+      "the exact protected MTS-10/MTS-11 miner bytes are loaded on the physical device",
+      "Start Mining is invoked once per participating context and no manual Stop -> Start is used for tip changes",
+      "two same-origin Safari contexts can mine watch-only and converge after a real public-testnet tip advance",
+      "each replacement template binds the new authoritative previous_hash",
+      "background -> foreground return triggers automatic authoritative revalidation without manual restart",
+      "BroadcastChannel absence/degradation cannot break polling correctness",
+      "zero stale submissions are observed by the local acceptance recorder",
+      "no private wallet material is required or recorded"
+    ],
+    "physical_latency_gate": {
+      "active_context_new_template_after_first_observed_tip_ms": 3500,
+      "local_hint_peer_revalidation_ms": 1500,
+      "note": "Physical WAN/Safari gate is intentionally looser than MTS-11 local-browser CI while still bounding avoidable stale work."
+    },
+    "completion_rule": "MTS-12 cannot be GREEN without evidence produced on a physical iPad Safari session. Preparation/preview checks alone may only reach PREPARED_NOT_STARTED or READY_FOR_PHYSICAL_RUN."
+  },
+  "mts_12_preflight": {
+    "status": "GREEN",
+    "lab_workflow_run_id": 35363673463,
+    "deterministic_job_id": 105660814242,
+    "real_browser_job_id": 105660883637,
+    "canonical_workflow_run_id": 35363673456,
+    "canonical_job_id": 105660814414,
+    "codeql_workflow_run_id": 35363673404,
+    "codeql_job_id": 105660813251,
+    "deterministic_preflight": "5/5 PASS",
+    "chromium_acceptance_runner_preflight": "PASS",
+    "webkit_acceptance_runner_preflight": "PASS",
+    "exact_miner_sha_verified": true,
+    "privacy_contract_verified": true,
+    "physical_device_evidence_present": false
   }
 }
