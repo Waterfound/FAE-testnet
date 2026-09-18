@@ -56,4 +56,8 @@ test('embedded controller remains disarmed pre-T0 and produces one rotating V3 t
   assert.equal(post.embedded_controller.enabled,true);
   assert.equal(post.embedded_controller.run_started,true);
   assert.ok(post.embedded_controller.last_block?.height>=12);
+  const events=await json(`${base}/v3/events?after_seq=0`);
+  const seen=events.events.find(e=>e.event==='FAE_V3_TIP_FIRST_SEEN'&&e.height>=12);
+  assert.ok(seen,'node-local first-seen telemetry must record the propagated tip');
+  assert.ok(Number.isFinite(seen.first_seen_ms));
 });
