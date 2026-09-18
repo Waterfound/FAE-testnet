@@ -195,3 +195,26 @@ Existing specialized evidence promoted into the canonical verification path:
 The hostile harness uses ephemeral cryptographic material only. It does not change runtime or consensus behavior.
 
 PSR-05 through PSR-09 become GREEN only after the full canonical workflow succeeds and this exact candidate integrates. On success, PSR-10 becomes READY.
+
+
+## Frontier execution — PSR-10
+
+Execution date: 2026-09-18  
+Bound source: `74ddd2b24d4b4653ec620d7c208809c98f6633e2`  
+Branch: `colony/fae-public-code-security-psr10-r2`
+
+PSR-10 is a real execution, not methodology-only.
+
+The first candidate was prepared against `a86555d4f99218c76f8d277e38101cf770f8be82`, but `main` advanced by seven commits before PR creation. The intervening diff was reviewed and was limited to the PQ Wave D workflow repair and its failure ledger. PSR-10 was rebound rather than merged stale.
+
+Produced:
+
+- `tests/security-corpus/public-code-malformed-v1.json` — 53 named malformed/adversarial corpus cases;
+- `tests/public-code-security-fuzz.mjs` — deterministic property fuzzing with seed `0xfae51010`;
+- `docs/security/FAE_PSR10_FUZZ_EVIDENCE_V1.json` — machine-readable evidence contract.
+
+The property layer executes 1,984 deterministic generated cases across transaction shape totality, state atomicity, block rejection atomicity, peer-directory bounds and browser parser totality. Failures report seed + case index and attempt minimization before surfacing a reproducer.
+
+Specialized fuzz/stress evidence is also promoted into the canonical path: reorg differential fuzz, difficulty/timestamp red-team and MTS-07 rapid-tip/network stress.
+
+PSR-10 becomes GREEN only after the exact rebound candidate passes the complete canonical workflow and integrates. On success PSR-11 becomes READY.
