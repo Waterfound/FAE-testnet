@@ -172,3 +172,26 @@ Produced:
 The registry freezes 16 invariant definitions across 11 attack surfaces. MTS-04/06 is admitted as specialized AS-04 mining evidence, not silently promoted to universal security proof.
 
 PSR-03 and PSR-04 become GREEN only after successful canonical verification and integration.
+
+
+## Frontier execution — PSR-05 || PSR-06 || PSR-07 || PSR-08 || PSR-09
+
+Execution date: 2026-09-18  
+Bound source: `9f5ab833946aaec9569a83c6dd5af35f0c33aa92`  
+Branch: `colony/fae-public-code-security-psr05-09`
+
+This is a real hostile-testing execution, not methodology-only.
+
+New executable evidence:
+
+- `tests/public-code-security-hostile-frontier.mjs` — deterministic attacks across consensus/economics, wallet/signatures, P2P/eclipse, reorg/recovery and browser/API boundaries.
+
+Existing specialized evidence promoted into the canonical verification path:
+
+- `sovereign-forge/tests/independent-node-v11-process-recovery.mjs`;
+- `lab/mining-tip-sync/tests/mts-02-03.test.mjs`;
+- `lab/mining-tip-sync/tests/mts-04-06.test.mjs`.
+
+The hostile harness uses ephemeral cryptographic material only. It does not change runtime or consensus behavior.
+
+PSR-05 through PSR-09 become GREEN only after the full canonical workflow succeeds and this exact candidate integrates. On success, PSR-10 becomes READY.
