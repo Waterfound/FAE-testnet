@@ -206,3 +206,20 @@ Branch: `colony/fae-public-code-security-psr10-r4`
 Canonical runs #454 and #462 both passed prior PSR-10 candidates, but main advanced before merge each time. The current branch was therefore repointed onto the latest main and the PSR-10 candidate reapplied in place.
 
 The intervening delta consists only of independent PQ Wave E executor workflows. The full canonical workflow is nevertheless required again on the new exact branch head.
+
+
+## Frontier execution — PSR-11
+
+Execution date: 2026-09-18  
+Bound source: `930d757f7a286eb83be637d32197342c030d63a0`  
+Branch: `colony/fae-public-code-security-psr11`
+
+PSR-10 is normalized to GREEN based on its integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical PR run #465 SUCCESS, and current-main replay run #476 SUCCESS.
+
+PSR-11 adds an active-v4 process-level differential gate between the authoritative core and the standalone independent node. An explicit independence fence fails CI if the independent node starts importing/referencing the authoritative core or candidate/shadow implementations.
+
+The gate compares mining-template semantics, block acceptance, chain work, supply, balances, spendable state, transaction id/fees/confirmation, and rejection classes for invalid signatures, wrong network, stale blocks, invalid reward and replay.
+
+Candidate/shadow differential tests are promoted as separate evidence classes and do not receive active-consensus authority.
+
+PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this exact candidate integrates.
