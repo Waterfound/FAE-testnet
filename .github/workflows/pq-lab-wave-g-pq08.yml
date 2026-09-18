@@ -1,0 +1,51 @@
+name: pq-lab-wave-g-pq08
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/wave-g/pq08/**'
+      - '.github/workflows/pq-lab-wave-g-pq08.yml'
+  push:
+    branches:
+      - 'colony/pq08-*'
+    paths:
+      - 'lab/post-quantum-signatures/wave-g/pq08/**'
+      - '.github/workflows/pq-lab-wave-g-pq08.yml'
+permissions:
+  contents: read
+jobs:
+  independent-differential:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24.8.0' }
+      - name: PQ boundary
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Verify frozen prerequisites
+        run: node -e "const s=require('./lab/post-quantum-signatures/gate-status.json'); for(const g of ['PQ-03','PQ-04','PQ-05','PQ-06','PQ-07'])if(s.gates[g]?.status!=='GREEN')process.exit(1); if(s.activation_authorized!==false)process.exit(1)"
+      - name: Install pinned Lab dependencies
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Generate frozen-class corpus
+        run: |
+          mkdir -p lab/post-quantum-signatures/evidence/wave-g
+          node lab/post-quantum-signatures/wave-g/pq08/generate-corpus.mjs lab/post-quantum-signatures/evidence/wave-g/pq08-corpus.json
+      - name: Primary implementation replay
+        run: node lab/post-quantum-signatures/wave-g/pq08/check-primary.mjs lab/post-quantum-signatures/evidence/wave-g/pq08-corpus.json | tee lab/post-quantum-signatures/evidence/wave-g/pq08-primary.json
+      - name: Independent native verifier replay
+        run: node lab/post-quantum-signatures/wave-g/pq08/check-independent.mjs lab/post-quantum-signatures/evidence/wave-g/pq08-corpus.json | tee lab/post-quantum-signatures/evidence/wave-g/pq08-independent.json
+      - name: Upload PQ-08 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq08-independent-differential
+          path: lab/post-quantum-signatures/evidence/wave-g/pq08-*.json
+          if-no-files-found: error
