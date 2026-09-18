@@ -264,12 +264,8 @@ export function createExplorerReader({
     const query=(url.searchParams.get('q')||'').trim();
     if(!query)queryError(400,'invalid_query','q');
     if(validAddress(query))return response(binding,{query,matches:[{type:'address',address:query}]});
-    if(POSITIVE_INTEGER.test(query)){
-      const height=parsePositiveInteger(query,{field:'q'});
-      const found=blockAtHeight(state,height);
-      if(!found)queryError(404,'not_found','block_height');
-      return response(binding,{query,matches:[{type:'block',height:Number(found.height),hash:String(found.hash)}]});
-    }
+    // A 64-character lowercase hex value is a digest namespace even when every
+    // character happens to be decimal. Do not misclassify such hashes as heights.
     if(DIGEST.test(query)){
       const matches=[];
       const foundBlock=blockByHash(state,query);
@@ -278,6 +274,12 @@ export function createExplorerReader({
       if(foundTx)matches.push({type:'transaction',txid:String(foundTx.txid),status:String(foundTx.status)});
       if(!matches.length)queryError(404,'not_found','digest');
       return response(binding,{query,matches});
+    }
+    if(POSITIVE_INTEGER.test(query)){
+      const height=parsePositiveInteger(query,{field:'q'});
+      const found=blockAtHeight(state,height);
+      if(!found)queryError(404,'not_found','block_height');
+      return response(binding,{query,matches:[{type:'block',height:Number(found.height),hash:String(found.hash)}]});
     }
     queryError(400,'invalid_query','q');
   }
