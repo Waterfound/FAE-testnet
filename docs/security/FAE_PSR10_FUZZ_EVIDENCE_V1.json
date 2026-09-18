@@ -1,0 +1,63 @@
+{
+  "schema": "FAE_PSR10_FUZZ_EVIDENCE_V1",
+  "psr": "PSR-10",
+  "status": "CANDIDATE_COMPLETE_PENDING_CANONICAL_VERIFICATION_AND_INTEGRATION",
+  "source_revision": "698f305895bca6e30a7ad6ded0da0a0e7b4274d4",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "seed": "0xfae51010",
+  "corpus": "tests/security-corpus/public-code-malformed-v1.json",
+  "harness": "tests/public-code-security-fuzz.mjs",
+  "fixed_corpus": {
+    "transaction_cases": 14,
+    "block_cases": 14,
+    "peer_cases": 8,
+    "browser_api_cases": 17,
+    "total": 53
+  },
+  "property_fuzz": {
+    "transaction_shape_totality": 512,
+    "transaction_state_atomicity": 384,
+    "block_rejection_atomicity": 512,
+    "peer_directory_bounds": 64,
+    "browser_parser_totality": 512,
+    "total": 1984
+  },
+  "promoted_specialized_evidence": [
+    "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+    "sovereign-forge/tests/difficulty-timestamp-redteam.mjs",
+    "lab/mining-tip-sync/tests/mts-07-stress.test.mjs",
+    "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+  ],
+  "properties": [
+    "Malformed transaction verification is total and deterministic for JSON-like hostile shapes.",
+    "Rejected semantic transaction mutations do not partially mutate admitted state.",
+    "Malformed block envelopes reject deterministically without canonical state mutation.",
+    "Peer-directory floods remain inside declared record/source/network-group/unverified budgets.",
+    "Browser address parser remains total and amount acceptance matches the canonical decimal grammar.",
+    "Property failures emit seed, case index and a minimized reproducer when feasible.",
+    "Discovered failures must become named corpus cases or dedicated regression tests before closure."
+  ],
+  "authority": {
+    "runtime_or_consensus_change": false,
+    "mainnet_authority": false,
+    "activation_authority": false
+  },
+  "downstream_unlock_on_green": [
+    "PSR-11"
+  ],
+  "rebinding": {
+    "previous_source_revision": "74ddd2b24d4b4653ec620d7c208809c98f6633e2",
+    "intervening_commits": 10,
+    "reviewed_scope": [
+      ".github/workflows/mining-tip-sync-lab.yml",
+      "FAE_FORGE_MAIN.sha256",
+      "lab/mining-tip-sync/* MTS-08 lifecycle artifacts",
+      "mining.js",
+      "sovereign-forge/browser/mining.js"
+    ],
+    "admitted_intervening_evidence": [
+      "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+    ],
+    "authority_note": "MTS-08 is admitted as specialized browser/mining lifecycle evidence; it does not grant consensus authority."
+  }
+}
