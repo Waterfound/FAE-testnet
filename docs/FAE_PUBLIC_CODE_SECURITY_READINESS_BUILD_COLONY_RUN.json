@@ -221,7 +221,7 @@
     {
       "id": "PSR-11",
       "name": "Differential and Alternative-Implementation Verification",
-      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-10"
       ],
@@ -230,7 +230,7 @@
     {
       "id": "PSR-12",
       "name": "Supply-Chain and Public-Repo Hygiene",
-      "state": "READY",
+      "state": "GREEN_ON_SUCCESSFUL_CANONICAL_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-00"
       ],
@@ -239,7 +239,7 @@
     {
       "id": "PSR-13",
       "name": "Reproducible Build and Release Provenance",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR12_INTEGRATION",
       "depends_on": [
         "PSR-02",
         "PSR-12"
@@ -249,7 +249,7 @@
     {
       "id": "PSR-14",
       "name": "Open-Source License Decision and Explicit License",
-      "state": "READY",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-00"
       ],
@@ -569,6 +569,55 @@
         "downstream_on_green": [
           "PSR-12",
           "PSR-14"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-12||PSR-14",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "b4925310c8241f9f15d07f00225c44c9df17c05b",
+      "branch": "colony/fae-public-code-security-psr12-14",
+      "executor_attached": true,
+      "outputs": [
+        ".github/dependabot.yml",
+        ".github/workflows/codeql.yml",
+        "tests/public-repo-hygiene.mjs",
+        "LICENSE",
+        "docs/security/FAE_PSR12_14_SUPPLY_CHAIN_LICENSE_EVIDENCE_V1.json",
+        "docs/security/FAE_PSR12_14_SUPPLY_CHAIN_LICENSE_EVIDENCE_V1.md",
+        ".github/workflows/verify.yml",
+        "README.md"
+      ],
+      "psr12": {
+        "baseline_workflows_reviewed": 44,
+        "canonical_hygiene_guard": true,
+        "codeql_required": true,
+        "dependabot_ecosystems": [
+          "github-actions",
+          "npm node",
+          "npm pq-lab",
+          "docker"
+        ],
+        "reviewed_write_exceptions": [
+          "full-target-shadow-clock-health-wan.yml: issues:write",
+          "full-target-shadow-free-real-wan.yml: issues:write",
+          "peer-isolation-eclipse-real-wan.yml: issues:write",
+          "codeql.yml: security-events:write"
+        ],
+        "scanners_are_signal_only": true
+      },
+      "psr14": {
+        "selected_license": "Apache-2.0",
+        "notice_created": false,
+        "protected_forge_snapshot_modified": false
+      },
+      "evidence_binding": {
+        "canonical_verification": "required before GREEN",
+        "codeql_verification": "required before PSR-12 GREEN",
+        "runtime_or_consensus_change": false,
+        "downstream_unlock_on_green": [
+          "PSR-13"
         ]
       }
     }
