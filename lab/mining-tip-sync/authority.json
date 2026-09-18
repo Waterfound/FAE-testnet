@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_08_GREEN",
+  "status": "MTS_09_STRESS_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -338,5 +338,23 @@
     ],
     "miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
     "rule": "These paths may appear in the closing PR delta only while their bytes remain equal to the frozen MTS-08 result. This does not authorize new runtime writes in MTS-09."
+  },
+  "mts_09_authority": {
+    "phase": "STRESS_FIRST",
+    "runtime_write_authorized": false,
+    "topology": [
+      "same-device tab A",
+      "same-device tab B",
+      "isolated other-device context",
+      "external remote-miner chain advancement"
+    ],
+    "required_properties": [
+      "each context independently detects authoritative tip replacement through /status",
+      "one context becoming current cannot implicitly update another context",
+      "status outage in one context cannot contaminate another context",
+      "remote tip change between nonce and submit is blocked locally by freshness barrier",
+      "same-device hints are optional acceleration only and never correctness authority"
+    ],
+    "runtime_patch_gate": "Only a deterministic MTS-09 reproduction exposing a correctness defect may authorize runtime writes."
   }
 }
