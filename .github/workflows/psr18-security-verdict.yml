@@ -1,0 +1,56 @@
+name: psr18-security-verdict
+
+on:
+  pull_request:
+    paths:
+      - 'docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json'
+      - 'docs/security/FAE_PSR18_*'
+      - 'scripts/psr18-security-verdict.mjs'
+      - 'tests/public-code-security-verdict.mjs'
+      - '.github/workflows/psr18-security-verdict.yml'
+      - '.github/workflows/verify.yml'
+      - 'docs/FAE_PUBLIC_CODE_SECURITY_READINESS_BUILD_COLONY_RUN.json'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json'
+      - 'docs/security/FAE_PSR18_*'
+      - 'scripts/psr18-security-verdict.mjs'
+      - 'tests/public-code-security-verdict.mjs'
+      - '.github/workflows/psr18-security-verdict.yml'
+      - '.github/workflows/verify.yml'
+      - 'docs/FAE_PUBLIC_CODE_SECURITY_READINESS_BUILD_COLONY_RUN.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verdict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PSR-18 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify PSR-18 static verdict contract
+        run: node --test tests/public-code-security-verdict.mjs
+
+      - name: Compute fail-closed public-code security verdict
+        run: node scripts/psr18-security-verdict.mjs --out "$RUNNER_TEMP/psr18-security-verdict.json"
+
+      - name: Preserve PSR-18 verdict evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-psr18-security-verdict
+          path: ${{ runner.temp }}/psr18-security-verdict.json
+          if-no-files-found: warn
+          retention-days: 14

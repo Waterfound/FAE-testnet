@@ -120,6 +120,9 @@ jobs:
       - name: Verify PSR-17 baseline replay contract
         run: node --test tests/public-code-security-baseline-replay.mjs
 
+      - name: Verify PSR-18 security verdict contract
+        run: node --test tests/public-code-security-verdict.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js

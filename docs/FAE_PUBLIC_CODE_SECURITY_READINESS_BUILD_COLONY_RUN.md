@@ -279,3 +279,14 @@ PSR-17 adds a single serial full-security replay. It reruns the 17-case white-bo
 Selective retry is forbidden. Each replay component has one attempt; the dedicated workflow sets `cancel-in-progress: false` and contains no `continue-on-error`.
 
 PSR-17 becomes GREEN only after the dedicated replay, canonical verification, cross-Lab integration and CodeQL all succeed on the same exact candidate and that candidate integrates. On GREEN, PSR-18 becomes READY.
+
+
+## Frontier execution — PSR-18 (rebound revision 3)
+
+Execution date: 2026-09-18  
+Bound source: `84440c5d320eee4c46f0a40f000399a735ecea03`  
+Branch: `colony/fae-public-code-security-psr18-r3`
+
+The previous candidate passed PSR-18 #2, PSR-17 #6, canonical #594, cross-Lab #52 and CodeQL #75, but main advanced before integration. The intervening changes canonically admit PQ-11 as shadow-only and add MTS-12 physical-attempt/harness evidence. Neither grants active authority: PQ activation remains unauthorized and MTS active-runtime writes remain unauthorized.
+
+Because PSR-17 explicitly attacks PQ/MTS authority boundaries, the verdict is rebound again instead of reusing stale evidence. Fresh PSR-18, PSR-17 replay, canonical, cross-Lab and CodeQL evidence are required on this exact candidate.

@@ -1,0 +1,26 @@
+{
+  "schema": "FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1",
+  "psr": "PSR-18",
+  "verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+  "binding": "EXACT_PR_HEAD_AT_EXECUTION",
+  "basis": {
+    "psr17_integrated_result": "docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json",
+    "psr16_finding_closure": "docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json",
+    "plan": "docs/FAE_PUBLIC_CODE_SECURITY_READINESS_BUILD_COLONY_RUN.json",
+    "open_blockers": 0,
+    "missing_required_evidence_expected": 0
+  },
+  "scope": "Public-code security baseline only",
+  "non_claims": [
+    "Does not authorize mainnet.",
+    "Does not authorize release or consensus activation.",
+    "Does not claim absence of all vulnerabilities.",
+    "Requires recurring Project Assurance after PSR-19."
+  ],
+  "authority": {
+    "mainnet_authority": false,
+    "release_authority": false,
+    "consensus_activation": false,
+    "economic_activation": false
+  }
+}
