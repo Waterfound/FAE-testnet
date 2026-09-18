@@ -22,16 +22,18 @@ jobs:
       - name: PQ-00 boundary guard
         env:
           PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ -n "$PQ_BOUNDARY_BASE" ]; then
-            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE"
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
           else
             node lab/post-quantum-signatures/boundary-guard.mjs
           fi
       - name: PQ-01 verify pinned standards
+        id: standards
         run: node lab/post-quantum-signatures/tools/observe-standards.mjs
       - name: Upload standards observation
-        if: always()
+        if: steps.standards.outcome == 'success' || steps.standards.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: pq-standards-observation
