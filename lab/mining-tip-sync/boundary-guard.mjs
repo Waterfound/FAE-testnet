@@ -66,10 +66,11 @@ if(baseIndex!==-1){
     for(const file of changed){
       const allowed=manifest.current_stage_allowed_write_prefixes.some(prefix=>file.startsWith(prefix));
       if(!allowed)fail(`changed path outside MTS-00/01 authority: ${file}`);
-      const protectedHit=manifest.current_stage_protected_paths.some(protectedPath=>
+      const exception=Array.isArray(manifest.current_stage_protected_path_exceptions)&&manifest.current_stage_protected_path_exceptions.includes(file);
+      const protectedHit=!exception&&manifest.current_stage_protected_paths.some(protectedPath=>
         protectedPath.endsWith('/')?file.startsWith(protectedPath):file===protectedPath
       );
-      if(protectedHit)fail(`protected active path changed during MTS-00/01: ${file}`);
+      if(protectedHit)fail(`protected active path changed during current MTS frontier: ${file}`);
     }
   }
 }
