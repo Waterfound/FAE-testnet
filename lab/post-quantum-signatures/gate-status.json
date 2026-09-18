@@ -50,15 +50,85 @@
     },
     "PQ-03": {
       "name": "ML-DSA Primitive Correctness",
-      "status": "READY",
-      "authority": "RESEARCH_SHADOW_ONLY"
+      "status": "GREEN",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "evidence": {
+        "admitted_head": "cced61cb5ca813976697647e24c1a445c43bfd55",
+        "pq_workflow_run_id": 35347872084,
+        "pq_workflow_run_number": 97,
+        "canonical_run_id": 35347872099,
+        "primitive_artifact_id": 10547354448,
+        "primitive_artifact_sha256": "c724121007345ded686560fd6150f0f9ebd5763ba44471c8c4616726e15738c0",
+        "noble_full_frozen_acvp_replay": "PASS",
+        "circl_modern_acvp": {
+          "ML-DSA-44": {
+            "keyGen": 25,
+            "sigGen": 120,
+            "sigVer": 60,
+            "result": "PASS"
+          },
+          "ML-DSA-65": {
+            "keyGen": 25,
+            "sigGen": 120,
+            "sigVer": 60,
+            "result": "PASS"
+          },
+          "ML-DSA-87": {
+            "keyGen": 25,
+            "sigGen": 120,
+            "sigVer": 60,
+            "result": "PASS"
+          }
+        },
+        "bidirectional_cross_implementation": {
+          "noble_to_circl": {
+            "records": 9,
+            "result": "PASS"
+          },
+          "circl_to_noble": {
+            "records": 9,
+            "result": "PASS"
+          }
+        },
+        "unexplained_disagreements": 0
+      },
+      "meaning": "ML-DSA-44/65/87 primitive correctness is admitted for shadow research after frozen official-vector replay and independent Noble/CIRCL bidirectional verification. This does not authorize active FAE use."
     },
     "PQ-04": {
       "name": "SLH-DSA Diversity Study",
+      "status": "GREEN",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "evidence": {
+        "admitted_head": "cced61cb5ca813976697647e24c1a445c43bfd55",
+        "pq_workflow_run_id": 35347872084,
+        "canonical_run_id": 35347872099,
+        "primitive_artifact_id": 10547354448,
+        "primitive_artifact_sha256": "c724121007345ded686560fd6150f0f9ebd5763ba44471c8c4616726e15738c0",
+        "noble_frozen_surface_replay": "PASS",
+        "circl_native_acvp": "PASS",
+        "upstream_defined_long_test_skips": "PRESERVED_AS_SKIPS",
+        "representative_bidirectional_cross_implementation": "PASS",
+        "unexplained_disagreements": 0
+      },
+      "meaning": "SLH-DSA is admitted as a cryptographic-diversity shadow option. Operational suitability and resource economics remain explicitly deferred to PQ-09."
+    },
+    "PQ-05": {
+      "name": "FAE Hybrid Transaction Shadow",
       "status": "READY",
-      "authority": "RESEARCH_SHADOW_ONLY"
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-03"
+      ]
+    },
+    "PQ-06": {
+      "name": "Wallet Derivation, Recovery and Migration Shadow",
+      "status": "READY",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-03"
+      ]
     }
   },
-  "active_frontier": "PQ-03+PQ-04",
+  "active_frontier": "PQ-05+PQ-06",
   "activation_authorized": false
 }
