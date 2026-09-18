@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Clock collector and evaluator tests
         run: python3 -m unittest discover -s sovereign-forge/tests -p test_wan_clock_health.py -v
       - name: Preserve lab-only authority boundary
@@ -101,7 +101,7 @@ jobs:
       WAN_ARTIFACT_DIR: /tmp/fae-real-wan-${{ matrix.role }}
       FAE_WAN_TUNNEL_PROVIDER: ${{ github.ref_name == 'lab-network-reorg-tunnel-fallback' && matrix.role == 'B' && 'localhost-run' || 'auto' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -140,7 +140,7 @@ jobs:
       WAN_ARTIFACT_DIR: /tmp/fae-real-wan-C
       FAE_WAN_TUNNEL_PROVIDER: auto
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -181,7 +181,7 @@ jobs:
       ISSUE_NUMBER: ${{ needs.rendezvous.outputs.issue_number }}
       WAN_ARTIFACT_DIR: /tmp/fae-real-wan-D
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Syntax-check independent observer
         run: |
           bash -n sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh
@@ -213,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with:
           pattern: real-wan-*

@@ -25,7 +25,7 @@ jobs:
       F_MERGE_SHA: 20a37c26125c5a11ba4c6808c1b4e1d6a07afd88
       G2_MERGE_SHA: bd5425e6245dee558422438fad7f56ad79b6721b
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
