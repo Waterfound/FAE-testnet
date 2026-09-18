@@ -279,3 +279,18 @@ PSR-17 adds a single serial full-security replay. It reruns the 17-case white-bo
 Selective retry is forbidden. Each replay component has one attempt; the dedicated workflow sets `cancel-in-progress: false` and contains no `continue-on-error`.
 
 PSR-17 becomes GREEN only after the dedicated replay, canonical verification, cross-Lab integration and CodeQL all succeed on the same exact candidate and that candidate integrates. On GREEN, PSR-18 becomes READY.
+
+
+## Frontier execution — PSR-18
+
+Execution date: 2026-09-18  
+Bound source: `13e6cfb0ac69ad302fd732b464b70801bfa98ef9`  
+Branch: `colony/fae-public-code-security-psr18`
+
+PSR-17 is normalized to GREEN from integrated commit `13e6cfb0ac69ad302fd732b464b70801bfa98ef9`: dedicated replay #1, canonical #581, cross-Lab #39 and CodeQL #62 all succeeded, with a 17/17 PASS replay, target unchanged and no retry violation.
+
+PSR-18 uses a deterministic fail-closed verdict engine. Open security findings take precedence, then missing evidence; only the absence of both yields `BASELINE_READY_FOR_RECURRING_ASSURANCE`. The committed verdict record must match the computed result on the exact PR head or the workflow fails.
+
+The verdict grants no mainnet, release, consensus or economic activation authority.
+
+PSR-18 becomes GREEN only after its dedicated workflow, a fresh PSR-17 replay, canonical verification, cross-Lab and CodeQL all succeed on the exact candidate and the candidate integrates. On GREEN, PSR-19 becomes READY.
