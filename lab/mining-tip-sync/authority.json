@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_07_STRESS_ACTIVE",
+  "status": "MTS_07_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,7 +9,7 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-07"
+    "MTS-08"
   ],
   "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
@@ -145,6 +145,24 @@
       "status": "GREEN",
       "workflow_run_id": 35346308512,
       "workflow_job_id": 105603612197
+    },
+    "MTS-07": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35346915716,
+      "lab_workflow_job_id": 105605551723,
+      "canonical_workflow_run_id": 35346915626,
+      "canonical_workflow_job_id": 105605551964,
+      "stress_tests": "4/4 PASS",
+      "runtime_patch_required": false,
+      "rapid_tip_count": 12,
+      "delayed_progress_callbacks": 2000,
+      "consecutive_status_failures_recovered": 3,
+      "stale_submissions_observed": 0
+    },
+    "canonical_regression_mts_07": {
+      "status": "GREEN",
+      "workflow_run_id": 35346915626,
+      "workflow_job_id": 105605551964
     }
   },
   "miner_write_authorization_basis": {
@@ -228,5 +246,10 @@
     "runtime_write_authorized": false,
     "purpose": "Attempt to break the integrated MTS-04/05 behavior under rapid tips, delayed scheduling/CPU-like callback pressure, and transient network failures before authorizing any new runtime patch.",
     "runtime_patch_gate": "Only if deterministic MTS-07 evidence exposes a reproducible defect."
+  },
+  "mts_08_authority_preview": {
+    "scope": "background/throttling/suspend-return",
+    "initial_mode": "STRESS_FIRST",
+    "runtime_write_authorized": false
   }
 }
