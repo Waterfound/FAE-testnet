@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "GREEN_ON_SUCCESSFUL_FULL_REPLAY_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -295,7 +295,7 @@
     {
       "id": "PSR-18",
       "name": "Public-Code Security Baseline Verdict",
-      "state": "READY_ON_SUCCESSFUL_PSR17_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_VERDICT_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-17"
       ],
@@ -304,7 +304,7 @@
     {
       "id": "PSR-19",
       "name": "Bounded Project Closeout and Recurring Assurance Handoff",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR18_INTEGRATION",
       "depends_on": [
         "PSR-18"
       ],
@@ -802,6 +802,63 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-18"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-18",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+      "branch": "colony/fae-public-code-security-psr18",
+      "executor_attached": true,
+      "prerequisite_normalization": {
+        "PSR_17": "GREEN",
+        "integration_commit": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+        "pr": 202,
+        "runs": {
+          "psr17": 1,
+          "canonical": 581,
+          "cross_lab": 39,
+          "codeql": 62,
+          "psr15": 11,
+          "psr16": 7
+        },
+        "replay": {
+          "planned": 17,
+          "passed": 17,
+          "failed": 0,
+          "target_unchanged": true,
+          "retry_violation": false
+        }
+      },
+      "outputs": [
+        "docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json",
+        "docs/security/FAE_PSR18_SECURITY_VERDICT_CONTRACT_V1.json",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.md",
+        "scripts/psr18-security-verdict.mjs",
+        "tests/public-code-security-verdict.mjs",
+        ".github/workflows/psr18-security-verdict.yml",
+        ".github/workflows/verify.yml"
+      ],
+      "expected_verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+      "verdict_policy": {
+        "findings_first": true,
+        "missing_evidence_second": true,
+        "ready_only_if_neither": true,
+        "computed_verdict_must_match_committed_record": true
+      },
+      "evidence_binding": {
+        "dedicated_psr18_workflow": "required before GREEN",
+        "psr17_full_replay": "required again on candidate because verify.yml change triggers it",
+        "canonical_verification": "required before GREEN",
+        "cross_lab_integration": "required before GREEN",
+        "codeql": "required signal on exact candidate",
+        "exact_source_binding": "required before merge",
+        "mainnet_authority": false,
+        "downstream_on_green": [
+          "PSR-19"
         ]
       }
     }
