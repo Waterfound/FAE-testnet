@@ -27,7 +27,8 @@
     ".github/workflows/mining-tip-sync-lab",
     "mining.js",
     "sovereign-forge/browser/mining.js",
-    "FAE_FORGE_MAIN.sha256"
+    "FAE_FORGE_MAIN.sha256",
+    "tests/mining-coordinator-smoke.mjs"
   ],
   "current_stage_protected_paths": [
     "core.js",
@@ -171,5 +172,29 @@
       "lab_manifest_check": "PASS",
       "canonical_source_check": "PASS"
     }
+  },
+  "canonical_fixture_update_authorization_basis": {
+    "failed_canonical_run": {
+      "workflow_run_id": 35346219525,
+      "workflow_job_id": 105603303520,
+      "failing_gate": "Verify browser wallet, client, coordinator fallback, trust and rotation flows",
+      "observed_error": "TIP_FRESHNESS_UNKNOWN"
+    },
+    "production_contract": {
+      "path": "supabase/functions/fae-public-testnet-v4/index.ts",
+      "content_sha": "25fa833496a2ab9190e990c64e0a9d88eb2c7134",
+      "status_fields": [
+        "ok",
+        "node_version",
+        "network",
+        "height",
+        "tip_hash",
+        "difficulty_bits",
+        "target_seconds"
+      ],
+      "tip_hash_authoritative": true
+    },
+    "exact_fixture_path": "tests/mining-coordinator-smoke.mjs",
+    "purpose": "Make canonical direct-fallback smoke fixture match the already-live /status height+tip_hash contract. No runtime relaxation."
   }
 }
