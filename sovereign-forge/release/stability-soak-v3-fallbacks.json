@@ -7,7 +7,12 @@
     "duration_hours": 96,
     "margin_hours": 12,
     "max_transient_outage_seconds": 180,
-    "phase_hours": [24,24,24,24],
+    "phase_hours": [
+      24,
+      24,
+      24,
+      24
+    ],
     "three_distinct_node_regions": true,
     "controller_required": true,
     "observer_required": true,
@@ -15,7 +20,13 @@
     "new_economy_activation": false,
     "candidate_promoted": false,
     "mainnet_authorized": false,
-    "run_started": false
+    "run_started": false,
+    "telemetry": {
+      "node_local_tip_first_seen_resolution_ms": 25,
+      "peer_reachability_probe_seconds": 1,
+      "external_observer_collection_seconds": 60,
+      "observer_gap_policy": "fail closed using upper bound from last successful observation"
+    }
   },
   "plan_b": {
     "name": "HYBRID_RENDER_NODES_CLOUDFLARE_CONTROL",
@@ -24,25 +35,42 @@
       "at least 324 Render Free instance-hours remain for a 108-hour three-node envelope"
     ],
     "nodes": [
-      {"role":"node-a","provider":"render","region":"oregon","plan":"free"},
-      {"role":"node-b","provider":"render","region":"frankfurt","plan":"free"},
-      {"role":"node-c","provider":"render","region":"singapore","plan":"free"}
+      {
+        "role": "node-a",
+        "provider": "render",
+        "region": "oregon",
+        "plan": "free"
+      },
+      {
+        "role": "node-b",
+        "provider": "render",
+        "region": "frankfurt",
+        "plan": "free"
+      },
+      {
+        "role": "node-c",
+        "provider": "render",
+        "region": "singapore",
+        "plan": "free"
+      }
     ],
     "controller": {
-      "provider": "cloudflare",
-      "surface": "workflows-free",
+      "provider": "embedded-node-a",
+      "surface": "v3-node-runtime",
       "cadence_seconds": 300,
-      "estimated_steps_per_day_upper": 576
+      "additional_render_instance_hours": 0,
+      "guard": "controller PoW executes inside node-a; Plan A is unaffected unless FAE_V3_EMBED_CONTROLLER=1"
     },
     "observer": {
       "provider": "cloudflare",
       "surface": "workers-cron-plus-d1-free",
       "cadence_seconds": 60,
       "estimated_invocations_per_day": 1440,
-      "estimated_d1_rows_written_per_day_upper": 10000
+      "estimated_d1_rows_written_per_day_upper": 10000,
+      "fine_timing_source": "node-local first-seen event buffers"
     },
     "render_instance_hours_required": 324,
-    "zero_cost_assumption": "Render Free quota >=324h and Cloudflare Free limits remain available",
+    "zero_cost_assumption": "Render Free quota >=324h, embedded controller uses no additional instance, and Cloudflare Free observer/D1 limits remain available",
     "remaining_render_dependency": true,
     "promotion_authority": false
   },
@@ -54,40 +82,42 @@
     ],
     "nodes": [
       {
-        "role":"node-a",
-        "provider":"google-cloud",
-        "region":"us-west1-oregon",
-        "plan":"e2-micro-free-tier",
-        "persistent_disk_gb":30,
-        "guard":"active billing account/free-tier eligibility must be proven; no paid upgrade is authorized"
+        "role": "node-a",
+        "provider": "google-cloud",
+        "region": "us-west1-oregon",
+        "plan": "e2-micro-free-tier",
+        "persistent_disk_gb": 30,
+        "guard": "active billing account/free-tier eligibility must be proven; no paid upgrade is authorized"
       },
       {
-        "role":"node-b",
-        "provider":"koyeb",
-        "region":"frankfurt",
-        "plan":"free-web-service",
-        "guard":"incoming peer/controller/observer traffic must prevent the documented one-hour idle scale-to-zero"
+        "role": "node-b",
+        "provider": "koyeb",
+        "region": "frankfurt",
+        "plan": "free-web-service",
+        "guard": "incoming peer/controller/observer traffic must prevent the documented one-hour idle scale-to-zero"
       },
       {
-        "role":"node-c",
-        "provider":"oracle-cloud",
-        "region":"sa-saopaulo-1",
-        "plan":"always-free-compute",
-        "guard":"tenancy home region must be Sao Paulo; provision/restart close to T0 and verify no idle-reclamation risk during the 96h window"
+        "role": "node-c",
+        "provider": "oracle-cloud",
+        "region": "sa-saopaulo-1",
+        "plan": "always-free-compute",
+        "guard": "tenancy home region must be Sao Paulo; provision/restart close to T0 and verify no idle-reclamation risk during the 96h window"
       }
     ],
     "controller": {
-      "provider":"cloudflare",
-      "surface":"workflows-free",
-      "cadence_seconds":300,
-      "estimated_steps_per_day_upper":576
+      "provider": "embedded-node-a",
+      "surface": "v3-node-runtime",
+      "cadence_seconds": 300,
+      "additional_provider_instance_hours": 0,
+      "guard": "controller PoW executes inside the Google Cloud node-a runtime; no Cloudflare CPU is used for PoW"
     },
     "observer": {
-      "provider":"cloudflare",
-      "surface":"workers-cron-plus-d1-free",
-      "cadence_seconds":60,
-      "estimated_invocations_per_day":1440,
-      "estimated_d1_rows_written_per_day_upper":10000
+      "provider": "cloudflare",
+      "surface": "workers-cron-plus-d1-free",
+      "cadence_seconds": 60,
+      "estimated_invocations_per_day": 1440,
+      "estimated_d1_rows_written_per_day_upper": 10000,
+      "fine_timing_source": "node-local first-seen event buffers"
     },
     "render_dependency": false,
     "payment_verification_may_be_required": true,
@@ -95,11 +125,31 @@
     "promotion_authority": false
   },
   "rejected_shortcuts": [
-    {"option":"github-actions-hosted-runners-as-continuous-nodes","reason":"hosted job execution is capped at 6 hours"},
-    {"option":"cloudflare-workers-as-pow-nodes","reason":"Free Workers CPU budget is unsuitable for continuous node/PoW runtime"},
-    {"option":"single-oracle-provider-three-region-topology","reason":"Always Free compute must run in the tenancy home region"},
-    {"option":"koyeb-only-three-node-topology","reason":"one Free Instance per organization"},
-    {"option":"raise_180s_recovery_bound","reason":"forbidden; would weaken the frozen V3 experiment"}
+    {
+      "option": "github-actions-hosted-runners-as-continuous-nodes",
+      "reason": "hosted job execution is capped at 6 hours"
+    },
+    {
+      "option": "cloudflare-workers-as-pow-nodes",
+      "reason": "Free Workers CPU budget is unsuitable for continuous node/PoW runtime"
+    },
+    {
+      "option": "single-oracle-provider-three-region-topology",
+      "reason": "Always Free compute must run in the tenancy home region"
+    },
+    {
+      "option": "koyeb-only-three-node-topology",
+      "reason": "one Free Instance per organization"
+    },
+    {
+      "option": "raise_180s_recovery_bound",
+      "reason": "forbidden; would weaken the frozen V3 experiment"
+    },
+    {
+      "option": "cloudflare-free-workflows-as-pow-controller",
+      "reason": "Workers Free / Workflows Free CPU budget is 10 ms per invocation/step; V3 START_BITS=18 PoW is therefore not admitted as a robust controller workload"
+    }
   ],
-  "source_snapshot_date": "2026-09-18"
+  "source_snapshot_date": "2026-09-18",
+  "frozen_fallback_runtime_commit": "140be01baff5a770263f81a13b728e63b0ce02cb"
 }
