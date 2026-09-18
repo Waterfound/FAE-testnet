@@ -195,3 +195,16 @@ Existing specialized evidence promoted into the canonical verification path:
 The hostile harness uses ephemeral cryptographic material only. It does not change runtime or consensus behavior.
 
 PSR-05 through PSR-09 become GREEN only after the full canonical workflow succeeds and this exact candidate integrates. On success, PSR-10 becomes READY.
+
+
+## Frontier execution — PSR-10 (current binding)
+
+Execution date: 2026-09-18  
+Bound source: `698f305895bca6e30a7ad6ded0da0a0e7b4274d4`  
+Branch: `colony/fae-public-code-security-psr10-r3`
+
+PSR-10 is a real execution. The candidate was rebound again because `main` advanced with MTS-08 lifecycle-resume hardening before PR creation. The intervening mining/browser changes were reviewed and MTS-08 is admitted as specialized lifecycle evidence.
+
+The candidate contains 53 named malformed corpus cases and 1,984 deterministic generated property cases under seed `0xfae51010`, plus promoted reorg differential fuzz, difficulty/timestamp red-team, MTS-07 stress and MTS-08 lifecycle tests.
+
+PSR-10 becomes GREEN only after the exact candidate passes the complete canonical workflow and integrates.
