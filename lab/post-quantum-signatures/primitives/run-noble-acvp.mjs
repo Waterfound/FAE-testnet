@@ -93,12 +93,13 @@ const evidence = {
     for (const t of g.tests) {
       const want=em.get(t.tcId); assert(want, 'missing ML siggen result');
       const rnd=t.rnd ? hex(t.rnd) : false;
-      const opts={extraEntropy:rnd, externalMu:!!g.externalMu};
+      const internalOpts={extraEntropy:rnd, externalMu:!!g.externalMu};
       let sig;
       if (g.signatureInterface==='internal') {
-        sig=g.externalMu ? scheme.internal.sign(hex(t.mu),hex(t.sk),opts) : scheme.internal.sign(hex(t.message),hex(t.sk),opts);
+        sig=g.externalMu ? scheme.internal.sign(hex(t.mu),hex(t.sk),internalOpts) : scheme.internal.sign(hex(t.message),hex(t.sk),internalOpts);
       } else if (g.signatureInterface==='external') {
         const ctx=t.context ? hex(t.context) : undefined;
+        const publicOpts={extraEntropy:rnd,context:ctx};
         if (g.preHash==='preHash') {
           const h=HASHES[t.hashAlg]; assert(h,'unknown hash '+t.hashAlg);
           if (strength(h)<scheme.securityLevel) {
@@ -106,8 +107,8 @@ const evidence = {
             assert(threw,'weak ML prehash was not rejected');
             evidence.pq03.policy_rejections++; continue;
           }
-          sig=scheme.prehash(h).sign(hex(t.message),hex(t.sk),{...opts,context:ctx});
-        } else sig=scheme.sign(hex(t.message),hex(t.sk),{...opts,context:ctx});
+          sig=scheme.prehash(h).sign(hex(t.message),hex(t.sk),publicOpts);
+        } else sig=scheme.sign(hex(t.message),hex(t.sk),publicOpts);
       } else throw new Error('unknown ML signatureInterface');
       assert(eq(sig,hex(want.signature)), `ML siggen mismatch tc=${t.tcId}`);
       evidence.pq03.siggen++;
