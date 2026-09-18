@@ -1,0 +1,126 @@
+name: psr13-release-provenance
+
+on:
+  pull_request:
+    paths:
+      - 'release/provenance/**'
+      - 'scripts/psr13-*.mjs'
+      - 'tests/public-code-release-provenance.mjs'
+      - 'sovereign-forge/scripts/build-reproducible-release.mjs'
+      - 'sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs'
+      - 'sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs'
+      - 'sovereign-forge/release/**'
+      - 'sovereign-forge/node/Dockerfile*'
+      - '.github/workflows/psr13-release-provenance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'release/provenance/**'
+      - 'scripts/psr13-*.mjs'
+      - 'tests/public-code-release-provenance.mjs'
+      - 'sovereign-forge/scripts/build-reproducible-release.mjs'
+      - 'sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs'
+      - 'sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs'
+      - 'sovereign-forge/release/**'
+      - 'sovereign-forge/node/Dockerfile*'
+      - '.github/workflows/psr13-release-provenance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NODE_BASE: node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
+    steps:
+      - name: Checkout primary candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 0
+          path: primary
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify PSR-13 local provenance contract
+        working-directory: primary
+        run: node --test tests/public-code-release-provenance.mjs
+
+      - name: Replay Colony E source-release verifier
+        working-directory: primary
+        run: node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
+
+      - name: Replay independent Git-oracle verifier
+        working-directory: primary
+        run: node sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs
+
+      - name: Checkout clean room A
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 0
+          path: clean-a
+      - name: Checkout clean room B
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 0
+          path: clean-b
+
+      - name: Build byte-identical source releases in independent paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-a" "$RUNNER_TEMP/release-b"
+          node clean-a/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-a"
+          node clean-b/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-b"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v2.json" "$RUNNER_TEMP/release-b/fae-source-release-v2.json"
+          cmp "$RUNNER_TEMP/release-a/manifest.json" "$RUNNER_TEMP/release-b/manifest.json"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v2.json.sha256" "$RUNNER_TEMP/release-b/fae-source-release-v2.json.sha256"
+          sha256sum "$RUNNER_TEMP/release-a/fae-source-release-v2.json" > "$RUNNER_TEMP/clean-room-artifact.sha256"
+          sha256sum "$RUNNER_TEMP/release-a/manifest.json" > "$RUNNER_TEMP/clean-room-manifest.sha256"
+
+      - name: Generate runtime provenance evidence
+        working-directory: primary
+        run: node scripts/psr13-release-provenance.mjs --out "$RUNNER_TEMP/psr13"
+
+      - name: Pull immutable container base input
+        run: docker pull "$NODE_BASE"
+
+      - name: Build all protected Dockerfile variants from pinned derived inputs
+        shell: bash
+        working-directory: primary
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pinned"
+          files=(
+            sovereign-forge/node/Dockerfile
+            sovereign-forge/node/Dockerfile.v6-candidate
+            sovereign-forge/node/Dockerfile.coordinator-candidate
+            sovereign-forge/node/Dockerfile.full-target-shadow-validation
+          )
+          n=0
+          for file in "${files[@]}"; do
+            n=$((n+1))
+            out="$RUNNER_TEMP/pinned/Dockerfile.$n"
+            node scripts/psr13-pinned-dockerfile.mjs --dockerfile "$file" --out "$out"
+            grep -qF "FROM $NODE_BASE" "$out"
+            docker build --pull=false -f "$out" sovereign-forge/node
+          done
+
+      - name: Preserve PSR-13 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-psr13-release-provenance
+          path: |
+            ${{ runner.temp }}/release-a/fae-source-release-v2.json.sha256
+            ${{ runner.temp }}/clean-room-artifact.sha256
+            ${{ runner.temp }}/clean-room-manifest.sha256
+            ${{ runner.temp }}/psr13/psr13-runtime-evidence.json
+          if-no-files-found: error
+          retention-days: 14
