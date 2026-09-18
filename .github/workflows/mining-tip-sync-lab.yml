@@ -60,3 +60,6 @@ jobs:
 
       - name: MTS-08 background throttling suspend-return lifecycle stress
         run: node --test lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs
+
+      - name: MTS-09 multi-context independent-convergence stress
+        run: node --test lab/mining-tip-sync/tests/mts-09-multicontext.test.mjs
