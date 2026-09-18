@@ -122,7 +122,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
       - name: Upload host evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-host-${{ matrix.role }}-${{ github.run_id }}
           path: /tmp/fae-real-wan-${{ matrix.role }}
@@ -157,7 +157,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Upload controller evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-controller-C-${{ github.run_id }}
           path: /tmp/fae-real-wan-C
@@ -185,7 +185,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Upload observer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-observer-D-${{ github.run_id }}
           path: /tmp/fae-real-wan-D

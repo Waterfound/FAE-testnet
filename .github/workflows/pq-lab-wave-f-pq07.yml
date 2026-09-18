@@ -83,7 +83,7 @@ jobs:
           node lab/post-quantum-signatures/wave-f/pq07/test.mjs | tee lab/post-quantum-signatures/evidence/wave-f/pq07.json
       - name: Upload PQ-07 evidence
         if: always() && steps.binding.outputs.bound == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pq07-adversarial-downgrade-replay
           path: lab/post-quantum-signatures/evidence/wave-f/pq07.json
