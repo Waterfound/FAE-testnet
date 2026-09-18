@@ -4,7 +4,7 @@ This Lab closes the browser-miner stale-work gap without using block-time change
 
 ## Current frontier
 
-**MTS-07 — Rapid tips, CPU load, and network failures**
+**MTS-08 — Background, throttling, suspend and return**
 
 MTS-00 through MTS-06 are GREEN. MTS-05 adds race-safe Worker generation fencing plus a fail-closed authoritative freshness barrier immediately before direct block submission.
 
@@ -33,8 +33,12 @@ MTS-05 closes post-cancellation races and the nonce-to-submit race.
 
 MTS-06 provides the deterministic VM/fake-Worker/fake-network regression harness.
 
-## MTS-07 objective
+## MTS-07 result
 
-Stress the integrated MTS-04/05 behavior under rapid consecutive tip changes, delayed event-loop/CPU scheduling, transient status failures, repeated recovery, and combinations of those conditions. The gate remains fail-closed: no stale or freshness-unknown direct block may be submitted.
+MTS-07 is GREEN without a runtime patch: 12 consecutive tip replacements, 2,000 delayed-scheduling progress callbacks, three consecutive status failures with recovery, and solution-during-outage all preserved zero stale submissions and automatic recovery.
 
-No wallet secrets or real Proof of Work are required for deterministic MTS-07 testing.
+## MTS-08 objective
+
+Model browser lifecycle hazards: background timer throttling, long suspension with chain advancement, resume/return revalidation, and queued Worker callbacks around suspend/resume. The browser must never submit work whose parent freshness was not re-established after return.
+
+No wallet secrets or real Proof of Work are required for the deterministic MTS-08 phase.
