@@ -103,6 +103,9 @@ jobs:
           node sovereign-forge/tests/activation-state-transition-core-differential.mjs
           node sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
 
+      - name: Verify PSR-12 public-repo hygiene
+        run: node tests/public-repo-hygiene.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js

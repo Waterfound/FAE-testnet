@@ -219,3 +219,14 @@ The first PSR-11 candidate was prepared against `930d757f7a286eb83be637d32197342
 PSR-10 is normalized to GREEN based on integrated commit `d32ede90f91f065cfbfdfd1d6d150780635dfc72`, canonical run #465 SUCCESS and current-main replay run #476 SUCCESS.
 
 PSR-11 becomes GREEN only after the complete canonical workflow succeeds and this rebound candidate integrates.
+
+
+## Frontier execution — PSR-12 || PSR-14 (rebound revision 4)
+
+Execution date: 2026-09-18  
+Bound source: `448c6c83bae0edb1cadf4e8957d9487c2d174783`  
+Branch: `colony/fae-public-code-security-psr12-14-r4`
+
+The previous exact candidate passed canonical #518 and CodeQL #2, but main advanced before integration. The intervening 13 commits add MTS-11 real-browser validation and PQ Wave G/H bookkeeping. No new workflow was added; `mining-tip-sync-lab.yml` remains `contents: read`, without direct `secrets.*` access or `pull_request_target`.
+
+The candidate is rebound again rather than accepting stale evidence. PSR-12 requires fresh canonical + CodeQL SUCCESS on this revision; PSR-14 requires fresh canonical SUCCESS and integration.
