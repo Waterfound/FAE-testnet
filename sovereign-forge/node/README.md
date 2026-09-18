@@ -60,6 +60,12 @@ Each node exposes `/feed`, so any other node can reconstruct and independently v
 - `GET /spendable?address=faet1...`
 - `GET /transactions?address=faet1...`
 - `GET /peers`
+- `GET /explorer/status`
+- `GET /explorer/blocks?limit=20&before_height=<optional>`
+- `GET /explorer/block?height=<height>` or `GET /explorer/block?hash=<64hex>`
+- `GET /explorer/transaction?txid=<64hex>`
+- `GET /explorer/address?address=faet1...&limit=30&cursor=<optional>`
+- `GET /explorer/search?q=<height|hash|txid|address>`
 - `POST /submit-tx`
 - `POST /submit-block`
 
@@ -78,3 +84,11 @@ docker compose up -d --build
 ```
 
 The node persists its independently validated state in the `fae-node-data` volume and exposes port `8787`.
+
+## Block Explorer read surface
+
+The `/explorer/*` namespace is read-only and derived from a clone of the node's already independently validated in-memory state. It never participates in validation, fork choice, transaction admission, mining, wallet signing, or chain survival.
+
+Explorer CORS advertises only `GET,OPTIONS`; mutating methods return `405 read_only`. Address pagination cursors bind to the observed tip hash. Reusing a cursor after the selected tip changes returns `503 tip_changed_retry` rather than mixing history from two chain views.
+
+No Explorer database or index is required by this implementation.

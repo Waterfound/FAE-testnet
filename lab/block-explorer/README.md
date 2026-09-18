@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-01 — LAB_VERIFIED / integration candidate**
+Status: **BE-02 — LAB_VERIFIED / integration candidate**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -75,3 +75,24 @@ Passing BE-01 authorizes planning/execution of **BE-02 — Independent Node Expl
 ## BE-01 verification
 
 The exact contract candidate passed the dedicated Block Explorer Lab workflow, the canonical-source suite, CodeQL, recurring public-code assurance, and the pre-integration cross-Lab gate. BE-02 remains unauthorized until this contract is integrated into canonical `main` and the Block Explorer is registered in the cross-Lab combined verification set.
+
+## BE-02 implementation boundary
+
+BE-02 adds a read-only `/explorer/*` namespace to the Independent Node. Each query clones the current independently validated node state and derives its response from that coherent snapshot.
+
+Implemented surface:
+
+- `/explorer/status`;
+- `/explorer/blocks`;
+- `/explorer/block` by height or hash;
+- `/explorer/transaction` by TXID;
+- `/explorer/address` with transfer + reward events;
+- `/explorer/search` with address, height and dual block-hash/TXID digest resolution.
+
+Address cursors are bound to the observed tip hash. A tip change invalidates the old cursor with `tip_changed_retry`; the Explorer never tries to reconcile or choose a chain itself.
+
+BE-02 does not add an indexer, database, cache authority, transaction submission, wallet operation, mining operation, or consensus rule.
+
+## BE-02 verification result
+
+The bounded BE-02 candidate passed the dedicated Explorer tests, real HTTP integration, Independent Node hardening, canonical-source verification, recurring Project Assurance, CodeQL, and pre-integration cross-Lab verification. Runtime write authority is now frozen. The remaining step is serialized integration into canonical `main` followed by exact combined-main verification.

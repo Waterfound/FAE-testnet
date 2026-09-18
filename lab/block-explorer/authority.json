@@ -6,8 +6,8 @@
   "lab": "FAE – Block Explorer",
   "source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
-  "current_frontier": "BE-01",
-  "authority_ceiling": "READ_ONLY_EXPLORER_CONTRACT",
+  "current_frontier": "BE-02",
+  "authority_ceiling": "BOUNDED_READ_ONLY_NODE_QUERY_SURFACE",
   "explorer_principle": "Explorer observes FAE; it never authorizes FAE.",
   "current_stage_runtime_write_authorized": false,
   "node_query_surface_write_authorized": false,
@@ -69,11 +69,91 @@
       "recurring_assurance_workflow_run_id": 35400808983,
       "cross_lab_preintegration_workflow_run_id": 35400809055,
       "note": "Pre-integration gates GREEN on exact candidate 9fce098ad577067aee96039bbc303d2eeb6bee13. Registry serialization follows as a separate shared-state step."
+    },
+    "BE-02": {
+      "status": "GREEN",
+      "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
+      "block_explorer_lab_run_id": 35406136085,
+      "block_explorer_lab_job_id": 105796163820,
+      "query_surface_tests": "11/11 PASS including real HTTP integration",
+      "independent_node_hardening_run_id": 35406136129,
+      "canonical_source_run_id": 35406136145,
+      "codeql_run_id": 35406136116,
+      "recurring_assurance_run_id": 35406136133,
+      "cross_lab_preintegration_run_id": 35406136167,
+      "failures_resolved": [
+        "digit-only 64-hex digest initially misclassified as block height",
+        "Forge integrity manifest initially stale after authorized node-source change",
+        "BE-01 combined guard initially rejected explicit BE-02 bounded query-surface authority"
+      ],
+      "authority_change": "NONE beyond bounded read-only Independent Node Explorer query implementation"
     }
   },
   "be02_authority": {
-    "state": "NOT_YET_AUTHORIZED",
-    "prerequisite": "BE-01 integrated and combined-main verified",
-    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority."
-  }
+    "state": "LAB_VERIFIED_FROZEN",
+    "prerequisite": "BE-01 is COMBINED_MAIN_VERIFIED at c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority.",
+    "allowed_write_scopes": [
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "sovereign-forge/node/fae-node.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/explorer-read.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/README.md"
+      },
+      {
+        "path": "FAE_FORGE_MAIN.sha256"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      }
+    ],
+    "forbidden_runtime_effects": [
+      "change block validity",
+      "change fork choice",
+      "change transaction validity",
+      "change mining/template semantics",
+      "change wallet or key handling",
+      "change monetary policy",
+      "trust raw feed or Explorer cache as canonical truth",
+      "add Explorer mutation endpoints"
+    ],
+    "explorer_methods": [
+      "GET",
+      "OPTIONS"
+    ],
+    "state_source": "in-memory snapshot of already independently validated node state",
+    "pagination_binding": "address cursors must bind to observed_tip_hash and fail closed across tip change",
+    "integrity_manifest_write_authorization_basis": {
+      "canonical_workflow_run_id": 35405913496,
+      "canonical_workflow_job_id": 105795524721,
+      "failing_gate": "Verify imported Sovereign Forge snapshot",
+      "observed_mismatches": [
+        "sovereign-forge/node/fae-node.mjs",
+        "sovereign-forge/node/README.md"
+      ],
+      "new_runtime_file_to_admit": "sovereign-forge/node/explorer-read.mjs",
+      "scope": "Renew exact SHA-256 entries for BE-02 changed/new Sovereign Forge node files only."
+    },
+    "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
+    "runtime_writes_frozen": true
+  },
+  "frontier_source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/node/fae-node.mjs",
+    "sovereign-forge/node/explorer-read.mjs",
+    "sovereign-forge/node/README.md"
+  ]
 }

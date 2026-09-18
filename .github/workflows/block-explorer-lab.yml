@@ -30,3 +30,14 @@ jobs:
         run: node lab/block-explorer/boundary-guard.mjs
       - name: BE-01 contract tests
         run: node --test lab/block-explorer/tests/be-01-contract.test.mjs
+      - name: BE-02 query-surface tests
+        run: node --test lab/block-explorer/tests/be-02-query-surface.test.mjs
+      - name: Check Independent Node syntax
+        run: |
+          node --check sovereign-forge/node/explorer-read.mjs
+          node --check sovereign-forge/node/fae-node.mjs
+      - name: Report BE-02 integrity hashes
+        run: |
+          sha256sum sovereign-forge/node/fae-node.mjs
+          sha256sum sovereign-forge/node/README.md
+          sha256sum sovereign-forge/node/explorer-read.mjs
