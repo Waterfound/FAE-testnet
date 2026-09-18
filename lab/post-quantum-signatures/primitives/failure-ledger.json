@@ -66,6 +66,21 @@
       "cryptographic_divergence_observed": false,
       "artifact_id": null,
       "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347455758,
+      "run_number": 86,
+      "head": "5955d5aac94b3ce330db0ad67dfdedb358ed7f3e",
+      "classification": "DUPLICATE_ARTIFACT_UPLOAD",
+      "first_failure": "Second duplicated actions/upload-artifact step returned HTTP 409 because pq03-pq04-primitive-correctness had already been uploaded successfully",
+      "cryptographic_steps": "ALL_PASS",
+      "noble_full_replay": "PASS",
+      "circl_modern_mldsa_full_replay": "PASS",
+      "circl_slhdsa_native_replay": "PASS",
+      "bidirectional_cross_implementation": "PASS",
+      "first_artifact_id": 10547337417,
+      "first_artifact_sha256": "4e1ee9954b6fd1df85b9dfb52bae416863c83631b63e3f79cf0efe7b0cb22f77",
+      "cryptographic_divergence_observed": false
     }
   ]
 }
