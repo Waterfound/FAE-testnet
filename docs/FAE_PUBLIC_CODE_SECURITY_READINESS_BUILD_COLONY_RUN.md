@@ -230,3 +230,20 @@ Branch: `colony/fae-public-code-security-psr12-14-r4`
 The previous exact candidate passed canonical #518 and CodeQL #2, but main advanced before integration. The intervening 13 commits add MTS-11 real-browser validation and PQ Wave G/H bookkeeping. No new workflow was added; `mining-tip-sync-lab.yml` remains `contents: read`, without direct `secrets.*` access or `pull_request_target`.
 
 The candidate is rebound again rather than accepting stale evidence. PSR-12 requires fresh canonical + CodeQL SUCCESS on this revision; PSR-14 requires fresh canonical SUCCESS and integration.
+
+
+## Frontier execution — PSR-13
+
+Execution date: 2026-09-18  
+Bound source: `53531a1f61cf190760e3234831ebab07c1dc9c27`  
+Branch: `colony/fae-public-code-security-psr13`
+
+PSR-12 and PSR-14 are normalized to GREEN from integrated commit `4918ee0823a9397fc6414f4e3631f0f1c2ac50d4`, canonical #521 and CodeQL #3.
+
+PSR-13 promotes the existing source-release V2 builder, Colony E reproducibility test and G2 Git-oracle verifier into the public-code security baseline. A dedicated workflow performs two independent clean-room checkouts of the exact candidate and requires byte-identical source-release artifact, manifest and checksum.
+
+Container provenance is handled without modifying the protected Sovereign Forge Dockerfiles. A root-level lock records an immutable Node base-image digest; temporary Dockerfile derivatives replace only the exact historical `FROM node:22-bookworm-slim` line with the digest-pinned reference and all protected variants must build.
+
+No byte-identical OCI-image claim is made. The proven claim is immutable container base input plus deterministic Dockerfile derivation.
+
+PSR-13 becomes GREEN only after fresh canonical verification, fresh dedicated PSR-13 workflow success and exact-source integration. On GREEN, PSR-15 becomes READY.
