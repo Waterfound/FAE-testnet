@@ -126,7 +126,7 @@
     {
       "id": "PSR-01",
       "name": "Formal Public-Code Threat Model",
-      "state": "BLOCKED_ON_PSR-00",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-00"
       ],
@@ -135,7 +135,7 @@
     {
       "id": "PSR-02",
       "name": "Existing Security Gate and Evidence Inventory",
-      "state": "BLOCKED_ON_PSR-00",
+      "state": "GREEN_ON_SUCCESSFUL_INTEGRATION",
       "depends_on": [
         "PSR-00"
       ],
@@ -144,7 +144,7 @@
     {
       "id": "PSR-03",
       "name": "Attack-Surface Matrix and Invariant Registry",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR01_02_INTEGRATION",
       "depends_on": [
         "PSR-01",
         "PSR-02"
@@ -154,7 +154,7 @@
     {
       "id": "PSR-04",
       "name": "Responsible Disclosure Baseline",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR01_INTEGRATION",
       "depends_on": [
         "PSR-01"
       ],
@@ -363,5 +363,34 @@
     "previous_branch": "colony/fae-public-code-security-readiness-001",
     "previous_pr": 119,
     "reason": "FAE main advanced during the run; all verified baseline absences and supporting blob identities were rechecked at the new HEAD before integration."
-  }
+  },
+  "frontier_executions": [
+    {
+      "frontier": "PSR-01||PSR-02",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "a6721bb231471873ba069ab5bd6b2c8e5c6df92a",
+      "branch": "colony/fae-public-code-security-psr01-02",
+      "executor_attached": true,
+      "outputs": [
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md",
+        "docs/security/FAE_EXISTING_SECURITY_GATE_LEDGER_V1.json",
+        "docs/security/FAE_EXISTING_SECURITY_GATE_LEDGER_V1.md"
+      ],
+      "inventory": {
+        "workflows_discovered": 41,
+        "test_or_lab_assets_discovered": 100,
+        "explicit_gaps": 11
+      },
+      "evidence_binding": {
+        "threat_model": "candidate complete; integration required",
+        "gate_inventory": "candidate complete; integration required",
+        "canonical_verification": "required before GREEN",
+        "downstream_unlock_on_green": [
+          "PSR-03",
+          "PSR-04"
+        ]
+      }
+    }
+  ]
 }
