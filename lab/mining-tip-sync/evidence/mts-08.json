@@ -1,0 +1,39 @@
+{
+  "schema": "FAE_MTS_08_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "initial_reproduction": {
+    "head": "037900e28c0c54003d3a1a1b5a356a97d0a7fbde",
+    "workflow_run_id": 35347490391,
+    "workflow_job_id": 105607372933,
+    "tests": {"total":4,"pass":2,"fail":2},
+    "reproduced_gaps": [
+      "visibilitychange -> visible did not immediately revalidate stale direct work",
+      "pageshow did not immediately revalidate stale direct work"
+    ]
+  },
+  "correction": {
+    "candidate_miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
+    "behavior": [
+      "immediate authoritative revalidation on foreground visibilitychange",
+      "immediate authoritative revalidation on pageshow",
+      "TIP_FRESHNESS_UNKNOWN fail-closed when lifecycle freshness cannot be established",
+      "no lifecycle action without an active direct-work observer"
+    ]
+  },
+  "verification": {
+    "lab_workflow_run_id": 35347707661,
+    "lab_workflow_job_id": 105608096239,
+    "lifecycle_tests": {"total":5,"pass":5,"fail":0},
+    "canonical_workflow_run_id": 35347707810,
+    "canonical_workflow_job_id": 105608171021,
+    "canonical_gates": {"total":31,"pass":31,"fail":0}
+  },
+  "authority": {
+    "backend_changed": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "block_time_changed": false,
+    "broadcast_channel_authority_added": false
+  },
+  "next_frontier": ["MTS-09"]
+}
