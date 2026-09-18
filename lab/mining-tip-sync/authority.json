@@ -26,7 +26,9 @@
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
     ".github/workflows/mining-tip-sync-lab",
-    "mining.js"
+    "mining.js",
+    "sovereign-forge/browser/mining.js",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "current_stage_protected_paths": [
     "core.js",
@@ -114,5 +116,26 @@
     "canonical_workflow_job_id": 105594833294,
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
+  },
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/browser/mining.js"
+  ],
+  "miner_mirror_authorization_basis": {
+    "canonical_failure": {
+      "workflow_run_id": 35344168583,
+      "workflow_job_id": 105596749190,
+      "failing_gate": "Verify deployed browser security sources match Forge snapshot",
+      "condition": "cmp mining.js sovereign-forge/browser/mining.js"
+    },
+    "historical_protocol": [
+      "97ac27ba77ad5aa8c4d6a7579520157017f193ae",
+      "b16873289cd066e10e4acc65884213f7975b59ee"
+    ],
+    "candidate_sha256": "dc8bca3de833f4fbabaf5a345fd04ec21e97989593058ca7e4047776ac0aa393",
+    "authorized_exact_paths": [
+      "sovereign-forge/browser/mining.js",
+      "FAE_FORGE_MAIN.sha256"
+    ],
+    "purpose": "byte-identical browser miner mirror plus integrity-manifest renewal only"
   }
 }
