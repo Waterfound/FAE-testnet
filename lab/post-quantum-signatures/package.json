@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@noble/post-quantum": "0.7.1"
+    "@noble/post-quantum": "0.7.1",
+    "@noble/hashes": "2.4.0"
   }
 }
