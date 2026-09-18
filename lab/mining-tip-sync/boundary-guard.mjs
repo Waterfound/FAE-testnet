@@ -32,8 +32,9 @@ if(manifest.status==='BOUNDARY_FROZEN_MTS_00_01'&&frontier!=='MTS-00,MTS-01')fai
 if(manifest.status==='MTS_00_01_GREEN'&&frontier!=='MTS-02,MTS-03')fail('unexpected post-baseline frontier');
 if(manifest.status==='MTS_02_03_GREEN'&&frontier!=='MTS-04,MTS-06')fail('unexpected post-contract frontier');
 if(manifest.status==='MTS_04_06_GREEN'&&frontier!=='MTS-05')fail('unexpected post-direct-cancellation frontier');
-if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN'].includes(manifest.status))fail('unexpected authority status');
-if(manifest.status==='MTS_02_03_GREEN'||manifest.status==='MTS_04_06_GREEN'){
+if(manifest.status==='MTS_05_GREEN'&&frontier!=='MTS-07')fail('unexpected post-race-safety frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN'].includes(manifest.status))fail('unexpected authority status');
+if(['MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN'].includes(manifest.status)){
   if(manifest.current_stage_active_miner_write_authorized!==true)fail('MTS-04 frontier requires explicit miner write authorization');
   if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('mining.js must be explicitly scoped for MTS-04');
   if(manifest.current_stage_protected_paths.includes('mining.js'))fail('mining.js cannot remain protected after explicit MTS-04 authorization');
