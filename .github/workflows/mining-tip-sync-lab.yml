@@ -70,6 +70,9 @@ jobs:
       - name: MTS-10 BroadcastChannel candidate adversarial matrix
         run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-candidate.test.mjs
 
+      - name: MTS-12 physical acceptance preflight invariants
+        run: node --test lab/mining-tip-sync/tests/mts-12-preflight.test.mjs
+
 
   mts-11-real-browser:
     runs-on: ubuntu-latest
@@ -92,6 +95,9 @@ jobs:
 
       - name: MTS-11 real-browser scheduling and latency gate
         run: node lab/mining-tip-sync/tests/mts-11-real-browser.mjs
+
+      - name: MTS-12 acceptance runner Chromium/WebKit preflight
+        run: node lab/mining-tip-sync/tests/mts-12-browser-preflight.mjs
 
       - name: Preserve MTS-11 browser evidence
         if: always()
