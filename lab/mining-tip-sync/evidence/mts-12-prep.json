@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MTS_12_PHYSICAL_ACCEPTANCE_PREP_V1",
-  "status": "READY_FOR_PHYSICAL_RUN",
+  "status": "HARNESS_FIX_ACTIVE",
   "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
   "watch_only_address": "faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k",
   "physical_device_required": true,
@@ -36,8 +36,8 @@
     "canonical": "PASS",
     "codeql": "PASS"
   },
-  "deployment_state": "READY_TEMPORARY_SAME_ORIGIN_PREVIEW",
-  "physical_run_state": "NOT_STARTED",
+  "deployment_state": "INVALIDATED_BY_PHYSICAL_IPAD_ATTEMPT",
+  "physical_run_state": "BLOCKED_BY_ACCEPTANCE_HARNESS_IFRAME",
   "deployment_binding": {
     "state": "READY",
     "purpose": "temporary same-origin physical iPad acceptance host only",
@@ -63,5 +63,15 @@
     "v4_network_authority": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4",
     "production_promotion": false,
     "note": "Vercel production remains stale and the daily API deployment quota was exhausted; this temporary preview avoids production mutation while preserving the protected miner bytes exactly."
+  },
+  "physical_attempt_1": {
+    "preflight": "PASS",
+    "exact_miner_sha_matches": true,
+    "ipad_detected": true,
+    "browser_primitives_ready": true,
+    "miner_a": "ERROR_TIMEOUT",
+    "nested_app": "ACCESS_DENIED",
+    "accepted_as_miner_failure": false,
+    "required_fix": "TOP_LEVEL_SAFARI_TABS_NO_IFRAME"
   }
 }
