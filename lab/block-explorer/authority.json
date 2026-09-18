@@ -1,13 +1,13 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
+  "status": "BE_03_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
   "source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
-  "current_frontier": "BE-02",
-  "authority_ceiling": "BOUNDED_READ_ONLY_NODE_QUERY_SURFACE",
+  "current_frontier": "BE-03",
+  "authority_ceiling": "SEPARATE_READ_ONLY_EXPLORER_APPLICATION_SKELETON",
   "explorer_principle": "Explorer observes FAE; it never authorizes FAE.",
   "current_stage_runtime_write_authorized": false,
   "node_query_surface_write_authorized": false,
@@ -150,10 +150,57 @@
     "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
     "runtime_writes_frozen": true
   },
-  "frontier_source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
-  "current_stage_protected_path_exceptions": [
-    "sovereign-forge/node/fae-node.mjs",
-    "sovereign-forge/node/explorer-read.mjs",
-    "sovereign-forge/node/README.md"
-  ]
+  "frontier_source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
+  "current_stage_protected_path_exceptions": [],
+  "explorer_application_write_authorized": true,
+  "explorer_application_live_authorized": false,
+  "public_deployment_authorized": false,
+  "be03_authority": {
+    "state": "AUTHORIZED_BOUNDED",
+    "prerequisite": "BE-02 is COMBINED_MAIN_VERIFIED at 392569f972c515481aa583ff9f80d611cbbfaa24",
+    "source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
+    "intended_scope": "Separate static read-only Explorer application skeleton consuming only the verified Independent Node /explorer/* surface.",
+    "architecture": "static standalone application; no framework, no database, no wallet/mining imports, no same-process node dependency",
+    "allowed_write_scopes": [
+      {
+        "prefix": "explorer/"
+      },
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      }
+    ],
+    "forbidden_runtime_effects": [
+      "change Independent Node behavior",
+      "change block validity",
+      "change fork choice",
+      "change transaction validity or admission",
+      "access private keys or seed phrases",
+      "sign or submit transactions",
+      "start or control mining",
+      "change monetary policy",
+      "change wallet/mining site source",
+      "create authoritative Explorer storage",
+      "claim LIVE deployment without exact deployment evidence"
+    ],
+    "network": "fairyelf-public-testnet-v4",
+    "transport_methods": [
+      "GET"
+    ],
+    "required_ui_boundary": [
+      "read-only identity visible",
+      "testnet identity visible",
+      "network mismatch fails closed",
+      "no wallet, mining, signing, or send controls"
+    ],
+    "live_status": "NOT_AUTHORIZED"
+  }
 }
