@@ -37,9 +37,17 @@ test('MTS-12 acceptance page compiles and stays Lab-only',()=>{
   const scripts=[...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
   assert.equal(scripts.length,1);
   assert.doesNotThrow(()=>new Function(scripts[0]));
-  assert.ok(['MTS_12_ACCEPTANCE_PREP','MTS_12_READY_FOR_PHYSICAL_RUN'].includes(authority.status));
+  assert.ok(['MTS_12_ACCEPTANCE_PREP','MTS_12_READY_FOR_PHYSICAL_RUN','MTS_12_HARNESS_FIX_ACTIVE'].includes(authority.status));
   assert.equal(authority.current_stage_active_miner_write_authorized,false);
   assert.ok(authority.current_stage_protected_paths.includes('mining.js'));
+});
+
+test('MTS-12 uses real top-level tabs and contains no nested FAE iframe',()=>{
+  assert.doesNotMatch(page,/<iframe\b/i);
+  assert.match(page,/window\.open\(url\.toString\(\),'mts12-miner-'\+role\)/);
+  assert.match(page,/new URL\('\/',location\.origin\)/);
+  assert.match(page,/Waiting · open A and B first/);
+  assert.match(page,/top-level Safari tabs/);
 });
 
 test('MTS-12 binds exact protected miner and a valid watch-only address',()=>{
