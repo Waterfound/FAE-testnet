@@ -5,6 +5,7 @@ import http from 'node:http';
 import { createHash, createPublicKey, verify as verifySignature } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { createExplorerReader } from './explorer-read.mjs';
 
 const NETWORK='fairyelf-public-testnet-v4';
 const COIN=100000000n;
@@ -19,7 +20,7 @@ const MAX_BITS=28;
 const MAX_TXS_PER_BLOCK=20;
 const MAX_INPUTS=64;
 const MAX_OUTPUTS=16;
-const NODE_VERSION='independent-0.2.0';
+const NODE_VERSION='independent-0.3.0';
 const HRP='faet';
 const CHARSET='qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 const BECH32M_CONST=0x2bc830a3;
@@ -102,6 +103,16 @@ function appendBlockFromFeed(s,block,txMap){const header=block.header_json;if(!h
 function publicBlock(block){return{height:Number(block.height),hash:block.hash,previous_hash:block.previous_hash,timestamp_ms:Number(block.timestamp_ms),difficulty_bits:Number(block.difficulty_bits),nonce:Number(block.nonce),miner_address:block.miner_address,reward_atoms:String(block.reward_atoms),header_json:block.header_json,txids:[...(block.txids||[])]}}
 function statusPayload(s=state){const last=tip(s),amount=issued(s);return{ok:true,node_version:NODE_VERSION,network:NETWORK,height:last?Number(last.height):0,tip_hash:last?.hash||ZERO_HASH,difficulty_bits:nextDifficulty(s.chain),target_seconds:TARGET_SECONDS,issued_atoms:amount.toString(),issued_fae:formatAtoms(amount),max_supply_fae:'12000000',initial_subsidy_fae:'10',halving_era_blocks:HALVING_ERA_BLOCKS,template_policy:'snapshot',chain_work:chainWork(s.chain).toString(),peer_count:PEERS.length+(UPSTREAM_API?1:0),mempool_size:s.mempoolOrder.filter(id=>s.transactions[id]?.status==='pending').length}}
 
+const explorerReader=createExplorerReader({
+  network:NETWORK,
+  zeroHash:ZERO_HASH,
+  statusPayload,
+  publicBlock,
+  validAddress,
+  balanceAtoms,
+  formatAtoms
+});
+
 async function fetchJson(url,options={},timeout=12000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{const response=await fetch(url,{...options,signal:controller.signal,headers:{'content-type':'application/json',...(options.headers||{})}});const payload=await response.json().catch(()=>({}));if(!response.ok)throw Error(`${response.status}:${payload.error||payload.reason||response.statusText}`);return payload}finally{clearTimeout(timer)}}
 async function relay(path,payload){const targets=[...(UPSTREAM_API?[UPSTREAM_API]:[]),...PEERS];await Promise.allSettled([...new Set(targets)].map(peer=>fetchJson(peer+path,{method:'POST',body:JSON.stringify(payload)},8000)))}
 function feedUrl(base,from,limit){if(/fae-chain-feed-v1(?:\?|$)/.test(base))return `${base}${base.includes('?')?'&':'?'}from=${from}&limit=${limit}`;return `${base}/feed?from=${from}&limit=${limit}`}
@@ -111,11 +122,11 @@ function reorgRecordOrder(a,b){const ah=a.confirmed_height===null||a.confirmed_h
 function reconcileDetachedTransactions(candidate,previous){const detached=Object.values(previous.transactions).filter(record=>record&&record.txid&&!candidate.transactions[record.txid]).sort(reorgRecordOrder);const waiting=new Map(detached.map(record=>[String(record.txid),record]));const reacceptedRecords=[];let rejected=0,progress=true;while(progress&&waiting.size){progress=false;for(const [txid,record] of [...waiting.entries()]){try{acceptTxInto(candidate,{version:2,network:NETWORK,inputs:[...(record.inputs||[])],outputs:(record.outputs||[]).map(output=>({address:String(output.address),amount_atoms:String(output.amount_atoms)})),public_key_spki:String(record.public_key_spki),signature:String(record.signature),txid,from_address:String(record.from_address),mempool_seq:Number(record.mempool_seq||0),created_at:record.created_at},{fromFeed:true});waiting.delete(txid);reacceptedRecords.push(candidate.transactions[txid]);progress=true}catch(error){if(String(error.code||error.message)==='missing_or_spent_input')continue;waiting.delete(txid);rejected++}}}rejected+=waiting.size;return{state:candidate,reacceptedRecords,rejected}}
 async function syncOnce(){if(syncRunning)return;syncRunning=true;try{for(const source of [...new Set([...FEEDS,...PEERS])]){try{const candidate=await fetchCandidate(source);if(preferred(candidate,state)){await serial(async()=>{if(preferred(candidate,state)){const previous=state;const reconciled=reconcileDetachedTransactions(candidate,previous);state=reconciled.state;await persist();for(const record of reconciled.reacceptedRecords)relay('/submit-tx',{tx:normalizeTx(record)}).catch(()=>{});console.log(`[FAE] adopted verified chain height ${state.chain.length} from ${source}; mempool reaccepted=${reconciled.reacceptedRecords.length} dropped=${reconciled.rejected}`)}})}}catch(error){console.warn(`[FAE] sync source ${source}: ${error.message}`)}}}finally{syncRunning=false}}
 
-function cors(){return{'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':'GET,POST,OPTIONS','content-type':'application/json; charset=utf-8','cache-control':'no-store'}}
-function send(res,status,payload){res.writeHead(status,cors());res.end(JSON.stringify(payload))}
+function cors(methods='GET,POST,OPTIONS'){return{'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':methods,'content-type':'application/json; charset=utf-8','cache-control':'no-store'}}
+function send(res,status,payload,headers=cors()){res.writeHead(status,headers);res.end(JSON.stringify(payload))}
 async function readBody(req){let body='';for await(const chunk of req){body+=chunk;if(body.length>2_000_000)throw Error('body_too_large')}return body?JSON.parse(body):{}}
 
-async function handler(req,res){try{if(req.method==='OPTIONS'){res.writeHead(204,cors());return res.end()}const url=new URL(req.url,'http://localhost');
+async function handler(req,res){try{const url=new URL(req.url,'http://localhost');const explorerPath=url.pathname==='/explorer'||url.pathname.startsWith('/explorer/');if(req.method==='OPTIONS'){res.writeHead(204,explorerPath?cors('GET,OPTIONS'):cors());return res.end()}if(explorerPath){const snapshot=cloneState(state);const result=explorerReader.handle(req.method,url,snapshot);return send(res,result.status,result.payload,cors('GET,OPTIONS'))}
   if(url.pathname==='/'||url.pathname==='/status')return send(res,200,statusPayload());
   if(url.pathname==='/state'){const recent=state.chain.slice(-12).reverse().map(publicBlock);return send(res,200,{...statusPayload(),recent})}
   if(url.pathname==='/feed'){const from=Math.max(1,Number(url.searchParams.get('from')||1)),limit=Math.max(1,Math.min(250,Number(url.searchParams.get('limit')||100))),to=from+limit-1;const blocks=state.chain.filter(b=>b.height>=from&&b.height<=to).map(publicBlock);const heights=new Set(blocks.map(b=>b.height));const transactions=Object.values(state.transactions).filter(t=>t.status==='confirmed'&&heights.has(Number(t.confirmed_height))).sort((a,b)=>Number(a.confirmed_height)-Number(b.confirmed_height)||Number(a.mempool_seq)-Number(b.mempool_seq));const last=tip(state);return send(res,200,{ok:true,feed_version:1,network:NETWORK,from,limit,tip_height:last?.height||0,tip_hash:last?.hash||ZERO_HASH,blocks,transactions})}
