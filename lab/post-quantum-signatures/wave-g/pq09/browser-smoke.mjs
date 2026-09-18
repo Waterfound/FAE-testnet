@@ -1,0 +1,10 @@
+const t0=performance.now();
+const ml=await import('@noble/post-quantum/ml-dsa.js');
+const slh=await import('@noble/post-quantum/slh-dsa.js');
+const seed1=Uint8Array.from({length:ml.ml_dsa44.lengths.seed},(_,i)=>i);
+const k1=ml.ml_dsa44.keygen(seed1),m=new TextEncoder().encode('browser-facing-smoke'),s1=ml.ml_dsa44.sign(m,k1.secretKey,{extraEntropy:false});
+if(!ml.ml_dsa44.verify(s1,m,k1.publicKey))throw Error('ML-DSA browser-facing smoke failed');
+const seed2=Uint8Array.from({length:slh.slh_dsa_sha2_128s.lengths.seed},(_,i)=>255-i);
+const k2=slh.slh_dsa_sha2_128s.keygen(seed2),s2=slh.slh_dsa_sha2_128s.sign(m,k2.secretKey,{extraEntropy:false});
+if(!slh.slh_dsa_sha2_128s.verify(s2,m,k2.publicKey))throw Error('SLH-DSA browser-facing smoke failed');
+console.log(JSON.stringify({schema:'FAE_PQ09_BROWSER_FACING_SMOKE_V1',result:'PASS',conditions:'browser',global_webcrypto:!!globalThis.crypto?.getRandomValues,module_load_ms:+(performance.now()-t0).toFixed(6),ml_dsa_44:'PASS',slh_dsa_sha2_128s:'PASS',claim:'browser-facing API compatibility smoke; not physical-device performance evidence'},null,2));
