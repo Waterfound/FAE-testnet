@@ -25,10 +25,21 @@
   },
   "PQ-03": {
     "name": "ML-DSA Primitive Correctness",
-    "parameter_sets": ["ML-DSA-44", "ML-DSA-65", "ML-DSA-87"],
+    "parameter_sets": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
     "official_vector_policy": "FULL_FROZEN_ACVP_REPLAY",
-    "modes": ["keyGen", "sigGen", "sigVer"],
-    "anchors_required": ["noble-js", "cloudflare-circl"],
+    "modes": [
+      "keyGen",
+      "sigGen",
+      "sigVer"
+    ],
+    "anchors_required": [
+      "noble-js",
+      "cloudflare-circl"
+    ],
     "cross_implementation_handshake": "ALL_THREE_PARAMETER_SETS",
     "negative_matrix": [
       "tampered_signature",
@@ -41,12 +52,18 @@
   "PQ-04": {
     "name": "SLH-DSA Diversity Study",
     "all_parameter_sets": [
-      "SLH-DSA-SHA2-128s", "SLH-DSA-SHA2-128f",
-      "SLH-DSA-SHA2-192s", "SLH-DSA-SHA2-192f",
-      "SLH-DSA-SHA2-256s", "SLH-DSA-SHA2-256f",
-      "SLH-DSA-SHAKE-128s", "SLH-DSA-SHAKE-128f",
-      "SLH-DSA-SHAKE-192s", "SLH-DSA-SHAKE-192f",
-      "SLH-DSA-SHAKE-256s", "SLH-DSA-SHAKE-256f"
+      "SLH-DSA-SHA2-128s",
+      "SLH-DSA-SHA2-128f",
+      "SLH-DSA-SHA2-192s",
+      "SLH-DSA-SHA2-192f",
+      "SLH-DSA-SHA2-256s",
+      "SLH-DSA-SHA2-256f",
+      "SLH-DSA-SHAKE-128s",
+      "SLH-DSA-SHAKE-128f",
+      "SLH-DSA-SHAKE-192s",
+      "SLH-DSA-SHAKE-192f",
+      "SLH-DSA-SHAKE-256s",
+      "SLH-DSA-SHAKE-256f"
     ],
     "official_vector_policy": {
       "noble_keygen": "lowest-tcId case from every parameter-set group",
@@ -78,5 +95,11 @@
     "a harness defect may invalidate a run only with an explicit preserved reason",
     "wrappers over the same core do not create new independence",
     "active FAE runtime, wallet, Transaction v2, address and consensus files remain outside write authority"
-  ]
+  ],
+  "execution_binding": {
+    "executor_workflow": ".github/workflows/pq-lab-standards.yml",
+    "executor_state": "ATTACHED_BY_LAB_SCOPE_SYNCHRONIZE",
+    "standalone_bootstrap_workflow_used_as_evidence": false,
+    "note": "Wave D is executed by the established PQ workflow already present on main; the standalone bootstrap workflow was removed as redundant."
+  }
 }
