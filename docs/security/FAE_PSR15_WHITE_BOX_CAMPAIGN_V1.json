@@ -1,0 +1,408 @@
+{
+  "schema": "FAE_PSR15_WHITE_BOX_CAMPAIGN_V1",
+  "psr": "PSR-15",
+  "title": "FAE Project Assurance White-Box Attack Campaign",
+  "premise": "Attacker knows 100% of the FAE source code and may craft arbitrary local protocol inputs, persisted-state mutations, peer inputs and candidate/lab composition attempts within the read-only test boundary.",
+  "source_baseline": "a0be46e22e5ecf3400922f9fa3f267c35bd46916",
+  "target_binding": "CURRENT_CLEAN_HEAD_AT_EXECUTION",
+  "method": {
+    "system": "Waterfound/Red-Team",
+    "revision": "095a9c2eb5b2b3bdec0132238120583ef28a6d8c",
+    "mode": "Project Assurance",
+    "borrowed_contracts": [
+      "owned/authorized target only",
+      "clean Git target",
+      "read-only target intent",
+      "no credential material",
+      "no production actions",
+      "findings evidence-bound",
+      "automatic target-pin update false",
+      "authority NONE"
+    ],
+    "target_pin_mutated": false,
+    "reason": "PSR-15 attacks the exact FAE candidate directly; it does not rewrite the general Red-Team system's separately governed permanent target pin."
+  },
+  "authority": {
+    "target_writes": false,
+    "production_actions": false,
+    "wallet_keys": false,
+    "live_block_submission": false,
+    "deployment": false,
+    "consensus_authority": false,
+    "release_authority": false,
+    "mainnet_authority": false,
+    "authority": "NONE"
+  },
+  "finding_policy": {
+    "every_case_maps_surfaces_and_invariants": true,
+    "baseline_blocking_failure_creates_finding": true,
+    "scanners_cannot_waive_findings": true,
+    "missing_evidence_fails_closed": true,
+    "feasible_fix_requires_regression": true,
+    "automatic_risk_acceptance": false,
+    "automatic_finding_waiver": false
+  },
+  "attacks": [
+    {
+      "id": "WB-01",
+      "title": "Cross-surface white-box composition probes",
+      "surfaces": [
+        "AS-01",
+        "AS-03",
+        "AS-05",
+        "AS-06",
+        "AS-08",
+        "AS-09",
+        "AS-10",
+        "AS-11"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-03",
+        "I-STATE-01",
+        "I-RECOVERY-01",
+        "I-P2P-01",
+        "I-AVAIL-01",
+        "I-SUPPLYCHAIN-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "tests/public-code-security-whitebox.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-02",
+      "title": "Hostile consensus/wallet/P2P/browser frontier replay",
+      "surfaces": [
+        "AS-01",
+        "AS-02",
+        "AS-03",
+        "AS-05",
+        "AS-06",
+        "AS-07",
+        "AS-08"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-01",
+        "I-MONEY-02",
+        "I-MONEY-03",
+        "I-AUTH-01",
+        "I-FORK-01",
+        "I-STATE-01",
+        "I-RECOVERY-01",
+        "I-P2P-01",
+        "I-AVAIL-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "tests/public-code-security-hostile-frontier.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-03",
+      "title": "Hostile corpus/property/fuzz replay",
+      "surfaces": [
+        "AS-01",
+        "AS-02",
+        "AS-03",
+        "AS-04",
+        "AS-05",
+        "AS-06",
+        "AS-07",
+        "AS-08"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-03",
+        "I-AUTH-01",
+        "I-FORK-01",
+        "I-STATE-01",
+        "I-RECOVERY-01",
+        "I-MINING-01",
+        "I-DIFF-01",
+        "I-P2P-01",
+        "I-AVAIL-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "tests/public-code-security-fuzz.mjs"
+      ],
+      "timeout_ms": 180000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-04",
+      "title": "Independent implementation differential attack",
+      "surfaces": [
+        "AS-01",
+        "AS-02",
+        "AS-03",
+        "AS-06"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-01",
+        "I-MONEY-02",
+        "I-MONEY-03",
+        "I-AUTH-01",
+        "I-FORK-01",
+        "I-STATE-01",
+        "I-RECOVERY-01",
+        "I-DIFF-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "tests/public-code-security-differential.mjs"
+      ],
+      "timeout_ms": 180000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-05",
+      "title": "Authoritative v4 consensus candidate-boundary replay",
+      "surfaces": [
+        "AS-01",
+        "AS-03",
+        "AS-10"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-01",
+        "I-MONEY-02",
+        "I-MONEY-03",
+        "I-MATURITY-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "sovereign-forge/tests/authoritative-v4-core.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-06",
+      "title": "Difficulty/timestamp white-box red team",
+      "surfaces": [
+        "AS-01",
+        "AS-06"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-FORK-01",
+        "I-STATE-01",
+        "I-DIFF-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "sovereign-forge/tests/difficulty-timestamp-redteam.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-07",
+      "title": "Authenticated P2P replay/tamper/resource attack",
+      "surfaces": [
+        "AS-05",
+        "AS-08"
+      ],
+      "invariants": [
+        "I-P2P-01",
+        "I-AUTH-01",
+        "I-AVAIL-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "sovereign-forge/tests/authoritative-p2p-security.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-08",
+      "title": "Eclipse/diversity Sybil composition attack",
+      "surfaces": [
+        "AS-05"
+      ],
+      "invariants": [
+        "I-P2P-01",
+        "I-AVAIL-01",
+        "I-CONS-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "sovereign-forge/tests/authoritative-peer-diversity.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-09",
+      "title": "Hard-crash and semantic recovery attack",
+      "surfaces": [
+        "AS-06"
+      ],
+      "invariants": [
+        "I-RECOVERY-01",
+        "I-STATE-01",
+        "I-MONEY-03"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "sovereign-forge/tests/independent-node-v11-process-recovery.mjs"
+      ],
+      "timeout_ms": 180000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-10",
+      "title": "Mining stale-work lifecycle stress",
+      "surfaces": [
+        "AS-04",
+        "AS-07",
+        "AS-08"
+      ],
+      "invariants": [
+        "I-MINING-01",
+        "I-AVAIL-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-11",
+      "title": "Public-repo/supply-chain hygiene attack",
+      "surfaces": [
+        "AS-09",
+        "AS-11"
+      ],
+      "invariants": [
+        "I-KEY-01",
+        "I-SUPPLYCHAIN-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "tests/public-repo-hygiene.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-12",
+      "title": "Release provenance tamper/reproduction attack",
+      "surfaces": [
+        "AS-09",
+        "AS-10"
+      ],
+      "invariants": [
+        "I-SUPPLYCHAIN-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "--test",
+        "tests/public-code-release-provenance.mjs"
+      ],
+      "timeout_ms": 180000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-13",
+      "title": "Cross-Lab authority composition attack",
+      "surfaces": [
+        "AS-10",
+        "AS-11"
+      ],
+      "invariants": [
+        "I-AUTHORITY-01",
+        "I-CONS-01",
+        "I-SUPPLYCHAIN-01"
+      ],
+      "command": [
+        "node",
+        "tools/verify-lab-integration.mjs",
+        "--run"
+      ],
+      "timeout_ms": 180000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-14",
+      "title": "PQ lab active-authority isolation attack",
+      "surfaces": [
+        "AS-02",
+        "AS-10"
+      ],
+      "invariants": [
+        "I-AUTH-01",
+        "I-KEY-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "lab/post-quantum-signatures/boundary-guard.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-15",
+      "title": "Mining lab authority-isolation attack",
+      "surfaces": [
+        "AS-04",
+        "AS-10"
+      ],
+      "invariants": [
+        "I-MINING-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "lab/mining-tip-sync/boundary-guard.mjs"
+      ],
+      "timeout_ms": 120000,
+      "severity_on_failure": "baseline_blocking"
+    },
+    {
+      "id": "WB-16",
+      "title": "Security contract/findings lifecycle self-check",
+      "surfaces": [
+        "AS-11"
+      ],
+      "invariants": [
+        "I-KEY-01",
+        "I-AUTHORITY-01"
+      ],
+      "command": [
+        "node",
+        "tests/public-code-security-contract.mjs"
+      ],
+      "timeout_ms": 60000,
+      "severity_on_failure": "baseline_blocking"
+    }
+  ]
+}
