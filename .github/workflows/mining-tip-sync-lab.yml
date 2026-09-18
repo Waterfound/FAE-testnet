@@ -52,5 +52,5 @@ jobs:
           sha256sum mining.js
           sha256sum -c FAE_FORGE_MAIN.sha256
 
-      - name: MTS-04/06 direct cancellation regression tests
+      - name: MTS-04/05/06 stale-work, race and freshness regression tests
         run: node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
