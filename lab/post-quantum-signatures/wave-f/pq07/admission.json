@@ -1,0 +1,85 @@
+{
+  "schema": "FAE_PQ_WAVE_F_PQ07_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "admitted_on_main": "140699091e4f58771fd09b93ac047ee9f00b45f4",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-05": "GREEN",
+    "PQ-06": "GREEN"
+  },
+  "decision": {
+    "PQ-07": "GREEN"
+  },
+  "final_verified_head": "e624cc0ccb293c6da1d2fd486dc817003d8d05ca",
+  "integrated_commit": "140699091e4f58771fd09b93ac047ee9f00b45f4",
+  "all_runs_must_pass_binding": {
+    "pq07": {
+      "run_id": 35359213441,
+      "run_number": 9,
+      "conclusion": "success"
+    },
+    "pq05_regression": {
+      "run_id": 35359213437,
+      "run_number": 17,
+      "conclusion": "success"
+    },
+    "pq06_regression": {
+      "run_id": 35359213498,
+      "run_number": 15,
+      "conclusion": "success"
+    },
+    "canonical": {
+      "run_id": 35359213492,
+      "run_number": 502,
+      "conclusion": "success"
+    },
+    "pq_lab_standards": {
+      "run_id": 35359213428,
+      "run_number": 126,
+      "conclusion": "success"
+    }
+  },
+  "final_artifacts": {
+    "pq07": {
+      "id": 10553631953,
+      "sha256": "1aba20c10082ed8c03ef658825f1a8ee8c8bee973b7e7a261f3556f5113bb665"
+    },
+    "pq05_regression": {
+      "id": 10554395842,
+      "sha256": "b69d1175adfe743a3dc66b8bc1dd4df99613b905dc60c035e8b5fa97433cea11"
+    },
+    "pq06_regression": {
+      "id": 10553387072,
+      "sha256": "6944b673ad8ba043d51de12ce633fc7a6692fe12ca0687dc285483e54b68ed12"
+    }
+  },
+  "final_matrix": {
+    "cases": 114,
+    "failed": 0,
+    "unauthorized_dual_acceptance": 0,
+    "unauthorized_downgrade_acceptance": 0,
+    "private_material_emitted": false
+  },
+  "first_failure_run": {
+    "run_id": 35359022021,
+    "artifact": {
+      "id": 10553501815,
+      "sha256": "13afd426ff74a7bb620706e7eeecc51b09705f2bbe3de15a6b28af7f53df20ce"
+    },
+    "preserved_findings": [
+      "transaction polyglot dual acceptance across ML-DSA-44/65/87",
+      "wallet public-metadata acceptance of unknown fields",
+      "wallet PQ/legacy JWK polyglot dual acceptance"
+    ],
+    "preserved_harness_defect": "ML-DSA-65 noncanonical Base64 mutation was initially a no-op and was corrected without deleting the run"
+  },
+  "hardening": {
+    "active_runtime_modified": false,
+    "active_transaction_v2_modified": false,
+    "active_wallet_modified": false,
+    "shadow_transaction_exact_field_schema": true,
+    "pq_public_metadata_exact_field_schema": true
+  },
+  "authority_effect": "NONE"
+}
