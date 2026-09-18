@@ -1,0 +1,58 @@
+{
+  "schema": "FAE_MTS_12_PHYSICAL_ATTEMPT_002_SUMMARY_V1",
+  "status": "HARNESS_FALSE_NEGATIVE_RACE_CLASSIFICATION_INSUFFICIENT",
+  "source_artifact": {
+    "schema": "FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V2",
+    "sha256": "890030ccadb309c3caf66a6c7b3bcd41266f98b69bb727f71f9fb91fee23d512",
+    "bytes": 713121
+  },
+  "device": {
+    "ipad": true,
+    "safari": "26.6.1",
+    "miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "primitives": [
+      "Worker",
+      "BroadcastChannel",
+      "crypto.subtle",
+      "visibility",
+      "pageshow",
+      "top-level tabs"
+    ]
+  },
+  "armed_tip_gate": {
+    "baseline": {
+      "height": 417,
+      "hash": "00000086f2dee4a678887d80263f9a715cf7db1dc0fcb4e1460dcf85afb42f31"
+    },
+    "target": {
+      "height": 418,
+      "hash": "000001d5cea489c3f57806b9fe3cf525c30978d232290f7c16c33faffc186b06"
+    },
+    "a_ms": 1983,
+    "b_ms": 2307,
+    "gate_ms": 3500,
+    "first_result": "PASS",
+    "first_pass_ms_after_arm": 31074,
+    "manual_restart_used": false
+  },
+  "later_event": {
+    "stale_http_409_responses": 1,
+    "role": "a",
+    "ms_after_first_tip_pass": 234865,
+    "recorder_limitation": "V2 has submit_result timestamps but no submit_started timestamp, so this response cannot establish that the request was dispatched after the client knew the parent was stale.",
+    "local_timeline_ms_before_409": {
+      "b_accepted_submit": 632,
+      "a_status_old_tip_432": 622,
+      "a_status_new_tip_433": 51,
+      "b_status_new_tip_433": 18
+    }
+  },
+  "inference": {
+    "physical_tip_convergence_pass_observed": true,
+    "miner_runtime_defect_proven": false,
+    "in_flight_race_plausible": true,
+    "recorder_false_negative_proven": true,
+    "background_foreground_pending": true
+  },
+  "next_action": "Fix Lab-only recorder: terminal gate verdict + submit_started classification; rerun physical acceptance. No miner/runtime authority."
+}
