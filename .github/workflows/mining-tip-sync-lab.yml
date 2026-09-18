@@ -57,3 +57,6 @@ jobs:
 
       - name: MTS-07 rapid-tip CPU-delay and network-failure stress
         run: node --test lab/mining-tip-sync/tests/mts-07-stress.test.mjs
+
+      - name: MTS-08 background throttling suspend-return lifecycle stress
+        run: node --test lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs
