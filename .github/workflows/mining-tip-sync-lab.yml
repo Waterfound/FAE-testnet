@@ -69,3 +69,35 @@ jobs:
 
       - name: MTS-10 BroadcastChannel candidate adversarial matrix
         run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-candidate.test.mjs
+
+
+  mts-11-real-browser:
+    runs-on: ubuntu-latest
+    needs: mts-00-01
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned Playwright harness
+        run: npm install --no-save --package-lock=false playwright@1.55.0
+
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: MTS-11 real-browser scheduling and latency gate
+        run: node lab/mining-tip-sync/tests/mts-11-real-browser.mjs
+
+      - name: Preserve MTS-11 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mts-11-real-browser-evidence
+          path: /tmp/mts-11-browser-evidence.json
+          if-no-files-found: ignore
+          retention-days: 30
