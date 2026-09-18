@@ -33,6 +33,54 @@
       "cryptographic_divergence_observed": false,
       "artifact_id": 10546902143,
       "artifact_sha256": "9a4d7a259af5513e102941a7acb45c92dee18be1d8736f6529d014d31c4bbe44"
+    },
+    {
+      "workflow_run_id": 35347160887,
+      "run_number": 76,
+      "head": "570a6ca00136a60e4b1a81ce5a4602b852c4688f",
+      "classification": "INVALID_WORKFLOW_YAML",
+      "first_failure": "Stray shell fragment at pq-lab-standards.yml line 190 prevented workflow graph creation",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347309627,
+      "run_number": 80,
+      "head": "d2a63ae9e7e68570be3238fa2c213c9508c0558e",
+      "classification": "INVALID_WORKFLOW_YAML_REMAINDER",
+      "first_failure": "Workflow graph creation failed after first syntax repair; malformed primitive step remained",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347314416,
+      "run_number": 81,
+      "head": "10fa39801956060504885b7fb3c8c7a5dfd6d39e",
+      "classification": "INVALID_WORKFLOW_YAML_DUPLICATE_KEYS",
+      "first_failure": "Primitive ML-DSA step still contained duplicated/malformed working-directory and run keys",
+      "jobs_started": 0,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": null,
+      "artifact_sha256": null
+    },
+    {
+      "workflow_run_id": 35347455758,
+      "run_number": 86,
+      "head": "5955d5aac94b3ce330db0ad67dfdedb358ed7f3e",
+      "classification": "DUPLICATE_ARTIFACT_UPLOAD",
+      "first_failure": "Second duplicated actions/upload-artifact step returned HTTP 409 because pq03-pq04-primitive-correctness had already been uploaded successfully",
+      "cryptographic_steps": "ALL_PASS",
+      "noble_full_replay": "PASS",
+      "circl_modern_mldsa_full_replay": "PASS",
+      "circl_slhdsa_native_replay": "PASS",
+      "bidirectional_cross_implementation": "PASS",
+      "first_artifact_id": 10547337417,
+      "first_artifact_sha256": "4e1ee9954b6fd1df85b9dfb52bae416863c83631b63e3f79cf0efe7b0cb22f77",
+      "cryptographic_divergence_observed": false
     }
   ]
 }
