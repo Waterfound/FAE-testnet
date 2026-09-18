@@ -5,6 +5,12 @@ on:
     paths:
       - 'lab/post-quantum-signatures/**'
       - '.github/workflows/pq-lab-standards.yml'
+  push:
+    branches:
+      - 'colony/pq-wave-d-*'
+    paths:
+      - 'lab/post-quantum-signatures/**'
+      - '.github/workflows/pq-lab-standards.yml'
 
 permissions:
   contents: read
@@ -105,11 +111,16 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.0'
-      - name: PQ-00 boundary guard on current PR delta
+      - name: PQ-00 boundary guard for execution revision
         env:
           PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
           PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
       - name: Prepare evidence directory
         run: mkdir -p "$PQ_EVIDENCE_DIR"
       - name: Install exact Noble dependencies
