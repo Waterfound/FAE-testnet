@@ -239,7 +239,7 @@
     {
       "id": "PSR-13",
       "name": "Reproducible Build and Release Provenance",
-      "state": "GREEN_ON_SUCCESSFUL_CANONICAL_PSR13_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-02",
         "PSR-12"
@@ -258,7 +258,7 @@
     {
       "id": "PSR-15",
       "name": "Project Assurance White-Box Attack Campaign",
-      "state": "READY_ON_SUCCESSFUL_PSR13_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_CAMPAIGN_CANONICAL_CROSSLAB_INTEGRATION",
       "depends_on": [
         "PSR-04",
         "PSR-05",
@@ -276,7 +276,7 @@
     {
       "id": "PSR-16",
       "name": "Finding Closure and Regression Promotion",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR15_INTEGRATION",
       "depends_on": [
         "PSR-15"
       ],
@@ -665,6 +665,46 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-15"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-15",
+      "run_kind": "REAL_EXECUTION",
+      "execution_date": "2026-09-18",
+      "source_revision": "a0be46e22e5ecf3400922f9fa3f267c35bd46916",
+      "branch": "colony/fae-public-code-security-psr15",
+      "executor_attached": true,
+      "project_assurance_method": {
+        "repository": "Waterfound/Red-Team",
+        "revision": "095a9c2eb5b2b3bdec0132238120583ef28a6d8c",
+        "target_pin_changed": false
+      },
+      "outputs": [
+        "docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json",
+        "tests/public-code-security-whitebox.mjs",
+        "scripts/psr15-project-assurance.mjs",
+        ".github/workflows/psr15-project-assurance.yml",
+        "docs/security/FAE_PSR15_PROJECT_ASSURANCE_EVIDENCE_V1.json",
+        "docs/security/FAE_PSR15_PROJECT_ASSURANCE_EVIDENCE_V1.md",
+        ".github/workflows/verify.yml",
+        "lab/integration/registry.json"
+      ],
+      "coverage": {
+        "attacks": 16,
+        "surfaces": 11,
+        "active_invariants": "ALL"
+      },
+      "evidence_binding": {
+        "dedicated_campaign": "required before GREEN",
+        "canonical_verification": "required before GREEN",
+        "cross_lab_integration": "required before GREEN",
+        "exact_source_binding": "required before merge",
+        "scanner_override": false,
+        "target_writes": false,
+        "runtime_or_consensus_change": false,
+        "downstream_on_green": [
+          "PSR-16"
         ]
       }
     }
