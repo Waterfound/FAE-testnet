@@ -587,5 +587,21 @@
       "note": "Physical WAN/Safari gate is intentionally looser than MTS-11 local-browser CI while still bounding avoidable stale work."
     },
     "completion_rule": "MTS-12 cannot be GREEN without evidence produced on a physical iPad Safari session. Preparation/preview checks alone may only reach PREPARED_NOT_STARTED or READY_FOR_PHYSICAL_RUN."
+  },
+  "mts_12_preflight": {
+    "status": "GREEN",
+    "lab_workflow_run_id": 35363673463,
+    "deterministic_job_id": 105660814242,
+    "real_browser_job_id": 105660883637,
+    "canonical_workflow_run_id": 35363673456,
+    "canonical_job_id": 105660814414,
+    "codeql_workflow_run_id": 35363673404,
+    "codeql_job_id": 105660813251,
+    "deterministic_preflight": "5/5 PASS",
+    "chromium_acceptance_runner_preflight": "PASS",
+    "webkit_acceptance_runner_preflight": "PASS",
+    "exact_miner_sha_verified": true,
+    "privacy_contract_verified": true,
+    "physical_device_evidence_present": false
   }
 }
