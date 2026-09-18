@@ -1,0 +1,55 @@
+{
+  "schema": "FAE_PQ_WAVE_H_PQ10_FREEZE_V1",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION",
+  "recorded_at": "2026-09-18",
+  "base_revision": "a5af028770debfaf46656f39e902eb8278d4312e",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-08": "GREEN",
+    "PQ-09": "GREEN"
+  },
+  "name": "PQ-10 End-to-End Shadow Lifecycle",
+  "objective": "Prove that the post-quantum migration path can complete a deterministic behavioral lifecycle entirely in isolated shadow state without changing active FAE.",
+  "parameter_sets": [
+    "ML-DSA-44",
+    "ML-DSA-65",
+    "ML-DSA-87"
+  ],
+  "selection_rule": "Run all three ML-DSA hybrid parameter sets. PQ-09 measurements do not automatically select an operational winner.",
+  "lifecycle": [
+    "create ephemeral test recovery material at runtime; never commit or emit mnemonic/passphrase/private keys",
+    "derive legacy Ed25519 identity and shadow PQ material",
+    "build a PQ-05 hybrid shadow transaction",
+    "require Ed25519 and ML-DSA signatures",
+    "canonical serialize and derive deterministic shadow txid",
+    "submit only to an isolated in-memory shadow mempool",
+    "persist only public metadata, signed transaction and non-secret shadow state",
+    "simulate process restart and reload the frozen public artifact",
+    "re-verify transaction and wallet public metadata after restart",
+    "replay the frozen PQ-07 regression corpus against the restarted verifier",
+    "exercise supported Node runtime",
+    "exercise browser-facing implementation compatibility without claiming physical-device performance"
+  ],
+  "deterministic_replay_definition": "The operation schedule, admitted public artifacts, txid, verdicts and post-restart state transitions must reproduce within a run; reusable secret material must not be stored as evidence.",
+  "isolated_shadow_mempool_rules": [
+    "no RPC or active backend submission",
+    "no mutation of active Transaction v2 mempool/state",
+    "exact-schema input only",
+    "duplicate txid rejected",
+    "invalid or stripped transaction rejected before mutation",
+    "restart reconstruction from public shadow artifact is deterministic"
+  ],
+  "gate": "All three ML-DSA lifecycle variants complete create/recover/sign/serialize/shadow-submit/restart/reload/verify/regression replay with frozen public evidence and zero active-network authority.",
+  "evidence_requirements": [
+    "PQ-00 boundary guard PASS",
+    "canonical source verification PASS",
+    "pq-lab-standards PASS",
+    "all-runs-must-pass",
+    "failed runs preserved",
+    "no selective retry",
+    "private_material_emitted=false",
+    "active_runtime_files_unchanged=true"
+  ],
+  "next_if_green": "PQ-11 Software-Only Ceiling Verdict"
+}
