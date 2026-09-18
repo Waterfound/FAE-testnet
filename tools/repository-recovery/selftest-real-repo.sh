@@ -49,7 +49,7 @@ if git --git-dir="$target_repo" show-ref --verify --quiet refs/heads/stale-sourc
 fi
 
 branch_name="${SOURCE_REF#refs/heads/}"
-git clone -q "$target_repo" "$restore_repo"
+git clone -q "file://$target_repo" "$restore_repo"
 git -C "$restore_repo" checkout -q "$branch_name"
 
 restored_commit="$(git -C "$restore_repo" rev-parse HEAD)"
