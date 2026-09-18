@@ -1,0 +1,22 @@
+{
+  "schema": "FAE_MTS_12_PORTABLE_PREVIEW_V1",
+  "purpose": "quota-independent same-origin physical iPad acceptance preview",
+  "source_main": "84440c5d320eee4c46f0a40f000399a735ecea03",
+  "active_source_blobs": {
+    "index.html": "e43dbd353b6c47e2692721986b470122295692ab",
+    "bip39-en.js": "b6d65f9a3a662823516d033e6ecb2a6fbf2aadad",
+    "network-status.js": "ced0bfebd739c75eb5cd9a7adecfbbfef3d8bf1c",
+    "core.js": "570fa2c3196faac137eb8b99a7dd8257bb4951d5",
+    "wallet-crypto.js": "184d207b6017976b32e650f4ca184d3f06a2c8b4",
+    "wallet.js": "68bbbbfa204d8f19dbcfd6aafa4caa9dd53a9edc",
+    "mining.js": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+    "coordinator-trust.js": "62c7b73e777797562e8b9a0ecf404daea7115605"
+  },
+  "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+  "active_runtime_changed": false,
+  "portable_changes": {
+    "index.html": "root-local script src paths only: /file.js -> ./file.js",
+    "mts-12-ipad-acceptance.html": "portable miner fetch path + portable app URL + host-generation label only"
+  },
+  "privacy": "watch-only physical acceptance; no telemetry, seed phrase, private key, wallet backup, or reusable secret"
+}
