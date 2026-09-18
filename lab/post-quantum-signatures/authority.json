@@ -1,6 +1,6 @@
 {
   "schema": "FAE_PQ_SIGNATURE_LAB_AUTHORITY_V1",
-  "status": "BOUNDARY_FREEZE_CANDIDATE",
+  "status": "BOUNDARY_FROZEN",
   "created": "2026-09-18",
   "project": "FAE",
   "source_revision": "f3561ec8bf53d25c646f2f4c880af506cc1f5a65",
@@ -42,5 +42,13 @@
   "active_runtime_may_import_lab_code": false,
   "deletion_invariant": "Removing lab/post-quantum-signatures and PQ-only docs/workflows must not change active FAE behavior, consensus, wallet derivation, address derivation, Transaction v2 validation, mining, or public-testnet authority.",
   "private_material_policy": "Seed phrases, private keys, and reusable secret material must never be committed to the Lab or emitted as evidence.",
-  "failure_policy": "Fail closed on boundary ambiguity. A failing boundary guard blocks integration; it never authorizes widening the Lab scope."
+  "failure_policy": "Fail closed on boundary ambiguity. A failing boundary guard blocks integration; it never authorizes widening the Lab scope.",
+  "boundary_freeze_evidence": {
+    "pq_workflow_run_id": 35342473473,
+    "pq_workflow_job_id": 105591305144,
+    "pq_boundary_guard": "PASS",
+    "canonical_workflow_run_id": 35342473456,
+    "canonical_workflow_job_id": 105591305085,
+    "canonical_verification": "PASS"
+  }
 }
