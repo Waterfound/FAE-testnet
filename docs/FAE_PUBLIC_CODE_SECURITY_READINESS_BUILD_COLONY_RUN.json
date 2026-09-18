@@ -285,7 +285,7 @@
     {
       "id": "PSR-17",
       "name": "Full Security Baseline Replay",
-      "state": "GREEN_ON_SUCCESSFUL_FULL_REPLAY_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
+      "state": "GREEN",
       "depends_on": [
         "PSR-14",
         "PSR-16"
@@ -295,7 +295,7 @@
     {
       "id": "PSR-18",
       "name": "Public-Code Security Baseline Verdict",
-      "state": "READY_ON_SUCCESSFUL_PSR17_INTEGRATION",
+      "state": "GREEN_ON_SUCCESSFUL_VERDICT_PSR17_CANONICAL_CROSSLAB_CODEQL_INTEGRATION",
       "depends_on": [
         "PSR-17"
       ],
@@ -304,7 +304,7 @@
     {
       "id": "PSR-19",
       "name": "Bounded Project Closeout and Recurring Assurance Handoff",
-      "state": "BLOCKED",
+      "state": "READY_ON_SUCCESSFUL_PSR18_INTEGRATION",
       "depends_on": [
         "PSR-18"
       ],
@@ -802,6 +802,73 @@
         "runtime_or_consensus_change": false,
         "downstream_on_green": [
           "PSR-18"
+        ]
+      }
+    },
+    {
+      "frontier": "PSR-18",
+      "run_kind": "REAL_EXECUTION_REBOUND_R3",
+      "execution_date": "2026-09-18",
+      "source_revision": "84440c5d320eee4c46f0a40f000399a735ecea03",
+      "branch": "colony/fae-public-code-security-psr18-r3",
+      "executor_attached": true,
+      "rebinding": {
+        "previous_source_revision": "ed7d6381fa321847694a0078a7e92a163ecb05b8",
+        "intervening_commits": 9,
+        "reviewed_scope": [
+          "PQ-11 canonical admission and gate-status closure",
+          "MTS-12 physical attempt 003 evidence and harness metric correction"
+        ],
+        "authority_note": "PQ-11 remains RESEARCH_SHADOW_ONLY with activation_authorized=false. MTS-12 keeps active miner/runtime write unauthorized and changes only Lab/physical-evidence scope.",
+        "stale_history": [
+          {
+            "pr": 208,
+            "source": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+            "result": "STALE"
+          },
+          {
+            "pr": 211,
+            "source": "ed7d6381fa321847694a0078a7e92a163ecb05b8",
+            "verdict_run": 2,
+            "psr17_run": 6,
+            "canonical_run": 594,
+            "cross_lab_run": 52,
+            "codeql_run": 75,
+            "result": "SUCCESS_BUT_STALE_AFTER_MAIN_ADVANCE"
+          }
+        ]
+      },
+      "prerequisite_normalization": {
+        "PSR_17": "GREEN",
+        "integration_commit": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+        "pr": 202,
+        "runs": {
+          "psr17": 1,
+          "canonical": 581,
+          "cross_lab": 39,
+          "codeql": 62,
+          "psr15": 11,
+          "psr16": 7
+        },
+        "replay": {
+          "planned": 17,
+          "passed": 17,
+          "failed": 0,
+          "target_unchanged": true,
+          "retry_violation": false
+        }
+      },
+      "expected_verdict": "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+      "evidence_binding": {
+        "dedicated_psr18_workflow": "required on r3",
+        "psr17_full_replay": "required on r3",
+        "canonical_verification": "required on r3",
+        "cross_lab_integration": "required on r3",
+        "codeql": "required signal on r3",
+        "exact_source_binding": "required before merge",
+        "mainnet_authority": false,
+        "downstream_on_green": [
+          "PSR-19"
         ]
       }
     }
