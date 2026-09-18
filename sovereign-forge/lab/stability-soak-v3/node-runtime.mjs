@@ -6,6 +6,7 @@ import {dirname,resolve} from 'node:path';
 import {createAuthoritativeV4PeerNode} from '../../node/authoritative/fae-v4-peer-node.mjs';
 import {prepareIndependentNodeStorage} from '../../node/authoritative/node-state-recovery.mjs';
 import {loadNodeIdentity} from '../../node/authoritative/node-identity.mjs';
+import {hashHex,leadingZeroBits} from '../../node/authoritative/crypto.mjs';
 
 const role=(process.env.FAE_V3_ROLE||'').trim();
 const runId=(process.env.FAE_V3_RUN_ID||'PREPARED_NOT_STARTED').trim();
@@ -62,6 +63,19 @@ const node=createAuthoritativeV4PeerNode({
   syncIntervalMs:5000
 });
 
+const embeddedControllerEnabled=process.env.FAE_V3_EMBED_CONTROLLER==='1';
+if(embeddedControllerEnabled&&role!=='node-a')throw new Error('embedded_controller_must_run_on_node_a');
+const controllerT0=Date.parse(process.env.FAE_V3_T0_UTC||'');
+const embeddedRunStarted=embeddedControllerEnabled&&Number.isFinite(controllerT0);
+const embeddedMinerAddress=(process.env.FAE_V3_MINER_ADDRESS||'').trim();
+const controllerNodes=[
+  ['node-a',process.env.FAE_V3_NODE_A],['node-b',process.env.FAE_V3_NODE_B],['node-c',process.env.FAE_V3_NODE_C]
+].map(([name,url])=>({name,url:String(url||'').replace(/\/$/,'')}));
+if(embeddedControllerEnabled&&controllerNodes.some(n=>!/^https?:\/\//.test(n.url)))throw new Error('embedded controller requires FAE_V3_NODE_A/B/C');
+if(embeddedRunStarted&&!embeddedMinerAddress)throw new Error('embedded started controller requires FAE_V3_MINER_ADDRESS');
+const embeddedController={enabled:embeddedControllerEnabled,run_started:embeddedRunStarted,t0_utc:embeddedRunStarted?new Date(controllerT0).toISOString():null,last_slot:-1,last_error:null,last_block:null};
+let controllerTimer=null;
+
 let checkpointBusy=false,checkpointTimer=null,keepaliveTimer=null,stopping=false;
 async function checkpoint(reason){
   if(checkpointBusy)return;
@@ -110,7 +124,7 @@ function meta(anchorHeight=null){
     ok:true,run_id:runId,role,boot_id:bootId,process_started_at:processStartedAt,
     render_instance_id:process.env.RENDER_INSTANCE_ID||null,render_service_id:process.env.RENDER_SERVICE_ID||null,
     render_git_commit:process.env.RENDER_GIT_COMMIT||null,node_identity:identityRecord.identity.id,
-    identity_source:identityRecord.source,status,recovery:recovery.status(),anchor,
+    identity_source:identityRecord.source,status,recovery:recovery.status(),anchor,embedded_controller:{...embeddedController},
     tail:state.chain.slice(-4).map(b=>({height:b.height,hash:b.hash,previous_hash:b.previous_hash,timestamp_ms:b.timestamp_ms}))
   };
 }
@@ -118,7 +132,7 @@ function meta(anchorHeight=null){
 const proxy=http.createServer(async(req,res)=>{
   try{
     const url=new URL(req.url||'/','http://v3.invalid');
-    if(url.pathname==='/v3/health')return json(res,200,{ok:true,run_id:runId,role,boot_id:bootId,at:new Date().toISOString()});
+    if(url.pathname==='/v3/health')return json(res,200,{ok:true,run_id:runId,role,boot_id:bootId,embedded_controller:{...embeddedController},at:new Date().toISOString()});
     if(url.pathname==='/v3/meta'){
       const raw=url.searchParams.get('anchor_height'),anchor=raw===null?null:Number(raw);
       return json(res,200,meta(Number.isSafeInteger(anchor)?anchor:null));
@@ -139,11 +153,29 @@ const proxy=http.createServer(async(req,res)=>{
   }catch(error){json(res,500,{ok:false,error:error.message})}
 });
 await new Promise((resolve,reject)=>{proxy.once('error',reject);proxy.listen(externalPort,'0.0.0.0',()=>{proxy.off('error',reject);resolve()})});
-console.log(JSON.stringify({event:'FAE_V3_NODE_PROXY_ONLINE',run_id:runId,role,boot_id:bootId,external_port:externalPort,internal_port:internalPort,at:new Date().toISOString()}));
+console.log(JSON.stringify({event:'FAE_V3_NODE_PROXY_ONLINE',run_id:runId,role,boot_id:bootId,external_port:externalPort,internal_port:internalPort,embedded_controller:embeddedControllerEnabled,at:new Date().toISOString()}));
+async function embeddedMine(target){
+  const templateResponse=await fetch(`${target.url}/template?address=${encodeURIComponent(embeddedMinerAddress)}`,{signal:AbortSignal.timeout(5000)});
+  const template=await templateResponse.json();if(!templateResponse.ok)throw new Error(template.error||`template_http_${templateResponse.status}`);
+  let nonce=0,hash='';
+  for(;nonce<20_000_000;nonce++){hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)break}
+  if(nonce>=20_000_000)throw new Error('pow_search_exhausted');
+  const response=await fetch(`${target.url}/submit-block`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({header:template.header,nonce,hash,txids:template.txids||[],coinbase_outputs:template.coinbase_outputs??null}),signal:AbortSignal.timeout(8000)});
+  const body=await response.json();if(!response.ok)throw new Error(body.error||`submit_http_${response.status}`);return body;
+}
+async function embeddedControllerTick(){
+  if(!embeddedRunStarted||Date.now()<controllerT0)return;
+  const slot=Math.floor((Date.now()-controllerT0)/300_000);if(slot<1||slot===embeddedController.last_slot)return;
+  embeddedController.last_slot=slot;const target=controllerNodes[(slot-1)%controllerNodes.length];
+  try{const result=await embeddedMine(target);embeddedController.last_error=null;embeddedController.last_block={slot,node:target.name,height:result.height,hash:result.hash,at:new Date().toISOString()};console.log(JSON.stringify({event:'FAE_V3_EMBEDDED_BLOCK_MINED',run_id:runId,role,boot_id:bootId,...embeddedController.last_block}))}
+  catch(error){embeddedController.last_error=error.message;console.error(JSON.stringify({event:'FAE_V3_EMBEDDED_MINE_ERROR',run_id:runId,role,boot_id:bootId,slot,node:target.name,error:error.message,at:new Date().toISOString()}))}
+}
+
+if(embeddedControllerEnabled){controllerTimer=setInterval(()=>void embeddedControllerTick(),1000);controllerTimer.unref?.();void embeddedControllerTick();}
 
 async function stop(signal){
   if(stopping)return;stopping=true;
-  clearInterval(checkpointTimer);if(keepaliveTimer)clearInterval(keepaliveTimer);
+  clearInterval(checkpointTimer);if(keepaliveTimer)clearInterval(keepaliveTimer);if(controllerTimer)clearInterval(controllerTimer);
   console.log(JSON.stringify({event:'FAE_V3_NODE_STOP',run_id:runId,role,boot_id:bootId,signal,at:new Date().toISOString()}));
   try{await checkpoint('shutdown')}catch{}
   await new Promise(resolve=>proxy.close(()=>resolve())).catch(()=>{});
