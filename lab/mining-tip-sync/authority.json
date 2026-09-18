@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_10_BASELINE_ACTIVE",
+  "status": "MTS_10_PATCH_AUTHORIZED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -11,7 +11,7 @@
   "current_frontier": [
     "MTS-10"
   ],
-  "current_stage_active_miner_write_authorized": false,
+  "current_stage_active_miner_write_authorized": true,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -24,10 +24,12 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab"
+    ".github/workflows/mining-tip-sync-lab",
+    "mining.js",
+    "sovereign-forge/browser/mining.js",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "current_stage_protected_paths": [
-    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
@@ -35,8 +37,7 @@
     "index.html",
     "tests/",
     "supabase/",
-    "sovereign-forge/",
-    "FAE_FORGE_MAIN.sha256"
+    "sovereign-forge/"
   ],
   "future_candidate_paths": [
     "mining.js",
@@ -226,7 +227,9 @@
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
   },
-  "current_stage_protected_path_exceptions": [],
+  "current_stage_protected_path_exceptions": [
+    "sovereign-forge/browser/mining.js"
+  ],
   "miner_mirror_authorization_basis": {
     "canonical_failure": {
       "workflow_run_id": 35344168583,
@@ -406,5 +409,36 @@
       "pre-submit freshness barrier remains unchanged"
     ],
     "patch_gate": "Authorize runtime change only if baseline proves measurable avoidable latency and the candidate can satisfy all invariants."
+  },
+  "mts_10_baseline": {
+    "lab_workflow_run_id": 35356632431,
+    "lab_workflow_job_id": 105637474894,
+    "canonical_workflow_run_id": 35356632482,
+    "canonical_workflow_job_id": 105637475572,
+    "baseline_tests": "4/4 PASS",
+    "polling_interval_ms": 2000,
+    "worst_case_avoidable_wait_ms": 2000,
+    "mean_uniform_phase_wait_ms": 1000,
+    "runtime_broadcast_channel_present": false
+  },
+  "mts_10_patch_authorization": {
+    "scope": "mining.js + byte-identical Sovereign Forge mirror + exact hash renewal",
+    "required_behavior": [
+      "same-device hint triggers immediate /status revalidation without waiting for the 2000ms poll",
+      "hint message never carries authoritative tip semantics",
+      "false hint with unchanged /status does not cancel work",
+      "hint-triggered /status outage does not cancel work",
+      "BroadcastChannel unavailable preserves independent polling correctness",
+      "stale discovered by authoritative observation may emit one acceleration hint without feedback storm",
+      "pre-submit freshness barrier remains unchanged"
+    ],
+    "forbidden": [
+      "backend changes",
+      "consensus changes",
+      "economic changes",
+      "block-time changes",
+      "hint-based direct cancellation",
+      "trusted height/hash in BroadcastChannel payload"
+    ]
   }
 }
