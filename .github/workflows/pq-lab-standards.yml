@@ -149,7 +149,8 @@ jobs:
         working-directory: /tmp/circl
         run: |
           set -o pipefail
-          go test ./sign/mldsa/mldsa44/internal ./sign/mldsa/mldsa65/internal ./sign/mldsa/mldsa87/internal -run '^TestFAEModernACVP      - name: PQ-04 CIRCL native SLH-DSA ACVP replay
+          go test ./sign/mldsa/mldsa44/internal ./sign/mldsa/mldsa65/internal ./sign/mldsa/mldsa87/internal -run TestFAEModernACVP -count=1 -v | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-mldsa-acvp.log"
+      - name: PQ-04 CIRCL native SLH-DSA ACVP replay
         working-directory: /tmp/circl
         run: |
           set -o pipefail
