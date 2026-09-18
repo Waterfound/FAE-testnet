@@ -1,7 +1,7 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_READ_MODEL_V1",
   "version": 1,
-  "status": "BE_01_CANDIDATE",
+  "status": "LAB_VERIFIED",
   "bound_source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
   "active_network": {
     "network": "fairyelf-public-testnet-v4",
