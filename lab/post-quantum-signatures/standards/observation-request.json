@@ -1,0 +1,7 @@
+{
+  "schema": "FAE_PQ_STANDARDS_OBSERVATION_REQUEST_V1",
+  "requested_at": "2026-09-18",
+  "base_revision": "aab16f58cec310781034b240c8321e533e45ca31",
+  "purpose": "Trigger default-branch PQ-00/PQ-01 workflow to observe exact remote bytes before freezing SHA-256 values.",
+  "authority": "EVIDENCE_ONLY_NO_ACTIVATION"
+}
