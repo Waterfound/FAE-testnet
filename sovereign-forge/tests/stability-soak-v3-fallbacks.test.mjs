@@ -26,7 +26,8 @@ test('Plan B preserves V3 node geography and cuts Render envelope to 324h',()=>{
   assert.equal(p.render_instance_hours_required,3*(96+12));
   assert.equal(p.render_instance_hours_required,324);
   assert.equal(p.remaining_render_dependency,true);
-  assert.ok(p.controller.estimated_steps_per_day_upper<3000);
+  assert.equal(p.controller.provider,'embedded-node-a');
+  assert.equal(p.controller.additional_render_instance_hours,0);
   assert.ok(p.observer.estimated_invocations_per_day<100000);
   assert.ok(p.observer.estimated_d1_rows_written_per_day_upper<100000);
 });
@@ -38,7 +39,8 @@ test('Plan C removes Render and uses three providers in three regions',()=>{
   assert.equal(distinct(p.nodes.map(n=>n.provider)),true);
   assert.equal(distinct(p.nodes.map(n=>n.region)),true);
   assert.deepEqual(p.nodes.map(n=>n.provider),['google-cloud','koyeb','oracle-cloud']);
-  assert.ok(p.controller.estimated_steps_per_day_upper<3000);
+  assert.equal(p.controller.provider,'embedded-node-a');
+  assert.equal(p.controller.additional_provider_instance_hours,0);
   assert.ok(p.observer.estimated_d1_rows_written_per_day_upper<100000);
 });
 
@@ -53,4 +55,12 @@ test('forbidden shortcuts remain rejected',()=>{
   const reasons=new Map(m.rejected_shortcuts.map(x=>[x.option,x.reason]));
   assert.match(reasons.get('github-actions-hosted-runners-as-continuous-nodes'),/6 hours/);
   assert.match(reasons.get('raise_180s_recovery_bound'),/forbidden/);
+  assert.match(reasons.get('cloudflare-free-workflows-as-pow-controller'),/10 ms/);
+});
+
+test('fallback runtime freeze is pinned and telemetry preserves fine timing without optimistic outage inference',()=>{
+  assert.equal(m.frozen_fallback_runtime_commit,'140be01baff5a770263f81a13b728e63b0ce02cb');
+  assert.equal(m.common_invariants.telemetry.node_local_tip_first_seen_resolution_ms,25);
+  assert.equal(m.common_invariants.telemetry.peer_reachability_probe_seconds,1);
+  assert.match(m.common_invariants.telemetry.observer_gap_policy,/fail closed/i);
 });

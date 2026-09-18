@@ -111,8 +111,14 @@ The historical V2 WAN-lab state remains preserved separately; do not reinterpret
 Preferred execution order:
 
 1. **Plan A — existing five Render Free services.** On or after 2026-10-01, first verify the workspace is unsuspended and that at least 540 Free instance-hours are available for the 108-hour envelope. Verify stable node identities, peer bootstrap, monitor URLs, frozen commit, health, three distinct node identities, at least two bootstrap peers per node, and controller/observer `run_started=false`. Only then may a future `T0` be assigned.
-2. **Plan B — hybrid fallback.** If Render works but a five-service/540h envelope is not comfortably available, keep only A/B/C on Render and move controller + independent observer to the Cloudflare Free control plane. Required Render envelope becomes 324 instance-hours. The 180-second recovery/outage bound remains unchanged.
-3. **Plan C — Render-independent fallback.** If Render remains unavailable or Plan B cannot satisfy the frozen prestart gates, use the admitted multi-provider candidate: Google Cloud Free Tier node in Oregon, Koyeb Free node in Frankfurt, Oracle Always Free node in São Paulo, with Cloudflare Free controller/observer. Provider free-tier eligibility, zero-cost status, geographic requirements, and all account prerequisites must be proven before `T0`; no paid upgrade or overage is authorized by this fallback.
+2. **Plan B — hybrid fallback.** If Render works but a five-service/540h envelope is not comfortably available, keep only A/B/C on Render, run the logical controller inside Node A (no extra Render instance), and use Cloudflare Worker Cron + D1 as the independent observer/evidence collector. Nodes preserve fine local first-seen and reachability timestamps for later collection. Required Render envelope remains 324 instance-hours. The 180-second recovery/outage bound remains unchanged.
+3. **Plan C — Render-independent fallback.** If Render remains unavailable or Plan B cannot satisfy the frozen prestart gates, use the admitted multi-provider candidate: Google Cloud Free Tier node in Oregon, Koyeb Free node in Frankfurt, Oracle Always Free node in São Paulo. The controller runs inside Google Cloud Node A; Cloudflare Worker Cron + D1 provides the independent observer/evidence store. Provider free-tier eligibility, zero-cost status, geographic requirements, and all account prerequisites must be proven before `T0`; no paid upgrade or overage is authorized by this fallback.
+
+Validated fallback runtime freeze:
+
+`140be01baff5a770263f81a13b728e63b0ce02cb`
+
+Preserved branch: `freeze/stability-soak-v3-fallback-runtime-20260918`
 
 Fallback artifacts:
 

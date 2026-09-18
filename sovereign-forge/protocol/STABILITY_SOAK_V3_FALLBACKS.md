@@ -8,7 +8,7 @@ Reuse the existing five Render Free services from the frozen V3 operational comm
 
 ## Plan B — Hybrid Render nodes + Cloudflare control plane
 
-Use only the three regional Render nodes (Oregon, Frankfurt, Singapore). Move the controller to Cloudflare Workflows Free and the independent observer to a Cloudflare Worker Cron + D1 Free evidence store.
+Use only the three regional Render nodes (Oregon, Frankfurt, Singapore). Run the logical controller inside Node A with `FAE_V3_EMBED_CONTROLLER=1` (no additional Render instance) and use a Cloudflare Worker Cron + D1 Free evidence store as the independent observer.
 
 This reduces the Render envelope from:
 
@@ -18,7 +18,7 @@ to:
 
 `3 × 108h = 324h`.
 
-The controller's 5-minute durable loop is budgeted conservatively at <=576 Workflow steps/day. The observer samples once per minute and stores bounded evidence in D1, far below current Free request/write limits. The 180-second failure bound is unchanged.
+The embedded controller keeps the 5-minute traffic cadence but performs PoW on Node A, avoiding the 10 ms CPU limit of Workers/Workflows Free. Each node records high-resolution local tip-first-seen timestamps plus 1-second peer-reachability transitions. The observer collects those buffers once per minute into D1, so propagation timing is preserved without high-frequency Cloudflare execution. Observer gaps are evaluated using a conservative upper bound from the last successful sample; ambiguity cannot create a PASS. The 180-second failure bound is unchanged.
 
 **Trigger:** Render works after refresh, but a five-service 540h envelope is not comfortably available.
 
@@ -30,7 +30,7 @@ Nodes:
 - B: Koyeb Free Instance, Frankfurt.
 - C: Oracle Cloud Always Free compute, São Paulo (`sa-saopaulo-1`) as the tenancy home region.
 
-Controller/observer: same Cloudflare Free control plane as Plan B.
+Controller: embedded in Google Cloud Node A. Observer: the same Cloudflare Worker Cron + D1 Free evidence collector as Plan B.
 
 This preserves three nodes, three regions, and three node providers while removing Render from the run path.
 
@@ -45,6 +45,10 @@ Important admission conditions:
 ## Rejected shortcuts
 
 GitHub-hosted Actions are not continuous-node infrastructure because individual jobs are capped at six hours. Cloudflare Workers Free are not PoW/node hosts because the Free CPU budget is too small. Oracle Always Free alone cannot provide three geographic regions because Always Free compute is restricted to the tenancy home region. Koyeb alone provides only one Free Instance per organization.
+
+Cloudflare Free Workflows/Workers are not admitted as the PoW controller because their Free CPU budget is 10 ms per invocation/step. The validated fallback instead embeds the controller in Node A.
+
+Validated fallback runtime freeze: `140be01baff5a770263f81a13b728e63b0ce02cb` (`freeze/stability-soak-v3-fallback-runtime-20260918`).
 
 No fallback may change the 180-second recovery boundary merely to make a topology pass.
 
