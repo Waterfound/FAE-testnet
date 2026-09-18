@@ -1,0 +1,25 @@
+name: stability-soak-v3-zero-cost-colony
+
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs'
+      - '.github/workflows/stability-soak-v3-zero-cost.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zero-cost-recovery-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+      - name: Prove fresh bootstrap after total ephemeral state loss
+        run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
