@@ -42,7 +42,8 @@ if(manifest.status==='MTS_08_GREEN'&&frontier!=='MTS-09')fail('unexpected post-l
 if(manifest.status==='MTS_09_STRESS_ACTIVE'&&frontier!=='MTS-09')fail('unexpected multi-context stress frontier');
 if(manifest.status==='MTS_09_GREEN'&&frontier!=='MTS-10')fail('unexpected post-multi-context frontier');
 if(manifest.status==='MTS_10_BASELINE_ACTIVE'&&frontier!=='MTS-10')fail('unexpected BroadcastChannel baseline frontier');
-if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN','MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_PATCH_AUTHORIZED','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE'].includes(manifest.status))fail('unexpected authority status');
+if(manifest.status==='MTS_10_PATCH_AUTHORIZED'&&frontier!=='MTS-10')fail('unexpected BroadcastChannel patch frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN','MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_PATCH_AUTHORIZED','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE','MTS_10_PATCH_AUTHORIZED'].includes(manifest.status))fail('unexpected authority status');
 if(['MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN'].includes(manifest.status)){
   if(manifest.current_stage_active_miner_write_authorized!==true)fail('runtime-write frontier requires explicit miner write authorization');
   if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('mining.js must be explicitly scoped during runtime-write frontier');
@@ -51,6 +52,11 @@ if(['MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN'].includes(manifest.status
   if(manifest.current_stage_active_miner_write_authorized!==false)fail('stress-first phase must not authorize miner writes');
   if(!manifest.current_stage_protected_paths.includes('mining.js'))fail('stress-first phase must protect mining.js');
   if(manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('stress-first phase must not allow mining.js writes');
+}else if(manifest.status==='MTS_10_PATCH_AUTHORIZED'){
+  if(manifest.current_stage_active_miner_write_authorized!==true)fail('MTS-10 patch phase requires explicit miner write authorization');
+  if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('MTS-10 patch phase must scope mining.js explicitly');
+  if(manifest.current_stage_protected_paths.includes('mining.js'))fail('MTS-10 patch phase cannot keep mining.js protected');
+  if(!manifest.current_stage_protected_path_exceptions?.includes('sovereign-forge/browser/mining.js'))fail('MTS-10 patch phase requires exact Forge mirror exception');
 }else if(manifest.status==='MTS_08_PATCH_AUTHORIZED'){
   if(manifest.current_stage_active_miner_write_authorized!==true)fail('MTS-08 patch phase requires explicit miner write authorization');
   if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('MTS-08 patch phase must scope mining.js explicitly');
