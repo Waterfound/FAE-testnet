@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_03_ACTIVE",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -87,6 +87,23 @@
         "BE-01 combined guard initially rejected explicit BE-02 bounded query-surface authority"
       ],
       "authority_change": "NONE beyond bounded read-only Independent Node Explorer query implementation"
+    },
+    "BE-03": {
+      "status": "GREEN",
+      "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
+      "block_explorer_lab_run_id": 35407126578,
+      "block_explorer_lab_job_id": 105799092827,
+      "application_tests": "12/12 PASS",
+      "be01_regression": "6/6 PASS",
+      "be02_regression": "11/11 PASS",
+      "canonical_source_run_id": 35407126576,
+      "canonical_source_substantive_gates": "40/40 PASS",
+      "codeql_run_id": 35407126583,
+      "recurring_assurance_run_id": 35407126613,
+      "cross_lab_preintegration_run_id": 35407126571,
+      "architecture": "standalone static read-only application under explorer/",
+      "deployment_state": "NOT_LIVE",
+      "authority_change": "NONE; source-only Explorer application candidate"
     }
   },
   "be02_authority": {
@@ -152,11 +169,11 @@
   },
   "frontier_source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
   "current_stage_protected_path_exceptions": [],
-  "explorer_application_write_authorized": true,
+  "explorer_application_write_authorized": false,
   "explorer_application_live_authorized": false,
   "public_deployment_authorized": false,
   "be03_authority": {
-    "state": "AUTHORIZED_BOUNDED",
+    "state": "LAB_VERIFIED_FROZEN",
     "prerequisite": "BE-02 is COMBINED_MAIN_VERIFIED at 392569f972c515481aa583ff9f80d611cbbfaa24",
     "source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
     "intended_scope": "Separate static read-only Explorer application skeleton consuming only the verified Independent Node /explorer/* surface.",
@@ -201,6 +218,8 @@
       "network mismatch fails closed",
       "no wallet, mining, signing, or send controls"
     ],
-    "live_status": "NOT_AUTHORIZED"
+    "live_status": "NOT_AUTHORIZED",
+    "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
+    "application_writes_frozen": true
   }
 }
