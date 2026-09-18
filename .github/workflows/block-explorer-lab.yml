@@ -1,0 +1,32 @@
+name: FAE Block Explorer Lab
+
+on:
+  push:
+    branches:
+      - "lab/block-explorer-*"
+    paths:
+      - "lab/block-explorer/**"
+      - ".github/workflows/block-explorer-lab.yml"
+  pull_request:
+    paths:
+      - "lab/block-explorer/**"
+      - ".github/workflows/block-explorer-lab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  be01-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Boundary guard
+        run: node lab/block-explorer/boundary-guard.mjs
+      - name: BE-01 contract tests
+        run: node --test lab/block-explorer/tests/be-01-contract.test.mjs
