@@ -1,0 +1,110 @@
+{
+  "schema": "FAE_PSR17_FULL_SECURITY_BASELINE_REPLAY_V1",
+  "psr": "PSR-17",
+  "title": "FAE Full Security Baseline Replay",
+  "source_baseline": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+  "target_binding": "CURRENT_CLEAN_HEAD_AT_EXECUTION",
+  "retry_policy": {
+    "selective_retry_forbidden": true,
+    "per_step_attempts": 1,
+    "continue_on_error_in_workflow": false,
+    "prior_failed_run_may_not_be_erased_by_rerun": true
+  },
+  "prerequisite_normalization": {
+    "PSR_13": "GREEN",
+    "PSR_14": "GREEN",
+    "PSR_15": "GREEN",
+    "PSR_16": "GREEN",
+    "psr16_integration_commit": "6c0e6f84105d0670b6e41c866e58029ff2580cfa",
+    "psr16_final_runs": {
+      "psr16": 3,
+      "psr15": 7,
+      "canonical": 574,
+      "cross_lab": 32,
+      "codeql": 55
+    }
+  },
+  "replay_components": [
+    {
+      "id": "R17-01",
+      "name": "PSR-15 white-box campaign full rerun",
+      "command": [
+        "node",
+        "scripts/psr15-project-assurance.mjs",
+        "--out",
+        "<temp>/psr15.json"
+      ],
+      "attempts": 1,
+      "expected": "PASS_NO_BASELINE_BLOCKING_FINDINGS"
+    },
+    {
+      "id": "R17-02",
+      "name": "PSR-16 zero-finding closure on fresh PSR-15 report",
+      "command": [
+        "node",
+        "scripts/psr16-finding-closure.mjs",
+        "--report",
+        "<temp>/psr15.json",
+        "--out",
+        "<temp>/psr16.json"
+      ],
+      "attempts": 1,
+      "expected": "PASS_ZERO_FINDING_CLOSURE"
+    },
+    {
+      "id": "R17-03",
+      "name": "Independent release Git-oracle replay",
+      "command": [
+        "node",
+        "sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs"
+      ],
+      "attempts": 1,
+      "expected": "PASS"
+    },
+    {
+      "id": "R17-04",
+      "name": "Two clean-room source release builds",
+      "mechanism": "two detached git worktrees at exact HEAD, one build each, byte-compare artifact/manifest/checksum",
+      "attempts_per_clean_room": 1,
+      "expected": "BYTE_IDENTICAL"
+    },
+    {
+      "id": "R17-05",
+      "name": "Immutable container input replay",
+      "mechanism": "docker pull exact locked digest, generate pinned derivatives, build all protected Dockerfiles once",
+      "attempts_per_dockerfile": 1,
+      "expected": "4_OF_4_PASS"
+    }
+  ],
+  "external_required_checks": [
+    "verify-canonical-source",
+    "cross-lab-integration-gate",
+    "codeql-security"
+  ],
+  "report": {
+    "schema": "FAE_PSR17_FULL_SECURITY_BASELINE_REPLAY_REPORT_V1",
+    "raw_stdout_stderr_stored": false,
+    "output_digests_stored": true,
+    "artifact_retention_days": 14
+  },
+  "authority": {
+    "target_writes": false,
+    "production_actions": false,
+    "deployment": false,
+    "consensus_change": false,
+    "economic_change": false,
+    "wallet_or_address_change": false,
+    "release_authority": false,
+    "mainnet_authority": false
+  },
+  "exit_binding": {
+    "dedicated_psr17_workflow": "required SUCCESS",
+    "canonical_verification": "required SUCCESS",
+    "cross_lab_integration": "required SUCCESS",
+    "codeql": "signal only; SUCCESS required for complete current baseline replay but cannot waive findings",
+    "exact_source_binding": "required before merge",
+    "downstream_on_green": [
+      "PSR-18"
+    ]
+  }
+}

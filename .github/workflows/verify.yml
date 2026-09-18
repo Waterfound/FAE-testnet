@@ -117,6 +117,9 @@ jobs:
       - name: Verify PSR-16 finding closure contract
         run: node --test tests/public-code-security-finding-closure.mjs
 
+      - name: Verify PSR-17 baseline replay contract
+        run: node --test tests/public-code-security-baseline-replay.mjs
+
       - name: Verify deployed browser security sources match Forge snapshot
         run: |
           cmp mining.js sovereign-forge/browser/mining.js
