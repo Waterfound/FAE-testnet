@@ -73,9 +73,16 @@ export function deriveShadowKeyMaterial(mnemonic,passphrase,parameterSet,index,w
   };
   return{publicMetadata,legacyPrivateKey:legacy.privateKey,mldsaSecretKey:pq.secretKey};
 }
+const PUBLIC_METADATA_FIELDS=new Set([
+  'schema','index','mldsa_parameter_set','legacy_address',
+  'legacy_public_key_spki','mldsa_public_key','mldsa_public_key_sha256'
+]);
 export function parsePublicMetadata(raw){
   const m=typeof raw==='string'?JSON.parse(raw):structuredClone(raw);
-  if(!m||m.schema!==PUBLIC_SCHEMA||!Number.isInteger(m.index)||m.index<0)throw new Error('invalid_public_metadata');
+  if(!m||typeof m!=='object'||Array.isArray(m))throw new Error('invalid_public_metadata');
+  const keys=Object.keys(m);
+  if(keys.length!==PUBLIC_METADATA_FIELDS.size||keys.some(key=>!PUBLIC_METADATA_FIELDS.has(key)))throw new Error('invalid_public_metadata_fields');
+  if(m.schema!==PUBLIC_SCHEMA||!Number.isInteger(m.index)||m.index<0)throw new Error('invalid_public_metadata');
   const scheme=MLDSA_SCHEMES[m.mldsa_parameter_set]; if(!scheme)throw new Error('unsupported_mldsa_parameter_set');
   if(typeof m.legacy_address!=='string'||!m.legacy_address.startsWith('faet1'))throw new Error('invalid_legacy_address');
   strictB64(m.legacy_public_key_spki,'legacy_public_key_spki');
