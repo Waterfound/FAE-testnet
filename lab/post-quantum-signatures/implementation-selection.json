@@ -1,6 +1,6 @@
 {
   "schema": "FAE_PQ_IMPLEMENTATION_INDEPENDENCE_SELECTION_V1",
-  "status": "PROBE_REQUIRED",
+  "status": "GREEN",
   "recorded_at": "2026-09-18",
   "fae_source_revision": "1668e03a161e3473776752db7bd921c4f946865f",
   "authority": "RESEARCH_SHADOW_ONLY",
@@ -108,8 +108,9 @@
     ],
     "tertiary_cross_runtime": "node-crypto",
     "activation_authorized": false,
-    "primitive_correctness_authorized_only_after_probe_pass": false,
-    "primitive_correctness_unlocked": true
+    "primitive_correctness_authorized_only_after_probe_pass": true,
+    "primitive_correctness_unlocked": true,
+    "primitive_correctness_authorized": true
   },
   "evidence": {
     "admitted_run_id": 35343551855,
@@ -181,5 +182,21 @@
     "artifact_id": 10546531169,
     "artifact_digest": "sha256:5fde47d3b9503bbf50a8185b073c2767cceb1055eabf84685fcd63667b114835",
     "note": "Supporting evidence only; rebased branch must rerun all required gates before PQ-02 is GREEN."
+  },
+  "verification": {
+    "replay_head_sha": "065ba6d8bfa1679fbb070d67af7a9028157cf301",
+    "pq_workflow_run_id": 35343855349,
+    "pq_result": "PASS",
+    "pq_artifact_id": 10546367175,
+    "pq_artifact_digest": "sha256:b1e36871ef2526efd5079cea977b6eaa34d3d9771dfd39e058144a40fd0f1c80",
+    "canonical_workflow_run_id": 35343855347,
+    "canonical_result": "PASS",
+    "counted_anchor_pair": [
+      "noble-js",
+      "cloudflare-circl"
+    ],
+    "tertiary_path": "node-crypto",
+    "all_required_runs_passed": true,
+    "selective_retry_used": false
   }
 }
