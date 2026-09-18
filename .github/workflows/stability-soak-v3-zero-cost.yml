@@ -12,6 +12,7 @@ on:
       - 'sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-embedded-controller.test.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-fallback-observer.test.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-render-capacity.test.mjs'
       - 'sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs'
       - 'sovereign-forge/tests/stability-soak-v3-prestart.test.mjs'
       - 'wan-lab/wan-node.mjs'
@@ -46,6 +47,8 @@ jobs:
           node --check sovereign-forge/tests/stability-soak-v3-fallback-observer.test.mjs
           node --check sovereign-forge/lab/stability-soak-v3/fallback-observer-core.mjs
           node --check sovereign-forge/lab/stability-soak-v3/cloudflare-observer-worker.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/render-free-capacity-proof.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-render-capacity.test.mjs
           node --check sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs
           node --check sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
           node --check wan-lab/wan-node.mjs
@@ -67,3 +70,5 @@ jobs:
         run: node --test sovereign-forge/tests/stability-soak-v3-embedded-controller.test.mjs
       - name: Prove low-cadence fallback observer preserves fine timestamps and 180s fail-closed bound
         run: node --test sovereign-forge/tests/stability-soak-v3-fallback-observer.test.mjs
+      - name: Prove Render free-hour capacity without a billing API
+        run: node --test sovereign-forge/tests/stability-soak-v3-render-capacity.test.mjs
