@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_10_GREEN",
+  "status": "MTS_11_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,7 +9,7 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-11"
+    "MTS-12"
   ],
   "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
@@ -243,6 +243,52 @@
       "status": "GREEN",
       "workflow_run_id": 35357118929,
       "workflow_job_id": 105639153342
+    },
+    "MTS-11": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35361616221,
+      "deterministic_job_id": 105653998631,
+      "real_browser_job_id": 105654073293,
+      "canonical_workflow_run_id": 35361616222,
+      "canonical_job_id": 105653994653,
+      "artifact_id": 10554720984,
+      "artifact_digest": "sha256:dcd3b13bf0dce885367640feeaf599384749dfc2ed292498ccb4d2d10f1b5c5e",
+      "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+      "chromium": {
+        "hint_latencies_ms": [
+          8,
+          5,
+          3,
+          4,
+          6
+        ],
+        "hint_p95_ms": 8,
+        "hint_max_ms": 8,
+        "poll_fallback_ms": 1976,
+        "acceleration_margin_ms": 1968
+      },
+      "webkit": {
+        "hint_latencies_ms": [
+          12,
+          35,
+          17,
+          9,
+          11
+        ],
+        "hint_p95_ms": 35,
+        "hint_max_ms": 35,
+        "poll_fallback_ms": 1949,
+        "acceleration_margin_ms": 1914
+      },
+      "forged_hint_false_cancel": false,
+      "hint_outage_false_cancel": false,
+      "stale_submissions_observed": 0,
+      "runtime_patch_required": false
+    },
+    "canonical_regression_mts_11": {
+      "status": "GREEN",
+      "workflow_run_id": 35361616222,
+      "workflow_job_id": 105653994653
     }
   },
   "miner_write_authorization_basis": {
@@ -478,5 +524,43 @@
       "prove multi-tab correctness with BroadcastChannel disabled and enabled",
       "prepare physical-device iPad validation without changing consensus or block time"
     ]
+  },
+  "mts_11_authority": {
+    "phase": "REAL_BROWSER_VALIDATION_FIRST",
+    "runtime_write_authorized": false,
+    "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "browser_engines": [
+      "chromium",
+      "webkit"
+    ],
+    "required_properties": [
+      "same-origin real BroadcastChannel causes peer authoritative /status revalidation before the peer poll timer",
+      "hint-to-cancel latency is materially lower than poll-only fallback latency",
+      "forged hint payload cannot cancel current work when authoritative /status is unchanged",
+      "hint-triggered /status outage cannot cancel current work",
+      "BroadcastChannel disabled preserves poll-only convergence",
+      "peer restarts on a template whose previous_hash matches the new authoritative tip",
+      "zero stale submissions occur in validation scenarios"
+    ],
+    "latency_gate": {
+      "hint_p95_max_ms": 1200,
+      "poll_fallback_max_ms": 3500,
+      "required_poll_minus_hint_margin_ms": 400
+    },
+    "real_pow_policy": "Use the production Worker implementation with an effectively unsatisfiable test difficulty so the test measures cancellation rather than nonce discovery.",
+    "runtime_patch_gate": "No runtime write unless Chromium or WebKit exposes a deterministic correctness defect or the latency optimization fails its frozen gate."
+  },
+  "mts_12_authority_preview": {
+    "scope": "physical-device iPad acceptance and long-running user-journey confirmation",
+    "initial_mode": "VALIDATION_ONLY",
+    "runtime_write_authorized": false,
+    "objectives": [
+      "confirm Start Mining once remains self-healing across real chain advances on physical iPad Safari",
+      "confirm two or more same-device tabs abandon stale work automatically after another tab or remote miner advances the chain",
+      "observe background/foreground recovery on iPadOS without manual Stop -> Start",
+      "record physical stale-work cancellation behavior without introducing telemetry, secrets, consensus changes, or block-time changes"
+    ],
+    "prerequisite": "MTS-11 Chromium + WebKit real-browser gate GREEN",
+    "rule": "Physical-device evidence may validate deployment/browser integration; it cannot weaken authoritative /status semantics."
   }
 }
