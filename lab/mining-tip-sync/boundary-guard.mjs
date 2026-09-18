@@ -43,12 +43,13 @@ if(manifest.status==='MTS_09_STRESS_ACTIVE'&&frontier!=='MTS-09')fail('unexpecte
 if(manifest.status==='MTS_09_GREEN'&&frontier!=='MTS-10')fail('unexpected post-multi-context frontier');
 if(manifest.status==='MTS_10_BASELINE_ACTIVE'&&frontier!=='MTS-10')fail('unexpected BroadcastChannel baseline frontier');
 if(manifest.status==='MTS_10_PATCH_AUTHORIZED'&&frontier!=='MTS-10')fail('unexpected BroadcastChannel patch frontier');
-if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN','MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_PATCH_AUTHORIZED','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE','MTS_10_PATCH_AUTHORIZED'].includes(manifest.status))fail('unexpected authority status');
+if(manifest.status==='MTS_10_GREEN'&&frontier!=='MTS-11')fail('unexpected post-BroadcastChannel frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN','MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_PATCH_AUTHORIZED','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE','MTS_10_PATCH_AUTHORIZED','MTS_10_GREEN'].includes(manifest.status))fail('unexpected authority status');
 if(['MTS_02_03_GREEN','MTS_04_06_GREEN','MTS_05_GREEN'].includes(manifest.status)){
   if(manifest.current_stage_active_miner_write_authorized!==true)fail('runtime-write frontier requires explicit miner write authorization');
   if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('mining.js must be explicitly scoped during runtime-write frontier');
   if(manifest.current_stage_protected_paths.includes('mining.js'))fail('mining.js cannot remain protected during runtime-write frontier');
-}else if(['MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE'].includes(manifest.status)){
+}else if(['MTS_07_STRESS_ACTIVE','MTS_07_GREEN','MTS_08_STRESS_ACTIVE','MTS_08_GREEN','MTS_09_STRESS_ACTIVE','MTS_09_GREEN','MTS_10_BASELINE_ACTIVE','MTS_10_GREEN'].includes(manifest.status)){
   if(manifest.current_stage_active_miner_write_authorized!==false)fail('stress-first phase must not authorize miner writes');
   if(!manifest.current_stage_protected_paths.includes('mining.js'))fail('stress-first phase must protect mining.js');
   if(manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('stress-first phase must not allow mining.js writes');
@@ -69,7 +70,7 @@ if(manifest.cross_tab_policy?.is_chain_authority!==false)fail('cross-tab signali
 if(manifest.snapshot_semantics?.mempool_only_change_invalidates_work!==false)fail('snapshot semantics must preserve mempool-only validity');
 if(manifest.snapshot_semantics?.chain_tip_change_invalidates_work!==true)fail('chain tip change must invalidate work');
 
-const frozenDelta=manifest.status==='MTS_08_GREEN'?manifest.completed_runtime_delta:null;
+const frozenDelta=['MTS_08_GREEN','MTS_10_GREEN'].includes(manifest.status)?manifest.completed_runtime_delta:null;
 const frozenDeltaPaths=new Set(Array.isArray(frozenDelta?.exact_paths)?frozenDelta.exact_paths:[]);
 if(frozenDelta){
   const expected=frozenDelta.miner_sha256;
