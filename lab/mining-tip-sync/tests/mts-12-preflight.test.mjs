@@ -66,6 +66,22 @@ test('MTS-12 physical gate forbids manual restart and records zero-stale require
   assert.match(page,/manualRestartUsed/);
 });
 
+test('MTS-12 physical verdicts latch once decided',()=>{
+  assert.equal(page.includes("if(state.tipVerdict||!state.tipArmed||!state.tipTarget)return;"),true);
+  assert.equal(page.includes("state.tipArmed=false;"),true);
+  assert.equal(page.includes("if(state.resumeVerdict||!state.resumeArmed||!state.visibleAt)return;"),true);
+  assert.equal(page.includes("state.resumeArmed=false;"),true);
+});
+
+test('MTS-12 records submit start before classifying a stale response',()=>{
+  assert.equal(page.includes("post('submit_started',submitMeta);"),true);
+  assert.equal(page.includes("known_mismatch_at_start"),true);
+  assert.equal(page.includes("raceLostResponses"),true);
+  assert.equal(page.includes("unclassifiedStaleResponses"),true);
+  assert.equal(page.includes("Stale after known mismatch"),true);
+  assert.equal(page.includes("Race-lost 409 responses"),true);
+});
+
 test('MTS-12 runner is local-only and does not add telemetry or secret collection',()=>{
   assert.doesNotMatch(page,/sendBeacon\s*\(/);
   assert.doesNotMatch(page,/XMLHttpRequest\s*\(/);
