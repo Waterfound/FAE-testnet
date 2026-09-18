@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07120d">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Read-only explorer for the FAE public testnet.">
+<title>FAE Explorer</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand" href="#/" aria-label="FAE Explorer home">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span>
+        <strong>FAE Explorer</strong>
+        <small>Public testnet</small>
+      </span>
+    </a>
+    <div class="header-status">
+      <span class="boundary-pill">Read-only</span>
+      <span id="network-pill" class="network-pill" data-state="connecting" role="status" aria-live="polite">
+        <span class="network-dot" aria-hidden="true"></span>
+        <span id="network-label">Connecting…</span>
+      </span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow">Observe the chain. Never authorize it.</p>
+      <h1 id="hero-title">Search the FAE public testnet</h1>
+      <p class="hero-copy">Blocks, transactions, addresses, rewards and network status from independently validated node state.</p>
+
+      <form id="search-form" class="search-shell" role="search">
+        <label class="sr-only" for="search-input">Search by block height, block hash, transaction ID or FAE address</label>
+        <input
+          id="search-input"
+          name="q"
+          type="search"
+          autocomplete="off"
+          autocapitalize="none"
+          spellcheck="false"
+          placeholder="Block height, hash, TXID or faet1… address"
+        >
+        <button type="submit">Search</button>
+      </form>
+      <p id="search-help" class="search-help">64-character digests are checked as both block hashes and transaction IDs.</p>
+    </section>
+
+    <section class="metrics-grid" aria-label="Network snapshot">
+      <article class="metric-card">
+        <span>Height</span>
+        <strong id="metric-height">—</strong>
+      </article>
+      <article class="metric-card">
+        <span>Issued supply</span>
+        <strong id="metric-supply">—</strong>
+      </article>
+      <article class="metric-card">
+        <span>Target</span>
+        <strong id="metric-target">—</strong>
+      </article>
+      <article class="metric-card">
+        <span>Mempool</span>
+        <strong id="metric-mempool">—</strong>
+      </article>
+    </section>
+
+    <section id="notice" class="notice" hidden role="status" aria-live="polite"></section>
+
+    <div class="content-grid">
+      <section class="panel latest-panel" aria-labelledby="latest-title">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Chain</p>
+            <h2 id="latest-title">Latest blocks</h2>
+          </div>
+          <button id="refresh-button" class="secondary-button" type="button">Refresh</button>
+        </div>
+        <div id="latest-blocks" class="block-list" aria-live="polite">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      </section>
+
+      <section class="panel detail-panel" aria-labelledby="detail-title">
+        <div class="panel-head">
+          <div>
+            <p id="detail-eyebrow" class="eyebrow">Explorer</p>
+            <h2 id="detail-title">Read-only chain view</h2>
+          </div>
+          <button id="home-button" class="text-button" type="button" hidden>Clear</button>
+        </div>
+        <div id="detail-content" class="detail-content">
+          <div class="empty-state">
+            <strong>No object selected</strong>
+            <span>Search for a block, transaction or address to inspect its public chain data.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="integrity-strip" aria-label="Explorer trust boundary">
+      <div>
+        <span class="integrity-icon" aria-hidden="true">↳</span>
+        <div>
+          <strong>Validated-node boundary</strong>
+          <span>The Explorer reads coherent snapshots from the Independent Node and has no signing, mining or consensus authority.</span>
+        </div>
+      </div>
+      <code id="api-origin">API: not connected</code>
+    </section>
+  </main>
+
+  <footer>
+    <span>FAE public testnet · test coins have no monetary value</span>
+    <span>Explorer application state: <strong>BE-03 candidate</strong></span>
+  </footer>
+</div>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

@@ -11,6 +11,10 @@ const core=await read('sovereign-forge/node/authoritative/fae-v4-core.mjs');
 const activation=await read('sovereign-forge/node/authoritative/pplns-activation.mjs');
 const nodeSource=await read('sovereign-forge/node/fae-node.mjs');
 const explorerSource=await read('sovereign-forge/node/explorer-read.mjs');
+const explorerHtml=await read('explorer/index.html').catch(()=>null);
+const explorerApp=await read('explorer/app.mjs').catch(()=>null);
+const explorerClient=await read('explorer/api-client.mjs').catch(()=>null);
+const explorerConfig=await read('explorer/config.json').then(JSON.parse).catch(()=>null);
 
 function assert(condition,message){if(!condition)throw new Error(message)}
 
@@ -31,6 +35,14 @@ if(authority.current_frontier==='BE-02'){
     assert(authority.current_stage_runtime_write_authorized===false,'verified BE-02 runtime writes must be frozen');
   }
   assert(JSON.stringify(authority.be02_authority.explorer_methods)===JSON.stringify(['GET','OPTIONS']),'BE-02 method authority drift');
+}else if(authority.current_frontier==='BE-03'){
+  assert(authority.be03_authority?.state==='LAB_VERIFIED_FROZEN','BE-03 must be frozen before combined-main admission');
+  assert(authority.be03_authority?.application_writes_frozen===true,'BE-03 frozen marker missing');
+  assert(authority.explorer_application_write_authorized===false,'BE-03 application write authority must be closed');
+  assert(authority.current_stage_runtime_write_authorized===false,'BE-03 active-runtime authority drift');
+  assert(authority.node_query_surface_write_authorized===false,'BE-03 node-query authority drift');
+  assert(authority.explorer_application_live_authorized===false,'BE-03 LIVE authority drift');
+  assert(authority.public_deployment_authorized===false,'BE-03 deployment authority drift');
 }else{
   assert(authority.node_query_surface_write_authorized===false,'BE-01 node query authority drift');
 }
@@ -57,7 +69,7 @@ assert(model.entities.address.event_types.includes('transfer')&&model.entities.a
 const digestRule=model.universal_search.rules.find(x=>x.when.includes('64-character'));
 assert(digestRule&&digestRule.resolve.includes('block_hash')&&digestRule.resolve.includes('txid'),'digest namespace ambiguity lost');
 
-if(authority.current_frontier==='BE-02'){
+if(['BE-02','BE-03'].includes(authority.current_frontier)){
   assert(nodeSource.includes("const snapshot=cloneState(state)"),'Explorer reads must clone validated node state');
   assert(nodeSource.includes("cors('GET,OPTIONS')"),'Explorer CORS must remain read-only');
   assert(explorerSource.includes("if(method!=='GET')return{status:405,payload:{ok:false,error:'read_only'}}"),'Explorer mutation rejection missing');
@@ -65,6 +77,17 @@ if(authority.current_frontier==='BE-02'){
   assert(explorerSource.includes("if(DIGEST.test(query))"),'digest namespace classification missing');
   assert(!explorerSource.includes('submit-tx'),'Explorer reader must not submit transactions');
   assert(!explorerSource.includes('submit-block'),'Explorer reader must not submit blocks');
+}
+if(authority.current_frontier==='BE-03'){
+  assert(explorerHtml&&explorerApp&&explorerClient&&explorerConfig,'BE-03 application source missing');
+  assert(explorerConfig.network===model.active_network.network&&explorerConfig.read_only===true,'BE-03 app config authority drift');
+  assert(explorerConfig.deployment_state==='NOT_LIVE','BE-03 falsely claims LIVE');
+  assert(explorerHtml.includes('Read-only'),'BE-03 visible read-only identity missing');
+  assert(explorerClient.includes("method:'GET'"),'BE-03 GET-only client binding missing');
+  const appSource=explorerHtml+'\n'+explorerApp+'\n'+explorerClient;
+  for(const forbidden of ['/submit-tx','/submit-block',"method:'POST'",'privateKey','seedPhrase','startMining','innerHTML']){
+    assert(!appSource.includes(forbidden),'BE-03 forbidden capability leaked: '+forbidden);
+  }
 }
 
 console.log(JSON.stringify({ok:true,lab:'block-explorer',gate:'combined-main-contract'}));

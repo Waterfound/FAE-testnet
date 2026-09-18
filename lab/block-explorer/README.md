@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-02 — LAB_VERIFIED / integration candidate**
+Status: **BE-03 — LAB_VERIFIED / integration candidate**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -96,3 +96,51 @@ BE-02 does not add an indexer, database, cache authority, transaction submission
 ## BE-02 verification result
 
 The bounded BE-02 candidate passed the dedicated Explorer tests, real HTTP integration, Independent Node hardening, canonical-source verification, recurring Project Assurance, CodeQL, and pre-integration cross-Lab verification. Runtime write authority is now frozen. The remaining step is serialized integration into canonical `main` followed by exact combined-main verification.
+
+
+## BE-03 application boundary
+
+BE-03 creates the first standalone FAE Explorer application under `explorer/`.
+
+The application is deliberately static and dependency-light:
+
+```text
+Independent Node validated state
+    -> /explorer/* GET surface
+    -> explorer/api-client.mjs
+    -> explorer/app.mjs
+    -> explorer/index.html
+```
+
+It does not import the Wallet/Mining site, access keys, sign or submit transactions, control mining, change the node, or create an Explorer database.
+
+Implemented application behavior:
+
+- visible **Read-only** and public-testnet identity;
+- network status and core metrics;
+- latest-block list;
+- universal search;
+- block detail;
+- transaction detail;
+- address balance/activity including reward and transfer events;
+- tip-bound address pagination;
+- hash routing requiring no server rewrite authority;
+- fail-closed network identity and observed-tip validation;
+- DOM rendering via `textContent`, not `innerHTML`.
+
+`explorer/config.json` remains `deployment_state: NOT_LIVE` and points to a local development node by default. BE-03 does not authorize a public deployment.
+
+## BE-03 verification result
+
+The exact source candidate `fb643eb847a3c40aeb190e04b525d8b31987070d` passed:
+
+- BE-03 application tests: **12/12**;
+- BE-02 regression: **11/11**;
+- BE-01 regression: **6/6**;
+- Block Explorer boundary guard;
+- cross-Lab pre-integration verification;
+- recurring public-code assurance;
+- CodeQL;
+- canonical-source suite: **40/40 substantive gates**.
+
+Application writes are now frozen. Integration into canonical `main` and exact combined-main verification are required before BE-04 or any deployment frontier can advance.
