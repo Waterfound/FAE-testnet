@@ -46,5 +46,8 @@ jobs:
       - name: MTS-02/03 identity and tip-observer contract tests
         run: node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
 
+      - name: Report candidate miner SHA-256
+        run: sha256sum mining.js
+
       - name: MTS-04/06 direct cancellation regression tests
         run: node --test lab/mining-tip-sync/tests/mts-04-06.test.mjs
