@@ -11,6 +11,7 @@ const MAX_EQUIVOCATION_BACKOFF_MS=30*60_000;
 const DIRECT_TIP_OBSERVER_INTERVAL_MS=2000;
 let directTipObserverTimer=null;
 let directTipObserverToken=0;
+let powGeneration=0;
 
 function normalizeCoordinatorUrl(value){
   try{
@@ -53,10 +54,14 @@ function saveShareReceipt(receipt){
   }catch{}
 }
 
-function stopWorker(reason=''){
-  if(worker){worker.terminate();worker=null}
+function stopWorker(reason='',expectedWorker=null){
+  if(expectedWorker&&worker!==expectedWorker)return false;
+  powGeneration++;
+  const target=worker;
+  if(target){target.terminate();worker=null}
   if(workerUrl){URL.revokeObjectURL(workerUrl);workerUrl=null}
   if(reason&&powReject){const reject=powReject;powReject=null;reject(Error(reason))}
+  return true;
 }
 
 function directWorkTipState(header,status){
@@ -75,12 +80,14 @@ function clearDirectTipObserver(token=null){
 function startDirectTipObserver(header){
   clearDirectTipObserver();
   const token=directTipObserverToken;
+  let invalidated=false;
   const poll=async()=>{
     if(token!==directTipObserverToken)return;
     try{
       const status=await api('/status'),state=directWorkTipState(header,status);
       if(token!==directTipObserverToken)return;
       if(state==='stale'){
+        invalidated=true;
         clearDirectTipObserver(token);
         stopWorker('TIP_INVALIDATED');
         return;
@@ -89,13 +96,26 @@ function startDirectTipObserver(header){
     if(token===directTipObserverToken)directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
   };
   directTipObserverTimer=setTimeout(poll,DIRECT_TIP_OBSERVER_INTERVAL_MS);
-  return()=>clearDirectTipObserver(token);
+  return Object.freeze({
+    stop:()=>clearDirectTipObserver(token),
+    invalidated:()=>invalidated
+  });
+}
+
+async function assertDirectWorkFresh(header){
+  let status;
+  try{status=await api('/status')}
+  catch(error){const freshnessError=Error('TIP_FRESHNESS_UNKNOWN');freshnessError.cause=error;throw freshnessError}
+  const state=directWorkTipState(header,status);
+  if(state==='stale')throw Error('TIP_INVALIDATED');
+  if(state!=='current')throw Error('TIP_FRESHNESS_UNKNOWN');
+  return status;
 }
 
 function localPow(header,targetBits=Number(header?.difficulty_bits),workLabel='block'){
   if(!Number.isInteger(targetBits)||targetBits<1||targetBits>64)return Promise.reject(Error('Invalid Proof of Work target'));
   return new Promise((resolve,reject)=>{
-    powReject=reject;
+    const generation=++powGeneration;
     const source=[
       "'use strict';",
       "const E=new TextEncoder();",
@@ -104,13 +124,19 @@ function localPow(header,targetBits=Number(header?.difficulty_bits),workLabel='b
       "function leadingZeroBits(hash){let count=0;for(const character of hash){const value=parseInt(character,16);if(!value){count+=4;continue}if(value<2)count+=3;else if(value<4)count+=2;else if(value<8)count++;break}return count}",
       "onmessage=async event=>{const header=event.data.header,targetBits=event.data.targetBits;let nonce=Math.floor(Math.random()*1e9),attempts=0;const started=performance.now();for(;;nonce++,attempts++){const hash=await digest({...header,nonce});if(leadingZeroBits(hash)>=targetBits){postMessage({nonce,hash,attempts:attempts+1});return}if(attempts%256===0)postMessage({progress:true,attempts,rate:Math.round(attempts/Math.max(.01,(performance.now()-started)/1000))})}}"
     ].join('');
-    workerUrl=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));worker=new Worker(workerUrl);
-    worker.onmessage=event=>{
+    const currentWorkerUrl=URL.createObjectURL(new Blob([source],{type:'text/javascript'})),currentWorker=new Worker(currentWorkerUrl);
+    workerUrl=currentWorkerUrl;worker=currentWorker;powReject=reject;
+    const current=()=>generation===powGeneration&&worker===currentWorker;
+    currentWorker.onmessage=event=>{
+      if(!current())return;
       if(event.data.progress){$('mstate').textContent='Mining '+workLabel+' at height '+header.height+' · '+(attemptsTotal+event.data.attempts).toLocaleString()+' hashes · '+event.data.rate.toLocaleString()+' H/s';$('mstate').className='status';return}
-      powReject=null;const result=event.data;stopWorker();resolve(result);
+      powReject=null;const result=event.data;stopWorker('',currentWorker);resolve({...result,generation});
     };
-    worker.onerror=event=>{powReject=null;stopWorker();reject(Error(event.message||'Proof of Work worker failed'))};
-    worker.postMessage({header,targetBits});
+    currentWorker.onerror=event=>{
+      if(!current())return;
+      powReject=null;stopWorker('',currentWorker);reject(Error(event.message||'Proof of Work worker failed'));
+    };
+    currentWorker.postMessage({header,targetBits});
   });
 }
 
@@ -218,13 +244,17 @@ async function mineCoordinatorIteration(base,rewardAddress){
 }
 
 async function mineDirectIteration(rewardAddress,{fallbackFailures=0}={}){
-  const template=await api('/template?address='+encodeURIComponent(rewardAddress)),stopTipObserver=startDirectTipObserver(template.header);
+  const template=await api('/template?address='+encodeURIComponent(rewardAddress)),tipObserver=startDirectTipObserver(template.header);
   try{
-    const pow=await localPow(template.header,Number(template.header.difficulty_bits),'block'),submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
+    const pow=await localPow(template.header,Number(template.header.difficulty_bits),'block');
+    if(tipObserver.invalidated())throw Error('TIP_INVALIDATED');
+    await assertDirectWorkFresh(template.header);
+    if(tipObserver.invalidated())throw Error('TIP_INVALIDATED');
+    const submission={header:template.header,nonce:pow.nonce,hash:pow.hash,txids:template.txids||[]};
     if(Array.isArray(template.coinbase_outputs))submission.coinbase_outputs=template.coinbase_outputs;
     const accepted=await api('/submit-block',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(submission)});
     return{mode:'direct',template,pow,accepted,attempts:pow.attempts||0,fallbackFailures};
-  }finally{stopTipObserver()}
+  }finally{tipObserver.stop()}
 }
 
 async function mineOneIteration(rewardAddress){
@@ -263,6 +293,7 @@ async function miningLoop(){
       }catch(error){
         if(error?.message==='STOP')break;
         if(error?.message==='TIP_INVALIDATED'){setStatus('mstate','Network tip advanced. Replacing stale mining work automatically…','warn');await refresh();continue}
+        if(error?.message==='TIP_FRESHNESS_UNKNOWN'){setStatus('mstate','Could not verify mining-tip freshness. Revalidating before any block submission…','warn');await refresh();continue}
         const errorCode=error.data?.error,reason=error.data?.reason;
         if(errorCode==='stale_tip'||reason==='stale_tip'||reason==='race_lost'||/stale/i.test(error.message||'')){setStatus('mstate','Mining work became stale. Fetching the new tip and continuing…','warn');await refresh();continue}
         throw error;
