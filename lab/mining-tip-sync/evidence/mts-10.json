@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_MTS_10_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "baseline": {
+    "lab_workflow_run_id": 35356632431,
+    "lab_workflow_job_id": 105637474894,
+    "canonical_workflow_run_id": 35356632482,
+    "canonical_workflow_job_id": 105637475572,
+    "direct_tip_poll_interval_ms": 2000,
+    "worst_case_avoidable_poll_wait_ms": 2000,
+    "mean_uniform_phase_wait_ms": 1000,
+    "broadcast_channel_acceleration_present": false
+  },
+  "candidate": {
+    "lab_workflow_run_id": 35357119097,
+    "lab_workflow_job_id": 105639083529,
+    "canonical_workflow_run_id": 35357118929,
+    "canonical_workflow_job_id": 105639153342,
+    "adversarial_tests": {"total":5,"pass":5,"fail":0},
+    "candidate_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c"
+  },
+  "admitted_behavior": [
+    "authoritative stale observation may emit a payload-free revalidation hint",
+    "receiver performs authoritative /status revalidation before any cancellation",
+    "forged height/tip_hash fields in a hint are ignored",
+    "hint-triggered status outage is not cancellation authority",
+    "BroadcastChannel absence preserves independent polling convergence",
+    "locally accepted direct block may accelerate peer revalidation"
+  ],
+  "authority": {
+    "broadcast_channel_is_chain_authority": false,
+    "hint_payload_contains_authoritative_tip": false,
+    "pre_submit_freshness_barrier_changed": false,
+    "backend_changed": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "block_time_changed": false
+  },
+  "classification": "LATENCY_OPTIMIZATION_NOT_CORRECTNESS_DEPENDENCY",
+  "next_frontier": ["MTS-11"]
+}
