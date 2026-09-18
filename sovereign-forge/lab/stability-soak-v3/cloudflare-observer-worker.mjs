@@ -38,7 +38,7 @@ export default{
   async fetch(request,env){
     const url=new URL(request.url);
     if(url.pathname==='/health'){
-      try{const row=await env.DB.prepare('SELECT COUNT(*) AS n FROM v3_evidence').first();return Response.json({ok:true,run_id:env.FAE_V3_RUN_ID||'PREPARED_NOT_STARTED,evidence_rows':Number(row?.n)||0})}
+      try{const row=await env.DB.prepare('SELECT COUNT(*) AS n FROM v3_evidence').first();return Response.json({ok:true,run_id:env.FAE_V3_RUN_ID||'PREPARED_NOT_STARTED',evidence_rows:Number(row?.n)||0})}
       catch(error){return Response.json({ok:false,error:error.message},{status:503})}
     }
     if(url.pathname==='/export'){
