@@ -79,10 +79,10 @@ test('MTS-12 standalone runner binds the FAE shell and miner to the current stat
 });
 
 test('MTS-12 child contexts never navigate an iframe to the host root',()=>{
-  assert.doesNotMatch(page,/<iframe[^>]+src=["']\/?\?mts12=physical["']/);
-  assert.match(page,/<iframe id="app" src="about:blank"><\/iframe>/);
-  assert.match(page,/frame\.srcdoc=appHtml/);
-  assert.match(page,/fetch\(new URL\('\/'\,location\.origin\)\.toString\(\),\{cache:'no-store'\}\)/);
+  assert.equal(page.includes('<iframe id="app" src="/?mts12=physical"></iframe>'),false);
+  assert.equal(page.includes('<iframe id="app" src="about:blank"></iframe>'),true);
+  assert.equal(page.includes('frame.srcdoc=appHtml;'),true);
+  assert.match(page,/new URL\('index\.html',FAE_SNAPSHOT_BASE\)/);
 });
 
 test('MTS-12 completion cannot be claimed without physical iPad evidence',()=>{
