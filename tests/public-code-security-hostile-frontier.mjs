@@ -96,10 +96,13 @@ test('PSR-06 invalid signatures, malformed keys, duplicate inputs and wrong netw
   assert.equal(verifyTxCrypto(badSignature).ok,false);
   assert.match(verifyTxCrypto(badSignature).error,/invalid_signature|invalid_public_key_or_signature/);
 
-  assert.deepEqual(
-    verifyTxCrypto({...good,public_key_spki:'not-der'}),
-    assert.match(verifyTxCrypto({...good,public_key_spki:'not-der'}).error,/invalid_public_key_or_signature/)
-  );
+  const malformedKey=verifyTxCrypto({...good,public_key_spki:'not-der'});
+  assert.equal(malformedKey.ok,false);
+  assert.match(malformedKey.error,/invalid_public_key_or_signature/);
+
+  const wrongNetwork=verifyTxCrypto(signedTx(alice,{network:'attacker-network'}));
+  assert.equal(wrongNetwork.ok,false);
+  assert.equal(wrongNetwork.error,'malformed_transaction');
 });
 
 test('PSR-06 transaction admission rejects duplicate inputs, overspend and replayed txid',()=>{
