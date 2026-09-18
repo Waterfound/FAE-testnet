@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "BOUNDARY_FROZEN_MTS_00_01",
+  "status": "MTS_00_01_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,8 +9,8 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-00",
-    "MTS-01"
+    "MTS-02",
+    "MTS-03"
   ],
   "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
@@ -67,5 +67,26 @@
   "block_time_policy": "Correctness must hold independently of 180s versus 300s target selection.",
   "private_material_policy": "Seed phrases, private keys, and reusable secret material must never enter Lab fixtures, logs, or evidence.",
   "failure_policy": "Fail closed on authority ambiguity. MTS-00/01 may not edit active miner/runtime code. A later explicit gate is required before candidate mining.js writes.",
-  "deletion_invariant": "Removing lab/mining-tip-sync and its Lab-only documentation must not change active FAE mining, wallet, consensus, economics, or public-testnet behavior."
+  "deletion_invariant": "Removing lab/mining-tip-sync and its Lab-only documentation must not change active FAE mining, wallet, consensus, economics, or public-testnet behavior.",
+  "completed_gates": {
+    "MTS-00": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151298,
+      "workflow_job_id": 105593476901,
+      "boundary_guard": "PASS"
+    },
+    "MTS-01": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151298,
+      "workflow_job_id": 105593476901,
+      "reproduction": "CURRENT_BROWSER_MINER_REPRODUCES_TIP_DRIVEN_CANCELLATION_GAP",
+      "evidence_artifact_id": 10546141283,
+      "evidence_artifact_digest": "sha256:3a5b6eed8ad3033a7fe9ca8e2b65cf336646b9fe4fb34919fb36c506082edd51"
+    },
+    "canonical_regression": {
+      "status": "GREEN",
+      "workflow_run_id": 35343151410,
+      "workflow_job_id": 105593477132
+    }
+  }
 }
