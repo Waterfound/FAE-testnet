@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_10_PATCH_AUTHORIZED",
+  "status": "MTS_10_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,9 +9,9 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-10"
+    "MTS-11"
   ],
-  "current_stage_active_miner_write_authorized": true,
+  "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -24,12 +24,10 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab",
-    "mining.js",
-    "sovereign-forge/browser/mining.js",
-    "FAE_FORGE_MAIN.sha256"
+    ".github/workflows/mining-tip-sync-lab"
   ],
   "current_stage_protected_paths": [
+    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
@@ -37,7 +35,8 @@
     "index.html",
     "tests/",
     "supabase/",
-    "sovereign-forge/"
+    "sovereign-forge/",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "future_candidate_paths": [
     "mining.js",
@@ -214,6 +213,36 @@
       "status": "GREEN",
       "workflow_run_id": 35354960017,
       "workflow_job_id": 105631948457
+    },
+    "MTS-10": {
+      "status": "GREEN",
+      "baseline": {
+        "lab_workflow_run_id": 35356632431,
+        "lab_workflow_job_id": 105637474894,
+        "canonical_workflow_run_id": 35356632482,
+        "canonical_workflow_job_id": 105637475572,
+        "polling_interval_ms": 2000,
+        "mean_uniform_phase_wait_ms": 1000
+      },
+      "candidate": {
+        "lab_workflow_run_id": 35357119097,
+        "lab_workflow_job_id": 105639083529,
+        "canonical_workflow_run_id": 35357118929,
+        "canonical_workflow_job_id": 105639153342,
+        "adversarial_tests": "5/5 PASS",
+        "candidate_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c"
+      },
+      "network_status_remains_authority": true,
+      "hint_payload_authoritative": false,
+      "hint_outage_cancels_work": false,
+      "broadcast_channel_required_for_correctness": false,
+      "runtime_patch_required_for_correctness": false,
+      "runtime_patch_admitted_as_latency_optimization": true
+    },
+    "canonical_regression_mts_10": {
+      "status": "GREEN",
+      "workflow_run_id": 35357118929,
+      "workflow_job_id": 105639153342
     }
   },
   "miner_write_authorization_basis": {
@@ -227,9 +256,7 @@
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
   },
-  "current_stage_protected_path_exceptions": [
-    "sovereign-forge/browser/mining.js"
-  ],
+  "current_stage_protected_path_exceptions": [],
   "miner_mirror_authorization_basis": {
     "canonical_failure": {
       "workflow_run_id": 35344168583,
@@ -293,7 +320,7 @@
     "cause": "canonical smoke /status fixture omitted tip_hash even though production v4 /status already exposes it",
     "resolution": "align the exact smoke fixture with production height+tip_hash contract; retain fail-closed runtime behavior"
   },
-  "current_protected_miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
+  "current_protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
   "mts_07_authority": {
     "phase": "STRESS_FIRST",
     "runtime_write_authorized": false,
@@ -357,14 +384,14 @@
   },
   "completed_runtime_delta": {
     "status": "FROZEN",
-    "frontier": "MTS-08",
+    "frontier": "MTS-10",
     "exact_paths": [
       "mining.js",
       "sovereign-forge/browser/mining.js",
       "FAE_FORGE_MAIN.sha256"
     ],
-    "miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
-    "rule": "These paths may appear in the closing PR delta only while their bytes remain equal to the frozen MTS-08 result. This does not authorize new runtime writes in MTS-09."
+    "miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "rule": "These paths may appear in the closing MTS-10 PR delta only while root and Forge miner bytes plus the integrity manifest remain bound to this exact SHA-256. This does not authorize MTS-11 runtime writes."
   },
   "mts_09_authority": {
     "phase": "STRESS_FIRST",
@@ -439,6 +466,17 @@
       "block-time changes",
       "hint-based direct cancellation",
       "trusted height/hash in BroadcastChannel payload"
+    ]
+  },
+  "mts_11_authority_preview": {
+    "scope": "real-browser integration and stale-work cancellation latency gate",
+    "initial_mode": "VALIDATION_FIRST",
+    "runtime_write_authorized": false,
+    "objectives": [
+      "exercise actual browser scheduling semantics beyond the deterministic VM harness",
+      "measure hint-to-authoritative-cancel latency and poll-only fallback latency",
+      "prove multi-tab correctness with BroadcastChannel disabled and enabled",
+      "prepare physical-device iPad validation without changing consensus or block time"
     ]
   }
 }
