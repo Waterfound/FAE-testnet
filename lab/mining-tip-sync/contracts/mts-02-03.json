@@ -1,0 +1,33 @@
+{
+  "schema": "FAE_MTS_02_03_CONTRACT_V1",
+  "status": "CANDIDATE",
+  "MTS-02": {
+    "work_identity_fields": [
+      "session_id",
+      "generation",
+      "network",
+      "height",
+      "previous_hash",
+      "reward_address"
+    ],
+    "generation_rule": "strictly monotonic within one mining session",
+    "late_event_rule": "event generation must equal the current non-invalidated generation",
+    "required_rejections": [
+      "STALE_GENERATION",
+      "INVALIDATED_GENERATION"
+    ]
+  },
+  "MTS-03": {
+    "authoritative_source": "/status",
+    "authoritative_identity": ["height", "tip_hash"],
+    "current": "observed height equals work parent height and tip_hash equals previous_hash",
+    "stale_chain_advanced": "observed height is greater than work parent height",
+    "stale_parent_replaced": "observed height equals work parent height and tip_hash differs",
+    "unknown_observer_behind": "observed height is lower than work parent height",
+    "unknown_transport_or_malformed": true,
+    "mempool_only_change_invalidates_work": false,
+    "cross_tab_hint_authoritative": false,
+    "lifecycle_resume_requires_authoritative_revalidation": true
+  },
+  "active_runtime_changed": false
+}

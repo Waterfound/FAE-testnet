@@ -38,10 +38,13 @@ jobs:
           node --check mining.js
 
       - name: MTS-00 boundary guard
-        run: node lab/mining-tip-sync/boundary-guard.mjs --base d69ebf05895692760fc5c917a394c65b9709894c
+        run: node lab/mining-tip-sync/boundary-guard.mjs --base origin/main
 
       - name: MTS-01 deterministic baseline reproduction
         run: node lab/mining-tip-sync/baseline-reproduction.mjs --output mts-01-baseline-evidence.json
+
+      - name: MTS-02/03 identity and tip-observer contract tests
+        run: node --test lab/mining-tip-sync/tests/mts-02-03.test.mjs
 
       - name: Upload MTS-01 evidence
         uses: actions/upload-artifact@v4

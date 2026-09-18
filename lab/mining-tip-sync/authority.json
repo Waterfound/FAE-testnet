@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_00_01_GREEN",
+  "status": "MTS_02_03_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,10 +9,10 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-02",
-    "MTS-03"
+    "MTS-04",
+    "MTS-06"
   ],
-  "current_stage_active_miner_write_authorized": false,
+  "current_stage_active_miner_write_authorized": true,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -25,10 +25,10 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab"
+    ".github/workflows/mining-tip-sync-lab",
+    "mining.js"
   ],
   "current_stage_protected_paths": [
-    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
@@ -87,6 +87,32 @@
       "status": "GREEN",
       "workflow_run_id": 35343151410,
       "workflow_job_id": 105593477132
+    },
+    "MTS-02": {
+      "status": "GREEN",
+      "workflow_run_id": 35343576845,
+      "workflow_job_id": 105594832777
+    },
+    "MTS-03": {
+      "status": "GREEN",
+      "workflow_run_id": 35343576845,
+      "workflow_job_id": 105594832777
+    },
+    "canonical_regression_mts_02_03": {
+      "status": "GREEN",
+      "workflow_run_id": 35343576784,
+      "workflow_job_id": 105594833294
     }
+  },
+  "miner_write_authorization_basis": {
+    "MTS-02": "GREEN",
+    "MTS-03": "GREEN",
+    "lab_workflow_run_id": 35343576845,
+    "lab_workflow_job_id": 105594832777,
+    "contract_tests": "9/9 PASS",
+    "canonical_workflow_run_id": 35343576784,
+    "canonical_workflow_job_id": 105594833294,
+    "canonical_regression": "PASS",
+    "scope": "mining.js only; no core/backend/consensus/economic authority"
   }
 }
