@@ -13,7 +13,6 @@ function fail(message){
 }
 
 const falseFlags=[
-  'current_stage_active_miner_write_authorized',
   'consensus_change_authorized',
   'monetary_policy_change_authorized',
   'block_time_change_authorized',
@@ -30,8 +29,16 @@ if(manifest.future_candidate_miner_write_requires_gate!==true)fail('future miner
 if(manifest.authority_ceiling!=='LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE')fail('unexpected authority ceiling');
 const frontier=Array.isArray(manifest.current_frontier)?manifest.current_frontier.join(','):'';
 if(manifest.status==='BOUNDARY_FROZEN_MTS_00_01'&&frontier!=='MTS-00,MTS-01')fail('unexpected pre-verification frontier');
-if(manifest.status==='MTS_00_01_GREEN'&&frontier!=='MTS-02,MTS-03')fail('unexpected post-verification frontier');
-if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN'].includes(manifest.status))fail('unexpected authority status');
+if(manifest.status==='MTS_00_01_GREEN'&&frontier!=='MTS-02,MTS-03')fail('unexpected post-baseline frontier');
+if(manifest.status==='MTS_02_03_GREEN'&&frontier!=='MTS-04,MTS-06')fail('unexpected post-contract frontier');
+if(!['BOUNDARY_FROZEN_MTS_00_01','MTS_00_01_GREEN','MTS_02_03_GREEN'].includes(manifest.status))fail('unexpected authority status');
+if(manifest.status==='MTS_02_03_GREEN'){
+  if(manifest.current_stage_active_miner_write_authorized!==true)fail('MTS-04 frontier requires explicit miner write authorization');
+  if(!manifest.current_stage_allowed_write_prefixes.includes('mining.js'))fail('mining.js must be explicitly scoped for MTS-04');
+  if(manifest.current_stage_protected_paths.includes('mining.js'))fail('mining.js cannot remain protected after explicit MTS-04 authorization');
+}else if(manifest.current_stage_active_miner_write_authorized!==false){
+  fail('active miner write must remain false before MTS-02/03 are GREEN');
+}
 if(manifest.cross_tab_policy?.is_chain_authority!==false)fail('cross-tab signaling must never be chain authority');
 if(manifest.snapshot_semantics?.mempool_only_change_invalidates_work!==false)fail('snapshot semantics must preserve mempool-only validity');
 if(manifest.snapshot_semantics?.chain_tip_change_invalidates_work!==true)fail('chain tip change must invalidate work');
