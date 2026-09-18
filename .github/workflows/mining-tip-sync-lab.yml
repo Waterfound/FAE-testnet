@@ -63,3 +63,9 @@ jobs:
 
       - name: MTS-09 multi-context independent-convergence stress
         run: node --test lab/mining-tip-sync/tests/mts-09-multicontext.test.mjs
+
+      - name: MTS-10 BroadcastChannel optimization baseline
+        run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-baseline.test.mjs
+
+      - name: MTS-10 BroadcastChannel candidate adversarial matrix
+        run: node --test lab/mining-tip-sync/tests/mts-10-broadcast-candidate.test.mjs
