@@ -1,0 +1,360 @@
+{
+  "schema": "FAE_PUBLIC_CODE_SECURITY_READINESS_BUILD_COLONY_PLAN_V1",
+  "run_id": "bc-fae-pcsr-20260918-001",
+  "run_kind": "REAL_PLANNING_RUN",
+  "run_date": "2026-09-18",
+  "project": "FAE",
+  "repository": "Waterfound/FAE-testnet",
+  "source_revision": "d69ebf05895692760fc5c917a394c65b9709894c",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "workstream": "FAE Public-Code Security Readiness",
+  "project_shape": "BOUNDED_HARDENING_PROJECT_THEN_RECURRING_PROJECT_ASSURANCE",
+  "frozen_principle": "FAE must remain secure even if the attacker knows 100% of the source code.",
+  "active_gate_class": "capability_gap",
+  "native_progress_unit": "public_code_security_gate_completion",
+  "execution_binding": {
+    "executor_attached": true,
+    "executor": "GitHub connected write",
+    "branch": "colony/fae-public-code-security-readiness-001",
+    "methodology_only": false,
+    "evidence_before_status": true
+  },
+  "observed_baseline": {
+    "present": [
+      {
+        "path": "README.md",
+        "blob_sha": "78edca3bbdc66ee8c50067f1a0dfe9832337777c",
+        "note": "reproducible verification commands and security boundary"
+      },
+      {
+        "path": "wallet-crypto.js",
+        "blob_sha": "184d207b6017976b32e650f4ca184d3f06a2c8b4",
+        "note": "client-side wallet/key derivation and Ed25519 handling"
+      },
+      {
+        "path": "tests/crypto-compat.mjs",
+        "blob_sha": "b9ecb49359452366fdbc3e692bd9b42d8f432009",
+        "note": "wallet derivation/recovery compatibility gate"
+      },
+      {
+        "path": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+        "blob_sha": "2cf4e8a12f1cfcec7d2f14d8b742b814c09bbd5f",
+        "note": "authoritative consensus/state-transition reference"
+      }
+    ],
+    "reproducible_verification_from_readme": [
+      "sha256sum -c FAE_FORGE_MAIN.sha256",
+      "(cd supabase && sha256sum -c SOURCE_MANIFEST.sha256)",
+      "node --check core.js",
+      "node --check wallet-crypto.js",
+      "node --check wallet.js",
+      "node --check mining.js",
+      "node --check network-status.js",
+      "node tests/crypto-compat.mjs",
+      "node tests/client-smoke.mjs",
+      "npm ci --prefix sovereign-forge/node",
+      "npm run --prefix sovereign-forge/node check",
+      "node sovereign-forge/tests/smoke-independent-node.mjs"
+    ],
+    "verified_absent_at_source_revision": [
+      "SECURITY.md",
+      "LICENSE",
+      "LICENSE.md",
+      ".github/dependabot.yml",
+      ".github/dependabot.yaml",
+      ".github/workflows/codeql.yml",
+      ".github/workflows/codeql.yaml",
+      "docs/THREAT_MODEL.md",
+      "docs/SECURITY_THREAT_MODEL.md"
+    ]
+  },
+  "attacker_model": [
+    "Full source-code knowledge and arbitrary local source modification.",
+    "Arbitrary malformed blocks, transactions, protocol messages and API inputs.",
+    "Multiple adversarial peers and coordinated peer identities.",
+    "Timing, race, restart, reorg, stale-work and concurrency attacks.",
+    "DoS and resource-exhaustion attempts.",
+    "Local-state corruption and crash/recovery manipulation.",
+    "Economic and monetary-rule attacks.",
+    "Dependency, build, release and supply-chain attacks.",
+    "No security claim may depend on an honest client or hidden implementation."
+  ],
+  "authority": {
+    "ceiling": "CANDIDATE_WRITE",
+    "allowed": [
+      "security documentation",
+      "tests and test harnesses",
+      "hostile corpora and fuzz/property infrastructure",
+      "CI/security workflow candidates",
+      "dependency/release hygiene candidates",
+      "non-consensus observability needed for security verification"
+    ],
+    "forbidden": [
+      "consensus activation",
+      "monetary-policy change",
+      "transaction-version activation",
+      "wallet/address-format activation",
+      "public-testnet consensus behavior change",
+      "production secret access",
+      "mainnet launch or release authority",
+      "candidate-to-authoritative promotion without independent verification"
+    ]
+  },
+  "global_invariants": [
+    "Maximum supply can never be exceeded.",
+    "Invalid block reward or coinbase cannot be accepted.",
+    "Invalid signatures cannot be accepted.",
+    "A lower-work chain cannot replace a valid higher-work chain under the authoritative fork-choice rule.",
+    "Coinbase maturity cannot be bypassed.",
+    "Malformed external input cannot corrupt canonical state.",
+    "Crash/restart/recovery cannot create or destroy value.",
+    "Stale or abandoned work cannot mutate consensus state.",
+    "Independent conforming implementations must reach the same consensus result for the same valid input/history.",
+    "Private keys and seed phrases never enter Build Colony, CI, logs, fixtures or security evidence.",
+    "Every fixed vulnerability becomes an executable regression test when technically feasible.",
+    "Static/dependency scanners are defense-in-depth signals, never substitutes for adversarial verification.",
+    "Security claims remain fail-closed when required evidence is missing."
+  ],
+  "phases": [
+    {
+      "id": "PSR-00",
+      "name": "Boundary Freeze and Execution Binding",
+      "state": "INTEGRATION_PENDING",
+      "depends_on": [],
+      "exit": "Exact source revision, Build Colony revision, authority ceiling, attacker model, invariants and workstream termination condition are frozen in the repository."
+    },
+    {
+      "id": "PSR-01",
+      "name": "Formal Public-Code Threat Model",
+      "state": "BLOCKED_ON_PSR-00",
+      "depends_on": [
+        "PSR-00"
+      ],
+      "exit": "Threat actors, assets, trust boundaries, capabilities, exclusions and abuse classes are explicit; hidden-code and honest-client assumptions are forbidden."
+    },
+    {
+      "id": "PSR-02",
+      "name": "Existing Security Gate and Evidence Inventory",
+      "state": "BLOCKED_ON_PSR-00",
+      "depends_on": [
+        "PSR-00"
+      ],
+      "exit": "Every existing relevant test/check/workflow is mapped to the invariant it supports; gaps are evidence-bound rather than assumed."
+    },
+    {
+      "id": "PSR-03",
+      "name": "Attack-Surface Matrix and Invariant Registry",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-01",
+        "PSR-02"
+      ],
+      "exit": "Consensus, wallet/keys, tx validation, mining/templates, P2P/discovery/eclipse, reorg/fork choice, persistence/recovery, browser/frontend, APIs/backend, and build/release/dependencies each have explicit invariants and owners."
+    },
+    {
+      "id": "PSR-04",
+      "name": "Responsible Disclosure Baseline",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-01"
+      ],
+      "exit": "SECURITY.md exists with private reporting path, supported scope, disclosure expectations and no implied bounty commitment."
+    },
+    {
+      "id": "PSR-05",
+      "name": "Consensus and Economic Hostile Gates",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-03"
+      ],
+      "exit": "Executable adversarial gates cover reward, supply, maturity, duplicate spend, malformed block/tx, fork choice and consensus-state invariants."
+    },
+    {
+      "id": "PSR-06",
+      "name": "Wallet, Keys and Signature Hostile Gates",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-03"
+      ],
+      "exit": "Invalid-key/signature, recovery, derivation, key-material leakage and misuse cases are adversarially tested without persistent secrets."
+    },
+    {
+      "id": "PSR-07",
+      "name": "P2P, Discovery and Eclipse Hostile Gates",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-03"
+      ],
+      "exit": "Malformed peers/messages, peer concentration, isolation/eclipse, stale view and reconnection abuse are covered by executable tests or explicit evidence blockers."
+    },
+    {
+      "id": "PSR-08",
+      "name": "Persistence, Reorg and Recovery Hostile Gates",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-03"
+      ],
+      "exit": "Crash/restart, partial write, corrupted local state, rollback/reorg and mempool reconstruction preserve value and deterministic canonical state."
+    },
+    {
+      "id": "PSR-09",
+      "name": "Browser, Frontend, API and Backend Boundary Gates",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-03"
+      ],
+      "exit": "Untrusted browser/API/backend inputs, origin/state assumptions and resource bounds are adversarially exercised without granting backend authority over keys or consensus."
+    },
+    {
+      "id": "PSR-10",
+      "name": "Hostile Corpus, Property Testing and Fuzzing",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-05",
+        "PSR-06",
+        "PSR-07",
+        "PSR-08",
+        "PSR-09"
+      ],
+      "exit": "Reusable malformed corpus plus property/fuzz harnesses exercise parsers/state transitions; discovered failures are minimized and retained as regressions."
+    },
+    {
+      "id": "PSR-11",
+      "name": "Differential and Alternative-Implementation Verification",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-10"
+      ],
+      "exit": "Consensus-critical cases are replayed through independent code paths/implementations where available and divergence fails closed."
+    },
+    {
+      "id": "PSR-12",
+      "name": "Supply-Chain and Public-Repo Hygiene",
+      "state": "BLOCKED_ON_PSR-00",
+      "depends_on": [
+        "PSR-00"
+      ],
+      "exit": "Dependency inventory/update policy, Dependabot candidate, CodeQL/static-analysis candidate, secret-leak prevention and least-privilege CI review are present and verified as defense in depth."
+    },
+    {
+      "id": "PSR-13",
+      "name": "Reproducible Build and Release Provenance",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-02",
+        "PSR-12"
+      ],
+      "exit": "Build/release inputs, hashes and provenance are reproducible enough to verify that published artifacts correspond to reviewed source."
+    },
+    {
+      "id": "PSR-14",
+      "name": "Open-Source License Decision and Explicit License",
+      "state": "BLOCKED_ON_PSR-00",
+      "depends_on": [
+        "PSR-00"
+      ],
+      "exit": "MIT vs Apache-2.0 is resolved as a separate legal/project decision and an explicit license is committed; this phase does not satisfy any security gate by itself."
+    },
+    {
+      "id": "PSR-15",
+      "name": "Project Assurance White-Box Attack Campaign",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-04",
+        "PSR-05",
+        "PSR-06",
+        "PSR-07",
+        "PSR-08",
+        "PSR-09",
+        "PSR-10",
+        "PSR-11",
+        "PSR-12",
+        "PSR-13"
+      ],
+      "exit": "Project Assurance/Red Team attacks the exact candidate assuming full source knowledge; findings are evidence-bound and severity does not get waived by passing scanners."
+    },
+    {
+      "id": "PSR-16",
+      "name": "Finding Closure and Regression Promotion",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-15"
+      ],
+      "exit": "Every admitted finding is fixed, explicitly accepted as residual risk, or blocks readiness; fixes carry regression tests where feasible."
+    },
+    {
+      "id": "PSR-17",
+      "name": "Full Security Baseline Replay",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-14",
+        "PSR-16"
+      ],
+      "exit": "Canonical verification plus all new security gates replay GREEN on the exact candidate revision with no selective retry hiding failures."
+    },
+    {
+      "id": "PSR-18",
+      "name": "Public-Code Security Baseline Verdict",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-17"
+      ],
+      "exit": "Verdict is one of BASELINE_READY_FOR_RECURRING_ASSURANCE, BLOCKED_BY_SECURITY_FINDINGS, or BLOCKED_BY_MISSING_EVIDENCE; it grants no mainnet authority."
+    },
+    {
+      "id": "PSR-19",
+      "name": "Bounded Project Closeout and Recurring Assurance Handoff",
+      "state": "BLOCKED",
+      "depends_on": [
+        "PSR-18"
+      ],
+      "exit": "Extraordinary workstream is closed; only recurring Project Assurance remains, with deeper review mandatory for consensus, crypto, economics and critical networking changes."
+    }
+  ],
+  "first_execution_block": {
+    "label": "Baseline Definition Block",
+    "ordered_work": [
+      "PSR-01",
+      "PSR-02",
+      "PSR-03",
+      "PSR-04"
+    ],
+    "deliverables": [
+      "formal white-box threat model",
+      "existing-gate/evidence ledger",
+      "attack-surface matrix",
+      "security invariant registry",
+      "SECURITY.md skeleton"
+    ],
+    "note": "PSR-01 and PSR-02 may execute in parallel after PSR-00 is integrated; PSR-03 serializes their outputs. PSR-04 may proceed once PSR-01 is stable."
+  },
+  "parallelization_policy": {
+    "rule": "Parallelize independent surfaces; serialize shared security contracts and integration.",
+    "parallel_after_surface_freeze": [
+      "PSR-05",
+      "PSR-06",
+      "PSR-07",
+      "PSR-08",
+      "PSR-09",
+      "PSR-12",
+      "PSR-14"
+    ],
+    "serialized_points": [
+      "PSR-03",
+      "PSR-10",
+      "PSR-11",
+      "PSR-15",
+      "PSR-16",
+      "PSR-17",
+      "PSR-18",
+      "PSR-19"
+    ]
+  },
+  "termination_condition": "The bounded hardening project ends after PSR-18 yields BASELINE_READY_FOR_RECURRING_ASSURANCE and PSR-19 records the handoff. No permanent new security system is created.",
+  "terminal_verdicts": [
+    "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+    "BLOCKED_BY_SECURITY_FINDINGS",
+    "BLOCKED_BY_MISSING_EVIDENCE"
+  ],
+  "mainnet_authority": "OUTSIDE_THIS_RUN_AND_OUTSIDE_BUILD_COLONY_AUTHORITY"
+}
