@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_08_PATCH_AUTHORIZED",
+  "status": "MTS_08_GREEN",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -9,9 +9,9 @@
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "authority_ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
   "current_frontier": [
-    "MTS-08"
+    "MTS-09"
   ],
-  "current_stage_active_miner_write_authorized": true,
+  "current_stage_active_miner_write_authorized": false,
   "future_candidate_miner_write_requires_gate": true,
   "consensus_change_authorized": false,
   "monetary_policy_change_authorized": false,
@@ -24,12 +24,10 @@
   "current_stage_allowed_write_prefixes": [
     "lab/mining-tip-sync/",
     "docs/FAE_MINING_TIP_SYNC_",
-    ".github/workflows/mining-tip-sync-lab",
-    "mining.js",
-    "sovereign-forge/browser/mining.js",
-    "FAE_FORGE_MAIN.sha256"
+    ".github/workflows/mining-tip-sync-lab"
   ],
   "current_stage_protected_paths": [
+    "mining.js",
     "core.js",
     "wallet.js",
     "wallet-crypto.js",
@@ -37,7 +35,8 @@
     "index.html",
     "tests/",
     "supabase/",
-    "sovereign-forge/"
+    "sovereign-forge/",
+    "FAE_FORGE_MAIN.sha256"
   ],
   "future_candidate_paths": [
     "mining.js",
@@ -164,6 +163,32 @@
       "status": "GREEN",
       "workflow_run_id": 35346915626,
       "workflow_job_id": 105605551964
+    },
+    "MTS-08": {
+      "status": "GREEN",
+      "reproduction": {
+        "lab_workflow_run_id": 35347490391,
+        "lab_workflow_job_id": 105607372933,
+        "tests": "2/4 PASS, 2/4 FAIL",
+        "exposed_gap": [
+          "visibilitychange resume lacked immediate revalidation",
+          "pageshow lacked immediate revalidation"
+        ]
+      },
+      "corrected_candidate": {
+        "lab_workflow_run_id": 35347707661,
+        "lab_workflow_job_id": 105608096239,
+        "canonical_workflow_run_id": 35347707810,
+        "canonical_workflow_job_id": 105608171021,
+        "lifecycle_tests": "5/5 PASS",
+        "canonical_gates": "31/31 PASS",
+        "candidate_miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4"
+      }
+    },
+    "canonical_regression_mts_08": {
+      "status": "GREEN",
+      "workflow_run_id": 35347707810,
+      "workflow_job_id": 105608171021
     }
   },
   "miner_write_authorization_basis": {
@@ -177,9 +202,7 @@
     "canonical_regression": "PASS",
     "scope": "mining.js only; no core/backend/consensus/economic authority"
   },
-  "current_stage_protected_path_exceptions": [
-    "sovereign-forge/browser/mining.js"
-  ],
+  "current_stage_protected_path_exceptions": [],
   "miner_mirror_authorization_basis": {
     "canonical_failure": {
       "workflow_run_id": 35344168583,
@@ -243,7 +266,7 @@
     "cause": "canonical smoke /status fixture omitted tip_hash even though production v4 /status already exposes it",
     "resolution": "align the exact smoke fixture with production height+tip_hash contract; retain fail-closed runtime behavior"
   },
-  "current_protected_miner_sha256": "ae279412f69b0420a3fb25a8052f9e5625aaf5d81adf4ce1616de6293ea5870e",
+  "current_protected_miner_sha256": "a52bb987252f92913bef4d87c69575e2c6187398240cc0664d0d433cda6334b4",
   "mts_07_authority": {
     "phase": "STRESS_FIRST",
     "runtime_write_authorized": false,
@@ -298,5 +321,11 @@
       "block-time changes",
       "BroadcastChannel authority"
     ]
+  },
+  "mts_09_authority_preview": {
+    "scope": "multi-tab/multi-context/other-device/remote-miner independence",
+    "initial_mode": "STRESS_FIRST",
+    "runtime_write_authorized": false,
+    "principle": "Each context must converge from authoritative network state independently; same-device hints may accelerate but cannot be required."
   }
 }
