@@ -1,0 +1,240 @@
+{
+  "schema": "FAE_PUBLIC_CODE_MALFORMED_CORPUS_V1",
+  "source_revision": "74ddd2b24d4b4653ec620d7c208809c98f6633e2",
+  "seed": "0xfae51010",
+  "policy": {
+    "deterministic": true,
+    "secret_material": "ephemeral-test-only",
+    "regression_rule": "Every discovered failure must be minimized when feasible and retained as a named corpus case or dedicated regression test.",
+    "authority": "No corpus case grants consensus, release, or mainnet authority."
+  },
+  "transaction_cases": [
+    {
+      "id": "TX-001",
+      "kind": "raw",
+      "value": null,
+      "expect": "reject"
+    },
+    {
+      "id": "TX-002",
+      "kind": "raw",
+      "value": {},
+      "expect": "reject"
+    },
+    {
+      "id": "TX-003",
+      "kind": "mutation",
+      "mutation": "wrong_version",
+      "expect": "wrong_version"
+    },
+    {
+      "id": "TX-004",
+      "kind": "mutation",
+      "mutation": "wrong_network_resigned",
+      "expect": "malformed_transaction"
+    },
+    {
+      "id": "TX-005",
+      "kind": "mutation",
+      "mutation": "duplicate_input_resigned",
+      "expect": "invalid_inputs"
+    },
+    {
+      "id": "TX-006",
+      "kind": "mutation",
+      "mutation": "input_too_long_resigned",
+      "expect": "invalid_inputs"
+    },
+    {
+      "id": "TX-007",
+      "kind": "mutation",
+      "mutation": "invalid_output_address_resigned",
+      "expect": "invalid_output"
+    },
+    {
+      "id": "TX-008",
+      "kind": "mutation",
+      "mutation": "zero_output_resigned",
+      "expect": "invalid_output"
+    },
+    {
+      "id": "TX-009",
+      "kind": "mutation",
+      "mutation": "too_many_outputs_resigned",
+      "expect": "malformed_transaction"
+    },
+    {
+      "id": "TX-010",
+      "kind": "mutation",
+      "mutation": "malformed_public_key",
+      "expect": "invalid_public_key_or_signature"
+    },
+    {
+      "id": "TX-011",
+      "kind": "mutation",
+      "mutation": "tampered_signature",
+      "expect": "invalid_signature_or_key"
+    },
+    {
+      "id": "TX-012",
+      "kind": "admission",
+      "mutation": "overspend_resigned",
+      "expect": "overspend"
+    },
+    {
+      "id": "TX-013",
+      "kind": "admission",
+      "mutation": "foreign_input_resigned",
+      "expect": "input_not_owned"
+    },
+    {
+      "id": "TX-014",
+      "kind": "admission",
+      "mutation": "replay_identical",
+      "expect": "duplicate_txid_or_input_reserved"
+    }
+  ],
+  "block_cases": [
+    {
+      "id": "BLK-001",
+      "mutation": "wrong_network",
+      "expect": "malformed_submission"
+    },
+    {
+      "id": "BLK-002",
+      "mutation": "negative_nonce",
+      "expect": "malformed_submission"
+    },
+    {
+      "id": "BLK-003",
+      "mutation": "malformed_hash",
+      "expect": "malformed_submission"
+    },
+    {
+      "id": "BLK-004",
+      "mutation": "invalid_miner_address",
+      "expect": "malformed_submission"
+    },
+    {
+      "id": "BLK-005",
+      "mutation": "duplicate_txids",
+      "expect": "invalid_tx_list"
+    },
+    {
+      "id": "BLK-006",
+      "mutation": "too_many_txids",
+      "expect": "invalid_tx_list"
+    },
+    {
+      "id": "BLK-007",
+      "mutation": "wrong_height",
+      "expect": "stale_tip"
+    },
+    {
+      "id": "BLK-008",
+      "mutation": "wrong_previous_hash",
+      "expect": "stale_tip"
+    },
+    {
+      "id": "BLK-009",
+      "mutation": "wrong_difficulty",
+      "expect": "invalid_consensus_fields"
+    },
+    {
+      "id": "BLK-010",
+      "mutation": "wrong_reward",
+      "expect": "invalid_consensus_fields"
+    },
+    {
+      "id": "BLK-011",
+      "mutation": "wrong_tx_root",
+      "expect": "tx_commitment_mismatch"
+    },
+    {
+      "id": "BLK-012",
+      "mutation": "wrong_tx_count",
+      "expect": "tx_commitment_mismatch"
+    },
+    {
+      "id": "BLK-013",
+      "mutation": "future_timestamp",
+      "expect": "invalid_timestamp"
+    },
+    {
+      "id": "BLK-014",
+      "mutation": "invalid_pow",
+      "expect": "invalid_proof_of_work"
+    }
+  ],
+  "peer_cases": [
+    {
+      "id": "PEER-001",
+      "mutation": "wrong_network",
+      "expect": "network_mismatch"
+    },
+    {
+      "id": "PEER-002",
+      "mutation": "expired",
+      "expect": "expired_or_time_invalid"
+    },
+    {
+      "id": "PEER-003",
+      "mutation": "tampered_payload",
+      "expect": "signature_failure"
+    },
+    {
+      "id": "PEER-004",
+      "mutation": "invalid_scheme",
+      "expect": "endpoint_scheme_reject"
+    },
+    {
+      "id": "PEER-005",
+      "mutation": "oversized_capabilities",
+      "expect": "normalized_and_bounded"
+    },
+    {
+      "id": "PEER-006",
+      "mutation": "source_flood",
+      "expect": "bounded"
+    },
+    {
+      "id": "PEER-007",
+      "mutation": "network_group_flood",
+      "expect": "bounded"
+    },
+    {
+      "id": "PEER-008",
+      "mutation": "identity_endpoint_flood",
+      "expect": "bounded"
+    }
+  ],
+  "browser_cases": {
+    "invalid_addresses": [
+      "FAET1UPPERCASE",
+      "javascript:alert(1)",
+      "faet1$$$$",
+      "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "",
+      "faet1"
+    ],
+    "invalid_amounts": [
+      "-1",
+      "1e3",
+      "1.000000001",
+      "NaN",
+      "Infinity",
+      "",
+      "  ",
+      "0x10",
+      "1,00"
+    ],
+    "api_modes": [
+      "json_error",
+      "non_json_error"
+    ]
+  },
+  "rebinding": {
+    "previous_source_revision": "a86555d4f99218c76f8d277e38101cf770f8be82",
+    "reason": "main advanced by 7 commits before PR creation; intervening changes were limited to PQ Wave D workflow/ledger repair and did not alter PSR-10 target surfaces."
+  }
+}
