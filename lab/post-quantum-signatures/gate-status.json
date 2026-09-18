@@ -333,14 +333,39 @@
     },
     "PQ-11": {
       "name": "Software-Only Ceiling Verdict",
-      "status": "READY",
+      "status": "GREEN",
       "authority": "RESEARCH_SHADOW_ONLY",
       "depends_on": [
         "PQ-10"
       ],
-      "frozen_manifest": "lab/post-quantum-signatures/wave-i/manifest.json"
+      "evidence": {
+        "admitted_head": "d60494784cc469aff50f525f84523361db3ad662",
+        "integrated_commit": "ed7d6381fa321847694a0078a7e92a163ecb05b8",
+        "executor_run_id": 35374484304,
+        "canonical_run_id": 35374484287,
+        "pq_lab_standards_run_id": 35374484475,
+        "cross_lab_run_id": 35374484322,
+        "codeql_run_id": 35374484393,
+        "artifact_id": 10559766858,
+        "artifact_sha256": "fb9eff24be649eea9d7b46d7990685eb5c42ccdb93e27b030dafc1554cbf4b36",
+        "evidence_binding_complete": true,
+        "unresolved_software_boundaries": [],
+        "software_only_verdict": "MIGRATION_PATH_TECHNICALLY_VIABLE_IN_SHADOW",
+        "activation_disposition": "INSUFFICIENT_JUSTIFICATION_FOR_ACTIVATION"
+      },
+      "meaning": "The post-quantum migration research path has reached its software-only ceiling with a technically viable shadow lifecycle and no unresolved software blocker. This does not authorize activation or select a production parameter set."
+    },
+    "PQ-12": {
+      "name": "Physical-Device Evidence",
+      "status": "OPTIONAL_EXTERNAL_EVIDENCE",
+      "authority": "RESEARCH_SHADOW_ONLY",
+      "depends_on": [
+        "PQ-11"
+      ],
+      "required_for_software_only_ceiling": false,
+      "meaning": "Optional iPhone/iPad physical measurements may be collected later if decision-relevant. They are not a blocker for the admitted software-only ceiling and grant no activation authority."
     }
   },
-  "active_frontier": "PQ-11",
+  "active_frontier": "SOFTWARE_ONLY_POST_QUANTUM_RESEARCH_CEILING_REACHED",
   "activation_authorized": false
 }
