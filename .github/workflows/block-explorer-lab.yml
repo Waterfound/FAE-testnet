@@ -36,3 +36,8 @@ jobs:
         run: |
           node --check sovereign-forge/node/explorer-read.mjs
           node --check sovereign-forge/node/fae-node.mjs
+      - name: Report BE-02 integrity hashes
+        run: |
+          sha256sum sovereign-forge/node/fae-node.mjs
+          sha256sum sovereign-forge/node/README.md
+          sha256sum sovereign-forge/node/explorer-read.mjs
