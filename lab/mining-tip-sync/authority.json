@@ -705,5 +705,80 @@
       "Record 409 responses from requests that started while locally current as race-lost responses, not hidden failures.",
       "Fail closed on unclassified stale responses."
     ]
+  },
+  "mts_12_physical_attempt_3": {
+    "status": "TIP_GATE_PASS_RESUME_METRIC_INVALID_FOR_RUNTIME_VERDICT",
+    "source_artifact": {
+      "schema": "FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V2",
+      "sha256": "0684b529fc38eec3c75f06653dcb9dd88ebf338811f8dc929fb375fa34bb97be",
+      "bytes": 53153,
+      "started_at": "2026-09-18T17:18:48.751Z",
+      "completed_at": "2026-09-18T17:24:03.701Z"
+    },
+    "physical_device": {
+      "ipad": true,
+      "safari_version": "26.6.1",
+      "exact_miner_sha_matches": true,
+      "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+      "top_level_tabs": true
+    },
+    "real_tip_gate": {
+      "baseline_height": 457,
+      "target_height": 458,
+      "a_convergence_ms": 2445.000244140625,
+      "b_convergence_ms": 1950,
+      "gate_ms": 3500,
+      "result": "PASS",
+      "known_mismatch_submissions": 0,
+      "race_lost_409_responses": 0,
+      "unclassified_stale_responses": 0,
+      "manual_restart_used": false
+    },
+    "background_foreground_attempt": {
+      "background_duration_ms": 152677,
+      "tip_height_before": 458,
+      "tip_height_after": 458,
+      "chain_advanced_while_backgrounded": false,
+      "recorder_a_response_ms": 1860,
+      "recorder_b_response_ms": 2000,
+      "old_gate_ms": 1500,
+      "old_recorder_result": "FAIL"
+    },
+    "diagnosis": {
+      "runtime_failure_proven": false,
+      "reason": "V2 resume gate measured completion of a Lab-issued BroadcastChannel /status fetch after controller foreground. That conflates local Safari scheduling and authoritative revalidation initiation with WAN response time, and it does not exercise the production miner tab becoming foreground.",
+      "safety_observed": "Zero stale responses, zero known-mismatch submissions, zero unclassified stale responses, and no manual restart.",
+      "miner_write_authorized": false
+    },
+    "correction": [
+      "Keep the frozen 1500 ms limit; do not relax it post hoc.",
+      "Measure from real Miner A visibilitychange/pageshow foreground event to the start of its authoritative /status request.",
+      "Record WAN response duration separately as informational evidence, not the local reaction gate.",
+      "Require the real-tip gate to PASS before background/foreground can be armed.",
+      "Exercise the production Miner A lifecycle by foregrounding A, backgrounding Safari, and returning directly to A.",
+      "Keep fail-closed stale classification and manual-restart prohibition unchanged."
+    ]
+  },
+  "mts_12_resume_metric_contract": {
+    "version": 3,
+    "target_context": "Miner A",
+    "gate_ms": 1500,
+    "gate_metric": "foreground_event_to_authoritative_status_request_start",
+    "network_response_metric": "status_request_start_to_response",
+    "network_response_is_gate": false,
+    "lifecycle_events": [
+      "visibilitychange:visible",
+      "pageshow"
+    ],
+    "sequence": [
+      "real-tip gate PASS",
+      "arm background/foreground in controller",
+      "switch to Miner A",
+      "background Safari",
+      "return directly to Miner A",
+      "record local start latency and authoritative response separately",
+      "return to controller and export evidence"
+    ],
+    "runtime_write_authorized": false
   }
 }
