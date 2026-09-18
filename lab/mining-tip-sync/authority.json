@@ -1,6 +1,6 @@
 {
   "schema": "FAE_MINING_TIP_SYNC_LAB_AUTHORITY_V1",
-  "status": "MTS_10_GREEN",
+  "status": "MTS_11_BROWSER_VALIDATION_ACTIVE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Mining Tip Sync & Stale Work Recovery",
@@ -478,5 +478,30 @@
       "prove multi-tab correctness with BroadcastChannel disabled and enabled",
       "prepare physical-device iPad validation without changing consensus or block time"
     ]
+  },
+  "mts_11_authority": {
+    "phase": "REAL_BROWSER_VALIDATION_FIRST",
+    "runtime_write_authorized": false,
+    "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+    "browser_engines": [
+      "chromium",
+      "webkit"
+    ],
+    "required_properties": [
+      "same-origin real BroadcastChannel causes peer authoritative /status revalidation before the peer poll timer",
+      "hint-to-cancel latency is materially lower than poll-only fallback latency",
+      "forged hint payload cannot cancel current work when authoritative /status is unchanged",
+      "hint-triggered /status outage cannot cancel current work",
+      "BroadcastChannel disabled preserves poll-only convergence",
+      "peer restarts on a template whose previous_hash matches the new authoritative tip",
+      "zero stale submissions occur in validation scenarios"
+    ],
+    "latency_gate": {
+      "hint_p95_max_ms": 1200,
+      "poll_fallback_max_ms": 3500,
+      "required_poll_minus_hint_margin_ms": 400
+    },
+    "real_pow_policy": "Use the production Worker implementation with an effectively unsatisfiable test difficulty so the test measures cancellation rather than nonce discovery.",
+    "runtime_patch_gate": "No runtime write unless Chromium or WebKit exposes a deterministic correctness defect or the latency optimization fails its frozen gate."
   }
 }
