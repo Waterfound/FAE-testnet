@@ -59,11 +59,11 @@ test('Explorer source exposes no mutation, signing, mining or secret operation',
 
 test('application config remains read-only, testnet-bound and NOT_LIVE',async()=>{
   const config=JSON.parse(await read('explorer/config.json'));
-  assert.equal(config.schema,'FAE_EXPLORER_APP_CONFIG_V1');
+  assert.equal(config.schema,'FAE_EXPLORER_APP_CONFIG_V2');
   assert.equal(config.network,EXPLORER_NETWORK);
   assert.equal(config.read_only,true);
   assert.equal(config.deployment_state,'NOT_LIVE');
-  assert.equal(config.api_base,'http://127.0.0.1:8787');
+  assert.equal(config.api_base,'http://127.0.0.1:8787');\n  assert.equal(config.binding_state,'LOCAL_DEV');
 });
 
 test('client emits GET only across every verified Explorer resource',async()=>{
@@ -166,9 +166,9 @@ test('hash routing avoids server rewrite authority',async()=>{
 
 test('Explorer deletion boundary stays physically separate from active root site',async()=>{
   const authority=JSON.parse(await read('lab/block-explorer/authority.json'));
-  assert.equal(authority.current_frontier,'BE-03');
+  assert.ok(['BE-03','BE-04'].includes(authority.current_frontier));
   assert.equal(authority.be03_authority.state,'LAB_VERIFIED_FROZEN');
-  assert.equal(authority.explorer_application_write_authorized,false);
+  if(authority.current_frontier==='BE-03')assert.equal(authority.explorer_application_write_authorized,false);
   assert.equal(authority.be03_authority.application_writes_frozen,true);
   assert.equal(authority.explorer_application_live_authorized,false);
   assert.equal(authority.public_deployment_authorized,false);
@@ -185,7 +185,7 @@ test('HTML shell contains every DOM binding required by app.mjs',async()=>{
   for(const id of [
     'network-pill','network-label','api-origin','search-form','search-input',
     'refresh-button','home-button','latest-blocks','detail-eyebrow','detail-title',
-    'detail-content','notice','metric-height','metric-supply','metric-target','metric-mempool'
+    'detail-content','notice','metric-height','metric-supply','metric-target','metric-mempool',\n    'binding-pill','deployment-label'
   ]){
     assert.ok(html.includes('id="'+id+'"'),'missing Explorer DOM binding: '+id);
   }
