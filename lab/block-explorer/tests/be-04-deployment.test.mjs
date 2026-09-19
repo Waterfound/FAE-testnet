@@ -132,3 +132,9 @@ test('BE-04 authority permits public prebind but not LIVE or node deployment',as
   assert.equal(authority.wallet_write_authorized,false);
   assert.equal(authority.mining_authority_authorized,false);
 });
+
+
+test('source HTML contains no escaped newline artifact',async()=>{
+  const html=await read('explorer/index.html');
+  assert.equal(html.includes('\\n      <span id="binding-pill"'),false);
+});
