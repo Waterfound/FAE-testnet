@@ -1,7 +1,9 @@
 {
-  "schema": "FAE_EXPLORER_APP_CONFIG_V1",
+  "schema": "FAE_EXPLORER_APP_CONFIG_V2",
   "network": "fairyelf-public-testnet-v4",
   "api_base": "http://127.0.0.1:8787",
+  "binding_state": "LOCAL_DEV",
   "deployment_state": "NOT_LIVE",
-  "read_only": true
+  "read_only": true,
+  "source_revision": null
 }

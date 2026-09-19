@@ -5,6 +5,7 @@ import {createExplorerClient,EXPLORER_NETWORK,ExplorerClientError} from './api-c
 const $=id=>document.getElementById(id);
 const ui={
   pill:$('network-pill'),label:$('network-label'),origin:$('api-origin'),
+  binding:$('binding-pill'),deployment:$('deployment-label'),
   form:$('search-form'),input:$('search-input'),refresh:$('refresh-button'),home:$('home-button'),
   blocks:$('latest-blocks'),eyebrow:$('detail-eyebrow'),title:$('detail-title'),detail:$('detail-content'),
   notice:$('notice'),height:$('metric-height'),supply:$('metric-supply'),
@@ -73,7 +74,13 @@ async function loadConfig(){
   const r=await fetch('./config.json',{method:'GET',headers:{accept:'application/json'},cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
   if(!r.ok)throw Error('Explorer config unavailable (HTTP '+r.status+').');
   const v=await r.json();
-  if(v?.schema!=='FAE_EXPLORER_APP_CONFIG_V1'||v.network!==EXPLORER_NETWORK||v.read_only!==true||!v.api_base)throw Error('Explorer config failed its read-only/network contract.');
+  if(v?.schema!=='FAE_EXPLORER_APP_CONFIG_V2'||v.network!==EXPLORER_NETWORK||v.read_only!==true){
+    throw Error('Explorer config failed its read-only/network contract.');
+  }
+  if(!['LOCAL_DEV','UNBOUND','BOUND_CANDIDATE'].includes(v.binding_state))throw Error('Explorer binding state is invalid.');
+  if(v.binding_state==='UNBOUND'&&v.api_base!==null)throw Error('UNBOUND Explorer must not contain an API base.');
+  if(v.binding_state!=='UNBOUND'&&!v.api_base)throw Error('Bound/local Explorer config is missing its API base.');
+  if(v.binding_state==='BOUND_CANDIDATE'&&new URL(v.api_base).protocol!=='https:')throw Error('Public Explorer node binding must use HTTPS.');
   return v;
 }
 async function refreshStatus(){
@@ -100,6 +107,7 @@ async function refreshBlocks(){
   ui.blocks.replaceChildren(...rows);setNet('online','Network online');
 }
 async function refresh(){
+  if(!client){notice('No verified HTTPS Independent Node is bound yet.','pending');return}
   clearNotice();ui.refresh.disabled=true;
   try{await Promise.all([refreshStatus(),refreshBlocks()])}catch(e){fail(e,{replace:false})}finally{ui.refresh.disabled=false}
 }
@@ -223,21 +231,45 @@ function currentRoute(){
   const raw=(location.hash||'#/').replace(/^#/,'').split('?')[0];
   return raw.split('/').filter(Boolean).map(x=>{try{return decodeURIComponent(x)}catch{return x}});
 }
+function renderUnbound(config){
+  client=null;
+  setNet('connecting','Node binding pending');
+  ui.binding.textContent='Unbound';
+  ui.deployment.textContent=config.deployment_state;
+  ui.origin.textContent='API: unbound';
+  ui.input.disabled=true;
+  ui.form.querySelector('button[type="submit"]').disabled=true;
+  ui.refresh.disabled=true;
+  ui.blocks.replaceChildren(el('div',{cls:'empty-state',txt:'No verified Independent Node is bound.'}));
+  const box=el('div',{cls:'empty-state'});
+  box.append(
+    el('strong',{txt:'Public frontend prebind'}),
+    el('span',{txt:'This Explorer is public, but chain queries remain disabled until an eligible HTTPS Independent Node is verified and bound.'})
+  );
+  setDetail('Deployment','Node binding pending',box,{clearable:false});
+  notice('Frontend deployment is non-authoritative and intentionally unbound. No chain data is being presented.','pending');
+}
 async function bootstrap(){
   setNet('connecting','Connecting…');
   try{
-    const c=await loadConfig();client=createExplorerClient({apiBase:c.api_base,expectedNetwork:c.network});
+    const c=await loadConfig();
+    ui.deployment.textContent=c.deployment_state;
+    if(c.binding_state==='UNBOUND'){renderUnbound(c);return}
+    client=createExplorerClient({apiBase:c.api_base,expectedNetwork:c.network});
+    ui.binding.textContent=c.binding_state==='LOCAL_DEV'?'Local dev':'Bound candidate';
     ui.origin.textContent='API: '+new URL(client.apiBase).origin;
     await refresh();await show(currentRoute());
   }catch(e){fail(e)}
 }
 
 ui.form.addEventListener('submit',e=>{
-  e.preventDefault();const q=ui.input.value.trim();
+  e.preventDefault();
+  if(!client){notice('Search is disabled until a verified HTTPS Independent Node is bound.','pending');return}
+  const q=ui.input.value.trim();
   if(!q){notice('Enter a block height, hash, TXID or FAE address.');return}
   route('/search/'+encodeURIComponent(q));
 });
 ui.refresh.addEventListener('click',refresh);
 ui.home.addEventListener('click',()=>route('/'));
-window.addEventListener('hashchange',()=>show(currentRoute()));
+window.addEventListener('hashchange',()=>client?show(currentRoute()):undefined);
 bootstrap();
