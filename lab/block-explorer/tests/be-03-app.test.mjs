@@ -63,7 +63,8 @@ test('application config remains read-only, testnet-bound and NOT_LIVE',async()=
   assert.equal(config.network,EXPLORER_NETWORK);
   assert.equal(config.read_only,true);
   assert.equal(config.deployment_state,'NOT_LIVE');
-  assert.equal(config.api_base,'http://127.0.0.1:8787');\n  assert.equal(config.binding_state,'LOCAL_DEV');
+  assert.equal(config.api_base,'http://127.0.0.1:8787');
+  assert.equal(config.binding_state,'LOCAL_DEV');
 });
 
 test('client emits GET only across every verified Explorer resource',async()=>{
@@ -185,7 +186,8 @@ test('HTML shell contains every DOM binding required by app.mjs',async()=>{
   for(const id of [
     'network-pill','network-label','api-origin','search-form','search-input',
     'refresh-button','home-button','latest-blocks','detail-eyebrow','detail-title',
-    'detail-content','notice','metric-height','metric-supply','metric-target','metric-mempool',\n    'binding-pill','deployment-label'
+    'detail-content','notice','metric-height','metric-supply','metric-target','metric-mempool',
+    'binding-pill','deployment-label'
   ]){
     assert.ok(html.includes('id="'+id+'"'),'missing Explorer DOM binding: '+id);
   }
