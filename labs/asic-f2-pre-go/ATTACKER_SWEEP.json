@@ -1,0 +1,7 @@
+{
+  "schema": "fae-f2-adversarial-sweep-v1",
+  "candidate": "FAE-DP6 v0.7 frozen",
+  "rule": "fastest parity-correct practical configuration is the admissible FPGA attacker result",
+  "required": ["canonical full-state parity","nonces 1200-1215 parity","single-lane reference","clock/timing sweep within AWS shell constraints","independent lane-count sweep as resources permit","HBM mapping optimized before any HOLD-like interpretation","sustained run >=1800 s after configuration selection"],
+  "forbidden_shortcuts": ["benchmarking after parity failure","using a naive HLS result as the final attacker","counting cloud rental price as HFB acquisition cost","changing DP6 semantics to make synthesis easier"]
+}
