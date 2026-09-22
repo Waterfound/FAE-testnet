@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cstdint>
 #include <chrono>
-#include "fae_dp6_hls.cpp"
+extern "C" void fae_dp6_hls(const uint8_t *input, uint8_t *output, uint64_t *matrix_words);
 static bool hex2(const char* s, uint8_t* out, size_t n){for(size_t i=0;i<n;i++){unsigned x;if(std::sscanf(s+2*i,"%2x",&x)!=1)return false;out[i]=(uint8_t)x;}return true;}
 static void put64le(uint8_t* p,uint64_t v){for(int i=0;i<8;i++)p[i]=(uint8_t)(v>>(8*i));}
 int main(){
