@@ -1,0 +1,50 @@
+name: peer-isolation-eclipse-operator-entrypoint
+
+on:
+  push:
+    branches: [lab-peer-isolation-eclipse-operator-entrypoint]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/fae-node-v6-eclipse-candidate.mjs'
+      - 'sovereign-forge/node/fae-node-v6-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-*.mjs'
+      - 'sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_OPERATOR_ENTRYPOINT.md'
+      - '.github/workflows/peer-isolation-eclipse-operator-entrypoint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peer-isolation-eclipse-operator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  executable-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax and non-activation boundary
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/node/fae-node-v6-eclipse-candidate.mjs
+          node --check sovereign-forge/tests/peer-isolation-eclipse-operator-entrypoint.mjs
+          ! grep -q 'fae-v4-peer-node-eclipse-candidate' sovereign-forge/node/fae-node-v6-candidate.mjs
+          grep -q 'operator-observation-only' sovereign-forge/node/fae-node-v6-eclipse-candidate.mjs
+          grep -q 'must remain loopback-only' sovereign-forge/node/fae-node-v6-eclipse-candidate.mjs
+
+      - name: Verify existing public v6 entrypoint remains healthy
+        run: node --test sovereign-forge/tests/authoritative-v6-entrypoint.mjs
+
+      - name: Re-run promoted eclipse candidate evidence
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+
+      - name: Prove executable operator boundary and restart persistence
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-operator-entrypoint.mjs
