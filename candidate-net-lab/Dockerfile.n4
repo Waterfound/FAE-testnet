@@ -1,0 +1,8 @@
+FROM node:22-alpine
+WORKDIR /app
+COPY sovereign-forge ./sovereign-forge
+COPY candidate-net-lab ./candidate-net-lab
+ENV NODE_ENV=production
+EXPOSE 3190
+USER node
+CMD ["node", "candidate-net-lab/n4-entrypoint.mjs"]
