@@ -1,6 +1,6 @@
 {
   "schema": "fae-asic-f2-go-gate-v1",
-  "state": "PRE_GO_READY_RENTAL_NOT_AUTHORIZED",
+  "state": "GO_AUTHORIZED_AWS_NOT_STARTED_BROWSER_WALLET_BLOCK",
   "date": "2026-09-22",
   "target": {
     "provider": "AWS EC2",
@@ -19,17 +19,29 @@
     "vitis_direct_f2_afi_flow_excluded": true,
     "aws_hdk_vivado_flow_selected": true,
     "cost_guard_prepared": true,
-    "fail_closed_grader_prepared": true
+    "fail_closed_grader_prepared": true,
+    "executable_hls_source_pinned_in_branch": true
   },
   "remaining_paid_steps": [
+    "AWS account/session read-only preflight and F2 quota check",
     "Launch a current FPGA Developer AMI on a build instance and run HLS csim/csynth plus Vivado/HDK integration",
     "Create AFI only after parity and timing/resource gates pass",
     "Launch f2.6xlarge only for runtime parity, adversarial sweep, and sustained test",
     "Terminate paid instances immediately after evidence capture"
   ],
   "authorization": {
-    "rental_authorized": false,
-    "automatic_spend": false,
-    "required_next_user_action": "Explicit GO after reviewing the spend cap and AWS account/quota readiness"
+    "rental_authorized": true,
+    "authorized_by_user_at": "2026-09-22",
+    "hard_total_spend_cap_usd": 20.0,
+    "automatic_spend_within_cap": true,
+    "stop_before_projected_cap_breach": true
+  },
+  "execution_blocker": {
+    "aws_resources_created": false,
+    "aws_spend_usd": 0.0,
+    "reason": "Transactional browser run did not start because the available browser-automation wallet balance is negative.",
+    "browser_wallet_balance_usd": -0.504,
+    "minimum_browser_wallet_top_up_usd": 10.0,
+    "note": "This browser-tool top-up is separate from the AWS $20 infrastructure cap."
   }
 }
