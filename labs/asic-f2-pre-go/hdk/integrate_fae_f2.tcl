@@ -1,23 +1,20 @@
 # FAE ASIC F2 HDK integration patch — Lab only
-# Requires FAE_HLS_IP_REPO and optional FAE_EVIDENCE_DIR.
-
-if {![info exists ::env(FAE_HLS_IP_REPO)]} { error "FAE_HLS_IP_REPO_NOT_SET" }
+# FAE HLS IP must already be present under the AWS HLx design/ip repository
+# before aws::make_ipi runs. Optional FAE_EVIDENCE_DIR captures evidence.
 
 create_project -force fae_f2_hlx .
-set_property ip_repo_paths [list $::env(FAE_HLS_IP_REPO)] [current_project]
-update_ip_catalog
-if {[llength [get_ipdefs -all xilinx.com:hls:fae_dp6_hls:1.0]] == 0} {
-  error "FAE_HLS_IP_NOT_FOUND_PRE_MAKE_IPI"
-}
 
-# Crucial: keep the AWS F2 block design in the same Vivado session.
+# aws::make_ipi owns ip_repo_paths. Keeping the FAE IP physically inside
+# $HDK_SHELL_DIR/hlx/design/ip lets the official AWS catalog refresh discover
+# AWS + FAE together without closing/re-opening the F2 block design.
 aws::make_ipi -examples cl_ipi_cdma_test
+
 set bd_files [get_files *.bd]
 if {[llength $bd_files] == 0} { error "NO_BD_FILE_GENERATED" }
 open_bd_design [lindex $bd_files 0]
 
 if {[llength [get_ipdefs -all xilinx.com:hls:fae_dp6_hls:1.0]] == 0} {
-  error "FAE_HLS_IP_LOST_AFTER_MAKE_IPI"
+  error "FAE_HLS_IP_NOT_DISCOVERED_IN_AWS_REPO"
 }
 
 # Replace only the CDMA compute engine; preserve AWS OCL/PCIS/DDR/HBM fabric.
@@ -48,8 +45,10 @@ foreach ifname {m_axi_gmem0 m_axi_gmem1} {
   set aspaces [get_bd_addr_spaces -of_objects [get_bd_intf_pins fae_dp6_hls_0/$ifname]]
   if {[llength $aspaces] != 1} { error "UNEXPECTED_ADDR_SPACE_$ifname:$aspaces" }
   set as [lindex $aspaces 0]
+
   assign_bd_address -offset 0x1000000000 -range 0x1000000000 \
     -target_address_space $as [get_bd_addr_segs f2_inst/S_AXI_DDRA/Mem_DDRA] -force
+
   foreach {idx off} $hbm_offsets {
     set seg [format "hbm_0/SAXI_00_RT_8HI/HBM_MEM%02d" $idx]
     assign_bd_address -offset $off -range 0x20000000 \
