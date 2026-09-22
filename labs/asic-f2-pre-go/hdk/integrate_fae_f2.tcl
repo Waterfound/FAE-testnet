@@ -89,4 +89,6 @@ if {[info exists ::env(FAE_EVIDENCE_DIR)]} {
 }
 
 puts "FAE_HDK_PATCH_VALIDATE_PASS"
-exit
+if {![info exists ::env(FAE_CONTINUE_AFTER_VALIDATE)]} {
+  exit
+}
