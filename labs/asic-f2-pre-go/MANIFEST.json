@@ -1,0 +1,7 @@
+{
+  "schema":"fae-asic-f2-pre-go-package-v1",
+  "status":"PRE_GO_READY_RENTAL_NOT_AUTHORIZED",
+  "date":"2026-09-22",
+  "core_sha256":"837b5fa3f2d79474f781be2c1ab9e2f762b696796b841cfb4c3a264046cb85f6",
+  "package_sha256":"7d79d7a02268b7968a7b315531478e5e23f8e45175ae1059c65f75c60fa618e3"
+}
