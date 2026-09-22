@@ -1,0 +1,35 @@
+{
+  "schema": "fae-asic-f2-go-gate-v1",
+  "state": "PRE_GO_READY_RENTAL_NOT_AUTHORIZED",
+  "date": "2026-09-22",
+  "target": {
+    "provider": "AWS EC2",
+    "runtime_instance": "f2.6xlarge",
+    "fpga": "AMD/Xilinx Virtex UltraScale+ HBM VU47P",
+    "fpga_part": "xcvu47p-fsvh2892-2-e",
+    "preferred_region": "us-east-1",
+    "developer_ami": "FPGA Developer AMI - Ubuntu 24.04, current Marketplace version at execution time",
+    "toolchain": "Vivado/HDK; Vitis HLS may generate RTL/IP but direct Vitis AFI generation is not relied upon"
+  },
+  "free_pre_go_checks": {
+    "frozen_candidate_pinned": true,
+    "local_hls_canonical_vector": "PASS",
+    "local_hls_independent_vectors": "16/16 PASS",
+    "paid_provider_flow_checked": true,
+    "vitis_direct_f2_afi_flow_excluded": true,
+    "aws_hdk_vivado_flow_selected": true,
+    "cost_guard_prepared": true,
+    "fail_closed_grader_prepared": true
+  },
+  "remaining_paid_steps": [
+    "Launch a current FPGA Developer AMI on a build instance and run HLS csim/csynth plus Vivado/HDK integration",
+    "Create AFI only after parity and timing/resource gates pass",
+    "Launch f2.6xlarge only for runtime parity, adversarial sweep, and sustained test",
+    "Terminate paid instances immediately after evidence capture"
+  ],
+  "authorization": {
+    "rental_authorized": false,
+    "automatic_spend": false,
+    "required_next_user_action": "Explicit GO after reviewing the spend cap and AWS account/quota readiness"
+  }
+}
