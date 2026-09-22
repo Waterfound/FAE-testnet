@@ -1,0 +1,17 @@
+{
+  "schema": "fae-asic-f2-pre-go-baseline-v1",
+  "date": "2026-09-22",
+  "candidate": "FAE-DP6 v0.7 frozen",
+  "authority": {"consensus_changed": false,"testnet_connected": false,"wallet_enabled": false,"block_submission_enabled": false},
+  "hashes": {
+    "frozen_dp6_source_sha256": "fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78",
+    "g3_opencl_source_sha256": "4230a4a3f8c0b987e344ce3714faf6735e83beb666085e99add8b0392081d070",
+    "browser_wasm_sha256": "26139b84f5e45a2217c1105569ff85d39a3f07cdd7e4fd3bd87b1eefcf5c92ea",
+    "original_v0_8_4_package_sha256": "b1e26b1b99d1945ddc31d501d2ddf288ae7e8c919cd242fc0d790ffc0250d974"
+  },
+  "same_laptop_browser_control": {"work_s":3.079401,"estimated_whole_system_w":73.2,"work_per_w":0.04206831967213114,"replacement_cost_usd":1000.0,"work_per_dollar":0.003079401,"role":"provisional same-device comparator; not a substitute for an HFB home-device median"},
+  "rtx2070_maxq_official_c": {"duration_s":2101.215,"work_s":2.4899874136675875,"energy_wh":61.0,"whole_system_w":104.51093961035976,"work_per_w":0.023825136612021857,"verdict":"HOLD / NO HFB COLLAPSE OBSERVED"},
+  "hfb_thresholds": {"warn_requires_both_work_per_w_multiple_gte":3.0,"warn_requires_both_work_per_dollar_multiple_gte":3.0,"collapse_requires_both_work_per_w_multiple_gte":5.0,"collapse_requires_both_work_per_dollar_multiple_gte":5.0},
+  "physical_risk": "OPEN_PHYSICAL_RISK",
+  "open_scope": ["FPGA","custom HBM/near-memory","ASIC economics"]
+}
