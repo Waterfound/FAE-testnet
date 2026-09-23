@@ -1,0 +1,52 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE04_PUBLIC_PREBIND_EVIDENCE_V1",
+  "observed_date": "2026-09-23",
+  "frontier": "BE-04",
+  "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+  "deployment": {
+    "provider": "AppDeploy",
+    "app_id": "fae-block-explorer-e2z4q3",
+    "snapshot_version": "1789777122012",
+    "public_url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
+    "status": "READY",
+    "deployment_adapter": "APPDEPLOY_HTML_STATIC_V1"
+  },
+  "hosted_config": {
+    "schema": "FAE_EXPLORER_APP_CONFIG_V2",
+    "network": "fairyelf-public-testnet-v4",
+    "api_base": null,
+    "binding_state": "UNBOUND",
+    "deployment_state": "PUBLIC_PREBIND",
+    "read_only": true,
+    "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe"
+  },
+  "hosted_attestation": {
+    "schema": "FAE_EXPLORER_DEPLOYMENT_ATTESTATION_V1",
+    "authority": "NON_AUTHORITATIVE_OBSERVATION_ONLY",
+    "api_origin": null,
+    "binding_state": "UNBOUND",
+    "deployment_state": "PUBLIC_PREBIND"
+  },
+  "qa": {
+    "status": "CLEAN",
+    "frontend_errors": 0,
+    "network_errors": 0,
+    "backend_errors": 0,
+    "note": "Provider QA snapshot reported no frontend, network, or backend errors."
+  },
+  "node_binding": {
+    "eligible_https_independent_node_bound": false,
+    "status": "UNRESOLVED",
+    "public_chain_queries_enabled": false
+  },
+  "classification": "PUBLIC_FRONTEND_VERIFIED_PREBIND_ONLY",
+  "explicitly_not_claimed": [
+    "LIVE Explorer",
+    "verified HTTPS Independent Node binding",
+    "consensus authority",
+    "wallet or signing authority",
+    "mining authority",
+    "mainnet readiness"
+  ],
+  "invariant": "Explorer observes FAE; it never authorizes FAE."
+}
