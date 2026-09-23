@@ -1,0 +1,70 @@
+{
+  "domain_id": "hls-synthesis-verification",
+  "outcome": "built",
+  "worker": {
+    "provider": "aws-ec2",
+    "instance_id": "i-001589b6c8c1e8d96",
+    "instance_type": "r7i.2xlarge",
+    "exit_code": 0,
+    "finished_utc": "2026-09-23T15:38:19Z",
+    "final_stage": "PASS_CSIM_CSYNTH_EXPORT"
+  },
+  "tested_hls_blob": "2cb81e81ee05a56a9676a3ca4c0863ca3b33940b",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-001589b6c8c1e8d96/build-colony-hls-c1/",
+  "results": {
+    "csim_vectors": "16/16 PASS",
+    "csynth": "PASS",
+    "export_design": "PASS",
+    "loop_constraints": "All loop constraints were satisfied",
+    "estimated_fmax_mhz": 315.81,
+    "target_clock_ns": 4,
+    "estimated_clock_ns": 3.166,
+    "resources": {
+      "bram18k": 13,
+      "dsp": 59,
+      "ff": 167160,
+      "lut": 310980,
+      "uram": 0
+    },
+    "slr_utilization_percent": {
+      "ff": 19,
+      "lut": 71
+    },
+    "regfile_binding": {
+      "rw5_64x8_ram_occurrences": 0,
+      "dp6_regs_64x8_ram_occurrences": 0,
+      "dp6_regs_partitioned_scalars": 8
+    }
+  },
+  "comparison_to_r11": {
+    "estimated_clock_ns": {
+      "r11": 3.005,
+      "c1": 3.166
+    },
+    "ff": {
+      "r11": 154054,
+      "c1": 167160
+    },
+    "lut": {
+      "r11": 306908,
+      "c1": 310980
+    },
+    "slr_ff_percent": {
+      "r11": 17,
+      "c1": 19
+    },
+    "slr_lut_percent": {
+      "r11": 70,
+      "c1": 71
+    },
+    "interpretation": "C1 removes the measured 64x8 regfile RAM at modest resource cost. HLS estimated Fmax remains above the 250 MHz target; physical timing remains authoritative."
+  },
+  "artifacts": [
+    "fae_dp6_hls_prj/sol_vu47p/impl/export.zip",
+    "fae_dp6_hls_prj/sol_vu47p/impl/ip/component.xml",
+    "fae_dp6_hls_prj/sol_vu47p/impl/ip/xilinx_com_hls_fae_dp6_hls_1_0.zip",
+    "fae_dp6_hls_prj/sol_vu47p/syn/report/fae_dp6_hls_csynth.rpt",
+    "fae_dp6_hls_prj/sol_vu47p/.autopilot/db/rw5.verbose.bind.rpt",
+    "fae_dp6_hls_prj/sol_vu47p/.autopilot/db/dp6_run_bytes.verbose.bind.rpt"
+  ]
+}
