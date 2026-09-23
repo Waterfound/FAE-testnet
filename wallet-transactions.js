@@ -65,6 +65,7 @@
 
   function normalizeOutputs(outputs){
     if(!Array.isArray(outputs))return {ok:false,reason:'outputs_not_array',outputs:[]};
+    if(outputs.length===0)return {ok:false,reason:'outputs_empty',outputs:[]};
     const normalized=[];
     for(const output of outputs){
       const address=typeof output?.address==='string'?output.address:'';
