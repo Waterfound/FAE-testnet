@@ -2,7 +2,7 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-04",
-  "status": "LAB_VERIFIED_PUBLIC_PREBIND_NODE_BINDING_BLOCKED",
+  "status": "COMBINED_MAIN_VERIFIED_PUBLIC_PREBIND_NODE_BINDING_BLOCKED",
   "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
   "candidate_branch": "lab/block-explorer-be04-20260918",
   "public_frontend": {
@@ -16,8 +16,10 @@
     "qa": "CLEAN"
   },
   "https_independent_node_binding": {
-    "status": "UNRESOLVED",
-    "live_authorized": false
+    "status": "BLOCKED_PENDING_ELIGIBLE_PERSISTENT_NODE",
+    "live_authorized": false,
+    "blocker_observed_date": "2026-09-23",
+    "blocker": "Relevant Render persistent services remain suspended by billing; Stability Soak V3 capacity remains reserved and must not be consumed by Explorer binding."
   },
   "evidence": {
     "public_prebind": "lab/block-explorer/be04-public-prebind-evidence.json",
@@ -79,6 +81,34 @@
       }
     }
   },
-  "integration_required_before_next_frontier": true,
-  "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d"
+  "integration_required_before_next_frontier": false,
+  "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+  "integrated_main_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "integration": {
+    "status": "COMBINED_MAIN_VERIFIED",
+    "pull_request": 230,
+    "merge_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+    "exact_revision_verification": {
+      "verify_canonical_source_run_id": 35849890977,
+      "codeql_run_id": 35849890830,
+      "block_explorer_lab_run_id": 35849891129,
+      "cross_lab_integration_run_id": 35849891015,
+      "project_assurance_run_id": 35849891089,
+      "recurring_assurance_run_id": 35849891088,
+      "result": "GREEN"
+    }
+  },
+  "source_writes_frozen": true,
+  "next_transition": {
+    "trigger": "Eligible persistent HTTPS Independent Node becomes available without weakening the Stability Soak V3 evidence envelope.",
+    "required_evidence": [
+      "HTTPS Independent Node endpoint independently validating FAE state",
+      "GET /explorer/status returns fairyelf-public-testnet-v4 with valid observed tip binding",
+      "mutation probes remain rejected",
+      "CORS permits only read-only Explorer access",
+      "frontend build binds only to the verified HTTPS node origin",
+      "cross-Lab and security gates pass on the exact bound revision"
+    ],
+    "live_status_until_then": "NOT_LIVE"
+  }
 }
