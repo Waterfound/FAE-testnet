@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_06_ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
+  "status": "BE_06_ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -454,7 +454,7 @@
     }
   },
   "be06_authority": {
-    "state": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
+    "state": "ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
     "prerequisite": "BE-06 preprovision package integrated and exact-main verified at e11679cce8697aeeecc89d78454adb123acef563",
     "intended_scope": "Select and prove one zero-cost persistent host for the Explorer Independent Node without granting provider, Explorer, or hosting infrastructure FAE authority.",
     "allowed_actions": [
@@ -474,7 +474,7 @@
     ],
     "preferred_next_probe": "oracle_cloud",
     "provider_selection_authorized": true,
-    "host_creation_authorized": false,
+    "host_creation_authorized": true,
     "explorer_binding_authorized": false,
     "live_authorized": false,
     "integrated_main_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
@@ -483,7 +483,7 @@
     "source_writes_frozen": true,
     "account_specific_evidence_authorized_read_only": true,
     "paid_spend_authorized": false,
-    "next_authority_transition": "A separate explicit approval may authorize creation of the exact host envelope above. That approval still does not authorize Explorer binding or LIVE.",
+    "next_authority_transition": "After launch, only evidence-gathering and hardening needed for persistent-host eligibility are authorized; Explorer binding and LIVE remain separately closed.",
     "exact_main_verification": {
       "pull_request": 247,
       "revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
@@ -519,6 +519,7 @@
       "trial_credit_reliance": false,
       "protected_capacity_reuse": false,
       "out_of_host_capacity_action": "ABORT"
-    }
+    },
+    "host_creation_authority_file": "lab/block-explorer/be06-host-creation-authority-20260923.json"
   }
 }
