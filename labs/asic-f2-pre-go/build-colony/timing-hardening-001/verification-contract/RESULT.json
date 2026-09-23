@@ -1,0 +1,23 @@
+{
+  "domain_id": "verification-contract",
+  "outcome": "built",
+  "source_revision": "07c7b03237b2eaa59c0252bd85b8a2e16769c706",
+  "frozen_ladder": [
+    "Bounded diff: only selected HLS implementation change; frozen consensus source unchanged.",
+    "Canonical host test must compare and PASS all 160 output bytes.",
+    "Independent host 16-vector test must PASS 16/16 final hashes.",
+    "Vitis CSIM must PASS the 16-vector suite.",
+    "Vitis csynth must PASS without tractability/resource blowup; loop constraints remain satisfied.",
+    "IP export must PASS.",
+    "AWS HLx/HBM integration must validate unchanged.",
+    "Final routed timing must satisfy WNS >= 0, TNS = 0, WHS >= 0, THS = 0.",
+    "Only a timing-clean Developer_CL.tar is admissible; record SHA-256.",
+    "Only after all prior gates may AFI creation become eligible.",
+    "No performance benchmark is admissible before runtime parity on F2."
+  ],
+  "existing_test_strength": {
+    "canonical": "test_canonical.cpp checks MH3 output, RW5 transcript, all eight serialized RW5 registers, and final hash: all 160 bytes.",
+    "vector_suite": "test_16_vectors.cpp checks final hash for 16 nonces."
+  },
+  "fail_closed": true
+}
