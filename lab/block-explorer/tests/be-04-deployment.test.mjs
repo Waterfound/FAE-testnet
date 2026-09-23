@@ -119,11 +119,19 @@ test('deployment artifact remains provider-independent',async()=>{
   }
 });
 
-test('BE-04 authority permits public prebind but not LIVE or node deployment',async()=>{
+test('BE-04 authority permits bounded construction or frozen prebind closeout, never LIVE/node authority',async()=>{
   const authority=JSON.parse(await read('lab/block-explorer/authority.json'));
   assert.equal(authority.current_frontier,'BE-04');
-  assert.equal(authority.be04_authority.state,'AUTHORIZED_BOUNDED');
-  assert.equal(authority.public_frontend_prebind_deployment_authorized,true);
+  assert.ok(['AUTHORIZED_BOUNDED','LAB_VERIFIED_FROZEN'].includes(authority.be04_authority.state));
+  if(authority.be04_authority.state==='AUTHORIZED_BOUNDED'){
+    assert.equal(authority.public_frontend_prebind_deployment_authorized,true);
+    assert.equal(authority.explorer_application_write_authorized,true);
+  }else{
+    assert.equal(authority.public_frontend_prebind_deployment_authorized,false);
+    assert.equal(authority.explorer_application_write_authorized,false);
+    assert.equal(authority.be04_authority.source_writes_frozen,true);
+    assert.equal(authority.be04_authority.public_frontend_prebind_state,'VERIFIED_FROZEN');
+  }
   assert.equal(authority.public_https_node_binding_authorized,false);
   assert.equal(authority.independent_node_public_deployment_authorized,false);
   assert.equal(authority.explorer_application_live_authorized,false);
@@ -131,6 +139,19 @@ test('BE-04 authority permits public prebind but not LIVE or node deployment',as
   assert.equal(authority.node_query_surface_write_authorized,false);
   assert.equal(authority.wallet_write_authorized,false);
   assert.equal(authority.mining_authority_authorized,false);
+});
+
+test('frozen public prebind evidence is source-bound, UNBOUND and non-authoritative',async()=>{
+  const evidence=JSON.parse(await read('lab/block-explorer/be04-public-prebind-evidence.json'));
+  assert.equal(evidence.classification,'PUBLIC_FRONTEND_VERIFIED_PREBIND_ONLY');
+  assert.equal(evidence.hosted_config.network,'fairyelf-public-testnet-v4');
+  assert.equal(evidence.hosted_config.binding_state,'UNBOUND');
+  assert.equal(evidence.hosted_config.deployment_state,'PUBLIC_PREBIND');
+  assert.equal(evidence.hosted_config.api_base,null);
+  assert.equal(evidence.hosted_config.read_only,true);
+  assert.equal(evidence.hosted_attestation.authority,'NON_AUTHORITATIVE_OBSERVATION_ONLY');
+  assert.equal(evidence.node_binding.eligible_https_independent_node_bound,false);
+  assert.equal(evidence.node_binding.public_chain_queries_enabled,false);
 });
 
 
