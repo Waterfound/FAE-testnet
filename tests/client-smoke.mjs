@@ -125,7 +125,7 @@ const context={
 context.window=context;
 vm.createContext(context);
 
-for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
+for(const file of ['bip39-en.js','network-status.js','wallet-transaction-ux.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
 await new Promise(resolve=>setTimeout(resolve,25));
