@@ -44,6 +44,8 @@ jobs:
         run: node --test lab/block-explorer/tests/be-05-readonly-gateway.test.mjs
       - name: BE-05 HTTPS binding probe tests
         run: node --test lab/block-explorer/tests/be-05-binding-probe.test.mjs
+      - name: BE-06 pre-provision hardening tests
+        run: node --test lab/block-explorer/tests/be-06-preprovision.test.mjs
       - name: Check Explorer application syntax
         run: |
           node --check explorer/api-client.mjs
@@ -51,6 +53,7 @@ jobs:
           node --check explorer/build.mjs
           node --check lab/block-explorer/be05-readonly-gateway.mjs
           node --check lab/block-explorer/be05-binding-probe.mjs
+          node --check lab/block-explorer/be06-host-preflight.mjs
       - name: Check Independent Node syntax
         run: |
           node --check sovereign-forge/node/explorer-read.mjs

@@ -1,0 +1,93 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_PROVIDER_ELIGIBILITY_V1",
+  "checked": "2026-09-23",
+  "canonical_source_revision": "b75c91dd47a92c129c31db186ecb36962fc2cd30",
+  "purpose": "Public-program eligibility evidence only. No account-specific entitlement is claimed and no resource creation is authorized.",
+  "required_host_contract": "lab/block-explorer/be06-host-hardening-v1.json",
+  "providers": {
+    "oracle_cloud": {
+      "probe_priority": 1,
+      "public_program_status": "TECHNICALLY_CAPABLE_ACCOUNT_EVIDENCE_REQUIRED",
+      "official_sources": [
+        "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
+        "https://docs.oracle.com/iaas/Content/FreeTier/freetier.htm"
+      ],
+      "observed_public_limits": {
+        "home_region_only_for_always_free_compute": true,
+        "ampere_a1_monthly_free_allowance": "1500 OCPU-hours and 9000 GB-hours; current Always Free documentation equates this to 2 OCPUs and 12 GB RAM total",
+        "block_volume_gb_total": 200,
+        "boot_volume_minimum_gb": 47,
+        "outbound_data_transfer": "10 TB/month Always Free",
+        "public_ipv4_available_on_compute": true
+      },
+      "material_risks": [
+        "Always Free compute capacity can be temporarily unavailable in the home region.",
+        "Oracle documents reclamation of idle Always Free compute instances when CPU and network utilization stay below 20% over a 7-day period; A1 also applies a memory-utilization threshold.",
+        "Account home region, remaining Always Free quotas, current shape capacity, and billing state are not observable from public documentation."
+      ],
+      "account_specific_evidence": {
+        "observed": false,
+        "home_region": null,
+        "eligible_shape_available": null,
+        "free_block_storage_remaining_gb": null,
+        "paid_upgrade_enabled": null
+      },
+      "promotion_status": "NOT_YET_ELIGIBLE_PERSISTENT_HOST",
+      "promotion_blockers": [
+        "account/home-region evidence missing",
+        "shape/capacity evidence missing",
+        "idle-reclamation disposition not yet proven acceptable",
+        "zero-cost resource selection not yet machine-checked"
+      ]
+    },
+    "google_cloud": {
+      "probe_priority": 2,
+      "public_program_status": "TECHNICALLY_CAPABLE_ACCOUNT_EVIDENCE_REQUIRED",
+      "official_sources": [
+        "https://docs.cloud.google.com/free/docs/free-cloud-features",
+        "https://cloud.google.com/products/compute"
+      ],
+      "observed_public_limits": {
+        "compute": "one non-preemptible e2-micro VM per month within the eligible-hour allowance",
+        "eligible_regions": [
+          "us-west1",
+          "us-central1",
+          "us-east1"
+        ],
+        "memory_gb": 1,
+        "standard_persistent_disk_gb_month": 30,
+        "outbound_data_transfer_gb_month": 1
+      },
+      "material_risks": [
+        "1 GB RAM is materially tighter than Oracle A1 for a Node 22 Independent Node + gateway + TLS edge.",
+        "1 GB/month outbound transfer is a small public-service envelope and overage/billing posture must be proven fail-closed.",
+        "Billing-account state, free-tier consumption, quota, and regional VM availability are not observable from public documentation."
+      ],
+      "account_specific_evidence": {
+        "observed": false,
+        "billing_account_present": null,
+        "eligible_region": null,
+        "free_tier_consumption_remaining": null,
+        "e2_micro_quota_available": null
+      },
+      "promotion_status": "NOT_YET_ELIGIBLE_PERSISTENT_HOST",
+      "promotion_blockers": [
+        "account/billing evidence missing",
+        "1 GB RAM sufficiency not yet reproduced on real host",
+        "egress overage guard not yet proven",
+        "zero-cost resource selection not yet machine-checked"
+      ]
+    }
+  },
+  "decision": {
+    "selected_provider": null,
+    "reason": "Neither public program description alone is sufficient to prove an eligible persistent host.",
+    "probe_order": [
+      "oracle_cloud",
+      "google_cloud"
+    ],
+    "paid_fallback_authorized": false,
+    "separate_existing_lab_budget_reuse_authorized": false,
+    "protected_capacity_reuse_authorized": false
+  }
+}
