@@ -1,0 +1,15 @@
+{
+  "domain_id": "semantic-parity-verification",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "parity"
+  ],
+  "independent_checks": [
+    "Worker evidence records canonical_rc=0 and FAE_DP6_HLS_CANONICAL=PASS.",
+    "Worker evidence records vectors_rc=0 and FAE_DP6_HLS_16VECTORS=16/16.",
+    "The tested Git blob for fae_dp6_hls.cpp matches the C1 patch blob 2cb81e81ee05a56a9676a3ca4c0863ca3b33940b.",
+    "Canonical covers the complete 160-byte output; the vector suite broadens nonce coverage."
+  ],
+  "reasons": []
+}
