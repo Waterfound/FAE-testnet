@@ -1,0 +1,29 @@
+{
+  "account_scope_verified": true,
+  "selected_resources_explicitly_free_eligible": true,
+  "monthly_cost_ceiling_usd": 0,
+  "paid_upgrade_required": false,
+  "paid_addons_present": false,
+  "protected_capacity_consumed": false,
+  "provider": "oracle_cloud",
+  "oracle_cloud": {
+    "shape": "VM.Standard.A1.Flex",
+    "home_region_verified": true,
+    "always_free_compute_label_observed": true,
+    "within_remaining_compute_entitlement": true,
+    "boot_and_durable_storage_within_free_entitlement": true,
+    "selected_image_price_free": true,
+    "public_network_zero_cost_verified": true,
+    "runtime_architecture_compatible": true,
+    "shape_selectable_in_home_region": true,
+    "estimator_excludes_tier_unit_pricing": true,
+    "entitlement_calculated_monthly_cost_usd": 0,
+    "trial_credit_reliance": false,
+    "raw_estimated_monthly_cost_brl": 10.45,
+    "boot_volume_gb": 46.6,
+    "free_block_volume_available_gb": 200,
+    "synthetic_reclaim_evasion": false,
+    "post_create_reclaim_observation_required": true,
+    "physical_capacity_must_be_rechecked_at_launch": true
+  }
+}
