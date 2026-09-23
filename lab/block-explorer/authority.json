@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_05_DISCOVERY_ACTIVE",
+  "status": "BE_05_SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -131,6 +131,18 @@
       "canonical_success_run_id": 35849223848,
       "canonical_latest_concurrent_run_id": 35849397225,
       "canonical_latest_concurrent_run_note": "Run-level conclusion was cancelled by concurrency after all 40 substantive gates and cleanup steps individually completed success; exact same HEAD already has canonical success run 35849223848."
+    },
+    "BE-05": {
+      "status": "SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED_VERIFICATION_PENDING",
+      "first_green_lab_run_id": 35851338345,
+      "first_green_lab_job_id": 107149484654,
+      "provider_scan": "NO_EXISTING_ELIGIBLE_HOST_DISCOVERED",
+      "gateway": "PREPARED_TESTED",
+      "binding_probe": "PREPARED_TESTED",
+      "deployment_performed": false,
+      "binding_performed": false,
+      "live_status": "NOT_LIVE",
+      "authority_change": "NONE; runtime deployment and public HTTPS binding remain unauthorized"
     }
   },
   "be02_authority": {
@@ -314,7 +326,7 @@
     }
   },
   "be05_authority": {
-    "state": "DISCOVERY_ONLY",
+    "state": "EXTERNAL_BLOCKED_FROZEN",
     "prerequisite": "BE-04 is integrated and post-merge verified at 0341ed060be0f030d5cb677953cef141ae7eb415",
     "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
     "intended_scope": "Discover and prove an eligible persistent HTTPS Independent Node hosting path, then bind the already-public UNBOUND Explorer only after independent validation and live-read gates pass.",
@@ -363,7 +375,23 @@
       "Explorer mutation methods remain rejected",
       "provider can disappear without affecting FAE consensus or chain survival"
     ],
-    "current_disposition": "DISCOVER_PROVIDER_OR_CLOSE_EXTERNAL_BLOCK",
-    "live_status": "NOT_AUTHORIZED"
+    "current_disposition": "SOFTWARE_PREPARED_EXTERNAL_HOST_REQUIRED",
+    "live_status": "NOT_AUTHORIZED",
+    "source_writes_frozen": true,
+    "eligible_existing_host_found": false,
+    "external_host_required": true,
+    "discovery_completed": true,
+    "external_unblock_conditions": [
+      "An eligible persistent host is discovered without consuming protected infrastructure envelopes, or explicit authority is granted for a new host with a bounded budget/credit scope.",
+      "The host satisfies lab/block-explorer/be05-node-deployment-v1.json.",
+      "The deployed public origin passes lab/block-explorer/be05-binding-probe.mjs on exact deployment evidence.",
+      "Only then may a later authority transition permit Explorer BOUND_CANDIDATE configuration."
+    ],
+    "prepared_artifacts": [
+      "lab/block-explorer/be05-provider-scan.json",
+      "lab/block-explorer/be05-node-deployment-v1.json",
+      "lab/block-explorer/be05-readonly-gateway.mjs",
+      "lab/block-explorer/be05-binding-probe.mjs"
+    ]
   }
 }
