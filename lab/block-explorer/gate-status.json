@@ -2,8 +2,8 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-06",
-  "status": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
-  "source_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
+  "status": "ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
+  "source_revision": "182d2ee695b041e6d6c3e017ade41c2a7400e70c",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
@@ -226,13 +226,14 @@
   },
   "source_writes_frozen": true,
   "next_transition": {
-    "trigger": "Separate explicit bounded host-creation authority is granted for the exact Oracle envelope recorded in be06.host_creation_request_envelope.",
+    "trigger": "Launch the exact authorized Oracle Always Free candidate. Abort on out-of-host-capacity or any nonzero-cost/paid requirement.",
     "required_evidence": [
-      "Create only resources satisfying the exact 0 USD Oracle envelope; no paid upgrade/fallback and no trial-credit reliance.",
-      "Fail closed on out-of-host-capacity rather than switching to paid capacity.",
-      "Do not expose TCP/22 to 0.0.0.0/0; use Bastion/provider console or source-restricted temporary administration.",
-      "After launch, prove actual host identity, durable state, runtime architecture, restart persistence, public HTTPS edge, and real workload reclaim disposition.",
-      "Only after be06-host-preflight.mjs returns eligible=true may the host become an eligible persistent host."
+      "Actual Oracle instance launch result for VM.Standard.A1.Flex 2 OCPU / 12 GB in sa-saopaulo-1 AD-1.",
+      "No paid upgrade, paid fallback, promotional-credit reliance, or protected-capacity reuse.",
+      "Initial launch may remain without public IPv4; public exposure must occur only after network hardening.",
+      "Post-launch host identity, runtime architecture, durable state path, restart persistence, and reclaim-risk evidence.",
+      "be06-host-preflight.mjs must return eligible=true before persistent-host eligibility.",
+      "Explorer binding and LIVE remain separately unauthorized."
     ],
     "live_status_until_then": "NOT_LIVE"
   },
@@ -291,7 +292,7 @@
     }
   },
   "be06": {
-    "phase": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
+    "phase": "ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
     "preprovision_integrated": true,
     "integrated_main_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
     "hardening_contract": "lab/block-explorer/be06-host-hardening-v1.json",
@@ -309,7 +310,7 @@
       "blocker": "account/home-region/capacity evidence + real non-synthetic idle-reclamation guard"
     },
     "selected_provider": "oracle_cloud",
-    "provisioning_authorized": false,
+    "provisioning_authorized": true,
     "deployment_performed": false,
     "explorer_binding_authorized": false,
     "explorer_live_authorized": false,
@@ -395,7 +396,8 @@
       "protected_capacity_consumed": false,
       "launch_failure_policy": "If Always Free A1 reports out-of-host-capacity or any resource ceases to satisfy the zero-cost envelope, abort without substituting a paid shape/resource."
     },
-    "host_creation_authorized": false,
-    "persistent_host_eligible": false
+    "host_creation_authorized": true,
+    "persistent_host_eligible": false,
+    "host_creation_authority_file": "lab/block-explorer/be06-host-creation-authority-20260923.json"
   }
 }
