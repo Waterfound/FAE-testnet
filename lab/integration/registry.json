@@ -161,7 +161,14 @@
         "lab/block-explorer/tests/be-03-app.test.mjs",
         "explorer/build.mjs",
         "lab/block-explorer/tests/be-04-deployment.test.mjs",
-        "lab/block-explorer/be04-public-prebind-evidence.json"
+        "lab/block-explorer/be04-public-prebind-evidence.json",
+        "lab/block-explorer/be05-provider-scan.json",
+        "lab/block-explorer/be05-node-deployment-v1.json",
+        "lab/block-explorer/be05-readonly-gateway.mjs",
+        "lab/block-explorer/be05-binding-probe.mjs",
+        "lab/block-explorer/tests/be-05-contract.test.mjs",
+        "lab/block-explorer/tests/be-05-readonly-gateway.test.mjs",
+        "lab/block-explorer/tests/be-05-binding-probe.test.mjs"
       ],
       "combined_checks": [
         [
@@ -187,9 +194,24 @@
           "node",
           "--test",
           "lab/block-explorer/tests/be-04-deployment.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-05-contract.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-05-readonly-gateway.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-05-binding-probe.test.mjs"
         ]
       ],
-      "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface; BE-03 adds the separate static Explorer application; BE-04 adds a provider-independent deployment artifact plus a verified public PUBLIC_PREBIND/UNBOUND frontend. Combined-main rechecks authority isolation, BE-01/02/03/04 regressions, GET-only transport, HTTPS-only future binding semantics, and that public hosting cannot synthesize LIVE or chain authority."
+      "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface; BE-03 adds the separate static Explorer application; BE-04 adds a verified public PUBLIC_PREBIND/UNBOUND frontend; BE-05 freezes the provider-neutral persistent-node + read-only-gateway contract and executable HTTPS binding probe after discovery found no eligible existing host. Combined-main verifies all BE-01→05 regressions and preserves deployment/binding/LIVE as external evidence gates."
     }
   ]
 }

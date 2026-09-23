@@ -119,14 +119,15 @@ test('deployment artifact remains provider-independent',async()=>{
   }
 });
 
-test('BE-04 authority permits bounded construction or frozen prebind closeout, never LIVE/node authority',async()=>{
+test('BE-04 authority stays frozen after later Explorer frontiers, never granting LIVE/node authority',async()=>{
   const authority=JSON.parse(await read('lab/block-explorer/authority.json'));
-  assert.equal(authority.current_frontier,'BE-04');
+  assert.ok(['BE-04','BE-05'].includes(authority.current_frontier));
   assert.ok(['AUTHORIZED_BOUNDED','LAB_VERIFIED_FROZEN'].includes(authority.be04_authority.state));
-  if(authority.be04_authority.state==='AUTHORIZED_BOUNDED'){
+  if(authority.current_frontier==='BE-04'&&authority.be04_authority.state==='AUTHORIZED_BOUNDED'){
     assert.equal(authority.public_frontend_prebind_deployment_authorized,true);
     assert.equal(authority.explorer_application_write_authorized,true);
   }else{
+    assert.equal(authority.be04_authority.state,'LAB_VERIFIED_FROZEN');
     assert.equal(authority.public_frontend_prebind_deployment_authorized,false);
     assert.equal(authority.explorer_application_write_authorized,false);
     assert.equal(authority.be04_authority.source_writes_frozen,true);
