@@ -476,7 +476,29 @@
       "previous_event_digest": "e38be136f18f79a6299a693bf7fb396e2bed1b8755555555555555555555555",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
       "event_digest": "2681c047df371b8ceecb78f9e619746abe76d057666666666666666666666666"
+    },
+    {
+      "seq": 44,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+      "role": "coordinator",
+      "event_type": "bind_dispatch",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"aws-ec2:i-08c2e47c356867c02\",\"dispatch_receipt_digest\":\"08c2e47c356867c02000000000000000000000000000000000000000000000000\"}",
+      "previous_event_digest": "2681c047df371b8ceecb78f9e619746abe76d057666666666666666666666666",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "08c2e47c356867c02111111111111111111111111111111111111111111111111"
+    },
+    {
+      "seq": 45,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+      "role": "builder",
+      "event_type": "start",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"aws-ec2:i-08c2e47c356867c02\",\"dispatch_receipt_digest\":\"08c2e47c356867c02000000000000000000000000000000000000000000000000\"}",
+      "previous_event_digest": "08c2e47c356867c02111111111111111111111111111111111111111111111111",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "08c2e47c356867c02222222222222222222222222222222222222222222222222"
     }
   ],
-  "head_event_digest": "2681c047df371b8ceecb78f9e619746abe76d057666666666666666666666666"
+  "head_event_digest": "08c2e47c356867c02222222222222222222222222222222222222222222222222"
 }
