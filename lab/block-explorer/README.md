@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-05 — SOFTWARE PREPARED / EXTERNAL HTTPS NODE HOST BLOCKED**
+Status: **BE-05 — SOFTWARE INTEGRATED / EXTERNAL HTTPS NODE HOST BLOCKED**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -176,13 +176,13 @@ Explorer LIVE = NOT_LIVE
 No further BE-04 source work is justified until eligible node-hosting evidence changes.
 
 
-## BE-05 software-preparation closeout
+## BE-05 software integration closeout
 
 BE-05 tested whether the public Explorer could be bound to an already-existing eligible persistent Independent Node without consuming another workstream's infrastructure or inventing new spend authority.
 
 Read-only provider discovery found no eligible existing host across the connected Render, Vercel, AppDeploy, DigitalOcean, AWS EC2, or accessible AWS Lightsail inventory. Render services remain suspended by billing and the Stability Soak V3 capacity remains protected. The only EC2 instances observed were terminated ASIC-F2 resources and are explicitly excluded from Explorer use.
 
-The provider-neutral runtime boundary is now prepared:
+The provider-neutral runtime boundary is now integrated into canonical `main`:
 
 ```text
 candidate feeds / configured peers
@@ -192,7 +192,7 @@ candidate feeds / configured peers
     -> public FAE Explorer
 ```
 
-Prepared artifacts:
+Integrated artifacts:
 
 - `be05-provider-scan.json` — evidence that no existing eligible host was found;
 - `be05-node-deployment-v1.json` — persistent runtime, durable-state, HTTPS and isolation contract;
@@ -202,8 +202,11 @@ Prepared artifacts:
 
 The Explorer remains `PUBLIC_PREBIND / UNBOUND`. No node was created, restarted, repurposed or billed by BE-05, and no public binding occurred.
 
+The integrated revision `0561c96772a4d2faaf761777537eabe63febc737` passed exact post-merge verification across the Block Explorer Lab, cross-Lab integration gate, PSR-15 Project Assurance, recurring public-code assurance, CodeQL, and the canonical-source suite (40/40 substantive gates).
+
 ```text
-BE-05 software preparation = VERIFIED LOCALLY
+BE-05 software package = COMBINED_MAIN_VERIFIED
+integrated main = 0561c96772a4d2faaf761777537eabe63febc737
 eligible persistent HTTPS host = NOT FOUND
 deployment/binding authority = CLOSED
 Explorer LIVE = NOT_LIVE
