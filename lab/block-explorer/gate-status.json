@@ -2,7 +2,7 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-05",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE_EXTERNAL_HOST_BLOCKED",
+  "status": "COMBINED_MAIN_VERIFIED_SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
   "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
@@ -154,12 +154,46 @@
         "job_id": 107153806717,
         "status": "GREEN"
       }
+    },
+    "be05_integrated_main": {
+      "revision": "0561c96772a4d2faaf761777537eabe63febc737",
+      "block_explorer_lab": {
+        "run_id": 35853240137,
+        "job_id": 107155614726,
+        "status": "GREEN"
+      },
+      "cross_lab": {
+        "run_id": 35853240155,
+        "job_id": 107155615539,
+        "status": "GREEN"
+      },
+      "canonical_source": {
+        "run_id": 35853240118,
+        "job_id": 107155615118,
+        "status": "GREEN",
+        "substantive_gates": "40/40"
+      },
+      "codeql": {
+        "run_id": 35853240126,
+        "job_id": 107155614799,
+        "status": "GREEN"
+      },
+      "recurring_assurance": {
+        "run_id": 35853240183,
+        "job_id": 107155615661,
+        "status": "GREEN"
+      },
+      "psr15_whitebox": {
+        "run_id": 35853240061,
+        "job_id": 107155614607,
+        "status": "GREEN"
+      }
     }
   },
-  "integration_required_before_next_frontier": true,
+  "integration_required_before_next_frontier": false,
   "verified_candidate_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
   "be05": {
-    "phase": "SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
+    "phase": "SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
     "eligible_https_independent_node_found": false,
     "software_prepared": true,
     "gateway_verified": true,
@@ -169,20 +203,24 @@
     "binding_authorized": false,
     "binding_performed": false,
     "live_authorized": false,
-    "external_unblock_required": true
+    "external_unblock_required": true,
+    "integration_complete": true,
+    "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737"
   },
-  "integrated_main_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737",
   "integration": {
     "status": "COMBINED_MAIN_VERIFIED",
-    "pull_request": 230,
-    "merge_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+    "pull_request": 238,
+    "merge_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+    "verification_pull_request": 239,
     "exact_revision_verification": {
-      "verify_canonical_source_run_id": 35849890977,
-      "codeql_run_id": 35849890830,
-      "block_explorer_lab_run_id": 35849891129,
-      "cross_lab_integration_run_id": 35849891015,
-      "project_assurance_run_id": 35849891089,
-      "recurring_assurance_run_id": 35849891088,
+      "verify_canonical_source_run_id": 35853240118,
+      "codeql_run_id": 35853240126,
+      "block_explorer_lab_run_id": 35853240137,
+      "cross_lab_integration_run_id": 35853240155,
+      "project_assurance_run_id": 35853240061,
+      "recurring_assurance_run_id": 35853240183,
+      "substantive_gates": "40/40",
       "result": "GREEN"
     }
   },
@@ -237,6 +275,20 @@
         "job_id": 107153806717,
         "status": "GREEN"
       }
+    }
+  },
+  "be04_integration": {
+    "status": "COMBINED_MAIN_VERIFIED",
+    "pull_request": 230,
+    "merge_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+    "exact_revision_verification": {
+      "verify_canonical_source_run_id": 35849890977,
+      "codeql_run_id": 35849890830,
+      "block_explorer_lab_run_id": 35849891129,
+      "cross_lab_integration_run_id": 35849891015,
+      "project_assurance_run_id": 35849891089,
+      "recurring_assurance_run_id": 35849891088,
+      "result": "GREEN"
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE_EXTERNAL_HOST_BLOCKED",
+  "status": "BE_05_SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -133,29 +133,32 @@
       "canonical_latest_concurrent_run_note": "Run-level conclusion was cancelled by concurrency after all 40 substantive gates and cleanup steps individually completed success; exact same HEAD already has canonical success run 35849223848."
     },
     "BE-05": {
-      "status": "GREEN_SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
-      "verified_candidate_revision": "73b5a21297ad55e5f47a0f50b29c58b05fbd3b05",
-      "block_explorer_lab_run_id": 35851580782,
-      "block_explorer_lab_job_id": 107150266517,
+      "status": "GREEN_SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
+      "verified_candidate_revision": "2a9751e8cf0e56a2d020a1f1acd0f7b2f538521c",
+      "block_explorer_lab_run_id": 35853240137,
+      "block_explorer_lab_job_id": 107155614726,
       "tests": "BE-01/02/03/04 regressions + BE-05 contract/gateway/binding-probe + syntax PASS",
-      "cross_lab_preintegration_run_id": 35851580759,
-      "cross_lab_job_id": 107150286121,
-      "canonical_source_run_id": 35851580740,
-      "canonical_source_job_id": 107150393187,
+      "cross_lab_preintegration_run_id": 35853240155,
+      "cross_lab_job_id": 107155615539,
+      "canonical_source_run_id": 35853240118,
+      "canonical_source_job_id": 107155615118,
       "canonical_source_substantive_gates": "40/40 PASS",
-      "codeql_run_id": 35851580760,
-      "codeql_job_id": 107150266473,
-      "recurring_assurance_run_id": 35851580803,
-      "recurring_assurance_job_id": 107150304720,
-      "psr15_whitebox_run_id": 35851580732,
-      "psr15_whitebox_job_id": 107150266652,
+      "codeql_run_id": 35853240126,
+      "codeql_job_id": 107155614799,
+      "recurring_assurance_run_id": 35853240183,
+      "recurring_assurance_job_id": 107155615661,
+      "psr15_whitebox_run_id": 35853240061,
+      "psr15_whitebox_job_id": 107155614607,
       "provider_scan": "NO_EXISTING_ELIGIBLE_HOST_DISCOVERED",
       "gateway": "PREPARED_TESTED",
       "binding_probe": "PREPARED_TESTED",
       "deployment_performed": false,
       "binding_performed": false,
       "live_status": "NOT_LIVE",
-      "authority_change": "NONE; runtime deployment and public HTTPS binding remain unauthorized"
+      "authority_change": "NONE; runtime deployment and public HTTPS binding remain unauthorized",
+      "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+      "integration_pull_request": 238,
+      "verification_pull_request": 239
     }
   },
   "be02_authority": {
@@ -219,7 +222,7 @@
     "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
     "runtime_writes_frozen": true
   },
-  "frontier_source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "frontier_source_revision": "0561c96772a4d2faaf761777537eabe63febc737",
   "current_stage_protected_path_exceptions": [],
   "explorer_application_write_authorized": false,
   "explorer_application_live_authorized": false,
@@ -388,7 +391,7 @@
       "Explorer mutation methods remain rejected",
       "provider can disappear without affecting FAE consensus or chain survival"
     ],
-    "current_disposition": "SOFTWARE_PREPARED_EXTERNAL_HOST_REQUIRED",
+    "current_disposition": "SOFTWARE_INTEGRATED_EXTERNAL_HOST_REQUIRED",
     "live_status": "NOT_AUTHORIZED",
     "source_writes_frozen": true,
     "eligible_existing_host_found": false,
@@ -408,6 +411,46 @@
     ],
     "verified_candidate_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
     "reconciled_candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
-    "exact_head_verification": "GREEN"
+    "exact_head_verification": "GREEN",
+    "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+    "integration": {
+      "status": "COMBINED_MAIN_VERIFIED",
+      "pull_request": 238,
+      "verification_pull_request": 239,
+      "merge_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+      "exact_revision_verification": {
+        "block_explorer_lab": {
+          "run_id": 35853240137,
+          "job_id": 107155614726,
+          "status": "GREEN"
+        },
+        "cross_lab": {
+          "run_id": 35853240155,
+          "job_id": 107155615539,
+          "status": "GREEN"
+        },
+        "canonical_source": {
+          "run_id": 35853240118,
+          "job_id": 107155615118,
+          "status": "GREEN",
+          "substantive_gates": "40/40"
+        },
+        "codeql": {
+          "run_id": 35853240126,
+          "job_id": 107155614799,
+          "status": "GREEN"
+        },
+        "recurring_assurance": {
+          "run_id": 35853240183,
+          "job_id": 107155615661,
+          "status": "GREEN"
+        },
+        "psr15_whitebox": {
+          "run_id": 35853240061,
+          "job_id": 107155614607,
+          "status": "GREEN"
+        }
+      }
+    }
   }
 }
