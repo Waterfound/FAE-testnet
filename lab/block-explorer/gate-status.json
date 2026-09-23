@@ -2,9 +2,9 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-05",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE_EXTERNAL_HOST_BLOCKED",
+  "status": "RECONCILED_CANDIDATE_VERIFICATION_PENDING",
   "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
-  "candidate_branch": "lab/block-explorer-be05-20260923",
+  "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
     "url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
@@ -164,5 +164,11 @@
       "cross-Lab and security gates pass on the exact bound revision"
     ],
     "live_status_until_then": "NOT_LIVE"
+  },
+  "reconciliation": {
+    "base_main_revision": "de71b1e0baf735c3543fb9390f0305920d4db7bf",
+    "supersedes_pull_request": 234,
+    "prior_verified_candidate_revision": "73b5a21297ad55e5f47a0f50b29c58b05fbd3b05",
+    "fresh_exact_head_verification": "PENDING"
   }
 }
