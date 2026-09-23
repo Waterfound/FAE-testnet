@@ -1,0 +1,21 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_ORACLE_A1_CAPACITY_ATTEMPT_V1",
+  "observed": "2026-09-23",
+  "provider": "oracle_cloud",
+  "region": "sa-saopaulo-1",
+  "availability_domain": "AD-1",
+  "requested_shape": "VM.Standard.A1.Flex",
+  "requested_ocpu": 2,
+  "requested_memory_gb": 12,
+  "result": "OUT_OF_HOST_CAPACITY",
+  "provider_message": "Out of capacity for shape VM.Standard.A1.Flex in availability domain AD-1.",
+  "resource_created": false,
+  "spend_incurred": false,
+  "paid_fallback_attempted": false,
+  "failure_policy_obeyed": true,
+  "next_allowed_actions": [
+    "Retry the exact zero-cost A1 envelope later because capacity is dynamic.",
+    "Evaluate a separate zero-cost fallback only if runtime sufficiency is independently proven.",
+    "Do not upgrade or substitute a paid shape."
+  ]
+}
