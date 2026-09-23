@@ -1,0 +1,76 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_ORACLE_ACCOUNT_EVIDENCE_V1",
+  "observed": "2026-09-23",
+  "source": "User-observed OCI Console screenshots; no credentials or personal account identifiers serialized.",
+  "authority": "READ_ONLY_ACCOUNT_EVIDENCE_NO_RESOURCE_CREATION_NO_SPEND_NO_BINDING_NO_LIVE",
+  "account": {
+    "home_region": {
+      "code": "GRU",
+      "region": "sa-saopaulo-1",
+      "verified": true
+    },
+    "subscription_active": true,
+    "trial_days_remaining": 30,
+    "promotional_credit_brl": 1500,
+    "promotional_credit_used_brl": 0,
+    "trial_credit_reliance_for_be06": false
+  },
+  "compute": {
+    "regional_a1_limit_ocpu": 16,
+    "regional_a1_available_ocpu": 16,
+    "regional_a1_limit_memory_gb": 96,
+    "regional_a1_available_memory_gb": 96,
+    "selected_shape": "VM.Standard.A1.Flex",
+    "selected_shape_always_free_eligible": true,
+    "selected_ocpu": 2,
+    "selected_memory_gb": 12,
+    "selected_network_bandwidth_gbps": 2,
+    "shape_selectable_in_home_region": true,
+    "physical_host_capacity_verified": false,
+    "physical_host_capacity_note": "Oracle documents that Always Free launch can still fail with out-of-host-capacity; real capacity is a launch-time gate."
+  },
+  "image": {
+    "selected": "Oracle Linux 9",
+    "publisher": "Oracle",
+    "console_price_label": "Free",
+    "architecture": "aarch64-compatible"
+  },
+  "storage": {
+    "free_tier_volume_quota_gb": 200,
+    "free_tier_volume_usage_gb": 0,
+    "free_tier_volume_available_gb": 200,
+    "selected_boot_volume_gb": 46.6,
+    "selected_additional_block_volume_gb": 0,
+    "within_free_entitlement": true
+  },
+  "network": {
+    "reserved_public_ip_limit": 6,
+    "reserved_public_ip_usage": 0,
+    "reserved_public_ip_available": 6,
+    "vcn_candidate": "new VCN + new public subnet",
+    "ipv4_candidate": "automatic public IPv4 through public subnet",
+    "ipv6_candidate": false,
+    "outbound_always_free_allowance_tb_per_month": 10,
+    "public_network_zero_cost_disposition": "No network/IP line item appeared in the OCI create-instance estimate; VCN and Always Free outbound allowance are documented separately."
+  },
+  "estimator": {
+    "raw_boot_volume_list_price_brl_per_month": 10.45,
+    "raw_estimated_total_brl_per_month": 10.45,
+    "disclaimer_observed": "Estimate does not reflect any tier unit pricing.",
+    "excludes_tier_unit_pricing": true,
+    "interpretation": "Raw list price is non-authoritative for Always Free admission; selected boot volume is covered by the separately verified 200 GB Always Free Block Volume entitlement.",
+    "entitlement_calculated_monthly_cost_usd": 0
+  },
+  "reclaim": {
+    "synthetic_reclaim_evasion": false,
+    "post_create_reclaim_observation_required": true
+  },
+  "result": {
+    "precreate_account_evidence": "SUFFICIENT_FOR_GUARD_EVALUATION_AFTER_CODE_CORRECTION",
+    "host_creation_authorized": false,
+    "spend_authorized": false,
+    "persistent_host_eligible": false,
+    "explorer_binding_authorized": false,
+    "explorer_live_authorized": false
+  }
+}

@@ -9,6 +9,8 @@ export const ORACLE_FREE_SHAPES=Object.freeze(['VM.Standard.A1.Flex','VM.Standar
 
 function bool(value){return value===true}
 function zero(value){return typeof value==='number' && Number.isFinite(value) && Object.is(value,0)}
+function finiteNonNegative(value){return typeof value==='number' && Number.isFinite(value) && value>=0}
+function finitePositive(value){return typeof value==='number' && Number.isFinite(value) && value>0}
 
 function commonReasons(e){
   const reasons=[];
@@ -17,12 +19,10 @@ function commonReasons(e){
   if(!e||typeof e!=='object') return reasons;
   need(bool(e.account_scope_verified),'account scope is not verified');
   need(bool(e.selected_resources_explicitly_free_eligible),'selected resources are not explicitly free eligible');
-  need(zero(e.estimated_monthly_cost_usd),'estimated monthly cost must be exactly 0 USD');
   need(zero(e.monthly_cost_ceiling_usd),'monthly cost ceiling must be exactly 0 USD');
   need(e.paid_upgrade_required===false,'paid upgrade must not be required');
   need(e.paid_addons_present===false,'paid add-ons must be absent');
   need(e.protected_capacity_consumed===false,'protected FAE capacity must not be consumed');
-  need(bool(e.provider_console_cost_preview_verified_zero),'provider console cost preview is not verified at 0 USD');
   return reasons;
 }
 
@@ -35,11 +35,22 @@ function oracleReasons(e){
   need(bool(o.always_free_compute_label_observed),'Oracle Always Free compute label not observed');
   need(bool(o.within_remaining_compute_entitlement),'Oracle remaining compute entitlement not verified');
   need(bool(o.boot_and_durable_storage_within_free_entitlement),'Oracle storage is not proven inside free entitlement');
+  need(bool(o.selected_image_price_free),'Oracle selected image is not proven free');
   need(bool(o.public_network_zero_cost_verified),'Oracle public networking is not proven zero-cost');
-  need(bool(o.current_capacity_available),'Oracle Always Free capacity is not currently available');
   need(bool(o.runtime_architecture_compatible),'runtime architecture compatibility is not proven');
+  need(bool(o.shape_selectable_in_home_region),'Oracle Always Free shape is not selectable in the home region');
+  need(bool(o.estimator_excludes_tier_unit_pricing),'Oracle estimator disclaimer excluding tier unit pricing was not observed');
+  need(zero(o.entitlement_calculated_monthly_cost_usd),'Oracle entitlement-calculated monthly cost must be exactly 0 USD');
+  need(o.trial_credit_reliance===false,'Oracle candidate must not rely on promotional trial credit');
+  need(finiteNonNegative(o.raw_estimated_monthly_cost_brl),'Oracle raw estimator list price must be recorded');
+  need(finitePositive(o.boot_volume_gb),'Oracle boot volume size must be recorded');
+  need(finiteNonNegative(o.free_block_volume_available_gb),'Oracle remaining free block volume must be recorded');
+  if(finitePositive(o.boot_volume_gb)&&finiteNonNegative(o.free_block_volume_available_gb)){
+    need(o.boot_volume_gb<=o.free_block_volume_available_gb,'Oracle boot volume exceeds remaining Always Free Block Volume entitlement');
+  }
   need(o.synthetic_reclaim_evasion===false,'synthetic reclaim evasion must be explicitly false');
   need(bool(o.post_create_reclaim_observation_required),'post-create reclaim observation must remain mandatory');
+  need(bool(o.physical_capacity_must_be_rechecked_at_launch),'launch-time physical-capacity gate must remain mandatory');
   return reasons;
 }
 
@@ -47,6 +58,8 @@ function googleReasons(e){
   const reasons=[];
   const need=(ok,msg)=>{if(!ok) reasons.push(msg)};
   const g=e.google_cloud||{};
+  need(zero(e.estimated_monthly_cost_usd),'Google estimated monthly cost must be exactly 0 USD');
+  need(bool(e.provider_console_cost_preview_verified_zero),'Google provider console cost preview is not verified at 0 USD');
   need(g.machine_type==='e2-micro','Google machine type must be e2-micro');
   need(GOOGLE_FREE_REGIONS.includes(g.region),'Google region is not Free Tier eligible');
   need(g.non_preemptible===true,'Google VM must be non-preemptible');
@@ -72,6 +85,7 @@ export function evaluateBe06PrecreateEvidence(evidence){
     admitted,
     provider:typeof provider==='string'?provider:null,
     reasons,
+    safe_to_request_host_creation_authority:admitted,
     resource_creation_authorized:false,
     spend_authorized:false,
     persistent_host_eligible:false,
