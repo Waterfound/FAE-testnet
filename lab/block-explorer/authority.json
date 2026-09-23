@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_04_ACTIVE",
+  "status": "BE_04_CLOSEOUT_VERIFICATION_PENDING",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -104,6 +104,17 @@
       "architecture": "standalone static read-only application under explorer/",
       "deployment_state": "NOT_LIVE",
       "authority_change": "NONE; source-only Explorer application candidate"
+    },
+    "BE-04": {
+      "status": "VERIFICATION_PENDING",
+      "public_frontend": "READY_PUBLIC_PREBIND",
+      "public_url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
+      "app_id": "fae-block-explorer-e2z4q3",
+      "hosted_snapshot_version": "1789777122012",
+      "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+      "node_binding": "UNRESOLVED",
+      "live_status": "NOT_LIVE",
+      "evidence_path": "lab/block-explorer/be04-public-prebind-evidence.json"
     }
   },
   "be02_authority": {
@@ -169,7 +180,7 @@
   },
   "frontier_source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
   "current_stage_protected_path_exceptions": [],
-  "explorer_application_write_authorized": true,
+  "explorer_application_write_authorized": false,
   "explorer_application_live_authorized": false,
   "public_deployment_authorized": false,
   "be03_authority": {
@@ -222,11 +233,11 @@
     "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
     "application_writes_frozen": true
   },
-  "public_frontend_prebind_deployment_authorized": true,
+  "public_frontend_prebind_deployment_authorized": false,
   "public_https_node_binding_authorized": false,
   "independent_node_public_deployment_authorized": false,
   "be04_authority": {
-    "state": "AUTHORIZED_BOUNDED",
+    "state": "LAB_VERIFIED_FROZEN",
     "prerequisite": "BE-03 is COMBINED_MAIN_VERIFIED at 2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
     "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
     "intended_scope": "Create a provider-independent deploy artifact and a separate public Explorer frontend in explicit PREBIND state; prepare but do not synthesize the HTTPS Independent Node binding.",
@@ -260,8 +271,8 @@
       "mark Explorer LIVE before exact HTTPS node binding evidence exists",
       "bind to a node that does not independently validate FAE state"
     ],
-    "public_frontend_prebind_state": "AUTHORIZED",
-    "public_https_node_binding_state": "BLOCKED_PENDING_ELIGIBLE_PERSISTENT_NODE",
+    "public_frontend_prebind_state": "VERIFIED_FROZEN",
+    "public_https_node_binding_state": "UNRESOLVED_PENDING_ELIGIBLE_PERSISTENT_NODE",
     "expected_network": "fairyelf-public-testnet-v4",
     "live_requirements": [
       "separate public Explorer URL over HTTPS",
@@ -273,6 +284,17 @@
       "frontend config is bound to the verified HTTPS node origin",
       "cross-Lab and security gates pass on exact integrated revision"
     ],
-    "live_status": "NOT_AUTHORIZED"
+    "live_status": "NOT_AUTHORIZED",
+    "source_writes_frozen": true,
+    "verified_public_prebind": {
+      "url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
+      "provider": "AppDeploy",
+      "app_id": "fae-block-explorer-e2z4q3",
+      "snapshot_version": "1789777122012",
+      "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+      "binding_state": "UNBOUND",
+      "deployment_state": "PUBLIC_PREBIND",
+      "qa": "CLEAN"
+    }
   }
 }
