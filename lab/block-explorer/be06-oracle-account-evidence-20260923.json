@@ -83,5 +83,13 @@
     "persistent_host_eligible": false,
     "explorer_binding_authorized": false,
     "explorer_live_authorized": false
+  },
+  "review": {
+    "cloud_guard_workload_protection": "MUST_BE_DISABLED_BEFORE_LAUNCH",
+    "compute_instance_run_command": "ENABLED_REQUIRED",
+    "compute_instance_monitoring": "ENABLED_ACCEPTED_ALWAYS_FREE_ALLOWANCE",
+    "bastion_plugin": "DISABLED",
+    "block_volume_management_plugin": "DISABLED",
+    "ssh_keys": "NONE"
   }
 }
