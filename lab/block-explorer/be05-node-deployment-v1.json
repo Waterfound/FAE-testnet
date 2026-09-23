@@ -1,0 +1,96 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE05_NODE_DEPLOYMENT_CONTRACT_V1",
+  "created": "2026-09-23",
+  "canonical_source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "network": "fairyelf-public-testnet-v4",
+  "authority": "NON_AUTHORITATIVE_OBSERVATION_INFRASTRUCTURE",
+  "topology": [
+    "candidate feeds / configured peers",
+    "private-loopback Independent Node",
+    "public read-only gateway",
+    "provider HTTPS termination",
+    "FAE Explorer frontend"
+  ],
+  "node": {
+    "source": "sovereign-forge/node/fae-node.mjs",
+    "source_sha": "2fdc2b279722e740c5b8c56f22490b30c9505762",
+    "package": "sovereign-forge/node/package.json",
+    "node_version_requirement": ">=22",
+    "start_command": "npm start",
+    "working_directory": "sovereign-forge/node",
+    "private_bind": {
+      "FAE_HOST": "127.0.0.1",
+      "FAE_PORT": "provider-private-port"
+    },
+    "durable_state": {
+      "required": true,
+      "env": "FAE_DATA_FILE",
+      "requirement": "Absolute path on provider-persistent storage; file must survive process and instance restart.",
+      "semantics": "Node-owned validated chain, transaction, UTXO and mempool state. Provider storage is persistence, not consensus authority."
+    },
+    "synchronization": {
+      "FAE_SYNC": "1",
+      "FAE_SYNC_MS": "15000 default",
+      "FAE_BOOTSTRAP_FEEDS": "Candidate data only; every block/transaction is locally revalidated.",
+      "FAE_PEERS": "Optional independently validating peers.",
+      "FAE_UPSTREAM_API": "Temporary relay target only; never synchronization truth."
+    }
+  },
+  "public_gateway": {
+    "source": "lab/block-explorer/be05-readonly-gateway.mjs",
+    "public_protocol": "HTTPS_REQUIRED_AT_PROVIDER_EDGE",
+    "internal_node_origin": "LOOPBACK_HTTP_ONLY",
+    "exact_routes": [
+      "/explorer/status",
+      "/explorer/blocks",
+      "/explorer/block",
+      "/explorer/transaction",
+      "/explorer/address",
+      "/explorer/search"
+    ],
+    "allowed_methods": [
+      "GET",
+      "OPTIONS"
+    ],
+    "forbidden_public_routes": [
+      "/submit-tx",
+      "/submit-block",
+      "/template",
+      "/balance",
+      "/spendable",
+      "/transactions",
+      "/feed",
+      "/state",
+      "/peers",
+      "/status"
+    ],
+    "cors": "Exact configured Explorer origin; no wildcard production origin.",
+    "cache_policy": "no-store"
+  },
+  "provider_requirements": [
+    "Persistent Node.js process or equivalent container runtime.",
+    "Persistent writable storage for FAE_DATA_FILE.",
+    "Public HTTPS endpoint terminating at the read-only gateway only.",
+    "Internal node listener not directly internet-exposed.",
+    "Restart policy must preserve state file.",
+    "No provider component may become chain-selection or consensus authority.",
+    "Provider disappearance must not affect FAE consensus, Wallet/Mining validity, or network survival."
+  ],
+  "binding_acceptance": [
+    "HTTPS origin has no embedded credentials, query, or fragment.",
+    "GET /explorer/status returns 200 JSON, correct network, nonzero validated tip, valid observed_tip_hash, node_version and chain_work.",
+    "GET /explorer/blocks?limit=1 returns the same observed tip binding as /explorer/status.",
+    "POST /explorer/status is rejected by the public gateway without reaching the node.",
+    "GET /submit-tx and GET /submit-block are not publicly routed.",
+    "CORS from the exact Explorer frontend origin advertises GET,OPTIONS and never POST.",
+    "At least two observations separated by one sync interval remain internally coherent.",
+    "Explorer config remains UNBOUND until all acceptance checks pass on an exact deployment revision."
+  ],
+  "explicit_non_goals": [
+    "No consensus or economics change.",
+    "No new wallet/mining capability.",
+    "No authoritative Explorer database/index.",
+    "No LIVE claim from source tests alone.",
+    "No infrastructure spend authorization."
+  ]
+}
