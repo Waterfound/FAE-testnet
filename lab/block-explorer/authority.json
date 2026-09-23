@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
+  "status": "BE_04_PUBLIC_PREBIND_VERIFIED_NODE_BINDING_BLOCKED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -106,25 +106,31 @@
       "authority_change": "NONE; source-only Explorer application candidate"
     },
     "BE-04": {
-      "status": "GREEN",
+      "status": "GREEN_PUBLIC_PREBIND_ONLY",
       "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
-      "block_explorer_lab_run_id": 35849223884,
+      "block_explorer_lab_run_id": 35849397207,
       "block_explorer_lab_job_id": 107142650282,
       "be01_be02_be03_be04_regressions": "PASS",
       "cross_lab_preintegration_run_id": 35849223850,
       "canonical_source_run_id": 35849223848,
-      "codeql_run_id": 35849223829,
-      "recurring_assurance_run_id": 35849223946,
+      "codeql_run_id": 35849397142,
+      "recurring_assurance_run_id": 35849397136,
       "psr15_whitebox_run_id": 35849223877,
       "public_frontend": "READY_PUBLIC_PREBIND",
       "public_url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
       "app_id": "fae-block-explorer-e2z4q3",
       "hosted_snapshot_version": "1789777122012",
       "hosted_source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
-      "node_binding": "UNRESOLVED",
+      "node_binding": "UNRESOLVED_PENDING_ELIGIBLE_PERSISTENT_NODE",
       "live_status": "NOT_LIVE",
       "evidence_path": "lab/block-explorer/be04-public-prebind-evidence.json",
-      "authority_change": "NONE; public hosting remains non-authoritative and unbound"
+      "authority_change": "NONE; public hosting remains non-authoritative and unbound",
+      "candidate_head_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+      "cross_lab_run_id": 35849397172,
+      "project_assurance_run_id": 35849397112,
+      "canonical_success_run_id": 35849223848,
+      "canonical_latest_concurrent_run_id": 35849397225,
+      "canonical_latest_concurrent_run_note": "Run-level conclusion was cancelled by concurrency after all 40 substantive gates and cleanup steps individually completed success; exact same HEAD already has canonical success run 35849223848."
     }
   },
   "be02_authority": {
