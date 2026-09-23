@@ -1,0 +1,269 @@
+{
+  "project": "FAE Wallet Transaction UX",
+  "profile_version": "wallet-transaction-ux-20260923-v1",
+  "goal": "Complete Element 5 transaction ID visibility/copyability and transaction history discoverability with truthful network states and explicit history coverage.",
+  "invariants": [
+    "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+    "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+    "Transaction creation or broadcast acceptance never implies confirmation.",
+    "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+    "History follows the active address; stale responses may not replace a newer address or request.",
+    "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+    "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+    "Independent verification uses separate methods/processes; one operator is sufficient.",
+    "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+    "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+  ],
+  "forbidden_actions": [
+    "change consensus, economics, transaction serialization, signing or key derivation",
+    "collect real wallet recovery phrases or private keys for evidence",
+    "couple wallet transaction availability to Explorer uptime",
+    "treat reference-runner or planning output as delivered product evidence",
+    "deploy backend changes or provision paid infrastructure under this planning run",
+    "run public mutation or vulnerability probes as validation",
+    "mark a locally created or broadcast transaction as confirmed",
+    "claim complete history or physical-device testing without supporting evidence"
+  ],
+  "domains": [
+    {
+      "id": "WTX-01-contract",
+      "objective": "Freeze the transaction read model, state rules, limited coverage and receipt lifecycle; implement the small pure presentation adapter if justified.",
+      "dependencies": [],
+      "write_scopes": [
+        "wallet-transactions.js",
+        "docs/wallet-transaction-ux/contract.json"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "contract",
+          "description": "TXID format/source, known/unknown/pending/confirmed states and missing fields are explicit.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        },
+        {
+          "id": "coverage",
+          "description": "Current address scope, 100 network/30 address limit, reward exclusion and recovery limits documented.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "WTX-02-acceptance-fixtures",
+      "objective": "Prepare independent acceptance fixtures and read-only/local verification covering product criteria, without encoding implementation-specific internals.",
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "write_scopes": [
+        "tests/wallet-transaction-ux"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "fixtures",
+          "description": "Expected user-visible outcomes frozen for copy, failure, status, coverage, address changes and recovery.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "WTX-03-txid-details",
+      "objective": "Implement accessible full TXID and exact copy with feedback in the accepted-send receipt and transaction details; preserve accepted receipts across refresh failures.",
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "write_scopes": [
+        "core.js",
+        "wallet.js",
+        "index.html"
+      ],
+      "exclusive_resources": [
+        "active-wallet-ui"
+      ],
+      "gates": [
+        {
+          "id": "txid",
+          "description": "Full ID accessible and exact copy, rejection feedback and manual selection verified.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        },
+        {
+          "id": "receipt",
+          "description": "Submit acceptance remains distinguishable from confirmation and later history/network failure.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": []
+    },
+    {
+      "id": "WTX-04-history-lifecycle",
+      "objective": "Make history a primary wallet action; implement explicit loading, empty-within-coverage, unavailable, invalid and stale states, retry, address isolation, reload and recovery behavior.",
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "write_scopes": [
+        "core.js",
+        "wallet.js",
+        "index.html"
+      ],
+      "exclusive_resources": [
+        "active-wallet-ui"
+      ],
+      "gates": [
+        {
+          "id": "discovery",
+          "description": "History reachable from active-wallet primary controls with accessible focus and return navigation.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        },
+        {
+          "id": "lifecycle",
+          "description": "Reload, recovery, active-address changes and stale requests preserve correct attribution and coverage.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "WTX-05-browser-validation",
+      "objective": "Verify the full journey using deterministic independent checks and real browser engines with desktop, tablet and phone viewports; record physical-device coverage separately.",
+      "dependencies": [
+        "WTX-02-acceptance-fixtures",
+        "WTX-03-txid-details",
+        "WTX-04-history-lifecycle"
+      ],
+      "write_scopes": [
+        "docs/wallet-transaction-ux/validation"
+      ],
+      "exclusive_resources": [
+        "wallet-browser-validation"
+      ],
+      "gates": [
+        {
+          "id": "journey",
+          "description": "All seven acceptance criteria traced to tests/evidence; exact clipboard contents verified.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        },
+        {
+          "id": "interaction",
+          "description": "Mouse, keyboard, touch emulation, layout and error/recovery flows verified; native clipboard limitations recorded.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "external_evidence",
+        "hardware"
+      ]
+    },
+    {
+      "id": "WTX-06-integration",
+      "objective": "Reconcile with latest main, register narrow combined checks, integrate serially and verify the exact combined revision using existing FAE policy.",
+      "dependencies": [
+        "WTX-05-browser-validation"
+      ],
+      "write_scopes": [
+        "lab/integration/registry.json",
+        "docs/FAE_CANONICAL_STATE.md",
+        "docs/wallet-transaction-ux/integration"
+      ],
+      "exclusive_resources": [
+        "canonical-main-integration"
+      ],
+      "gates": [
+        {
+          "id": "combined",
+          "description": "Latest-main ancestry, focused wallet tests, existing client/crypto checks and cross-Lab integration gate pass on exact revision.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "authority"
+      ]
+    },
+    {
+      "id": "WTX-07-live-closure",
+      "objective": "Use the configured frontend release path when authorized; bind served assets to integrated revision and exercise read-only live navigation/details/copy; publish status for both tasks.",
+      "dependencies": [
+        "WTX-06-integration"
+      ],
+      "write_scopes": [
+        "docs/wallet-transaction-ux/live",
+        "docs/FAE_CANONICAL_STATE.md"
+      ],
+      "exclusive_resources": [
+        "canonical-main-integration",
+        "public-frontend-release"
+      ],
+      "gates": [
+        {
+          "id": "live",
+          "description": "Served frontend matches approved source and read-only live journey passes; Explorer binding remains optional.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        },
+        {
+          "id": "closure",
+          "description": "Implemented/validated/merged/combined/live status and all coverage limits recorded.",
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "external_evidence",
+        "authorization",
+        "authority"
+      ]
+    }
+  ]
+}

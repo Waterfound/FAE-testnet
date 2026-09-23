@@ -1,0 +1,66 @@
+{
+  "cli_api_recompilation_matches": true,
+  "engine_git_blobs_verified": 47,
+  "engine_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "execution_kind": "actual local Build Colony CLI and AGDWS calls; no reference runner rehearsal",
+  "frontier": {
+    "active": [],
+    "attention_required": [],
+    "dependency_blocked": [],
+    "dispatchable": [
+      "WTX-01-contract"
+    ],
+    "externally_blocked": [],
+    "integrated": [],
+    "next_integratable": null,
+    "ready": [],
+    "verified_waiting_integration": [],
+    "waiting_dependencies": [
+      "WTX-02-acceptance-fixtures",
+      "WTX-03-txid-details",
+      "WTX-04-history-lifecycle",
+      "WTX-05-browser-validation",
+      "WTX-06-integration",
+      "WTX-07-live-closure"
+    ],
+    "waiting_serialization": []
+  },
+  "independent_agents_run": 0,
+  "ledger_accepted": true,
+  "ledger_events": 1,
+  "ledger_head": "18260930a1252f1ddd834316db2ae76cd9c39aa7733174dcb809a6271e97edda",
+  "manifest_accepted": true,
+  "manifest_digest": "000132518c011395cad47ab10d68bbedc01df566097d2942a56ac56354287f66",
+  "native_progress_delta": 0,
+  "product_implemented": false,
+  "product_integrated_main": false,
+  "product_live": false,
+  "product_validated": false,
+  "product_work_dispatched": false,
+  "run_id": "bc2-ebd32ede17ccb49b",
+  "scope_note": "The requested planning stage is complete; ISSUE admits only the next contract package, without executing it.",
+  "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "status": "PLANNING_RUN_VERIFIED",
+  "waves": [
+    [
+      "WTX-01-contract"
+    ],
+    [
+      "WTX-02-acceptance-fixtures",
+      "WTX-03-txid-details"
+    ],
+    [
+      "WTX-04-history-lifecycle"
+    ],
+    [
+      "WTX-05-browser-validation"
+    ],
+    [
+      "WTX-06-integration"
+    ],
+    [
+      "WTX-07-live-closure"
+    ]
+  ],
+  "worker_results_submitted": 0
+}

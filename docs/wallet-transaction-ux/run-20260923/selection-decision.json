@@ -1,0 +1,22 @@
+{
+  "decision": {
+    "active_gate_class": "capability_gap",
+    "di_escalation_reasons": [],
+    "di_escalation_recommended": false,
+    "eligible_domains": [
+      "WTX-01-contract"
+    ],
+    "filtered_domains": [],
+    "native_progress_unit": "verified_user_acceptance_criteria_out_of_7",
+    "route_dispositions": [
+      {
+        "reason": "Pinned source and served frontend prove missing full TXID/copy/detail affordances; see baseline.json.",
+        "route_id": "wallet-transaction-ux",
+        "saturation_suspended": false,
+        "state": "active"
+      }
+    ]
+  },
+  "selection_contract_digest": "62af2fc6ff4e4d9fe0a69e880d5012c9ac25d8a462bd032a28ff576c238eca7e",
+  "selection_decision_digest": "c512156129335a06ee732690c171538b3614b76b3afd0b07ad8b7684abaa092d"
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "FAE_WALLET_TRANSACTION_UX_BASELINE_V1",
+  "source_repository": "Waterfound/FAE-testnet",
+  "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "scope": "read-only source/product inspection; no product changes",
+  "findings": [
+    {
+      "id": "G01",
+      "severity": "required",
+      "path": "wallet.js",
+      "symbol": "sendFAE",
+      "finding": "Accepted TXID rendered as first 20 characters; no full-ID receipt or copy control."
+    },
+    {
+      "id": "G02",
+      "severity": "required",
+      "path": "core.js",
+      "symbol": "renderWalletHistory",
+      "finding": "History TXID shortened to 18+8 characters; rows have no detail/copy action."
+    },
+    {
+      "id": "G03",
+      "severity": "required",
+      "path": "index.html",
+      "symbol": "togglehistory",
+      "finding": "History is collapsed below wallet addresses, outside the primary active-wallet actions."
+    },
+    {
+      "id": "G04",
+      "severity": "required",
+      "path": "core.js",
+      "symbol": "renderWalletHistory",
+      "finding": "Every status other than confirmed is rendered Pending; non-array transactions render as empty."
+    },
+    {
+      "id": "G05",
+      "severity": "required",
+      "path": "core.js",
+      "symbol": "refreshNow / refresh",
+      "finding": "Transaction-endpoint rejection has an error message, but status-endpoint rejection exits before history state updates."
+    },
+    {
+      "id": "G06",
+      "severity": "required",
+      "path": "supabase/functions/fae-public-testnet-v4/index.ts",
+      "symbol": "history",
+      "finding": "Scans latest 100 network transactions ordered by mempool_seq, filters active address, returns at most 30; no pagination/coverage metadata."
+    },
+    {
+      "id": "G07",
+      "severity": "required",
+      "path": "wallet.js",
+      "symbol": "loadWallet / activateAccountAddress / importRecovery",
+      "finding": "History is fetched per active address, not stored with recovery material; derived wallet has five addresses, legacy may have one. Reload/recovery can restore only source-available history."
+    },
+    {
+      "id": "G08",
+      "severity": "required",
+      "path": "wallet.js",
+      "symbol": "sendFAE",
+      "finding": "A successful submit is followed by awaited refresh; refresh failure reaches the same handler that replaces sendstate with an error."
+    },
+    {
+      "id": "G09",
+      "severity": "relevant",
+      "path": "core.js",
+      "symbol": "readableTime",
+      "finding": "created_at is a PostgreSQL timestamptz/ISO string; Number(timestamp) yields NaN and the current helper suppresses the date."
+    },
+    {
+      "id": "G10",
+      "severity": "coverage",
+      "path": "supabase/functions/fae-public-testnet-v4/index.ts",
+      "symbol": "history",
+      "finding": "Transfer-table history excludes mining rewards; do not invent reward TXIDs or inherit Explorer coverage."
+    },
+    {
+      "id": "G11",
+      "severity": "reuse",
+      "path": "wallet.js",
+      "symbol": "copyText",
+      "finding": "Clipboard API with execCommand fallback exists; keep existing receive/seed behavior unchanged while adding TXID-specific feedback."
+    },
+    {
+      "id": "G12",
+      "severity": "reuse",
+      "path": "core.js",
+      "symbol": "refreshNow",
+      "finding": "Current code rejects cross-address responses when wallet.address differs; this helps but does not alone resolve A→B→A or in-flight refresh deduplication."
+    }
+  ],
+  "source_vs_runtime": "Three public frontend assets have been fetched and matched; backend behavior is inspected from pinned source, not claimed runtime-matched.",
+  "acceptance_criteria_fully_verified": 0,
+  "implementation_started": false
+}

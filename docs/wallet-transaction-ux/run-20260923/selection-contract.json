@@ -1,0 +1,55 @@
+{
+  "active_gate_class": "capability_gap",
+  "active_gate_evidence_ref": "Waterfound/FAE-testnet@0341ed060be0f030d5cb677953cef141ae7eb415:wallet.js",
+  "generic_development_proposed": false,
+  "native_progress_unit": "verified_user_acceptance_criteria_out_of_7",
+  "package_bindings": [
+    {
+      "domain_id": "WTX-01-contract",
+      "relation": "required_serial_dependency",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-02-acceptance-fixtures",
+      "relation": "required_serial_dependency",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-03-txid-details",
+      "relation": "direct",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-04-history-lifecycle",
+      "relation": "direct",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-05-browser-validation",
+      "relation": "required_serial_dependency",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-06-integration",
+      "relation": "required_serial_dependency",
+      "route_id": "wallet-transaction-ux"
+    },
+    {
+      "domain_id": "WTX-07-live-closure",
+      "relation": "required_serial_dependency",
+      "route_id": "wallet-transaction-ux"
+    }
+  ],
+  "recent_run_native_deltas": [],
+  "repeated_unexplained_boundary": false,
+  "routes": [
+    {
+      "attempts": [],
+      "evidence_reason": "Pinned source and served frontend prove missing full TXID/copy/detail affordances; see baseline.json.",
+      "hard_stop_reason": null,
+      "reopen_basis": null,
+      "route_id": "wallet-transaction-ux",
+      "state": "active"
+    }
+  ]
+}

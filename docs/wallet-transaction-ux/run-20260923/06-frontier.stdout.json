@@ -1,0 +1,22 @@
+{
+  "active": [],
+  "attention_required": [],
+  "dependency_blocked": [],
+  "dispatchable": [
+    "WTX-01-contract"
+  ],
+  "externally_blocked": [],
+  "integrated": [],
+  "next_integratable": null,
+  "ready": [],
+  "verified_waiting_integration": [],
+  "waiting_dependencies": [
+    "WTX-02-acceptance-fixtures",
+    "WTX-03-txid-details",
+    "WTX-04-history-lifecycle",
+    "WTX-05-browser-validation",
+    "WTX-06-integration",
+    "WTX-07-live-closure"
+  ],
+  "waiting_serialization": []
+}

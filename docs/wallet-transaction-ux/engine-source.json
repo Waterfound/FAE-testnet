@@ -1,0 +1,243 @@
+{
+  "repository": "Waterfound/Build-Colony",
+  "revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "files": [
+    {
+      "path": "src/build_colony/__init__.py",
+      "git_blob": "fa915fc0e21d5b508696d408317365710940b99f",
+      "sha256": "4cc52634ce42cb369e1455d266e7e0e68d7d9812910afd4106c370cd99dec45c"
+    },
+    {
+      "path": "src/build_colony/attestation.py",
+      "git_blob": "3d878b19fcaa28fc86cab0af1f7098aef9152b20",
+      "sha256": "1cad49c089ee670d775c657d95b589784106033eed15d5392b86601c9ba18a80"
+    },
+    {
+      "path": "src/build_colony/attestation_cli.py",
+      "git_blob": "10fd562aaf631f1409582e08e6dd180c73ffd798",
+      "sha256": "bbbe3c3d0806426d488efd52569f1656e07de49c4d9966574b7435eed6e449e3"
+    },
+    {
+      "path": "src/build_colony/cli.py",
+      "git_blob": "f91309f84377c14aee406dfd5e85fafae70855e1",
+      "sha256": "236f5ccfaec33ead22d2f359dfdfce809d8d0872c04ca81ad6621a59a27c3a36"
+    },
+    {
+      "path": "src/build_colony/ecl_interoperability.py",
+      "git_blob": "101f3b40ff01d740651213b3f4898f7a2490300f",
+      "sha256": "7f1f9409c550f25a1268212db2be851b2754016ceb116c6ce4071994c5220e79"
+    },
+    {
+      "path": "src/build_colony/engine.py",
+      "git_blob": "403099f9dd7893a8c5f378a51c5118eebeac47d5",
+      "sha256": "fe25388280ae3d372ae6613d72eae7d2026bce674a485c757a84093afd32856d"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark.py",
+      "git_blob": "ec101cbcbf20fdfbc743a5e73b351f41202082c4",
+      "sha256": "0ba8f0f7fc74be32cdac800a3ad90788d84d70df1b50420105ca4c55a32f8045"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark_attestation.py",
+      "git_blob": "f71b2352dad196c0857b126a8d318314f60a8353",
+      "sha256": "cfd45a624a2abc45689db8fc8dc4c39800070fb594c7c876ebd7a9b349319d65"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark_cli.py",
+      "git_blob": "7738f586811d11937ac9b198576747ef8ebe3680",
+      "sha256": "034fedc64842be274735613629582cca81e90bc12521b0778de721318694ca37"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark_codex_provider.py",
+      "git_blob": "6cb3e612f8ae1debf4b89f9460885a55f2ea3ca0",
+      "sha256": "efb5a6bc37b47d83b46ae4d394e1e86327e970ff8e974c62f20d9f611c42627f"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark_matrix.py",
+      "git_blob": "f25b83f803daff2a471a5f004d7000e2213578bd",
+      "sha256": "d0cd788513e3f96ec82fb709b4545ebfde90c81c6c43f0307252164c9a24d4e7"
+    },
+    {
+      "path": "src/build_colony/envelope_benchmark_provider.py",
+      "git_blob": "4daef2eb74faa0c0e7d564f0742e2fe44c1171e1",
+      "sha256": "0f701dd79cc284247f9dfa91a5cabe32e06a7d8a766fd2dbb3af30f72f2c5c9b"
+    },
+    {
+      "path": "src/build_colony/errors.py",
+      "git_blob": "a9e2d8fcd98964981056b2aa4088a2593c8d9be5",
+      "sha256": "7a3aaa981877341b2d82261957b4c2c2444fd59d1c64bd6489cac049aca54581"
+    },
+    {
+      "path": "src/build_colony/evidence.py",
+      "git_blob": "24f513c4fc9e3b6ee12db664acded91dfc1c4e05",
+      "sha256": "ea5db412d48e8779864dfee53f590378b4c72349020343f2cec9493486196851"
+    },
+    {
+      "path": "src/build_colony/frontier.py",
+      "git_blob": "b95ee007c8833ead49175d8f07140d36b37fb5a9",
+      "sha256": "a29b5bd811e62d3a730f9fb6a1977417529e89e407d9798f69507810f0a8ab5c"
+    },
+    {
+      "path": "src/build_colony/gate_directed_issue.py",
+      "git_blob": "333d0d5b5e46d4b4b5edba1dfc3b2416d9783cdb",
+      "sha256": "7606962f86a34f31ec835feaab326cab10bf17658b441cee0f382fd5c876b436"
+    },
+    {
+      "path": "src/build_colony/github_push_cli.py",
+      "git_blob": "8c80291ae2ef8c2ca2202082872eb5795bc18d29",
+      "sha256": "def85e13de02cf914ee8d996c2eab53c808e774d15e940af5ef2a73e4a517a1f"
+    },
+    {
+      "path": "src/build_colony/github_push_strict.py",
+      "git_blob": "030159866dbc1d47b33d1c9b046d851d0e0fe75e",
+      "sha256": "614000f1b8a3f9fb852cb58586b8e915a07f7474f6bd3818c8424d035e5f8090"
+    },
+    {
+      "path": "src/build_colony/github_push_transport.py",
+      "git_blob": "585273e23872675bb3d9033daf82d9b5da463f45",
+      "sha256": "0de5b06352d5ec120e83e8e27b7e40f99c38b6488d2b41a406d75a6f4722ff2f"
+    },
+    {
+      "path": "src/build_colony/github_source_boundary.py",
+      "git_blob": "069e15f7c2dc83af1fcdb10d58927c5f5ff487d4",
+      "sha256": "d90c4bf2e695095c749e8dd1f53a9677940061fbd6a15f9d8591cdf077dd76f3"
+    },
+    {
+      "path": "src/build_colony/interoperability.py",
+      "git_blob": "a6b7e5e337ff97332053e11bec88b80337f09565",
+      "sha256": "167417dff5b727ebe5b9335b76491d3658940080b07d0778ea63bfd46fd40c79"
+    },
+    {
+      "path": "src/build_colony/interoperability_cli.py",
+      "git_blob": "6ff492bc16cebd81692ca3ff89a7f821917c3121",
+      "sha256": "ad7ee173ded11c548832c715c69edb9410bc940b16c494ee048984eca3a5d235"
+    },
+    {
+      "path": "src/build_colony/ledger.py",
+      "git_blob": "6d8f3bf3f6da3d5c8e59ade92fcea52d2742e0f9",
+      "sha256": "9991f4542509d151172e5d0891085b37e871413f197cdc1e0489a26d3fe62e0e"
+    },
+    {
+      "path": "src/build_colony/models.py",
+      "git_blob": "45441a16306df92ccf7ddfd433ae5b30b8b43b9f",
+      "sha256": "e9ad991eb902e6a492a70ce044a628fa550f4d504a0042532e4607016b66d38f"
+    },
+    {
+      "path": "src/build_colony/pool_attempt.py",
+      "git_blob": "38037908de23f46dc69b41ef3114961fac3d5a48",
+      "sha256": "5369d5363eaf368b2028a61551cbd56ee7ae5bc5bfa6aa0e9a8e9fbddbfdecc3"
+    },
+    {
+      "path": "src/build_colony/pool_cli.py",
+      "git_blob": "0650fa9ef372eb69bb2647db7251acff91729eb1",
+      "sha256": "1baa03fedbaae58294b4db90f8625493dea0b47bf5ebf2273e2cc640139537dd"
+    },
+    {
+      "path": "src/build_colony/pool_rehearsal.py",
+      "git_blob": "ed007b6b68c4b5e404d3a808717a99e292c649ce",
+      "sha256": "6b5c63ca5a2ae5386baca0b9c1446f3454f4c3714aea252ca1c8bb54ec8ebbc6"
+    },
+    {
+      "path": "src/build_colony/profile.py",
+      "git_blob": "867e2e495a8476aff957e0d7839741b02ec9b02c",
+      "sha256": "79992504cfdf811fc07f2a4622a68e44b7701b675a3a404f4aee673f77774483"
+    },
+    {
+      "path": "src/build_colony/protocol.py",
+      "git_blob": "17f837d76cce870d15b8ab689cce3ab30adac1d7",
+      "sha256": "1e51f8694c9a90b637148c458ae72482b0642d91623bc239d6d7f77b390c81ad"
+    },
+    {
+      "path": "src/build_colony/remote_pool_bridge.py",
+      "git_blob": "3ab606f9d5126983b372bb67bc65b559ec479080",
+      "sha256": "d0724fef52b9b2bd9876aea62f489a7a7b9a94d61249894f763fd20313abef8e"
+    },
+    {
+      "path": "src/build_colony/remote_pool_cli.py",
+      "git_blob": "a97df5fa4056e035874bc5dd0bca69267449b0fd",
+      "sha256": "c31b7d113f19f9730b784052695ac68904a456f151c40ce46114a07f551649dd"
+    },
+    {
+      "path": "src/build_colony/runner_adapter.py",
+      "git_blob": "7d65ef43e226ebcf31d1691c2246c4d1b23a0e33",
+      "sha256": "b074a21ea25b5b27bb1cf22d91b85400d969cc33d8680873c8f8f7196d066918"
+    },
+    {
+      "path": "src/build_colony/runner_interface.py",
+      "git_blob": "671774f767bf67505cc1273aee9f72938c7802fa",
+      "sha256": "949557ed71bf0ff5e24e53d0377d1c0f0751af388dae9aa61bdabde4034f678a"
+    },
+    {
+      "path": "src/build_colony/runner_pool.py",
+      "git_blob": "81e230854e93dcda0601a2c6e19a32bc6b0ab6d0",
+      "sha256": "b8f9a6ebfd7dcb7f3f8963ad1bdde9d73aef6ff8c576a5411c6a1d1380e4198f"
+    },
+    {
+      "path": "src/build_colony/runner_session.py",
+      "git_blob": "644a44a1dde79283a6709ca54565c14a99d57a65",
+      "sha256": "bb7dd4ea464ab1e5c1ba484039da4a05e8b7f0bd611613117a58246b54205109"
+    },
+    {
+      "path": "src/build_colony/runner_session_interface.py",
+      "git_blob": "95777423dae2821ec706075ed86871786e866b61",
+      "sha256": "7e867e2129386efcf5af18938de551a8887df10269fea1e07d3d0d66a6498d3a"
+    },
+    {
+      "path": "src/build_colony/runner_session_strict.py",
+      "git_blob": "daf0d706ef6d1bcffe547957d4489770e5c3b7d9",
+      "sha256": "62ce292d1133af19561aa8b58a488b6fb37d4250bdb8e437268863b894b3e34a"
+    },
+    {
+      "path": "src/build_colony/runner_strict.py",
+      "git_blob": "1f3ad49f8a1d4f471359e109299d959337c77498",
+      "sha256": "2686c082d4bc965e2cafb32d9eb675eb212c20c342dc9493e766c526913a44cb"
+    },
+    {
+      "path": "src/build_colony/scheduler.py",
+      "git_blob": "230017e2d33e61a3ca15334b64c036ed4eb362cf",
+      "sha256": "cb6c804c38f44e5a3b53afa71e3e6dc1f4ee0f59f072387066a4dfee6fb04599"
+    },
+    {
+      "path": "src/build_colony/serialization.py",
+      "git_blob": "f0ac131e4097ec9fe5894ba50b29db5d41c5a6da",
+      "sha256": "4f798e8868c1e8ce0456d79ab0d2423daf3155d80260a5aee898dce5a27e5316"
+    },
+    {
+      "path": "src/build_colony/session_cli.py",
+      "git_blob": "cd025e7afa1d2ad650d26b2ea1e57d89f59338cf",
+      "sha256": "2b7e0919c8f2585e2ba4aa954619a3dbfb8f1865a4a174ea31904dd688921369"
+    },
+    {
+      "path": "src/build_colony/state_models.py",
+      "git_blob": "3e09779dd6b850ccf571e99ad714f83a144decdd",
+      "sha256": "782c13c275d1a05106199a5c7b55c07b4bdd206d67460d6998573f8e67f20973"
+    },
+    {
+      "path": "src/build_colony/strict_cli.py",
+      "git_blob": "91c8c698256cb41d46f00fe2d0e23a1796ff2cc1",
+      "sha256": "a243a7d207cffbd368926be8330704e6e725ffaa1cf28cb5a4dcdbf964a305bc"
+    },
+    {
+      "path": "src/build_colony/strict_session_cli.py",
+      "git_blob": "f09148bf4a8349b9736fd126ef51ea352503a0cb",
+      "sha256": "e6de4bd5114e850fe3b4f50362eac57484bcdacc1699a3d479b1a9e3f287c614"
+    },
+    {
+      "path": "src/build_colony/work_selection.py",
+      "git_blob": "d143f6a99aff148ef6e1984643cb24bdf9b964c0",
+      "sha256": "14acec5569b7f126f2d53228ca6dfb281d292f620ae7b8ead7cad615706c460a"
+    },
+    {
+      "path": "tests/test_ebcg_replay.py",
+      "git_blob": "c8e673d72dd012a7f0fc5485c8eeb84e118b2a52",
+      "sha256": "4ef9c184696bcf55c031d0ee4a19bbb29d8f8dc2c976d5267502c02e325be57d"
+    },
+    {
+      "path": "tests/test_work_selection.py",
+      "git_blob": "60bcd06a7da3652fe5139c60d8e97d6b98d4336b",
+      "sha256": "c7bdbd1fc4c5c4ae9065f0baf85628d5e3dce6faa2df2f5773e492a63472ce45"
+    }
+  ],
+  "verified_files": 47,
+  "verification": "all bytes match pinned Git blobs"
+}

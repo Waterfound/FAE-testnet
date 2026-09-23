@@ -1,0 +1,24 @@
+{
+  "project": "FAE Wallet Transaction UX",
+  "waves": [
+    [
+      "WTX-01-contract"
+    ],
+    [
+      "WTX-02-acceptance-fixtures",
+      "WTX-03-txid-details"
+    ],
+    [
+      "WTX-04-history-lifecycle"
+    ],
+    [
+      "WTX-05-browser-validation"
+    ],
+    [
+      "WTX-06-integration"
+    ],
+    [
+      "WTX-07-live-closure"
+    ]
+  ]
+}
