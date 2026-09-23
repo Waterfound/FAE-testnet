@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {evaluateBe06PrecreateEvidence} from '../be06-provider-precreate-guard.mjs';
 
 const common={
@@ -140,4 +141,17 @@ test('BE-06 precreate admission never equals deployment authority',()=>{
     assert.equal(r.explorer_binding_authorized,false);
     assert.equal(r.explorer_live_authorized,false);
   }
+});
+
+
+test('BE-06 exact Oracle account evidence input is admitted but remains non-authoritative',async()=>{
+  const exact=JSON.parse(await readFile(new URL('../be06-oracle-precreate-input-20260923.json',import.meta.url),'utf8'));
+  const r=evaluateBe06PrecreateEvidence(exact);
+  assert.equal(r.admitted,true);
+  assert.equal(r.safe_to_request_host_creation_authority,true);
+  assert.equal(r.resource_creation_authorized,false);
+  assert.equal(r.spend_authorized,false);
+  assert.equal(r.persistent_host_eligible,false);
+  assert.equal(r.explorer_binding_authorized,false);
+  assert.equal(r.explorer_live_authorized,false);
 });
