@@ -2,9 +2,9 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-05",
-  "status": "DISCOVERY_ACTIVE",
+  "status": "SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED_VERIFICATION_PENDING",
   "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
-  "candidate_branch": "lab/block-explorer-be04-20260918",
+  "candidate_branch": "lab/block-explorer-be05-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
     "url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
@@ -77,15 +77,28 @@
         "run_id": 35849397225,
         "status": "CANCELLED_AFTER_40_OF_40_STEPS_PASSED"
       }
+    },
+    "be05_provider_scan": "lab/block-explorer/be05-provider-scan.json",
+    "be05_deployment_contract": "lab/block-explorer/be05-node-deployment-v1.json",
+    "be05_first_green_lab": {
+      "run_id": 35851338345,
+      "job_id": 107149484654,
+      "status": "GREEN"
     }
   },
-  "integration_required_before_next_frontier": false,
-  "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+  "integration_required_before_next_frontier": true,
+  "verified_candidate_revision": null,
   "be05": {
-    "phase": "PROVIDER_AND_RUNTIME_DISCOVERY",
+    "phase": "SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
     "eligible_https_independent_node_found": false,
+    "software_prepared": true,
+    "gateway_verified": true,
+    "binding_probe_verified": true,
     "deployment_authorized": false,
+    "deployment_performed": false,
     "binding_authorized": false,
-    "live_authorized": false
+    "binding_performed": false,
+    "live_authorized": false,
+    "external_unblock_required": true
   }
 }
