@@ -1,0 +1,14 @@
+{
+  "domain_id": "semantic-preservation-map",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "semantic-map"
+  ],
+  "independent_checks": [
+    "Source inspection confirms regs[8] is created in dp6_run_bytes, passed to rw5 as r[8], dynamically indexed, and serialized into the 160-byte output.",
+    "Vitis binding evidence independently confirms r[] is implemented as RAM with Width=64, Depth=8, Latency=1.",
+    "Storage-realization directives can be evaluated without intentionally changing DP6 arithmetic or state order; parity remains mandatory."
+  ],
+  "reasons": []
+}
