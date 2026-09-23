@@ -57,6 +57,14 @@ A stale address cursor returned by the node is surfaced as a retry condition; th
 
 ## Deployment boundary
 
-BE-03 creates application source only. Public deployment remains **NOT_LIVE** until a later frontier binds a public Explorer deployment to an exact integrated revision and a verified HTTPS Independent Node endpoint.
+BE-04 adds a provider-independent deployment artifact and a verified public frontend in **PUBLIC_PREBIND / UNBOUND** state.
+
+Verified public prebind:
+
+```text
+https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/
+```
+
+The public frontend intentionally has `api_base: null`; search, refresh and chain rendering remain disabled. This is **not LIVE Explorer status**. LIVE remains unavailable until an eligible HTTPS Independent Node is independently verified, bound to the expected network, and the exact integrated revision passes the live binding gates.
 
 Deleting `explorer/` must not change Wallet/Mining, node operation, consensus, economics or FAE network survival.
