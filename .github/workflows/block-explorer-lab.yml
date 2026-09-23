@@ -46,7 +46,7 @@ jobs:
         run: node --test lab/block-explorer/tests/be-05-binding-probe.test.mjs
       - name: BE-06 pre-provision hardening tests
         run: node --test lab/block-explorer/tests/be-06-preprovision.test.mjs
-      - name: Check Explorer application syntax
+      - name: BE-06 current-testnet 1 GiB capacity probe\n        run: node lab/block-explorer/be06-runtime-capacity-probe.mjs\n      - name: Check Explorer application syntax
         run: |
           node --check explorer/api-client.mjs
           node --check explorer/app.mjs
