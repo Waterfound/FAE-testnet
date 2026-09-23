@@ -1,7 +1,7 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_BE06_PROVIDER_PRECREATE_POLICY_V2",
   "created": "2026-09-23",
-  "canonical_source_revision": "60d7dbdc1e2c19274f21bda714a539829ab38b19",
+  "canonical_source_revision": "182d2ee695b041e6d6c3e017ade41c2a7400e70c",
   "purpose": "Fail-closed pre-create admission for a zero-cost candidate host using provider-appropriate billing evidence. Passing this policy does not authorize resource creation and does not prove persistent-host eligibility.",
   "authority": "PRECREATE_VALIDATION_ONLY_NO_RESOURCE_CREATION_NO_SPEND_NO_BINDING_NO_LIVE",
   "common_requirements": {
@@ -33,11 +33,28 @@
       "trial_credit_reliance": false,
       "synthetic_reclaim_evasion_forbidden": true,
       "post_create_reclaim_observation_required": true,
-      "physical_capacity_must_be_rechecked_at_launch": true
+      "physical_capacity_must_be_rechecked_at_launch": true,
+      "public_ipv4_at_launch": false,
+      "post_create_reserved_public_ipv4_required": true,
+      "reserved_public_ipv4_available": true,
+      "public_ipv4_no_charge_verified": true,
+      "ingress_hardening_before_public_ipv4_required": true,
+      "world_open_tcp_22_forbidden": true,
+      "admin_path_without_ssh_key_verified": true,
+      "cloud_guard_workload_protection_enabled": false,
+      "compute_instance_run_command_enabled": true,
+      "compute_instance_monitoring_enabled": true
     },
     "launch_time_gate": [
+      "Disable Cloud Guard Workload Protection before launch; do not admit node-hour-billed workload-protection services into the 0 USD envelope.",
+      "Keep Compute Instance Run Command enabled for provider-console administration.",
+      "Keep Compute Instance Monitoring enabled within the Always Free monitoring allowance.",
+      "Launch the candidate without a public IPv4 address, matching the OCI Review evidence.",
+      "Use OCI Compute Instance Run Command / provider console for initial administration; do not require world-open SSH.",
+      "Before public exposure, harden ingress so TCP/22 is not open to 0.0.0.0/0 and only the planned public service ports 80/443 are admitted.",
+      "Only after ingress hardening, assign one reserved public IPv4 from the observed available quota.",
+      "Fail closed if the public IPv4 path ceases to satisfy the zero-cost envelope.",
       "Attempt may fail closed with out-of-host-capacity; no fallback to paid shape is permitted.",
-      "Physical host capacity is not a pre-create fact and must be observed during the authorized launch attempt.",
       "Observe the real right-sized workload against Oracle's documented idle-reclamation conditions.",
       "Do not generate synthetic CPU/network/memory load merely to avoid reclamation."
     ]

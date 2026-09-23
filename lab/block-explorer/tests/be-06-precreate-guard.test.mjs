@@ -33,7 +33,17 @@ const oracle={
     free_block_volume_available_gb:200,
     synthetic_reclaim_evasion:false,
     post_create_reclaim_observation_required:true,
-    physical_capacity_must_be_rechecked_at_launch:true
+    physical_capacity_must_be_rechecked_at_launch:true,
+    public_ipv4_at_launch:false,
+    post_create_reserved_public_ipv4_required:true,
+    reserved_public_ipv4_available:true,
+    public_ipv4_no_charge_verified:true,
+    ingress_hardening_before_public_ipv4_required:true,
+    world_open_tcp_22_forbidden:true,
+    admin_path_without_ssh_key_verified:true,
+    cloud_guard_workload_protection_enabled:false,
+    compute_instance_run_command_enabled:true,
+    compute_instance_monitoring_enabled:true
   }
 };
 
@@ -154,4 +164,34 @@ test('BE-06 exact Oracle account evidence input is admitted but remains non-auth
   assert.equal(r.persistent_host_eligible,false);
   assert.equal(r.explorer_binding_authorized,false);
   assert.equal(r.explorer_live_authorized,false);
+});
+
+
+test('BE-06 rejects unsafe Oracle exposure sequencing',()=>{
+  for(const mutate of [
+    e=>{e.oracle_cloud.public_ipv4_at_launch=true},
+    e=>{e.oracle_cloud.post_create_reserved_public_ipv4_required=false},
+    e=>{e.oracle_cloud.reserved_public_ipv4_available=false},
+    e=>{e.oracle_cloud.public_ipv4_no_charge_verified=false},
+    e=>{e.oracle_cloud.ingress_hardening_before_public_ipv4_required=false},
+    e=>{e.oracle_cloud.world_open_tcp_22_forbidden=false},
+    e=>{e.oracle_cloud.admin_path_without_ssh_key_verified=false}
+  ]){
+    const e=structuredClone(oracle);
+    mutate(e);
+    assert.equal(evaluateBe06PrecreateEvidence(e).admitted,false);
+  }
+});
+
+
+test('BE-06 rejects paid-risk Oracle agent configuration',()=>{
+  for(const mutate of [
+    e=>{e.oracle_cloud.cloud_guard_workload_protection_enabled=true},
+    e=>{e.oracle_cloud.compute_instance_run_command_enabled=false},
+    e=>{e.oracle_cloud.compute_instance_monitoring_enabled=false}
+  ]){
+    const e=structuredClone(oracle);
+    mutate(e);
+    assert.equal(evaluateBe06PrecreateEvidence(e).admitted,false);
+  }
 });

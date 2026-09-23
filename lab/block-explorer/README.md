@@ -316,3 +316,10 @@ Explorer LIVE = NOT_LIVE
 ```
 
 The bounded creation request is one A1 VM in São Paulo, 2 OCPU / 12 GB, Oracle Linux 9, default ~46.6 GB boot volume, dedicated VCN/public subnet/public IPv4, and no world-open SSH. If Always Free A1 capacity is unavailable or any component requires paid usage, creation must fail closed instead of substituting a paid resource.
+
+
+### OCI Review network correction
+
+The final OCI Create Compute Instance Review contradicted the earlier wizard expectation: the candidate showed **Public IPv4 address = No**. BE-06 therefore does not assume automatic public IPv4 assignment. The accepted zero-cost plan is staged: launch without public IPv4, administer initially through OCI Compute Instance Run Command/provider console, harden ingress so TCP/22 is never world-open, then assign one reserved public IPv4 from the observed quota of 6 and expose only ports 80/443. Oracle documentation states there is no charge for public IP use, including unassociated reserved public IPs. Resource creation remains separately unauthorized.
+
+The OCI Review also showed `Cloud Guard Workload Protection = Enabled` by default. Because Oracle lists Workload Protection / Instance Security as a node-hour-metered service while basic Cloud Guard is free, the BE-06 zero-cost envelope requires **Cloud Guard Workload Protection to be disabled before launch**. `Compute Instance Run Command` remains enabled for administration and `Compute Instance Monitoring` remains enabled within the Always Free monitoring allowance.
