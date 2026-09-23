@@ -22,7 +22,7 @@ function commonReasons(e){
   need(e.paid_upgrade_required===false,'paid upgrade must not be required');
   need(e.paid_addons_present===false,'paid add-ons must be absent');
   need(e.protected_capacity_consumed===false,'protected FAE capacity must not be consumed');
-  need(bool(e.provider_console_cost_preview_verified_zero),'provider console cost preview is not verified at 0 USD');
+  need(bool(e.provider_cost_semantics_verified),'provider cost semantics are not verified');
   return reasons;
 }
 
@@ -40,6 +40,12 @@ function oracleReasons(e){
   need(bool(o.runtime_architecture_compatible),'runtime architecture compatibility is not proven');
   need(o.synthetic_reclaim_evasion===false,'synthetic reclaim evasion must be explicitly false');
   need(bool(o.post_create_reclaim_observation_required),'post-create reclaim observation must remain mandatory');
+  need(bool(o.always_free_storage_headroom_verified),'Oracle Always Free storage headroom is not verified');
+  need(bool(o.boot_volume_size_within_always_free_storage),'Oracle boot volume is not proven inside Always Free storage');
+  if(Number.isFinite(o.console_estimated_monthly_cost_brl)&&o.console_estimated_monthly_cost_brl>0){
+    need(bool(o.console_estimate_excludes_tier_pricing_acknowledged),'nonzero OCI estimate requires documented tier-pricing exclusion acknowledgement');
+    need(bool(o.exact_nonzero_estimate_items_independently_free_eligible),'nonzero OCI estimate items are not independently proven Always Free eligible');
+  }
   return reasons;
 }
 

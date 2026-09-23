@@ -282,3 +282,8 @@ Explorer LIVE = NOT_LIVE
 ```
 
 At this point additional source-only work is return-decreasing. The next BE-06 evidence must come from the Oracle account itself. If that evidence passes the guard, a separate bounded authorization is still required before creating the candidate host.
+
+
+### OCI estimator tier-pricing semantics
+
+During account-specific BE-06 dry-run evidence collection, the OCI Console showed a monthly estimate of **R$10.45 for the boot volume** even though the tenancy had **200 GB Free Tier Block Volume available**, usage 0, the candidate boot volume was the default ~46.6 GB, and the resource remained in the GRU home region. Oracle's billing documentation states that Console estimates use the organization's rate card and **do not include tier unit pricing when applicable**. Therefore BE-06 must not require the raw estimator to display zero. It instead requires exact entitlement evidence for every nonzero estimate line. For this candidate the only nonzero line was boot volume, independently proven within the 200 GB Always Free entitlement. Resource creation remains separately unauthorized.

@@ -45,6 +45,21 @@
         "acceptance_rule": "A real right-sized A1 workload must be observed not to satisfy Oracle's documented idle-reclamation conditions; otherwise Oracle is rejected as the persistent host.",
         "monitoring_required": true,
         "current_status": "UNPROVEN"
+      },
+      "cost_estimate_semantics": {
+        "observed_console_estimate_brl_per_month": 10.45,
+        "observed_estimate_item": "Boot volume",
+        "official_estimator_limitation": "Oracle documentation states that Console cost estimates are based on the organization's rate card and do not include tier unit pricing when applicable.",
+        "independent_always_free_evidence": {
+          "home_region": "GRU / sa-saopaulo-1",
+          "free_tier_block_volume_gb_limit": 200,
+          "observed_usage_gb": 0,
+          "observed_available_gb": 200,
+          "candidate_default_boot_volume_gb": 46.6,
+          "candidate_additional_block_volumes": 0,
+          "result": "WITHIN_ALWAYS_FREE_STORAGE_ENTITLEMENT"
+        },
+        "disposition": "NONZERO_ESTIMATE_ACCEPTABLE_ONLY_AS_RATE_CARD_PRE_TIER_ESTIMATE; NOT A BILLING AUTHORITY"
       }
     },
     "google_cloud": {

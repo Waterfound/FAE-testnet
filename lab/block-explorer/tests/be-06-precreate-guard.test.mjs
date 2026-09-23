@@ -10,7 +10,7 @@ const common={
   paid_upgrade_required:false,
   paid_addons_present:false,
   protected_capacity_consumed:false,
-  provider_console_cost_preview_verified_zero:true
+  provider_cost_semantics_verified:true
 };
 
 const oracle={
@@ -26,7 +26,12 @@ const oracle={
     current_capacity_available:true,
     runtime_architecture_compatible:true,
     synthetic_reclaim_evasion:false,
-    post_create_reclaim_observation_required:true
+    post_create_reclaim_observation_required:true,
+    always_free_storage_headroom_verified:true,
+    boot_volume_size_within_always_free_storage:true,
+    console_estimated_monthly_cost_brl:10.45,
+    console_estimate_excludes_tier_pricing_acknowledged:true,
+    exact_nonzero_estimate_items_independently_free_eligible:true
   }
 };
 
@@ -91,7 +96,7 @@ test('BE-06 precreate guard fails closed on any nonzero cost or protected-capaci
     {monthly_cost_ceiling_usd:1},
     {paid_addons_present:true},
     {protected_capacity_consumed:true},
-    {provider_console_cost_preview_verified_zero:false}
+    {provider_cost_semantics_verified:false}
   ]){
     assert.equal(evaluateBe06PrecreateEvidence({...oracle,...patch}).admitted,false);
   }
@@ -107,4 +112,13 @@ test('BE-06 precreate admission never equals persistent-host or deployment autho
     assert.equal(r.explorer_binding_authorized,false);
     assert.equal(r.explorer_live_authorized,false);
   }
+});
+
+
+test('BE-06 guard accepts OCI nonzero rate-card estimate only when exact item is independently Always Free proven',()=>{
+  const ok=evaluateBe06PrecreateEvidence(oracle);
+  assert.equal(ok.admitted,true);
+  const missing=structuredClone(oracle);
+  missing.oracle_cloud.exact_nonzero_estimate_items_independently_free_eligible=false;
+  assert.equal(evaluateBe06PrecreateEvidence(missing).admitted,false);
 });
