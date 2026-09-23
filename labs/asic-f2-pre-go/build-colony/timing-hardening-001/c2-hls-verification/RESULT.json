@@ -1,0 +1,39 @@
+{
+  "candidate": "C2-ARGON2-FILLBLOCK-R-LUTRAM",
+  "outcome": "PASS",
+  "worker": "i-07d2ae49cd70a0563",
+  "hls_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+  "source_sha256": "bff09ca6f613807a9c3b3acb625b8ab29720b89b6177927f4f416403a6ced861",
+  "csim": "16/16",
+  "csynth": {
+    "target_ns": 4,
+    "estimated_ns": 3.443,
+    "estimated_fmax_mhz": 290.42
+  },
+  "resources": {
+    "bram18k": 9,
+    "dsp": 51,
+    "ff": 153139,
+    "lut": 305771,
+    "uram": 0
+  },
+  "binding": {
+    "r": {
+      "core": "RAM_2P_LUTRAM",
+      "width": 64,
+      "depth": 128,
+      "ports": 2,
+      "latency": 1,
+      "delay_ns": 0.61
+    },
+    "t": {
+      "core": "RAM",
+      "width": 64,
+      "depth": 128,
+      "ports": 2,
+      "latency": 1,
+      "delay_ns": 1.2
+    }
+  },
+  "ip_s3_key": "evidence/i-07d2ae49cd70a0563/build-colony-hls-c2/artifacts/fae_dp6_hls_prj/sol_vu47p/impl/ip/xilinx_com_hls_fae_dp6_hls_1_0.zip"
+}
