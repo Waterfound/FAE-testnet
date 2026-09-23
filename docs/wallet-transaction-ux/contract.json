@@ -144,5 +144,36 @@
         "no complete-history claim"
       ]
     }
+  },
+  "verification": {
+    "package_state": "IMPLEMENTED_AND_LOCALLY_REPRODUCED",
+    "behavioral_checks": {
+      "passed": 38,
+      "total": 38
+    },
+    "reproduced_at": "2026-09-23",
+    "methods": [
+      "Parse wallet-transactions.js as standalone JavaScript.",
+      "Evaluate the adapter in an isolated JavaScript scope with synthetic public-only fixtures.",
+      "Exercise exact/malformed TXIDs; ISO, seconds, milliseconds and invalid timestamps; pending/confirmed/unknown/invalid states; received/sent-with-change/self/unrelated direction; bounded empty/invalid/stale/unavailable history; accepted-unconfirmed receipt; coverage constants.",
+      "Cross-check contract.json export names against the adapter."
+    ],
+    "defect_found_and_closed": {
+      "finding": "An empty outputs array was initially classified as sent.",
+      "correction": "normalizeOutputs now rejects outputs.length === 0 as outputs_empty.",
+      "regression_check": "empty outputs rejected",
+      "corrected_adapter_commit": "cebc2d49888f331b80606dde49eac1895dea937e"
+    },
+    "preview_delivery": {
+      "github_status": "success",
+      "vercel_deployment_state": "READY",
+      "served_bytes_reverified": false,
+      "note": "Preview access is authentication-protected; WTX-01 does not claim live/public-byte verification. That belongs to WTX-07."
+    },
+    "gate_verdicts": {
+      "contract": "PASS",
+      "coverage": "PASS"
+    },
+    "user_data_used": false
   }
 }
