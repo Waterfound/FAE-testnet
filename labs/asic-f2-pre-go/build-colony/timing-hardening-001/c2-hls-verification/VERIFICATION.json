@@ -1,0 +1,13 @@
+{
+  "accepted": true,
+  "reasons": [
+    "CSIM 16/16 passed",
+    "all loop constraints satisfied",
+    "csynth and IP export completed",
+    "r binding is exactly RAM_2P_LUTRAM 128x64",
+    "t remains baseline RAM 128x64",
+    "estimated period 3.443ns remains below 4ns target",
+    "resource use remains within the established F2 HLS envelope"
+  ],
+  "next_gate": "routed physical timing: WNS>=0,TNS=0,WHS>=0,THS=0"
+}
