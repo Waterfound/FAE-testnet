@@ -48,7 +48,7 @@ function validBlocks(){
     blocks:[{height:9,hash:TIP}]
   };
 }
-function mockGateway({wrongNetwork=false,allowPost=false,exposeSubmit=false,badCors=false}={}){
+function mockGateway({wrongNetwork=false,acceptPost=false,advertisePost=false,exposeSubmit=false,badCors=false}={}){
   return http.createServer((req,res)=>{
     const origin=req.headers.origin;
     const cors=origin?{'access-control-allow-origin':badCors?'https://wrong.example':origin}:{};
@@ -56,12 +56,12 @@ function mockGateway({wrongNetwork=false,allowPost=false,exposeSubmit=false,badC
     if(req.url==='/explorer/status'&&req.method==='OPTIONS'){
       res.writeHead(204,{
         ...cors,
-        'access-control-allow-methods':allowPost?'GET,OPTIONS,POST':'GET,OPTIONS'
+        'access-control-allow-methods':advertisePost?'GET,OPTIONS,POST':'GET,OPTIONS'
       });
       return res.end();
     }
     if(req.url==='/explorer/status'&&req.method==='POST'){
-      if(allowPost)return responseJson(res,200,{ok:true},cors);
+      if(acceptPost)return responseJson(res,200,{ok:true},cors);
       return responseJson(res,405,{ok:false,error:'read_only'},cors);
     }
     if(req.url==='/explorer/status'&&req.method==='GET'){
@@ -121,12 +121,23 @@ test('probe fails closed on network identity mismatch',async()=>{
 });
 
 test('probe fails if public gateway accepts Explorer POST',async()=>{
-  const server=mockGateway({allowPost:true});
+  const server=mockGateway({acceptPost:true});
   const port=await listen(server);
   try{
     await assert.rejects(
       ()=>probeBinding({publicOrigin:'https://node.example',frontendOrigin:FRONTEND,fetchImpl:makeFetch('http://127.0.0.1:'+port),delayMs:0}),
       /explorer_post_not_rejected/
+    );
+  }finally{await close(server)}
+});
+
+test('probe fails if CORS advertises POST even when POST path could be rejected',async()=>{
+  const server=mockGateway({advertisePost:true});
+  const port=await listen(server);
+  try{
+    await assert.rejects(
+      ()=>probeBinding({publicOrigin:'https://node.example',frontendOrigin:FRONTEND,fetchImpl:makeFetch('http://127.0.0.1:'+port),delayMs:0}),
+      /preflight_method_policy/
     );
   }finally{await close(server)}
 });
