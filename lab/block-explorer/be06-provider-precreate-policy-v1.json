@@ -1,0 +1,74 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_PROVIDER_PRECREATE_POLICY_V1",
+  "created": "2026-09-23",
+  "canonical_source_revision": "a133a0ef00c84536e5609b69452daa4641026f98",
+  "purpose": "Fail-closed pre-create admission for a zero-cost candidate host. Passing this policy does not authorize resource creation and does not prove persistent-host eligibility.",
+  "authority": "PRECREATE_VALIDATION_ONLY_NO_RESOURCE_CREATION_NO_SPEND_NO_BINDING_NO_LIVE",
+  "common_requirements": {
+    "account_scope_verified": true,
+    "selected_resources_explicitly_free_eligible": true,
+    "estimated_monthly_cost_usd": 0,
+    "monthly_cost_ceiling_usd": 0,
+    "paid_upgrade_required": false,
+    "paid_addons_present": false,
+    "protected_capacity_consumed": false,
+    "provider_console_cost_preview_verified_zero": true
+  },
+  "oracle_cloud": {
+    "provider_priority": 1,
+    "accepted_shapes": [
+      "VM.Standard.A1.Flex",
+      "VM.Standard.E2.1.Micro"
+    ],
+    "requirements": {
+      "home_region_verified": true,
+      "always_free_compute_label_observed": true,
+      "within_remaining_compute_entitlement": true,
+      "boot_and_durable_storage_within_free_entitlement": true,
+      "public_network_zero_cost_verified": true,
+      "current_capacity_available": true,
+      "runtime_architecture_compatible": true,
+      "synthetic_reclaim_evasion_forbidden": true,
+      "post_create_reclaim_observation_required": true
+    },
+    "post_create_gate": [
+      "Observe the real right-sized workload against Oracle's documented idle-reclamation conditions.",
+      "Do not generate synthetic CPU/network/memory load merely to avoid reclamation.",
+      "Candidate cannot become an eligible persistent host until durability/recovery and reclaim disposition are evidence-GREEN."
+    ]
+  },
+  "google_cloud": {
+    "provider_priority": 2,
+    "accepted_machine_type": "e2-micro",
+    "accepted_regions": [
+      "us-west1",
+      "us-central1",
+      "us-east1"
+    ],
+    "max_pd_standard_gb": 30,
+    "requirements": {
+      "non_preemptible": true,
+      "external_ipv4": false,
+      "external_ipv6": true,
+      "public_https_ipv6_path_planned": true,
+      "free_tier_usage_remaining_verified": true,
+      "runtime_architecture_compatible": true,
+      "egress_fail_closed": true
+    },
+    "rationale": [
+      "Current Google VPC pricing charges static and ephemeral external IPv4 addresses assigned to standard VM instances beyond the very small address free tier; BE-06 therefore rejects ordinary VM external IPv4 under a strict 0 USD monthly ceiling.",
+      "External IPv6 assigned to VM instances is documented as no-charge, but reachability/TLS still requires post-create acceptance.",
+      "The Compute Engine Free Tier e2-micro/storage/egress allowance is necessary but not sufficient for persistent-host eligibility."
+    ],
+    "post_create_gate": [
+      "Prove Explorer-client reachability to the IPv6 HTTPS origin.",
+      "Prove 1 GiB host runtime headroom for Independent Node + gateway + TLS/OS.",
+      "Prove egress remains fail-closed before any billable overage."
+    ]
+  },
+  "result_semantics": {
+    "admitted": "Configuration is safe to request separate host-creation authority.",
+    "not_authorized": "Admission never creates a resource or grants spend, Explorer binding, LIVE, consensus, wallet, mining, or economics authority.",
+    "persistent_host_eligibility": "Requires later real-host evidence and be06-host-preflight.mjs eligible=true."
+  }
+}
