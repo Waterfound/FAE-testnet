@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_04_CLOSEOUT_VERIFICATION_PENDING",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -106,15 +106,25 @@
       "authority_change": "NONE; source-only Explorer application candidate"
     },
     "BE-04": {
-      "status": "VERIFICATION_PENDING",
+      "status": "GREEN",
+      "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+      "block_explorer_lab_run_id": 35849223884,
+      "block_explorer_lab_job_id": 107142650282,
+      "be01_be02_be03_be04_regressions": "PASS",
+      "cross_lab_preintegration_run_id": 35849223850,
+      "canonical_source_run_id": 35849223848,
+      "codeql_run_id": 35849223829,
+      "recurring_assurance_run_id": 35849223946,
+      "psr15_whitebox_run_id": 35849223877,
       "public_frontend": "READY_PUBLIC_PREBIND",
       "public_url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
       "app_id": "fae-block-explorer-e2z4q3",
       "hosted_snapshot_version": "1789777122012",
-      "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+      "hosted_source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
       "node_binding": "UNRESOLVED",
       "live_status": "NOT_LIVE",
-      "evidence_path": "lab/block-explorer/be04-public-prebind-evidence.json"
+      "evidence_path": "lab/block-explorer/be04-public-prebind-evidence.json",
+      "authority_change": "NONE; public hosting remains non-authoritative and unbound"
     }
   },
   "be02_authority": {
