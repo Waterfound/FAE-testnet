@@ -15,6 +15,7 @@ const explorerHtml=await read('explorer/index.html').catch(()=>null);
 const explorerApp=await read('explorer/app.mjs').catch(()=>null);
 const explorerClient=await read('explorer/api-client.mjs').catch(()=>null);
 const explorerConfig=await read('explorer/config.json').then(JSON.parse).catch(()=>null);
+const explorerBuild=await read('explorer/build.mjs').catch(()=>null);
 
 function assert(condition,message){if(!condition)throw new Error(message)}
 
@@ -43,6 +44,22 @@ if(authority.current_frontier==='BE-02'){
   assert(authority.node_query_surface_write_authorized===false,'BE-03 node-query authority drift');
   assert(authority.explorer_application_live_authorized===false,'BE-03 LIVE authority drift');
   assert(authority.public_deployment_authorized===false,'BE-03 deployment authority drift');
+}else if(authority.current_frontier==='BE-04'){
+  const phase=authority.be04_authority?.state;
+  assert(['AUTHORIZED_BOUNDED','LAB_VERIFIED_FROZEN'].includes(phase),'BE-04 authority state mismatch');
+  assert(authority.current_stage_runtime_write_authorized===false,'BE-04 active-node authority drift');
+  assert(authority.node_query_surface_write_authorized===false,'BE-04 node-query authority drift');
+  assert(authority.explorer_application_live_authorized===false,'BE-04 LIVE authority drift');
+  assert(authority.public_deployment_authorized===false,'BE-04 generic deployment authority drift');
+  assert(authority.public_https_node_binding_authorized===false,'BE-04 cannot synthesize HTTPS node binding');
+  assert(authority.independent_node_public_deployment_authorized===false,'BE-04 cannot deploy a persistent node');
+  if(phase==='AUTHORIZED_BOUNDED'){
+    assert(authority.explorer_application_write_authorized===true,'BE-04 bounded source write authority missing');
+    assert(authority.public_frontend_prebind_deployment_authorized===true,'BE-04 public prebind authority missing');
+  }else{
+    assert(authority.explorer_application_write_authorized===false,'BE-04 frozen source writes must be closed');
+    assert(authority.be04_authority?.source_writes_frozen===true,'BE-04 frozen marker missing');
+  }
 }else{
   assert(authority.node_query_surface_write_authorized===false,'BE-01 node query authority drift');
 }
@@ -69,7 +86,7 @@ assert(model.entities.address.event_types.includes('transfer')&&model.entities.a
 const digestRule=model.universal_search.rules.find(x=>x.when.includes('64-character'));
 assert(digestRule&&digestRule.resolve.includes('block_hash')&&digestRule.resolve.includes('txid'),'digest namespace ambiguity lost');
 
-if(['BE-02','BE-03'].includes(authority.current_frontier)){
+if(['BE-02','BE-03','BE-04'].includes(authority.current_frontier)){
   assert(nodeSource.includes("const snapshot=cloneState(state)"),'Explorer reads must clone validated node state');
   assert(nodeSource.includes("cors('GET,OPTIONS')"),'Explorer CORS must remain read-only');
   assert(explorerSource.includes("if(method!=='GET')return{status:405,payload:{ok:false,error:'read_only'}}"),'Explorer mutation rejection missing');
@@ -78,15 +95,22 @@ if(['BE-02','BE-03'].includes(authority.current_frontier)){
   assert(!explorerSource.includes('submit-tx'),'Explorer reader must not submit transactions');
   assert(!explorerSource.includes('submit-block'),'Explorer reader must not submit blocks');
 }
-if(authority.current_frontier==='BE-03'){
-  assert(explorerHtml&&explorerApp&&explorerClient&&explorerConfig,'BE-03 application source missing');
-  assert(explorerConfig.network===model.active_network.network&&explorerConfig.read_only===true,'BE-03 app config authority drift');
-  assert(explorerConfig.deployment_state==='NOT_LIVE','BE-03 falsely claims LIVE');
-  assert(explorerHtml.includes('Read-only'),'BE-03 visible read-only identity missing');
-  assert(explorerClient.includes("method:'GET'"),'BE-03 GET-only client binding missing');
+if(['BE-03','BE-04'].includes(authority.current_frontier)){
+  assert(explorerHtml&&explorerApp&&explorerClient&&explorerConfig,'Explorer application source missing');
+  assert(explorerConfig.schema==='FAE_EXPLORER_APP_CONFIG_V2','Explorer config schema drift');
+  assert(explorerConfig.network===model.active_network.network&&explorerConfig.read_only===true,'Explorer app config authority drift');
+  assert(explorerConfig.deployment_state==='NOT_LIVE','Explorer source config falsely claims LIVE');
+  assert(explorerHtml.includes('Read-only'),'Explorer visible read-only identity missing');
+  assert(explorerClient.includes("method:'GET'"),'Explorer GET-only client binding missing');
   const appSource=explorerHtml+'\n'+explorerApp+'\n'+explorerClient;
   for(const forbidden of ['/submit-tx','/submit-block',"method:'POST'",'privateKey','seedPhrase','startMining','innerHTML']){
-    assert(!appSource.includes(forbidden),'BE-03 forbidden capability leaked: '+forbidden);
+    assert(!appSource.includes(forbidden),'Explorer forbidden capability leaked: '+forbidden);
+  }
+  if(authority.current_frontier==='BE-04'){
+    assert(explorerBuild,'BE-04 build source missing');
+    assert(explorerBuild.includes("LIVE cannot be synthesized"),'BE-04 LIVE refusal missing');
+    assert(explorerBuild.includes("public node binding requires HTTPS"),'BE-04 HTTPS gate missing');
+    assert(explorerApp.includes("binding_state==='UNBOUND'"),'BE-04 public prebind UI handling missing');
   }
 }
 

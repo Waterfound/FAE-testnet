@@ -1,7 +1,7 @@
 # FAE Canonical State
 
 Status: living context registry for FAE engineering work  
-Last reviewed: 2026-09-18  
+Last reviewed: 2026-09-23  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
@@ -172,7 +172,12 @@ Accepted implementation state carried by canonical main after BE-02 integration:
 - Explorer UI: status metrics, latest blocks, universal search, block/TX/address details, reward + transfer activity and tip-bound pagination;
 - Explorer application network binding: fail closed unless successful responses identify `fairyelf-public-testnet-v4` and include a valid observed tip binding;
 - Explorer application imports from Wallet/Mining active site: none;
-- Explorer application deployment state: `NOT_LIVE`; public URL and public HTTPS Independent Node binding remain unresolved.
+- BE-04 provider-independent deployment artifact: candidate verified;
+- Explorer public frontend: verified at `https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/` in `PUBLIC_PREBIND / UNBOUND` state;
+- hosted config: `api_base: null`, `read_only: true`, source-bound to `eabddc8db3f79f4ac6a7544316809f3d879954fe`;
+- public frontend QA: no reported frontend, network or backend errors in the provider snapshot;
+- public HTTPS Independent Node binding: unresolved;
+- Explorer LIVE state: **NOT_LIVE**; the public prebind does not authorize chain data, consensus, wallet, signing or mining authority.
 
 Primary references:
 
@@ -184,6 +189,9 @@ Primary references:
 - `explorer/api-client.mjs`
 - `explorer/app.mjs`
 - `lab/block-explorer/tests/be-03-app.test.mjs`
+- `explorer/build.mjs`
+- `lab/block-explorer/tests/be-04-deployment.test.mjs`
+- `lab/block-explorer/be04-public-prebind-evidence.json`
 
 ## Cross-Lab integration rule
 

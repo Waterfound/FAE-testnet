@@ -158,7 +158,10 @@
         "explorer/api-client.mjs",
         "explorer/app.mjs",
         "explorer/README.md",
-        "lab/block-explorer/tests/be-03-app.test.mjs"
+        "lab/block-explorer/tests/be-03-app.test.mjs",
+        "explorer/build.mjs",
+        "lab/block-explorer/tests/be-04-deployment.test.mjs",
+        "lab/block-explorer/be04-public-prebind-evidence.json"
       ],
       "combined_checks": [
         [
@@ -179,9 +182,14 @@
           "node",
           "--test",
           "lab/block-explorer/tests/be-03-app.test.mjs"
+        ],
+        [
+          "node",
+          "--test",
+          "lab/block-explorer/tests/be-04-deployment.test.mjs"
         ]
       ],
-      "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface; BE-03 adds the separate static Explorer application. Combined-main rechecks authority isolation, source presence, BE-01/02/03 regressions, GET-only app transport, network/tip fail-closed behavior, and absence of Wallet/Mining/submit authority."
+      "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface; BE-03 adds the separate static Explorer application; BE-04 adds a provider-independent deployment artifact plus a verified public PUBLIC_PREBIND/UNBOUND frontend. Combined-main rechecks authority isolation, BE-01/02/03/04 regressions, GET-only transport, HTTPS-only future binding semantics, and that public hosting cannot synthesize LIVE or chain authority."
     }
   ]
 }

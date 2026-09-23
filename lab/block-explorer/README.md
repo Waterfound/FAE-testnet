@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-03 — LAB_VERIFIED / integration candidate**
+Status: **BE-04 — PUBLIC_PREBIND VERIFIED / HTTPS node binding blocked**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -144,3 +144,33 @@ The exact source candidate `fb643eb847a3c40aeb190e04b525d8b31987070d` passed:
 - canonical-source suite: **40/40 substantive gates**.
 
 Application writes are now frozen. Integration into canonical `main` and exact combined-main verification are required before BE-04 or any deployment frontier can advance.
+
+
+## BE-04 closeout
+
+BE-04 reached the evidence ceiling available without allocating new persistent node infrastructure.
+
+Verified public frontend:
+
+- URL: `https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/`;
+- deployment state: `PUBLIC_PREBIND`;
+- binding state: `UNBOUND`;
+- hosted `api_base`: `null`;
+- read-only: `true`;
+- hosted snapshot version: `1789777122012`;
+- published Explorer source revision: `eabddc8db3f79f4ac6a7544316809f3d879954fe`;
+- provider QA: clean, with no reported frontend, network, or backend errors.
+
+The public frontend is intentionally unable to query chain data until an eligible persistent HTTPS Independent Node is proven and bound.
+
+The HTTPS node binding remains externally blocked because no eligible persistent node is currently available without consuming or weakening separate infrastructure evidence envelopes. This is not a software failure and does not authorize substituting an audit service, raw feed, cache, Wallet/Mining host, or hosting provider as FAE authority.
+
+Therefore:
+
+```text
+BE-04 public frontend = VERIFIED
+BE-04 HTTPS node binding = BLOCKED_PENDING_ELIGIBLE_PERSISTENT_NODE
+Explorer LIVE = NOT_LIVE
+```
+
+No further BE-04 source work is justified until eligible node-hosting evidence changes.

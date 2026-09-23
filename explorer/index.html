@@ -21,6 +21,7 @@
     </a>
     <div class="header-status">
       <span class="boundary-pill">Read-only</span>
+      <span id="binding-pill" class="boundary-pill">Local dev</span>
       <span id="network-pill" class="network-pill" data-state="connecting" role="status" aria-live="polite">
         <span class="network-dot" aria-hidden="true"></span>
         <span id="network-label">Connecting…</span>
@@ -118,7 +119,7 @@
 
   <footer>
     <span>FAE public testnet · test coins have no monetary value</span>
-    <span>Explorer application state: <strong>BE-03 candidate</strong></span>
+    <span>Explorer application state: <strong id="deployment-label">NOT_LIVE</strong></span>
   </footer>
 </div>
 <script type="module" src="./app.mjs"></script>
