@@ -1,0 +1,26 @@
+{
+  "candidate": "C1-RW5-REGFILE-COMPLETE-PARTITION",
+  "outcome": "REJECT",
+  "worker": "i-08c2e47c356867c02",
+  "final_stage": "PHYSICAL_IMPLEMENTATION_FAIL_CLOSED",
+  "exit_code": 1,
+  "timing": {
+    "wns_ns": -0.631657,
+    "tns_ns": -2308.980225,
+    "whs_ns": 0.009511,
+    "ths_ns": 0
+  },
+  "baseline_comparison": {
+    "baseline_wns_ns": -0.165,
+    "delta_wns_ns": -0.466657
+  },
+  "conclusion": "C1 removed the original 8x64 inferred RAM but created a worse distributed-register/mux/routing topology. Do not stack further work on C1.",
+  "developer_cl": {
+    "sha256": "8ebbdd548b79e8fa81e506e7f90b7d60dff693da98b9f3037b05dad5158c4a91",
+    "admissible_for_afi": false
+  },
+  "top_path_attribution": {
+    "rw5_top10": 9,
+    "argon2d_top10": 1
+  }
+}
