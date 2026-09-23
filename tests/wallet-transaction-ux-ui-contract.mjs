@@ -73,10 +73,14 @@ assert.match(
   /\.txid-full\{[^}]*overflow-wrap:anywhere[^}]*word-break:break-all[^}]*user-select:all[^}]*\}/,
   'complete TXID must remain visible/selectable on narrow screens'
 );
-assert.match(
-  html,
-  /@media\(max-width:760px\)\{[^}]*\.transaction-detail-grid\{grid-template-columns:1fr\}/,
-  'transaction detail layout must collapse to one column on mobile'
+const mobileMediaStart=html.indexOf('@media(max-width:760px){');
+const mobileDetailRule=html.indexOf('.transaction-detail-grid{grid-template-columns:1fr}',mobileMediaStart);
+const nextMedia=html.indexOf('@media(',mobileMediaStart+1);
+assert.ok(
+  mobileMediaStart>=0&&
+  mobileDetailRule>mobileMediaStart&&
+  (nextMedia<0||mobileDetailRule<nextMedia),
+  'transaction detail layout must collapse to one column inside the <=760px media block'
 );
 
 assert.match(
