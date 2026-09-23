@@ -2,9 +2,12 @@
 # The runner must prepare the AWS HLx environment and place the exported FAE
 # HLS IP under $HDK_SHELL_DIR/hlx/design/ip before invoking this script.
 #
-# Optional:
-#   FAE_IMPL_STRATEGY=<Vivado implementation strategy>
-# Default remains Vivado's configured strategy.
+# Optional timing-closure knobs:
+#   FAE_PHYS_OPT_DIRECTIVE=<Vivado phys_opt_design directive>
+#   FAE_ROUTE_DIRECTIVE=<Vivado route_design directive>
+#
+# IMPORTANT: the AWS HLx global implementation STRATEGY is intentionally left
+# untouched. AWS launch hooks depend on the default FaaS run configuration.
 
 set ::env(FAE_CONTINUE_AFTER_VALIDATE) 1
 source [file join [file dirname [info script]] integrate_fae_f2.tcl]
@@ -19,12 +22,42 @@ set runs [get_runs]
 puts "AVAILABLE_RUNS=$runs"
 if {[llength [get_runs impl_1]] == 0} { error "IMPL_1_NOT_FOUND" }
 
-if {[info exists ::env(FAE_IMPL_STRATEGY)] && $::env(FAE_IMPL_STRATEGY) ne ""} {
-  set strategy $::env(FAE_IMPL_STRATEGY)
-  puts "FAE_IMPL_STRATEGY=$strategy"
-  set_property STRATEGY $strategy [get_runs impl_1]
+set impl [get_runs impl_1]
+set global_strategy [get_property STRATEGY $impl]
+puts "GLOBAL_IMPL_STRATEGY=$global_strategy"
+if {$global_strategy ne "Vivado Implementation Defaults"} {
+  error "AWS_HLX_GLOBAL_STRATEGY_CHANGED:$global_strategy"
 }
-puts "EFFECTIVE_IMPL_STRATEGY=[get_property STRATEGY [get_runs impl_1]]"
+
+puts "BASE_OPT_DIRECTIVE=[get_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "BASE_PLACE_DIRECTIVE=[get_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "BASE_PHYS_OPT_DIRECTIVE=[get_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "BASE_ROUTE_DIRECTIVE=[get_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $impl]"
+
+if {[info exists ::env(FAE_PHYS_OPT_DIRECTIVE)] && $::env(FAE_PHYS_OPT_DIRECTIVE) ne ""} {
+  set pd $::env(FAE_PHYS_OPT_DIRECTIVE)
+  puts "FAE_PHYS_OPT_DIRECTIVE=$pd"
+  set_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE $pd $impl
+}
+if {[info exists ::env(FAE_ROUTE_DIRECTIVE)] && $::env(FAE_ROUTE_DIRECTIVE) ne ""} {
+  set rd $::env(FAE_ROUTE_DIRECTIVE)
+  puts "FAE_ROUTE_DIRECTIVE=$rd"
+  set_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $rd $impl
+}
+
+# Fail closed if an external change silently altered AWS-sensitive knobs.
+if {[get_property STRATEGY $impl] ne "Vivado Implementation Defaults"} {
+  error "AWS_HLX_GLOBAL_STRATEGY_MUTATED"
+}
+if {[get_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE $impl] ne "Explore"} {
+  error "AWS_HLX_OPT_DIRECTIVE_MUTATED"
+}
+if {[get_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE $impl] ne "Explore"} {
+  error "AWS_HLX_PLACE_DIRECTIVE_MUTATED"
+}
+
+puts "EFFECTIVE_PHYS_OPT_DIRECTIVE=[get_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "EFFECTIVE_ROUTE_DIRECTIVE=[get_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $impl]"
 
 launch_runs impl_1 -jobs 12
 wait_on_run impl_1
