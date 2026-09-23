@@ -2,7 +2,7 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-04",
-  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
+  "status": "LAB_VERIFIED_PUBLIC_PREBIND_NODE_BINDING_BLOCKED",
   "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
   "candidate_branch": "lab/block-explorer-be04-20260918",
   "public_frontend": {
@@ -47,6 +47,36 @@
     "psr15_whitebox": {
       "run_id": 35849223877,
       "status": "GREEN"
+    },
+    "workflow_runs": {
+      "block_explorer_lab": {
+        "run_id": 35849397207,
+        "status": "GREEN"
+      },
+      "cross_lab": {
+        "run_id": 35849397172,
+        "status": "GREEN"
+      },
+      "project_assurance": {
+        "run_id": 35849397112,
+        "status": "GREEN"
+      },
+      "recurring_assurance": {
+        "run_id": 35849397136,
+        "status": "GREEN"
+      },
+      "codeql": {
+        "run_id": 35849397142,
+        "status": "GREEN"
+      },
+      "canonical_source": {
+        "run_id": 35849223848,
+        "status": "GREEN"
+      },
+      "canonical_concurrent_replay": {
+        "run_id": 35849397225,
+        "status": "CANCELLED_AFTER_40_OF_40_STEPS_PASSED"
+      }
     }
   },
   "integration_required_before_next_frontier": true,
