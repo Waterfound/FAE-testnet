@@ -74,6 +74,15 @@ textarea{min-height:72px;resize:vertical}
 .transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
 .transaction-title{font-weight:720}
 .transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}
+.transaction-button{width:100%;color:var(--text);text-align:left;font-weight:400}
+.transaction-button:hover{border-color:var(--line-strong)}
+.transaction-detail{margin-top:11px;padding:13px;border:1px solid var(--line-strong);border-radius:12px;background:#09150e}
+.transaction-detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;margin-top:10px}
+.transaction-detail-grid>div{min-width:0}
+.txid-full{display:block;width:100%;margin:7px 0;padding:10px;background:#06100a;border:1px solid var(--line);border-radius:9px;overflow-wrap:anywhere;word-break:break-all;user-select:all}
+.transaction-outputs{display:grid;gap:6px;margin-top:7px}
+.transaction-output{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px}
+.copy-feedback{min-height:20px;margin-top:6px}
 .right{text-align:right}
 .empty{color:var(--muted);padding:12px 2px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
@@ -81,7 +90,7 @@ textarea{min-height:72px;resize:vertical}
 .divider{border:0;border-top:1px solid var(--line);margin:15px 0}
 .passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}
 .footer-note{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
-@media(max-width:760px){.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.metrics{grid-template-columns:1fr 1fr}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:5px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
+@media(max-width:760px){.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.metrics{grid-template-columns:1fr 1fr}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:5px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}.transaction-detail-grid{grid-template-columns:1fr}}
 @media(max-width:420px){main{padding-inline:11px}.metrics{grid-template-columns:1fr 1fr}.card{padding:13px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}}
 </style>
@@ -212,6 +221,7 @@ textarea{min-height:72px;resize:vertical}
             <button id="receive" disabled>Receive · copy address</button>
             <button id="exportwallet" class="alt" disabled>Wallet backup</button>
             <button id="refresh" class="ghost">Refresh</button>
+            <button id="openhistory" class="ghost" disabled aria-controls="history-panel">Transaction history</button>
           </div>
           <div id="wstate" class="status">No wallet selected.</div>
           <div id="ustate" class="small">Select or create a wallet.</div>
@@ -240,6 +250,17 @@ textarea{min-height:72px;resize:vertical}
             <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
           </div>
           <div id="sendstate" class="status">Create, insert, or recover a full wallet to send.</div>
+          <div id="sendreceipt" class="transaction-detail" hidden>
+            <div class="small">Transaction receipt</div>
+            <div id="sendtxstatus" class="transaction-title">Accepted · awaiting network observation</div>
+            <span class="field">TX ID</span>
+            <code id="sendtxid" class="mono txid-full" tabindex="0"></code>
+            <div class="actions">
+              <button id="copysendtx" class="alt" type="button">Copy TX ID</button>
+              <button id="opensendtxdetails" class="ghost" type="button">Transaction details</button>
+            </div>
+            <div id="sendcopyfeedback" class="small copy-feedback" role="status" aria-live="polite"></div>
+          </div>
           <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
         </section>
       </div>
@@ -257,13 +278,39 @@ textarea{min-height:72px;resize:vertical}
       <section class="card">
         <div class="section-head">
           <div>
-            <h2>Transactions</h2>
-            <div class="small">History follows the active address.</div>
+            <h2 id="history-title" tabindex="-1">Transactions</h2>
+            <div class="small">Recent transfer history follows the active address.</div>
           </div>
-          <button id="togglehistory" class="alt" disabled aria-expanded="false" aria-controls="history-panel">Transaction history</button>
+          <button id="togglehistory" class="alt" disabled aria-expanded="false" aria-controls="history-panel">Show history</button>
         </div>
         <div id="history-panel" hidden>
-          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">No transactions.</div></div>
+          <div class="actions">
+            <button id="retryhistory" class="ghost" type="button" disabled>Refresh history</button>
+          </div>
+          <div id="historystate" class="small" role="status" aria-live="polite">Select a wallet to load recent transfer history.</div>
+          <div id="txhist" class="transaction-list"><div class="empty">No transactions loaded.</div></div>
+          <div id="transaction-detail" class="transaction-detail" hidden tabindex="-1" aria-labelledby="txdetailtitle">
+            <div class="section-head">
+              <div>
+                <h3 id="txdetailtitle">Transaction details</h3>
+                <div id="txdetailstatus" class="small">Status unavailable</div>
+              </div>
+              <button id="closetxdetail" class="ghost" type="button">Close</button>
+            </div>
+            <span class="field">TX ID</span>
+            <code id="txdetailid" class="mono txid-full" tabindex="0"></code>
+            <div class="actions"><button id="copytxid" class="alt" type="button">Copy TX ID</button></div>
+            <div id="txcopyfeedback" class="small copy-feedback" role="status" aria-live="polite"></div>
+            <div class="transaction-detail-grid">
+              <div><span class="small">Direction</span><div id="txdetaildirection"></div></div>
+              <div><span class="small">Amount</span><div id="txdetailamount"></div></div>
+              <div><span class="small">From</span><div id="txdetailfrom" class="mono"></div></div>
+              <div id="txdetailblockrow"><span class="small">Block</span><div id="txdetailblock"></div></div>
+              <div id="txdetailtimerow"><span class="small">Time</span><div id="txdetailtime"></div></div>
+            </div>
+            <span class="field">Outputs</span>
+            <div id="txdetailoutputs" class="transaction-outputs"></div>
+          </div>
         </div>
       </section>
     </div>
