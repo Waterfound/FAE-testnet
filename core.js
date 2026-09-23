@@ -165,9 +165,16 @@ function short(value,start=16,end=8){
 
 function readableTime(timestamp){
   if(!timestamp)return '';
-  const milliseconds=window.FAEWalletTransactionUX
-    ?window.FAEWalletTransactionUX.finiteTimestampMs(timestamp)
-    :null;
+  const ux=window.FAEWalletTransactionUX;
+  const milliseconds=ux
+    ?ux.finiteTimestampMs(timestamp)
+    :(()=>{
+      const numeric=Number(timestamp);
+      const date=Number.isFinite(numeric)
+        ?new Date(numeric<1e12?numeric*1000:numeric)
+        :new Date(timestamp);
+      return Number.isNaN(date.getTime())?null:date.getTime();
+    })();
   if(milliseconds===null)return '';
   const date=new Date(milliseconds);
   return date.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
@@ -296,6 +303,18 @@ function setWalletHistory(next){
   if(typeof reconcileLastAcceptedReceipt==='function')reconcileLastAcceptedReceipt(walletHistory);
 }
 
+function walletTransactionUXUnavailable(address,error='Wallet transaction UX module is unavailable'){
+  return{
+    state:'unavailable',
+    address:address||null,
+    transactions:[],
+    coverage:null,
+    fetched_at_ms:null,
+    error,
+    stale_reason:null
+  };
+}
+
 function renderRecentNetwork(state){
   const blocks=Array.isArray(state?.recent)?state.recent:[];
   const transfers=[];
@@ -386,7 +405,12 @@ async function refreshNow(generation=walletViewGeneration){
 
   if(statusResult.status==='rejected'){
     if(wallet?.address&&generation===walletViewGeneration){
-      setWalletHistory(window.FAEWalletTransactionUX.historyUnavailable(wallet.address,statusResult.reason,walletHistory));
+      const ux=window.FAEWalletTransactionUX;
+      setWalletHistory(
+        ux
+          ?ux.historyUnavailable(wallet.address,statusResult.reason,walletHistory)
+          :walletTransactionUXUnavailable(wallet.address,statusResult.reason?.message||String(statusResult.reason))
+      );
     }
     throw statusResult.reason;
   }
@@ -412,7 +436,12 @@ async function refreshNow(generation=walletViewGeneration){
   }
 
   const requestedAddress=wallet.address;
-  setWalletHistory(window.FAEWalletTransactionUX.historyLoading(requestedAddress,walletHistory));
+  const ux=window.FAEWalletTransactionUX;
+  setWalletHistory(
+    ux
+      ?ux.historyLoading(requestedAddress,walletHistory)
+      :walletTransactionUXUnavailable(requestedAddress)
+  );
   const accountResults=await Promise.allSettled([
     api('/balance?address='+encodeURIComponent(requestedAddress)),
     api('/spendable?address='+encodeURIComponent(requestedAddress)),
@@ -429,10 +458,12 @@ async function refreshNow(generation=walletViewGeneration){
     $('ustate').textContent='Could not refresh this address balance.';
   }
 
-  if(accountResults[2].status==='fulfilled'){
-    setWalletHistory(window.FAEWalletTransactionUX.historyFromPayload(accountResults[2].value,requestedAddress));
+  if(!ux){
+    setWalletHistory(walletTransactionUXUnavailable(requestedAddress));
+  }else if(accountResults[2].status==='fulfilled'){
+    setWalletHistory(ux.historyFromPayload(accountResults[2].value,requestedAddress));
   }else{
-    setWalletHistory(window.FAEWalletTransactionUX.historyUnavailable(requestedAddress,accountResults[2].reason,walletHistory));
+    setWalletHistory(ux.historyUnavailable(requestedAddress,accountResults[2].reason,walletHistory));
   }
   return status;
 }
