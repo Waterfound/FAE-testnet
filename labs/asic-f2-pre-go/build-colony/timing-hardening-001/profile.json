@@ -1,0 +1,260 @@
+{
+  "project": "FAE-ASIC-DP6-TIMING-HARDENING",
+  "profile_version": "timing-hardening-0.1.0",
+  "goal": "Close FAE-DP6 FPGA timing at AWS F2 250 MHz using the smallest evidence-justified HLS intervention while preserving exact DP6 semantics and validated AWS HLx/HBM integration.",
+  "invariants": [
+    "FAE-DP6 output semantics remain byte-for-byte identical.",
+    "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+    "The HLS implementation is an implementation artifact and never consensus authority.",
+    "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+    "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+    "A Developer_CL.tar produced with negative WNS is inadmissible.",
+    "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+    "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+    "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+    "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+  ],
+  "forbidden_actions": [
+    "change the FAE-DP6 algorithm or consensus parameters",
+    "modify the frozen consensus-source bytes",
+    "weaken canonical or 16-vector parity gates",
+    "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+    "promote a failed-timing Developer_CL.tar to AFI",
+    "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+    "change frozen HFB thresholds",
+    "handle wallet seed phrases or private keys",
+    "activate consensus or promote mainnet",
+    "exceed the authorized USD 20 out-of-pocket AWS cap",
+    "treat a builder self-report as verification"
+  ],
+  "domains": [
+    {
+      "id": "critical-path-attribution",
+      "objective": "Reproduce and classify the failing FAE-DP6 setup paths across the baseline and both valid P&R variants, identifying stable hotspot families without modifying source.",
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/critical-path-attribution"
+      ],
+      "gates": [
+        {
+          "id": "path-attribution",
+          "description": "Cross-run timing-path attribution backed by routed timing reports.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "semantic-preservation-map",
+      "objective": "Map timing-hardening transformations by semantic risk and identify the smallest HLS-only interventions that cannot intentionally alter DP6 calculations, addresses, or state-transition order.",
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/semantic-preservation-map"
+      ],
+      "gates": [
+        {
+          "id": "semantic-map",
+          "description": "Source-linked semantic risk map and bounded candidate set.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "verification-contract",
+      "objective": "Freeze the fail-closed evidence ladder for each timing-hardening candidate from source diff through parity, HLS synthesis, physical timing, tarball admission, and AFI eligibility.",
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/verification-contract"
+      ],
+      "gates": [
+        {
+          "id": "verification-ladder",
+          "description": "Fail-closed verification ladder with immutable admission thresholds.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "intervention-selection",
+      "objective": "Select the smallest first HLS intervention justified jointly by physical path attribution, source semantics, and verification coverage; define explicit fallback and rejection conditions.",
+      "dependencies": [
+        "critical-path-attribution",
+        "semantic-preservation-map",
+        "verification-contract"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/intervention-selection"
+      ],
+      "gates": [
+        {
+          "id": "selection",
+          "description": "Evidence-bound first intervention and ordered fallback ladder.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "localized-hls-patch",
+      "objective": "Implement only the selected localized HLS intervention on the isolated timing-hardening branch, without changing DP6 semantics or AWS HLx/HBM integration.",
+      "dependencies": [
+        "intervention-selection"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/hls"
+      ],
+      "gates": [
+        {
+          "id": "bounded-diff",
+          "description": "Bounded HLS-only source diff matching the selected intervention.",
+          "accepted_kinds": [
+            "artifact",
+            "hash"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "semantic-parity-verification",
+      "objective": "Independently verify canonical full-160-byte parity and 16-vector parity for the patched HLS source before any paid physical build.",
+      "dependencies": [
+        "localized-hls-patch"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/semantic-parity-verification"
+      ],
+      "gates": [
+        {
+          "id": "parity",
+          "description": "Canonical 160-byte PASS plus independent 16/16 vector PASS.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "hls-synthesis-verification",
+      "objective": "Run Vitis HLS CSIM, csynth, resource/tractability checks, and IP export for the parity-clean candidate.",
+      "dependencies": [
+        "semantic-parity-verification"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/hls-synthesis-verification"
+      ],
+      "exclusive_resources": [
+        "vitis-hls-build"
+      ],
+      "gates": [
+        {
+          "id": "hls-synthesis",
+          "description": "CSIM and csynth PASS with acceptable resource/tractability evidence and exported IP.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "physical-timing-verification",
+      "objective": "Integrate the exported candidate IP into the unchanged validated AWS HLx/HBM topology and run full physical implementation at 250 MHz.",
+      "dependencies": [
+        "hls-synthesis-verification"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification"
+      ],
+      "exclusive_resources": [
+        "aws-paid-vivado-build"
+      ],
+      "gates": [
+        {
+          "id": "timing-closure",
+          "description": "Final routed WNS >= 0, TNS = 0, WHS >= 0, THS = 0 with unchanged HLx/HBM topology.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "time",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "afi-admission",
+      "objective": "Admit a Developer_CL.tar for AFI creation only if all prior gates pass; record immutable tarball digest and leave runtime benchmarking downstream.",
+      "dependencies": [
+        "physical-timing-verification"
+      ],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/afi-admission"
+      ],
+      "exclusive_resources": [
+        "aws-fpga-image"
+      ],
+      "gates": [
+        {
+          "id": "afi-eligibility",
+          "description": "Timing-clean Developer_CL.tar with recorded SHA-256 and no failed upstream gate.",
+          "accepted_kinds": [
+            "hash",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "time",
+        "external_evidence"
+      ]
+    }
+  ]
+}
