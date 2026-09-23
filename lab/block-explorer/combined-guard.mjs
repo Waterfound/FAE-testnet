@@ -16,6 +16,10 @@ const explorerApp=await read('explorer/app.mjs').catch(()=>null);
 const explorerClient=await read('explorer/api-client.mjs').catch(()=>null);
 const explorerConfig=await read('explorer/config.json').then(JSON.parse).catch(()=>null);
 const explorerBuild=await read('explorer/build.mjs').catch(()=>null);
+const be05ProviderScan=await read('lab/block-explorer/be05-provider-scan.json').then(JSON.parse).catch(()=>null);
+const be05Deployment=await read('lab/block-explorer/be05-node-deployment-v1.json').then(JSON.parse).catch(()=>null);
+const be05Gateway=await read('lab/block-explorer/be05-readonly-gateway.mjs').catch(()=>null);
+const be05Probe=await read('lab/block-explorer/be05-binding-probe.mjs').catch(()=>null);
 
 function assert(condition,message){if(!condition)throw new Error(message)}
 
@@ -60,6 +64,19 @@ if(authority.current_frontier==='BE-02'){
     assert(authority.explorer_application_write_authorized===false,'BE-04 frozen source writes must be closed');
     assert(authority.be04_authority?.source_writes_frozen===true,'BE-04 frozen marker missing');
   }
+}else if(authority.current_frontier==='BE-05'){
+  const phase=authority.be05_authority?.state;
+  assert(['DISCOVERY_ONLY','AUTHORIZED_BOUNDED','LAB_VERIFIED_FROZEN','EXTERNAL_BLOCKED_FROZEN'].includes(phase),'BE-05 authority state mismatch');
+  assert(authority.current_stage_runtime_write_authorized===false,'BE-05 active-node runtime authority drift');
+  assert(authority.node_query_surface_write_authorized===false,'BE-05 node-query authority drift');
+  assert(authority.explorer_application_live_authorized===false,'BE-05 LIVE authority drift');
+  assert(authority.public_deployment_authorized===false,'BE-05 generic deployment authority drift');
+  if(phase==='DISCOVERY_ONLY'){
+    assert(authority.public_https_node_binding_authorized===false,'BE-05 discovery cannot bind');
+    assert(authority.independent_node_public_deployment_authorized===false,'BE-05 discovery cannot deploy node');
+    assert(authority.explorer_application_write_authorized===false,'BE-05 discovery cannot rewrite Explorer app');
+    assert(authority.be05_authority?.deployment_forbidden_until_promoted===true,'BE-05 discovery lock missing');
+  }
 }else{
   assert(authority.node_query_surface_write_authorized===false,'BE-01 node query authority drift');
 }
@@ -86,7 +103,7 @@ assert(model.entities.address.event_types.includes('transfer')&&model.entities.a
 const digestRule=model.universal_search.rules.find(x=>x.when.includes('64-character'));
 assert(digestRule&&digestRule.resolve.includes('block_hash')&&digestRule.resolve.includes('txid'),'digest namespace ambiguity lost');
 
-if(['BE-02','BE-03','BE-04'].includes(authority.current_frontier)){
+if(['BE-02','BE-03','BE-04','BE-05'].includes(authority.current_frontier)){
   assert(nodeSource.includes("const snapshot=cloneState(state)"),'Explorer reads must clone validated node state');
   assert(nodeSource.includes("cors('GET,OPTIONS')"),'Explorer CORS must remain read-only');
   assert(explorerSource.includes("if(method!=='GET')return{status:405,payload:{ok:false,error:'read_only'}}"),'Explorer mutation rejection missing');
@@ -95,7 +112,7 @@ if(['BE-02','BE-03','BE-04'].includes(authority.current_frontier)){
   assert(!explorerSource.includes('submit-tx'),'Explorer reader must not submit transactions');
   assert(!explorerSource.includes('submit-block'),'Explorer reader must not submit blocks');
 }
-if(['BE-03','BE-04'].includes(authority.current_frontier)){
+if(['BE-03','BE-04','BE-05'].includes(authority.current_frontier)){
   assert(explorerHtml&&explorerApp&&explorerClient&&explorerConfig,'Explorer application source missing');
   assert(explorerConfig.schema==='FAE_EXPLORER_APP_CONFIG_V2','Explorer config schema drift');
   assert(explorerConfig.network===model.active_network.network&&explorerConfig.read_only===true,'Explorer app config authority drift');
@@ -111,6 +128,17 @@ if(['BE-03','BE-04'].includes(authority.current_frontier)){
     assert(explorerBuild.includes("LIVE cannot be synthesized"),'BE-04 LIVE refusal missing');
     assert(explorerBuild.includes("public node binding requires HTTPS"),'BE-04 HTTPS gate missing');
     assert(explorerApp.includes("binding_state==='UNBOUND'"),'BE-04 public prebind UI handling missing');
+  }
+  if(authority.current_frontier==='BE-05'){
+    assert(be05ProviderScan&&be05Deployment&&be05Gateway&&be05Probe,'BE-05 artifacts missing');
+    assert(be05ProviderScan.conclusion.eligible_existing_https_independent_node_found===false,'BE-05 existing-host evidence drift');
+    assert(be05ProviderScan.conclusion.deployment_performed===false,'BE-05 discovery unexpectedly deployed infrastructure');
+    assert(be05Deployment.node.private_bind.FAE_HOST==='127.0.0.1','BE-05 private-node topology drift');
+    assert(JSON.stringify(be05Deployment.public_gateway.allowed_methods)===JSON.stringify(['GET','OPTIONS']),'BE-05 public gateway method drift');
+    assert(be05Gateway.includes("node_origin_must_be_loopback"),'BE-05 loopback gateway protection missing');
+    assert(be05Gateway.includes("public_route_not_found"),'BE-05 route allowlist protection missing');
+    assert(be05Probe.includes("public_node_origin_requires_https"),'BE-05 public HTTPS gate missing');
+    assert(be05Probe.includes("live_authority_granted:false"),'BE-05 probe cannot grant LIVE');
   }
 }
 
