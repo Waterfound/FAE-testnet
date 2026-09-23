@@ -5,10 +5,10 @@ import {readFile} from 'node:fs/promises';
 const root=new URL('../../../',import.meta.url);
 const read=async path=>readFile(new URL(path,root),'utf8');
 
-test('BE-05 remains discovery-only without spend or binding authority',async()=>{
+test('BE-05 stays non-deploying in discovery or frozen external-block state',async()=>{
   const authority=JSON.parse(await read('lab/block-explorer/authority.json'));
   assert.equal(authority.current_frontier,'BE-05');
-  assert.equal(authority.be05_authority.state,'DISCOVERY_ONLY');
+  assert.ok(['DISCOVERY_ONLY','EXTERNAL_BLOCKED_FROZEN'].includes(authority.be05_authority.state));
   assert.equal(authority.current_stage_runtime_write_authorized,false);
   assert.equal(authority.node_query_surface_write_authorized,false);
   assert.equal(authority.explorer_application_write_authorized,false);
@@ -17,6 +17,11 @@ test('BE-05 remains discovery-only without spend or binding authority',async()=>
   assert.equal(authority.explorer_application_live_authorized,false);
   assert.equal(authority.public_deployment_authorized,false);
   assert.equal(authority.be05_authority.deployment_forbidden_until_promoted,true);
+  if(authority.be05_authority.state==='EXTERNAL_BLOCKED_FROZEN'){
+    assert.equal(authority.be05_authority.source_writes_frozen,true);
+    assert.equal(authority.be05_authority.eligible_existing_host_found,false);
+    assert.equal(authority.be05_authority.external_host_required,true);
+  }
 });
 
 test('provider scan admits no imaginary existing host',async()=>{
