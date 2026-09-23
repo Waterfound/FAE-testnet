@@ -1,0 +1,34 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_CURRENT_TESTNET_FOOTPRINT_V1",
+  "observed": "2026-09-23",
+  "source": "Connected Supabase project wfwwotuhectwknvbvgif; read-only SQL against public FAE v4 tables.",
+  "network": "fairyelf-public-testnet-v4",
+  "rows": {
+    "blocks": 496,
+    "transactions": 35,
+    "utxos": 564,
+    "mempool_spends": 0,
+    "mempool_outputs": 0
+  },
+  "postgres_tuple_bytes": {
+    "blocks": 358377,
+    "transactions": 22568,
+    "utxos": 97872,
+    "mempool_spends": 0,
+    "mempool_outputs": 0,
+    "total": 478817
+  },
+  "interpretation": [
+    "The current selected-chain data cardinality is small; chain data volume is not presently the dominant risk for a 1 GiB testnet host.",
+    "pg_column_size measures PostgreSQL tuple storage, not Independent Node JSON file size or process RSS.",
+    "This evidence supports a Google e2-micro runtime probe but does not prove 1 GiB host sufficiency."
+  ],
+  "does_not_prove": [
+    "Node.js Independent Node RSS under a 1 GiB host limit",
+    "gateway/TLS/OS headroom",
+    "Google account Free Tier eligibility or quota",
+    "Google egress overage protection",
+    "Oracle reclaim/recovery behavior for this workload"
+  ],
+  "authority": "READ_ONLY_OBSERVATION_NO_PROVISIONING_NO_BINDING_NO_LIVE"
+}

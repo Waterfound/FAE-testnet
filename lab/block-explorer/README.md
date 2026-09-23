@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-05 — SOFTWARE INTEGRATED / EXTERNAL HTTPS NODE HOST BLOCKED**
+Status: **BE-06 — PREPROVISION INTEGRATED / ACCOUNT + RUNTIME EVIDENCE BLOCKED**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -213,3 +213,35 @@ Explorer LIVE = NOT_LIVE
 ```
 
 The next change in this boundary requires external evidence: either an eligible existing host appears, or a separately bounded authorization is granted to create one. Source-only work beyond this point would be return-decreasing and cannot manufacture deployment evidence.
+
+
+## BE-06 preprovision closeout
+
+BE-06 converted the BE-05 external-host blocker into an explicit zero-cost host acquisition gate without creating infrastructure.
+
+Integrated at `e11679cce8697aeeecc89d78454adb123acef563`:
+
+- provider-neutral host hardening contract;
+- fail-closed host preflight;
+- public-program eligibility evidence for Oracle Cloud and Google Cloud;
+- BE-06 regression coverage.
+
+Fresh read-only state evidence on 2026-09-23 observed **496 blocks, 35 transactions and 564 UTXOs** in the active FAE v4 Supabase tables. The corresponding PostgreSQL tuple footprint for blocks + transactions + UTXOs was **478,817 bytes**. This is not a process-RSS measurement, but it shows that current chain-data volume is not the dominant 1 GiB-host risk.
+
+Provider disposition changed from the original public-doc ordering:
+
+- **Google Cloud is the next probe**: the documented Free Tier provides one non-preemptible e2-micro VM in eligible US regions, but account eligibility, 1 GiB runtime headroom and fail-closed egress still require evidence.
+- **Oracle Cloud remains a fallback candidate**: its Always Free capacity is materially larger, but Oracle explicitly documents idle-compute reclamation. BE-06 will not manufacture load merely to avoid reclamation; recovery/persistence must be proven honestly.
+
+Therefore:
+
+```text
+BE-06 preprovision software = INTEGRATED
+current-testnet footprint evidence = GREEN / READ-ONLY
+eligible persistent host = NOT YET PROVEN
+host provisioning authority = CLOSED
+Explorer binding authority = CLOSED
+Explorer LIVE = NOT_LIVE
+```
+
+The next valid transition requires account-specific zero-cost evidence and runtime/provider-risk acceptance. Source-only work cannot substitute for that external evidence.

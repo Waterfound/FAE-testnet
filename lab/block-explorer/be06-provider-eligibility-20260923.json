@@ -1,13 +1,13 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_BE06_PROVIDER_ELIGIBILITY_V1",
   "checked": "2026-09-23",
-  "canonical_source_revision": "b75c91dd47a92c129c31db186ecb36962fc2cd30",
+  "canonical_source_revision": "e11679cce8697aeeecc89d78454adb123acef563",
   "purpose": "Public-program eligibility evidence only. No account-specific entitlement is claimed and no resource creation is authorized.",
   "required_host_contract": "lab/block-explorer/be06-host-hardening-v1.json",
   "providers": {
     "oracle_cloud": {
       "probe_priority": 1,
-      "public_program_status": "TECHNICALLY_CAPABLE_ACCOUNT_EVIDENCE_REQUIRED",
+      "public_program_status": "TECHNICALLY_CAPABLE_REAL_RECLAIM_GUARD_AND_ACCOUNT_EVIDENCE_REQUIRED",
       "official_sources": [
         "https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm",
         "https://docs.oracle.com/iaas/Content/FreeTier/freetier.htm"
@@ -21,9 +21,10 @@
         "public_ipv4_available_on_compute": true
       },
       "material_risks": [
+        "Oracle documents that idle Always Free compute instances may be reclaimed when CPU and network utilization remain below 20% over a 7-day period; A1 also applies a memory-utilization threshold.",
         "Always Free compute capacity can be temporarily unavailable in the home region.",
-        "Oracle documents reclamation of idle Always Free compute instances when CPU and network utilization stay below 20% over a 7-day period; A1 also applies a memory-utilization threshold.",
-        "Account home region, remaining Always Free quotas, current shape capacity, and billing state are not observable from public documentation."
+        "Account home region, remaining Always Free quotas, current shape capacity, and billing state are not observable from public documentation.",
+        "BE-06 does not accept synthetic load generation as a persistence strategy; reclaim/recovery must be resolved by real operational evidence."
       ],
       "account_specific_evidence": {
         "observed": false,
@@ -36,16 +37,24 @@
       "promotion_blockers": [
         "account/home-region evidence missing",
         "shape/capacity evidence missing",
-        "idle-reclamation disposition not yet proven acceptable",
+        "idle-reclamation/recovery disposition unresolved",
         "zero-cost resource selection not yet machine-checked"
-      ]
+      ],
+      "reclaim_disposition": {
+        "synthetic_load_forbidden": true,
+        "acceptance_rule": "A real right-sized A1 workload must be observed not to satisfy Oracle's documented idle-reclamation conditions; otherwise Oracle is rejected as the persistent host.",
+        "monitoring_required": true,
+        "current_status": "UNPROVEN"
+      }
     },
     "google_cloud": {
       "probe_priority": 2,
-      "public_program_status": "TECHNICALLY_CAPABLE_ACCOUNT_EVIDENCE_REQUIRED",
+      "public_program_status": "FREE_VM_CAPABLE_ZERO_COST_PUBLIC_NETWORK_PATH_UNRESOLVED",
       "official_sources": [
         "https://docs.cloud.google.com/free/docs/free-cloud-features",
-        "https://cloud.google.com/products/compute"
+        "https://cloud.google.com/vpc/network-pricing",
+        "https://docs.cloud.google.com/compute/docs/ip-addresses",
+        "https://letsencrypt.org/2026/01/15/6day-and-ip-general-availability"
       ],
       "observed_public_limits": {
         "compute": "one non-preemptible e2-micro VM per month within the eligible-hour allowance",
@@ -56,11 +65,18 @@
         ],
         "memory_gb": 1,
         "standard_persistent_disk_gb_month": 30,
-        "outbound_data_transfer_gb_month": 1
+        "outbound_data_transfer_gb_month": 1,
+        "external_ip_pricing": {
+          "ipv4": "Static and ephemeral external IPv4 addresses assigned to VMs are billed under current VPC pricing.",
+          "ipv6": "External IPv6 addresses assigned to VM instances are documented as no-charge.",
+          "zero_cost_implication": "A straightforward public IPv4 origin violates BE-06's 0 USD ceiling. An IPv6-only origin would require separate reachability and TLS acceptance evidence."
+        }
       },
       "material_risks": [
-        "1 GB RAM is materially tighter than Oracle A1 for a Node 22 Independent Node + gateway + TLS edge.",
-        "1 GB/month outbound transfer is a small public-service envelope and overage/billing posture must be proven fail-closed.",
+        "The Free Tier e2-micro VM has a 1 GB memory envelope, so real node + gateway + TLS runtime headroom must still be reproduced.",
+        "Current Google VPC pricing charges static and ephemeral external IPv4 addresses assigned to VMs; this violates the BE-06 0 USD ceiling for the straightforward IPv4 design.",
+        "External IPv6 assigned to VMs is documented as no-charge, but IPv6-only public reachability across Explorer users and exact HTTPS/IP-certificate automation are not yet accepted.",
+        "The Free Tier includes only 1 GB/month outbound data transfer from North America to most destinations; public Explorer traffic must remain fail-closed before overage.",
         "Billing-account state, free-tier consumption, quota, and regional VM availability are not observable from public documentation."
       ],
       "account_specific_evidence": {
@@ -73,7 +89,8 @@
       "promotion_status": "NOT_YET_ELIGIBLE_PERSISTENT_HOST",
       "promotion_blockers": [
         "account/billing evidence missing",
-        "1 GB RAM sufficiency not yet reproduced on real host",
+        "zero-cost broadly reachable public HTTPS path unresolved because external IPv4 is billed",
+        "1 GB RAM sufficiency not yet reproduced on a real constrained host",
         "egress overage guard not yet proven",
         "zero-cost resource selection not yet machine-checked"
       ]
@@ -81,7 +98,7 @@
   },
   "decision": {
     "selected_provider": null,
-    "reason": "Neither public program description alone is sufficient to prove an eligible persistent host.",
+    "reason": "Oracle Cloud returns to first probe because Always Free offers a public-IP-capable persistent VM envelope with substantially more compute/storage/egress headroom at 0 USD, while Google charges VM external IPv4 addresses. Oracle still must pass a real idle-reclamation guard without synthetic load. Google remains fallback via a separately proven IPv6-only zero-cost path or later bounded paid authority.",
     "probe_order": [
       "oracle_cloud",
       "google_cloud"
@@ -89,5 +106,6 @@
     "paid_fallback_authorized": false,
     "separate_existing_lab_budget_reuse_authorized": false,
     "protected_capacity_reuse_authorized": false
-  }
+  },
+  "current_testnet_footprint_evidence": "lab/block-explorer/be06-current-testnet-footprint-20260923.json"
 }

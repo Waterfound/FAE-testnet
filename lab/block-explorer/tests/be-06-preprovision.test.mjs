@@ -67,3 +67,19 @@ test('BE-06 preflight rejects accidental public admin/node surfaces',()=>{
   assert.equal(result.eligible,false);
   assert.ok(result.reasons.some(x=>x.includes('public ports')));
 });
+
+
+test('BE-06 current testnet footprint is read-only evidence and does not self-authorize a host',async()=>{
+  const f=JSON.parse(await read('lab/block-explorer/be06-current-testnet-footprint-20260923.json'));
+  const e=JSON.parse(await read('lab/block-explorer/be06-provider-eligibility-20260923.json'));
+  assert.equal(f.network,'fairyelf-public-testnet-v4');
+  assert.equal(f.rows.blocks,496);
+  assert.equal(f.rows.transactions,35);
+  assert.equal(f.rows.utxos,564);
+  assert.equal(f.postgres_tuple_bytes.total,478817);
+  assert.equal(f.authority,'READ_ONLY_OBSERVATION_NO_PROVISIONING_NO_BINDING_NO_LIVE');
+  assert.deepEqual(e.decision.probe_order,['oracle_cloud','google_cloud']);
+  assert.equal(e.decision.selected_provider,null);
+  assert.equal(e.providers.google_cloud.promotion_status,'NOT_YET_ELIGIBLE_PERSISTENT_HOST');
+  assert.equal(e.providers.oracle_cloud.promotion_status,'NOT_YET_ELIGIBLE_PERSISTENT_HOST');
+});

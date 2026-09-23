@@ -1,9 +1,9 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
-  "frontier": "BE-05",
-  "status": "COMBINED_MAIN_VERIFIED_SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
-  "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "frontier": "BE-06",
+  "status": "PREPROVISION_INTEGRATED_ACCOUNT_AND_RUNTIME_EVIDENCE_BLOCKED",
+  "source_revision": "e11679cce8697aeeecc89d78454adb123acef563",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
@@ -226,14 +226,12 @@
   },
   "source_writes_frozen": true,
   "next_transition": {
-    "trigger": "Eligible persistent HTTPS Independent Node becomes available without weakening the Stability Soak V3 evidence envelope.",
+    "trigger": "Account-specific zero-cost Oracle evidence plus real reclaim-guard acceptance becomes GREEN; Google remains fallback only with a proven zero-cost public HTTPS path.",
     "required_evidence": [
-      "HTTPS Independent Node endpoint independently validating FAE state",
-      "GET /explorer/status returns fairyelf-public-testnet-v4 with valid observed tip binding",
-      "mutation probes remain rejected",
-      "CORS permits only read-only Explorer access",
-      "frontend build binds only to the verified HTTPS node origin",
-      "cross-Lab and security gates pass on the exact bound revision"
+      "Oracle: eligible Always Free home-region/quota/capacity evidence and a right-sized real workload observed not to satisfy the documented idle-reclamation conditions, without synthetic load.",
+      "If Oracle fails: Google requires eligible Free Tier account evidence plus a zero-cost public HTTPS path; ordinary external IPv4 is not admissible because it is billed.",
+      "be06-host-preflight.mjs returns eligible=true on the exact host evidence bundle.",
+      "No paid resource and no protected workstream capacity is consumed."
     ],
     "live_status_until_then": "NOT_LIVE"
   },
@@ -290,5 +288,30 @@
       "recurring_assurance_run_id": 35849891088,
       "result": "GREEN"
     }
+  },
+  "be06": {
+    "phase": "PREPROVISION_INTEGRATED_ACCOUNT_AND_RUNTIME_EVIDENCE_BLOCKED",
+    "preprovision_integrated": true,
+    "integrated_main_revision": "e11679cce8697aeeecc89d78454adb123acef563",
+    "hardening_contract": "lab/block-explorer/be06-host-hardening-v1.json",
+    "host_preflight": "lab/block-explorer/be06-host-preflight.mjs",
+    "provider_eligibility": "lab/block-explorer/be06-provider-eligibility-20260923.json",
+    "current_testnet_footprint": "lab/block-explorer/be06-current-testnet-footprint-20260923.json",
+    "google_cloud": {
+      "next_probe": false,
+      "eligible_persistent_host": false,
+      "blocker": "account/billing/quota evidence + zero-cost public HTTPS path (external IPv4 is billed) + real 1 GiB runtime/egress acceptance"
+    },
+    "oracle_cloud": {
+      "next_probe": true,
+      "eligible_persistent_host": false,
+      "blocker": "account/home-region/capacity evidence + real non-synthetic idle-reclamation guard"
+    },
+    "selected_provider": null,
+    "provisioning_authorized": false,
+    "deployment_performed": false,
+    "explorer_binding_authorized": false,
+    "explorer_live_authorized": false,
+    "protected_capacity_consumed": false
   }
 }
