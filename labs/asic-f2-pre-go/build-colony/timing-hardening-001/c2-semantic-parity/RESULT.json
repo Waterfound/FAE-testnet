@@ -1,0 +1,12 @@
+{
+  "candidate": "C2-ARGON2-FILLBLOCK-R-LUTRAM",
+  "outcome": "PASS",
+  "worker": "i-0cb8780d3731b6cf2",
+  "repo_head": "baba3a6e11b5978c8968fb9ff7cd937f662e9248",
+  "hls_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+  "source_sha256": "bff09ca6f613807a9c3b3acb625b8ab29720b89b6177927f4f416403a6ced861",
+  "canonical": "FAE_DP6_HLS_CANONICAL=PASS",
+  "vectors": "FAE_DP6_HLS_16VECTORS=16/16",
+  "exit_code": 0,
+  "finished_utc": "2026-09-23T20:19:58Z"
+}
