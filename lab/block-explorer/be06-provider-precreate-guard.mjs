@@ -37,6 +37,13 @@ function oracleReasons(e){
   need(bool(o.boot_and_durable_storage_within_free_entitlement),'Oracle storage is not proven inside free entitlement');
   need(bool(o.selected_image_price_free),'Oracle selected image is not proven free');
   need(bool(o.public_network_zero_cost_verified),'Oracle public networking is not proven zero-cost');
+  need(o.public_ipv4_at_launch===false,'Oracle launch review must explicitly record public IPv4 disabled for the staged exposure plan');
+  need(bool(o.post_create_reserved_public_ipv4_required),'post-create reserved public IPv4 assignment must remain mandatory');
+  need(bool(o.reserved_public_ipv4_available),'reserved public IPv4 availability is not proven');
+  need(bool(o.public_ipv4_no_charge_verified),'Oracle public IPv4 zero-charge evidence is missing');
+  need(bool(o.ingress_hardening_before_public_ipv4_required),'ingress hardening must precede public IPv4 assignment');
+  need(bool(o.world_open_tcp_22_forbidden),'world-open TCP/22 must remain forbidden');
+  need(bool(o.admin_path_without_ssh_key_verified),'non-SSH-key administration path is not verified');
   need(bool(o.runtime_architecture_compatible),'runtime architecture compatibility is not proven');
   need(bool(o.shape_selectable_in_home_region),'Oracle Always Free shape is not selectable in the home region');
   need(bool(o.estimator_excludes_tier_unit_pricing),'Oracle estimator disclaimer excluding tier unit pricing was not observed');

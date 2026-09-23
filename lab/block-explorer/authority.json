@@ -519,6 +519,12 @@
       "trial_credit_reliance": false,
       "protected_capacity_reuse": false,
       "out_of_host_capacity_action": "ABORT"
-    }
+    },
+    "staged_public_exposure_required": true,
+    "public_ipv4_at_launch": false,
+    "reserved_public_ipv4_after_hardening": true,
+    "world_open_tcp_22_forbidden": true,
+    "initial_admin_path": "OCI Compute Instance Run Command / provider console",
+    "spend_authorized": false
   }
 }

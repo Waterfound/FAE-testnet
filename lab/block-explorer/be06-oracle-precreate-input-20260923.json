@@ -24,6 +24,13 @@
     "free_block_volume_available_gb": 200,
     "synthetic_reclaim_evasion": false,
     "post_create_reclaim_observation_required": true,
-    "physical_capacity_must_be_rechecked_at_launch": true
+    "physical_capacity_must_be_rechecked_at_launch": true,
+    "public_ipv4_at_launch": false,
+    "post_create_reserved_public_ipv4_required": true,
+    "reserved_public_ipv4_available": true,
+    "public_ipv4_no_charge_verified": true,
+    "ingress_hardening_before_public_ipv4_required": true,
+    "world_open_tcp_22_forbidden": true,
+    "admin_path_without_ssh_key_verified": true
   }
 }

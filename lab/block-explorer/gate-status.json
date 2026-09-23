@@ -3,7 +3,7 @@
   "updated": "2026-09-23",
   "frontier": "BE-06",
   "status": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
-  "source_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
+  "source_revision": "182d2ee695b041e6d6c3e017ade41c2a7400e70c",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
@@ -229,8 +229,11 @@
     "trigger": "Separate explicit bounded host-creation authority is granted for the exact Oracle envelope recorded in be06.host_creation_request_envelope.",
     "required_evidence": [
       "Create only resources satisfying the exact 0 USD Oracle envelope; no paid upgrade/fallback and no trial-credit reliance.",
+      "Launch with Public IPv4 = No, matching the reviewed candidate.",
+      "Harden ingress before assigning the reserved public IPv4; TCP/22 must never be world-open.",
+      "Use OCI Run Command/provider console for initial administration.",
+      "Assign one reserved public IPv4 only after ingress hardening; expose only ports 80/443.",
       "Fail closed on out-of-host-capacity rather than switching to paid capacity.",
-      "Do not expose TCP/22 to 0.0.0.0/0; use Bastion/provider console or source-restricted temporary administration.",
       "After launch, prove actual host identity, durable state, runtime architecture, restart persistence, public HTTPS edge, and real workload reclaim disposition.",
       "Only after be06-host-preflight.mjs returns eligible=true may the host become an eligible persistent host."
     ],
@@ -383,7 +386,7 @@
       "image_price": "Free",
       "boot_volume_gb": 46.6,
       "additional_block_volume_gb": 0,
-      "network": "dedicated VCN + public subnet + public IPv4",
+      "network": "dedicated VCN + public subnet; Public IPv4 = No at launch",
       "ssh_policy": "no world-open TCP/22; use provider bastion/console or source-restricted temporary administration only",
       "public_service_ports": [
         80,
@@ -393,7 +396,16 @@
       "paid_fallback": false,
       "promotional_trial_credit_reliance": false,
       "protected_capacity_consumed": false,
-      "launch_failure_policy": "If Always Free A1 reports out-of-host-capacity or any resource ceases to satisfy the zero-cost envelope, abort without substituting a paid shape/resource."
+      "launch_failure_policy": "If Always Free A1 reports out-of-host-capacity or any resource ceases to satisfy the zero-cost envelope, abort without substituting a paid shape/resource.",
+      "public_ipv4_sequence": [
+        "launch without public IPv4",
+        "harden ingress; forbid TCP/22 from 0.0.0.0/0",
+        "assign one reserved public IPv4",
+        "expose only 80/443 to the public HTTPS edge"
+      ],
+      "administration": "OCI Compute Instance Run Command / provider console; no SSH key at launch",
+      "reserved_public_ipv4_available": 6,
+      "reserved_public_ipv4_no_charge_verified": true
     },
     "host_creation_authorized": false,
     "persistent_host_eligible": false

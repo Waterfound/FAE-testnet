@@ -48,10 +48,21 @@
     "reserved_public_ip_usage": 0,
     "reserved_public_ip_available": 6,
     "vcn_candidate": "new VCN + new public subnet",
-    "ipv4_candidate": "automatic public IPv4 through public subnet",
+    "ipv4_candidate": "reserved public IPv4 assigned only after network ingress hardening",
     "ipv6_candidate": false,
     "outbound_always_free_allowance_tb_per_month": 10,
-    "public_network_zero_cost_disposition": "No network/IP line item appeared in the OCI create-instance estimate; VCN and Always Free outbound allowance are documented separately."
+    "public_network_zero_cost_disposition": "OCI review showed no public IPv4 at launch. Oracle documents no charge for public IPs, and the tenancy has 6 reserved public IPv4 slots available. The zero-cost exposure plan is staged: create without public IPv4, harden ingress, then assign one reserved public IPv4 before deployment/binding.",
+    "create_review_public_ipv4_address": "No",
+    "reserved_public_ip_no_charge_verified": true,
+    "public_ipv4_at_launch": false,
+    "post_create_public_ipv4_required": true,
+    "ingress_hardening_before_public_ipv4_required": true,
+    "world_open_tcp_22_forbidden": true,
+    "admin_path": "OCI Compute Instance Run Command / provider console; no SSH key at launch",
+    "public_service_ports": [
+      80,
+      443
+    ]
   },
   "estimator": {
     "raw_boot_volume_list_price_brl_per_month": 10.45,
@@ -66,7 +77,7 @@
     "post_create_reclaim_observation_required": true
   },
   "result": {
-    "precreate_account_evidence": "SUFFICIENT_FOR_GUARD_EVALUATION_AFTER_CODE_CORRECTION",
+    "precreate_account_evidence": "SUFFICIENT_FOR_GUARD_EVALUATION_WITH_STAGED_PUBLIC_IPV4_PLAN",
     "host_creation_authorized": false,
     "spend_authorized": false,
     "persistent_host_eligible": false,
