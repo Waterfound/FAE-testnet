@@ -461,17 +461,18 @@
       "read-only provider/account eligibility inspection",
       "read-only current-testnet footprint measurement",
       "provider-neutral hardening and preflight verification",
-      "bounded runtime-capacity reproduction that creates no billable cloud resource"
+      "bounded runtime-capacity/reclamation observation that creates no billable cloud resource"
     ],
     "forbidden_actions": [
       "create a paid or potentially billable cloud resource",
       "consume Stability Soak V3 or another protected workstream envelope",
-      "treat synthetic load as a workaround for Oracle idle reclamation",
+      "generate synthetic CPU/network/memory load solely to evade Oracle idle-reclamation policy",
+      "treat a Google external IPv4 address as zero-cost under current VPC pricing",
       "bind the Explorer before host preflight and BE-05 binding acceptance are GREEN",
       "mark Explorer LIVE",
       "change consensus, economics, wallet signing, transaction admission, or mining"
     ],
-    "preferred_next_probe": "google_cloud",
+    "preferred_next_probe": "oracle_cloud",
     "provider_selection_authorized": false,
     "host_creation_authorized": false,
     "explorer_binding_authorized": false,
