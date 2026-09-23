@@ -1,0 +1,15 @@
+{
+  "domain_id": "verification-contract",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "verification-ladder"
+  ],
+  "independent_checks": [
+    "Canonical test independently confirmed to compare all 160 output bytes.",
+    "16-vector suite independently confirmed to compare final hashes over 16 nonces.",
+    "Existing HDK gate independently confirmed to reject Failed Timing/negative WNS.",
+    "The ladder preserves the existing authority boundary: no timing-failed tarball or pre-parity artifact advances to AFI/runtime."
+  ],
+  "reasons": []
+}
