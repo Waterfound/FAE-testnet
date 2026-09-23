@@ -167,12 +167,41 @@ assert.equal(clipboard,vm.runInContext('wallet.address',context));
 
 document.getElementById('sendto').value=vm.runInContext('walletAccount.addresses[1].address',context);
 document.getElementById('sendamt').value='1';
+document.getElementById('sendreceipt').hidden=true;
 await vm.runInContext('sendFAE()',context);
 assert.ok(submittedTransaction?.signature);
 assert.equal(submittedTransaction.inputs[0],'smoke:0');
 assert.equal(submittedTransaction.outputs.length,2);
+assert.equal(document.getElementById('sendreceipt').hidden,false);
+assert.equal(document.getElementById('sendtxid').textContent,'a'.repeat(64));
+await vm.runInContext('copySendTransactionId()',context);
+assert.equal(clipboard,'a'.repeat(64));
+vm.runInContext('showAcceptedTransactionDetails()',context);
+assert.equal(document.getElementById('txdetailid').textContent,'a'.repeat(64));
+await vm.runInContext('copyDetailTransactionId()',context);
+assert.equal(clipboard,'a'.repeat(64));
+vm.runInContext('openTransactionHistory({refreshData:false})',context);
+assert.equal(document.getElementById('history-panel').hidden,false);
+assert.equal(document.getElementById('togglehistory').getAttribute('aria-expanded'),'true');
+
+const receiptKey=vm.runInContext('TX_RECEIPT_KEY',context);
+const storedReceipt=JSON.parse(localStorage.getItem(receiptKey));
+assert.deepEqual(Object.keys(storedReceipt).sort(),['active_address','format','network','submitted_at_ms','txid']);
+vm.runInContext('lastAcceptedTransactionReceipt=null;lastAcceptedTransaction=null;restoreTransactionReceiptForWallet();renderTransactionReceiptForWallet()',context);
+assert.equal(document.getElementById('sendtxid').textContent,'a'.repeat(64));
+assert.equal(vm.runInContext('lastAcceptedTransactionReceipt.state',context),'accepted');
+
+const originalWriteText=context.navigator.clipboard.writeText;
+const originalExecCommand=document.execCommand;
+context.navigator.clipboard.writeText=async()=>{throw Error('denied')};
+document.execCommand=()=>false;
+await vm.runInContext('copySendTransactionId()',context);
+assert.match(document.getElementById('sendcopyfeedback').textContent,/manually/i);
+context.navigator.clipboard.writeText=originalWriteText;
+document.execCommand=originalExecCommand;
 
 const packageJson=await vm.runInContext('recoveryPackage().then(JSON.stringify)',context);
+assert.equal(packageJson.includes('FAE_WALLET_TX_RECEIPT_V1'),false);
 context.packageJson=packageJson;
 const roundTrip=await vm.runInContext('accountFromRecovery(packageJson)',context);
 assert.equal(roundTrip.account.addresses.length,5);
