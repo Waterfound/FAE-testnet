@@ -177,7 +177,12 @@ Accepted implementation state carried by canonical main after BE-02 integration:
 - hosted config: `api_base: null`, `read_only: true`, source-bound to `eabddc8db3f79f4ac6a7544316809f3d879954fe`;
 - public frontend QA: no reported frontend, network or backend errors in the provider snapshot;
 - public HTTPS Independent Node binding: unresolved;
-- Explorer LIVE state: **NOT_LIVE**; the public prebind does not authorize chain data, consensus, wallet, signing or mining authority.
+- Explorer LIVE state: **NOT_LIVE**; the public prebind does not authorize chain data, consensus, wallet, signing or mining authority;
+- BE-05 provider discovery: no eligible existing persistent Independent Node host found in the connected Render, Vercel, AppDeploy, DigitalOcean, AWS EC2 or accessible Lightsail inventory;
+- BE-05 provider-neutral runtime contract: prepared for a private-loopback Independent Node with durable validated state behind an exact-route read-only gateway and provider HTTPS termination;
+- BE-05 public gateway: prepared and tested to expose only GET/OPTIONS on the six verified `/explorer/*` resources; node submission/feed/state routes remain private;
+- BE-05 binding probe: prepared and tested for HTTPS, network identity, observed-tip coherence, CORS GET/OPTIONS policy, POST rejection and hidden submit routes;
+- BE-05 deployment/binding: **not performed and not authorized**; a persistent eligible host remains an external evidence gate.
 
 Primary references:
 
@@ -191,7 +196,7 @@ Primary references:
 - `lab/block-explorer/tests/be-03-app.test.mjs`
 - `explorer/build.mjs`
 - `lab/block-explorer/tests/be-04-deployment.test.mjs`
-- `lab/block-explorer/be04-public-prebind-evidence.json`
+- `lab/block-explorer/be04-public-prebind-evidence.json`\n- `lab/block-explorer/be05-provider-scan.json`\n- `lab/block-explorer/be05-node-deployment-v1.json`\n- `lab/block-explorer/be05-readonly-gateway.mjs`\n- `lab/block-explorer/be05-binding-probe.mjs`
 
 ## Cross-Lab integration rule
 
