@@ -2,8 +2,8 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-06",
-  "status": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
-  "source_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+  "status": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
+  "source_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
@@ -226,16 +226,13 @@
   },
   "source_writes_frozen": true,
   "next_transition": {
-    "trigger": "Account-specific Oracle Always Free evidence is observed and the exact candidate evidence bundle passes the BE-06 pre-create guard.",
+    "trigger": "Separate explicit bounded host-creation authority is granted for the exact Oracle envelope recorded in be06.host_creation_request_envelope.",
     "required_evidence": [
-      "Oracle tenancy/account scope and home region verified.",
-      "Selected compute shape visibly marked Always Free-eligible and inside remaining account entitlement.",
-      "Boot/durable storage and public networking proven inside the 0 USD envelope.",
-      "Provider console cost preview for the exact resource set verified at 0 USD.",
-      "Current Always Free capacity available without paid upgrade.",
-      "Synthetic reclaim evasion remains false and post-create real-workload reclaim observation remains mandatory.",
-      "lab/block-explorer/be06-provider-precreate-guard.mjs returns admitted=true.",
-      "Separate explicit authority is still required before resource creation."
+      "Create only resources satisfying the exact 0 USD Oracle envelope; no paid upgrade/fallback and no trial-credit reliance.",
+      "Fail closed on out-of-host-capacity rather than switching to paid capacity.",
+      "Do not expose TCP/22 to 0.0.0.0/0; use Bastion/provider console or source-restricted temporary administration.",
+      "After launch, prove actual host identity, durable state, runtime architecture, restart persistence, public HTTPS edge, and real workload reclaim disposition.",
+      "Only after be06-host-preflight.mjs returns eligible=true may the host become an eligible persistent host."
     ],
     "live_status_until_then": "NOT_LIVE"
   },
@@ -294,9 +291,9 @@
     }
   },
   "be06": {
-    "phase": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
+    "phase": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
     "preprovision_integrated": true,
-    "integrated_main_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+    "integrated_main_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
     "hardening_contract": "lab/block-explorer/be06-host-hardening-v1.json",
     "host_preflight": "lab/block-explorer/be06-host-preflight.mjs",
     "provider_eligibility": "lab/block-explorer/be06-provider-eligibility-20260923.json",
@@ -311,7 +308,7 @@
       "eligible_persistent_host": false,
       "blocker": "account/home-region/capacity evidence + real non-synthetic idle-reclamation guard"
     },
-    "selected_provider": null,
+    "selected_provider": "oracle_cloud",
     "provisioning_authorized": false,
     "deployment_performed": false,
     "explorer_binding_authorized": false,
@@ -353,6 +350,52 @@
           "status": "GREEN"
         }
       }
-    }
+    },
+    "provider_selection_authorized": true,
+    "oracle_account_evidence": "lab/block-explorer/be06-oracle-account-evidence-20260923.json",
+    "oracle_precreate_input": "lab/block-explorer/be06-oracle-precreate-input-20260923.json",
+    "precreate_guard": {
+      "admitted": true,
+      "safe_to_request_host_creation_authority": true,
+      "resource_creation_authorized": false,
+      "spend_authorized": false,
+      "persistent_host_eligible": false
+    },
+    "exact_integrated_verification": {
+      "revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
+      "verification_pull_request": 251,
+      "block_explorer_lab_run_id": 35882336905,
+      "cross_lab_run_id": 35882337144,
+      "recurring_assurance_run_id": 35882337163,
+      "codeql_run_id": 35882337146,
+      "canonical_source_run_id": 35882337047,
+      "result": "GREEN"
+    },
+    "host_creation_request_envelope": {
+      "monthly_cost_ceiling_usd": 0,
+      "provider": "oracle_cloud",
+      "home_region": "sa-saopaulo-1",
+      "availability_domain": "AD-1",
+      "vm_shape": "VM.Standard.A1.Flex",
+      "ocpu": 2,
+      "memory_gb": 12,
+      "image": "Oracle Linux 9",
+      "image_price": "Free",
+      "boot_volume_gb": 46.6,
+      "additional_block_volume_gb": 0,
+      "network": "dedicated VCN + public subnet + public IPv4",
+      "ssh_policy": "no world-open TCP/22; use provider bastion/console or source-restricted temporary administration only",
+      "public_service_ports": [
+        80,
+        443
+      ],
+      "paid_upgrade": false,
+      "paid_fallback": false,
+      "promotional_trial_credit_reliance": false,
+      "protected_capacity_consumed": false,
+      "launch_failure_policy": "If Always Free A1 reports out-of-host-capacity or any resource ceases to satisfy the zero-cost envelope, abort without substituting a paid shape/resource."
+    },
+    "host_creation_authorized": false,
+    "persistent_host_eligible": false
   }
 }

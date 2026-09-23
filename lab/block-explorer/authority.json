@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_06_PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
+  "status": "BE_06_ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -454,7 +454,7 @@
     }
   },
   "be06_authority": {
-    "state": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
+    "state": "ORACLE_PRECREATE_ADMITTED_HOST_CREATION_AUTHORITY_REQUIRED",
     "prerequisite": "BE-06 preprovision package integrated and exact-main verified at e11679cce8697aeeecc89d78454adb123acef563",
     "intended_scope": "Select and prove one zero-cost persistent host for the Explorer Independent Node without granting provider, Explorer, or hosting infrastructure FAE authority.",
     "allowed_actions": [
@@ -473,17 +473,17 @@
       "change consensus, economics, wallet signing, transaction admission, or mining"
     ],
     "preferred_next_probe": "oracle_cloud",
-    "provider_selection_authorized": false,
+    "provider_selection_authorized": true,
     "host_creation_authorized": false,
     "explorer_binding_authorized": false,
     "live_authorized": false,
-    "integrated_main_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+    "integrated_main_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
     "integrated_guard": "lab/block-explorer/be06-provider-precreate-guard.mjs",
     "integrated_policy": "lab/block-explorer/be06-provider-precreate-policy-v1.json",
     "source_writes_frozen": true,
     "account_specific_evidence_authorized_read_only": true,
     "paid_spend_authorized": false,
-    "next_authority_transition": "Only after account-specific zero-cost evidence passes the pre-create guard may a separate bounded host-creation authorization be considered.",
+    "next_authority_transition": "A separate explicit approval may authorize creation of the exact host envelope above. That approval still does not authorize Explorer binding or LIVE.",
     "exact_main_verification": {
       "pull_request": 247,
       "revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
@@ -493,6 +493,32 @@
       "codeql_run_id": 35861061793,
       "canonical_source_run_id": 35861061815,
       "result": "GREEN"
+    },
+    "selected_provider": "oracle_cloud",
+    "exact_guard_input": "lab/block-explorer/be06-oracle-precreate-input-20260923.json",
+    "exact_guard_result": "ADMITTED_SAFE_TO_REQUEST_HOST_CREATION_AUTHORITY",
+    "monthly_cost_ceiling_usd": 0,
+    "persistent_host_eligible": false,
+    "exact_host_creation_request": {
+      "provider": "oracle_cloud",
+      "region": "sa-saopaulo-1",
+      "ad": "AD-1",
+      "shape": "VM.Standard.A1.Flex",
+      "ocpu": 2,
+      "memory_gb": 12,
+      "image": "Oracle Linux 9",
+      "boot_volume_gb": 46.6,
+      "network": "dedicated VCN/public subnet/public IPv4",
+      "public_ports": [
+        80,
+        443
+      ],
+      "world_open_ssh": false,
+      "paid_upgrade": false,
+      "paid_fallback": false,
+      "trial_credit_reliance": false,
+      "protected_capacity_reuse": false,
+      "out_of_host_capacity_action": "ABORT"
     }
   }
 }
