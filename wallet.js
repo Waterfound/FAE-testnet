@@ -6,6 +6,7 @@ const KEYRING_KEY='fae-public-v4-keyring-v3';
 let sessionMnemonic='';
 let walletLoadError='';
 let lastSubmittedTxid='';
+let lastSubmittedAddress='';
 
 function storedAddress(record){
   return{
@@ -196,9 +197,10 @@ function renderWallet(){
   $('send').disabled=!full;
   $('exportwallet').disabled=!full||!walletAccount;
   $('togglehistory').disabled=!wallet;
-  $('lastsendtx').hidden=!lastSubmittedTxid;
-  $('lastsendtxid').value=lastSubmittedTxid;
-  $('copylastsendtx').disabled=!lastSubmittedTxid;
+  const showSubmittedTxid=Boolean(lastSubmittedTxid&&wallet?.address===lastSubmittedAddress);
+  $('lastsendtx').hidden=!showSubmittedTxid;
+  $('lastsendtxid').value=showSubmittedTxid?lastSubmittedTxid:'';
+  $('copylastsendtx').disabled=!showSubmittedTxid;
   $('restorefromsend').hidden=full||!wallet;
   $('usesaved').hidden=!watch||!walletAccount;
 
@@ -493,6 +495,7 @@ async function sendFAE(){
   const acceptedTxid=String(accepted.txid||'');
   if(!/^[0-9a-f]{64}$/.test(acceptedTxid))throw Error('Node returned an invalid transaction ID');
   lastSubmittedTxid=acceptedTxid;
+  lastSubmittedAddress=wallet.address;
   $('lastsendtx').hidden=false;
   $('lastsendtxid').value=acceptedTxid;
   $('copylastsendtx').disabled=false;
@@ -501,7 +504,7 @@ async function sendFAE(){
 }
 
 async function copyLastSentTxid(){
-  if(!lastSubmittedTxid)throw Error('No submitted transaction ID is available');
+  if(!lastSubmittedTxid||wallet?.address!==lastSubmittedAddress)throw Error('No submitted transaction ID is available for this address');
   await copyTransactionId(lastSubmittedTxid,$('copylastsendtx'));
   setStatus('sendstate','Full transaction ID copied.','ok');
 }
