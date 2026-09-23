@@ -267,7 +267,40 @@
       "run_id": "bc2-dd33c8ff4d4e5073",
       "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 25,
+      "role": "coordinator",
+      "event_type": "issue",
+      "payload_json": "{}",
+      "previous_event_digest": "016f1d11ba07b90c404392c8a971a24269298cb8cb2a559bdec3ca837dccb34d",
+      "event_digest": "dd82f831e9903db8fa2d2fc0fd9847945ad3c32cda76f66ccf45dacdf0a31a35",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 26,
+      "role": "coordinator",
+      "event_type": "bind_dispatch",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:localized-hls-patch:1\",\"dispatch_receipt_digest\":\"ede0d44bce746e27ff95bf273e3ffc7ddb007aa8d59914215564c7f288ac676f\"}",
+      "previous_event_digest": "dd82f831e9903db8fa2d2fc0fd9847945ad3c32cda76f66ccf45dacdf0a31a35",
+      "event_digest": "481841a6326207b4fc78c4a668361409e0c39f667128b5078ce68cf4d75f7b02",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 27,
+      "role": "builder",
+      "event_type": "start",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:localized-hls-patch:1\",\"dispatch_receipt_digest\":\"ede0d44bce746e27ff95bf273e3ffc7ddb007aa8d59914215564c7f288ac676f\"}",
+      "previous_event_digest": "481841a6326207b4fc78c4a668361409e0c39f667128b5078ce68cf4d75f7b02",
+      "event_digest": "5f2b21990b029e8fc6317e7b2f00bb8b98c8b156da2562fb50f9403cc2af2f04",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
     }
   ],
-  "head_event_digest": "016f1d11ba07b90c404392c8a971a24269298cb8cb2a559bdec3ca837dccb34d"
+  "head_event_digest": "5f2b21990b029e8fc6317e7b2f00bb8b98c8b156da2562fb50f9403cc2af2f04"
 }
