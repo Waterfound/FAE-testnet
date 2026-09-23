@@ -1,10 +1,10 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
-  "frontier": "BE-04",
-  "status": "COMBINED_MAIN_VERIFIED_PUBLIC_PREBIND_NODE_BINDING_BLOCKED",
-  "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
-  "candidate_branch": "lab/block-explorer-be04-20260918",
+  "frontier": "BE-05",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE_EXTERNAL_HOST_BLOCKED",
+  "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
     "url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
@@ -79,10 +79,98 @@
         "run_id": 35849397225,
         "status": "CANCELLED_AFTER_40_OF_40_STEPS_PASSED"
       }
+    },
+    "be05_provider_scan": "lab/block-explorer/be05-provider-scan.json",
+    "be05_deployment_contract": "lab/block-explorer/be05-node-deployment-v1.json",
+    "be05_first_green_lab": {
+      "run_id": 35851338345,
+      "job_id": 107149484654,
+      "status": "GREEN"
+    },
+    "be05_exact_candidate": {
+      "revision": "73b5a21297ad55e5f47a0f50b29c58b05fbd3b05",
+      "block_explorer_lab": {
+        "run_id": 35851580782,
+        "job_id": 107150266517,
+        "status": "GREEN"
+      },
+      "cross_lab": {
+        "run_id": 35851580759,
+        "job_id": 107150286121,
+        "status": "GREEN"
+      },
+      "canonical_source": {
+        "run_id": 35851580740,
+        "job_id": 107150393187,
+        "status": "GREEN",
+        "substantive_gates": "40/40"
+      },
+      "codeql": {
+        "run_id": 35851580760,
+        "job_id": 107150266473,
+        "status": "GREEN"
+      },
+      "recurring_assurance": {
+        "run_id": 35851580803,
+        "job_id": 107150304720,
+        "status": "GREEN"
+      },
+      "psr15_whitebox": {
+        "run_id": 35851580732,
+        "job_id": 107150266652,
+        "status": "GREEN"
+      }
+    },
+    "be05_reconciled_candidate": {
+      "revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
+      "block_explorer_lab": {
+        "run_id": 35852680367,
+        "job_id": 107153807068,
+        "status": "GREEN"
+      },
+      "cross_lab": {
+        "run_id": 35852680346,
+        "job_id": 107153825512,
+        "status": "GREEN"
+      },
+      "canonical_source": {
+        "run_id": 35852680304,
+        "job_id": 107153846807,
+        "status": "GREEN",
+        "substantive_gates": "40/40"
+      },
+      "codeql": {
+        "run_id": 35852680365,
+        "job_id": 107153806966,
+        "status": "GREEN"
+      },
+      "recurring_assurance": {
+        "run_id": 35852680450,
+        "job_id": 107153967957,
+        "status": "GREEN"
+      },
+      "psr15_whitebox": {
+        "run_id": 35852680233,
+        "job_id": 107153806717,
+        "status": "GREEN"
+      }
     }
   },
-  "integration_required_before_next_frontier": false,
-  "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+  "integration_required_before_next_frontier": true,
+  "verified_candidate_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
+  "be05": {
+    "phase": "SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
+    "eligible_https_independent_node_found": false,
+    "software_prepared": true,
+    "gateway_verified": true,
+    "binding_probe_verified": true,
+    "deployment_authorized": false,
+    "deployment_performed": false,
+    "binding_authorized": false,
+    "binding_performed": false,
+    "live_authorized": false,
+    "external_unblock_required": true
+  },
   "integrated_main_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
   "integration": {
     "status": "COMBINED_MAIN_VERIFIED",
@@ -110,5 +198,45 @@
       "cross-Lab and security gates pass on the exact bound revision"
     ],
     "live_status_until_then": "NOT_LIVE"
+  },
+  "reconciliation": {
+    "base_main_revision": "de71b1e0baf735c3543fb9390f0305920d4db7bf",
+    "supersedes_pull_request": 234,
+    "prior_verified_candidate_revision": "73b5a21297ad55e5f47a0f50b29c58b05fbd3b05",
+    "fresh_exact_head_verification": "GREEN",
+    "verified_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
+    "verification_runs": {
+      "block_explorer_lab": {
+        "run_id": 35852680367,
+        "job_id": 107153807068,
+        "status": "GREEN"
+      },
+      "cross_lab": {
+        "run_id": 35852680346,
+        "job_id": 107153825512,
+        "status": "GREEN"
+      },
+      "canonical_source": {
+        "run_id": 35852680304,
+        "job_id": 107153846807,
+        "status": "GREEN",
+        "substantive_gates": "40/40"
+      },
+      "codeql": {
+        "run_id": 35852680365,
+        "job_id": 107153806966,
+        "status": "GREEN"
+      },
+      "recurring_assurance": {
+        "run_id": 35852680450,
+        "job_id": 107153967957,
+        "status": "GREEN"
+      },
+      "psr15_whitebox": {
+        "run_id": 35852680233,
+        "job_id": 107153806717,
+        "status": "GREEN"
+      }
+    }
   }
 }
