@@ -78,7 +78,7 @@ test('BE-06 current testnet footprint is read-only evidence and does not self-au
   assert.equal(f.rows.utxos,564);
   assert.equal(f.postgres_tuple_bytes.total,478817);
   assert.equal(f.authority,'READ_ONLY_OBSERVATION_NO_PROVISIONING_NO_BINDING_NO_LIVE');
-  assert.deepEqual(e.decision.probe_order,['google_cloud','oracle_cloud']);
+  assert.deepEqual(e.decision.probe_order,['oracle_cloud','google_cloud']);
   assert.equal(e.decision.selected_provider,null);
   assert.equal(e.providers.google_cloud.promotion_status,'NOT_YET_ELIGIBLE_PERSISTENT_HOST');
   assert.equal(e.providers.oracle_cloud.promotion_status,'NOT_YET_ELIGIBLE_PERSISTENT_HOST');
