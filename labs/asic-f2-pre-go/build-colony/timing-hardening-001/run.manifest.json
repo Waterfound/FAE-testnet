@@ -1,0 +1,660 @@
+{
+  "schema_version": 1,
+  "protocol_version": "0.0.2",
+  "run_id": "bc2-dd33c8ff4d4e5073",
+  "project": "FAE-ASIC-DP6-TIMING-HARDENING",
+  "profile_version": "timing-hardening-0.1.0",
+  "profile_digest": "2f4170c72296cf9db20de88e2d90f7b35d94dbe9b239227a9413e1513eb88d0b",
+  "source_revision": "07c7b03237b2eaa59c0252bd85b8a2e16769c706",
+  "schedule": [
+    [
+      "critical-path-attribution",
+      "semantic-preservation-map",
+      "verification-contract"
+    ],
+    [
+      "intervention-selection"
+    ],
+    [
+      "localized-hls-patch"
+    ],
+    [
+      "semantic-parity-verification"
+    ],
+    [
+      "hls-synthesis-verification"
+    ],
+    [
+      "physical-timing-verification"
+    ],
+    [
+      "afi-admission"
+    ]
+  ],
+  "role_contracts": [
+    {
+      "id": "coordinator/v0.0.2",
+      "role": "coordinator",
+      "permissions": [
+        "compile immutable run manifests",
+        "schedule declared work packages",
+        "route results between separated roles"
+      ],
+      "prohibitions": [
+        "modify project implementation as coordinator",
+        "self-verify builder evidence",
+        "integrate revisions",
+        "override profile gates or authority boundaries"
+      ]
+    },
+    {
+      "id": "builder/v0.0.2",
+      "role": "builder",
+      "permissions": [
+        "modify only the work package declared write scopes",
+        "use only declared exclusive resources while assigned",
+        "run tests and produce evidence",
+        "emit built blocked or failed worker results"
+      ],
+      "prohibitions": [
+        "modify undeclared write scopes",
+        "verify or approve own result",
+        "integrate own revision",
+        "change the run manifest profile or authority boundaries"
+      ]
+    },
+    {
+      "id": "verifier/v0.0.2",
+      "role": "verifier",
+      "permissions": [
+        "inspect worker results and declared evidence",
+        "reproduce evidence independently",
+        "accept or reject declared evidence gates"
+      ],
+      "prohibitions": [
+        "modify the builder implementation under verification",
+        "integrate revisions",
+        "weaken evidence gates",
+        "change the run manifest or profile"
+      ]
+    },
+    {
+      "id": "integrator/v0.0.2",
+      "role": "integrator",
+      "permissions": [
+        "integrate independently verified revisions in manifest order",
+        "run cross-package integration checks"
+      ],
+      "prohibitions": [
+        "integrate non-verified work",
+        "rewrite worker evidence or verifier verdicts",
+        "override dependency or serialization order",
+        "change profile authority boundaries"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:critical-path-attribution",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "critical-path-attribution",
+      "wave": 1,
+      "objective": "Reproduce and classify the failing FAE-DP6 setup paths across the baseline and both valid P&R variants, identifying stable hotspot families without modifying source.",
+      "dependencies": [],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/critical-path-attribution"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "path-attribution",
+          "description": "Cross-run timing-path attribution backed by routed timing reports.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "6df8ab81bc3e184c23352e6e9237a4de628a380b882fc7335484b264ad34a0ab"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:semantic-preservation-map",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "semantic-preservation-map",
+      "wave": 1,
+      "objective": "Map timing-hardening transformations by semantic risk and identify the smallest HLS-only interventions that cannot intentionally alter DP6 calculations, addresses, or state-transition order.",
+      "dependencies": [],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/semantic-preservation-map"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "semantic-map",
+          "description": "Source-linked semantic risk map and bounded candidate set.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "7d1c947f2f15920d1785d53f560bce73c3562cc6c4d32416bb030d2ad9bc53b3"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:verification-contract",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "verification-contract",
+      "wave": 1,
+      "objective": "Freeze the fail-closed evidence ladder for each timing-hardening candidate from source diff through parity, HLS synthesis, physical timing, tarball admission, and AFI eligibility.",
+      "dependencies": [],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/verification-contract"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "verification-ladder",
+          "description": "Fail-closed verification ladder with immutable admission thresholds.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "7da035643b6e1f3062272ea6cd6646ca83dffb59410e93c944b1d425cd56349f"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "intervention-selection",
+      "wave": 2,
+      "objective": "Select the smallest first HLS intervention justified jointly by physical path attribution, source semantics, and verification coverage; define explicit fallback and rejection conditions.",
+      "dependencies": [
+        "critical-path-attribution",
+        "semantic-preservation-map",
+        "verification-contract"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/intervention-selection"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "selection",
+          "description": "Evidence-bound first intervention and ordered fallback ladder.",
+          "accepted_kinds": [
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "e48c66fc3ca78503c971aaa27ebcada3a9d71ea67363ded2b89ce3bb83803d6b"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "localized-hls-patch",
+      "wave": 3,
+      "objective": "Implement only the selected localized HLS intervention on the isolated timing-hardening branch, without changing DP6 semantics or AWS HLx/HBM integration.",
+      "dependencies": [
+        "intervention-selection"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/hls"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "bounded-diff",
+          "description": "Bounded HLS-only source diff matching the selected intervention.",
+          "accepted_kinds": [
+            "artifact",
+            "hash"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "f76ca9901b6e1e354ea00f1b48b26beb85b2314f108f339daefa02961541eb1c"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:semantic-parity-verification",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "semantic-parity-verification",
+      "wave": 4,
+      "objective": "Independently verify canonical full-160-byte parity and 16-vector parity for the patched HLS source before any paid physical build.",
+      "dependencies": [
+        "localized-hls-patch"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/semantic-parity-verification"
+      ],
+      "exclusive_resources": [],
+      "gates": [
+        {
+          "id": "parity",
+          "description": "Canonical 160-byte PASS plus independent 16/16 vector PASS.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "d4ce59e1d7cd5116dd3dfce8ceecdfa882623d4f18db6d0b963cb37eb08ccc27"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:hls-synthesis-verification",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "hls-synthesis-verification",
+      "wave": 5,
+      "objective": "Run Vitis HLS CSIM, csynth, resource/tractability checks, and IP export for the parity-clean candidate.",
+      "dependencies": [
+        "semantic-parity-verification"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/hls-synthesis-verification"
+      ],
+      "exclusive_resources": [
+        "vitis-hls-build"
+      ],
+      "gates": [
+        {
+          "id": "hls-synthesis",
+          "description": "CSIM and csynth PASS with acceptable resource/tractability evidence and exported IP.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "397de44ad72b452523a678a134e04015c2a8e0c7618e52a793837b3ba1962bd8"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "physical-timing-verification",
+      "wave": 6,
+      "objective": "Integrate the exported candidate IP into the unchanged validated AWS HLx/HBM topology and run full physical implementation at 250 MHz.",
+      "dependencies": [
+        "hls-synthesis-verification"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification"
+      ],
+      "exclusive_resources": [
+        "aws-paid-vivado-build"
+      ],
+      "gates": [
+        {
+          "id": "timing-closure",
+          "description": "Final routed WNS >= 0, TNS = 0, WHS >= 0, THS = 0 with unchanged HLx/HBM topology.",
+          "accepted_kinds": [
+            "test",
+            "reproduction",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "time",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "64fbb50cda4069d7dde597f4e0a2d91fb76456310245160b944ff626534c6a3d"
+    },
+    {
+      "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "domain_id": "afi-admission",
+      "wave": 7,
+      "objective": "Admit a Developer_CL.tar for AFI creation only if all prior gates pass; record immutable tarball digest and leave runtime benchmarking downstream.",
+      "dependencies": [
+        "physical-timing-verification"
+      ],
+      "serialize_after": [],
+      "write_scopes": [
+        "labs/asic-f2-pre-go/build-colony/timing-hardening-001/afi-admission"
+      ],
+      "exclusive_resources": [
+        "aws-fpga-image"
+      ],
+      "gates": [
+        {
+          "id": "afi-eligibility",
+          "description": "Timing-clean Developer_CL.tar with recorded SHA-256 and no failed upstream gate.",
+          "accepted_kinds": [
+            "hash",
+            "artifact",
+            "reproduction"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "hardware",
+        "authorization",
+        "time",
+        "external_evidence"
+      ],
+      "invariants": [
+        "FAE-DP6 output semantics remain byte-for-byte identical.",
+        "Frozen FAE-DP6 consensus source SHA256 fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78 is not modified by this run.",
+        "The HLS implementation is an implementation artifact and never consensus authority.",
+        "Canonical full-160-byte parity and independent 16-vector parity are required before physical implementation.",
+        "Validated AWS HLx shell and HBM topology remain unchanged unless independent evidence proves a topology defect.",
+        "A Developer_CL.tar produced with negative WNS is inadmissible.",
+        "The physical timing gate requires WNS >= 0, TNS = 0, WHS >= 0, and THS = 0.",
+        "Frozen HFB thresholds and measurement definitions do not change during timing hardening.",
+        "AWS paid spend remains capped at USD 20 out-of-pocket with credits used first.",
+        "No wallet key, seed, testnet consensus, mainnet, monetary-policy, or release authority is granted by this run."
+      ],
+      "forbidden_actions": [
+        "change the FAE-DP6 algorithm or consensus parameters",
+        "modify the frozen consensus-source bytes",
+        "weaken canonical or 16-vector parity gates",
+        "weaken or bypass the WNS/TNS/WHS/THS timing gate",
+        "promote a failed-timing Developer_CL.tar to AFI",
+        "change AWS shell or HBM topology merely to conceal an HLS timing defect",
+        "change frozen HFB thresholds",
+        "handle wallet seed phrases or private keys",
+        "activate consensus or promote mainnet",
+        "exceed the authorized USD 20 out-of-pocket AWS cap",
+        "treat a builder self-report as verification"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "package_digest": "9cf92181fe51fe891b248621786b1ab5034cba0bd2ab778f5f62d823281aa882"
+    }
+  ],
+  "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+}
