@@ -1,0 +1,60 @@
+{
+  "domain_id": "critical-path-attribution",
+  "outcome": "built",
+  "source_revision": "07c7b03237b2eaa59c0252bd85b8a2e16769c706",
+  "evidence": {
+    "routed_reports": {
+      "baseline": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0302ff3120bd1fda9/implementation/example_projects/cl_ipi_cdma_test.runs/impl_1/cl_top_timing_summary_routed.rpt",
+      "aggressive": "s3://fae-asic-lab-203842200752-20260922/evidence/i-09200209e86673278/implementation/cl_top_timing_summary_routed.rpt",
+      "no_timing_relax": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0556b3172b18dfcc1/implementation/cl_top_timing_summary_routed.rpt"
+    },
+    "final_timing": {
+      "baseline": {
+        "wns_ns": -0.165,
+        "tns_ns": -33.944
+      },
+      "aggressive": {
+        "wns_ns": -0.175956,
+        "tns_ns": -41.577385
+      },
+      "no_timing_relax": {
+        "wns_ns": -0.209695,
+        "tns_ns": -65.468132
+      }
+    },
+    "top10_tag_counts": {
+      "baseline": {
+        "fae_dp6": 10,
+        "argon2d": 8,
+        "fill_block": 8,
+        "blamka": 7,
+        "dsp": 7,
+        "regs_bram": 2
+      },
+      "aggressive": {
+        "fae_dp6": 10,
+        "argon2d": 7,
+        "fill_block": 7,
+        "blamka": 5,
+        "dsp": 5,
+        "regs_bram": 3,
+        "rw5": 1
+      },
+      "no_timing_relax": {
+        "fae_dp6": 10,
+        "regs_bram": 9,
+        "rw5": 8,
+        "argon2d": 1,
+        "fill_block": 1,
+        "blamka": 1,
+        "dsp": 1
+      }
+    }
+  },
+  "findings": [
+    "All sampled worst setup paths are inside fae_dp6_hls, not the AWS shell.",
+    "Two stable hotspot families recur across routed variants: small RW5 register storage/dynamic access paths and Argon2 fill_block/Blamka paths.",
+    "P&R directives reshuffle the dominant family but do not close timing, so the next action should be localized HLS hardening rather than further global routing strategy search.",
+    "The smallest directly evidenced hotspot is the 8x64-bit RW5 register file represented physically as regs_U/ram_reg_bram_*."
+  ]
+}
