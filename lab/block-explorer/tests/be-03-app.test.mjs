@@ -167,7 +167,7 @@ test('hash routing avoids server rewrite authority',async()=>{
 
 test('Explorer deletion boundary stays physically separate from active root site',async()=>{
   const authority=JSON.parse(await read('lab/block-explorer/authority.json'));
-  assert.ok(['BE-03','BE-04'].includes(authority.current_frontier));
+  assert.ok(['BE-03','BE-04','BE-05'].includes(authority.current_frontier));
   assert.equal(authority.be03_authority.state,'LAB_VERIFIED_FROZEN');
   if(authority.current_frontier==='BE-03')assert.equal(authority.explorer_application_write_authorized,false);
   assert.equal(authority.be03_authority.application_writes_frozen,true);
