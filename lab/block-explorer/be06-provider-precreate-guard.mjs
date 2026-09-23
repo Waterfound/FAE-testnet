@@ -44,6 +44,9 @@ function oracleReasons(e){
   need(bool(o.ingress_hardening_before_public_ipv4_required),'ingress hardening must precede public IPv4 assignment');
   need(bool(o.world_open_tcp_22_forbidden),'world-open TCP/22 must remain forbidden');
   need(bool(o.admin_path_without_ssh_key_verified),'non-SSH-key administration path is not verified');
+  need(o.cloud_guard_workload_protection_enabled===false,'Cloud Guard Workload Protection must be disabled under the strict 0 USD envelope');
+  need(bool(o.compute_instance_run_command_enabled),'Compute Instance Run Command must remain enabled for provider-console administration');
+  need(bool(o.compute_instance_monitoring_enabled),'Compute Instance Monitoring must remain enabled for host evidence');
   need(bool(o.runtime_architecture_compatible),'runtime architecture compatibility is not proven');
   need(bool(o.shape_selectable_in_home_region),'Oracle Always Free shape is not selectable in the home region');
   need(bool(o.estimator_excludes_tier_unit_pricing),'Oracle estimator disclaimer excluding tier unit pricing was not observed');
