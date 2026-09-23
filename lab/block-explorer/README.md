@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-06 — PREPROVISION INTEGRATED / ACCOUNT + RUNTIME EVIDENCE BLOCKED**
+Status: **BE-06 — PRE-CREATE GUARD INTEGRATED / ORACLE ACCOUNT EVIDENCE REQUIRED**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -245,3 +245,40 @@ Explorer LIVE = NOT_LIVE
 ```
 
 The next valid transition requires account-specific zero-cost evidence and runtime/provider-risk acceptance. Source-only work cannot substitute for that external evidence.
+
+
+## BE-06 pre-create guard closeout
+
+The zero-cost provider pre-create safety boundary is now integrated into canonical `main` at `f4d47149f0b089f89754b2a2766b1f868da998e0`.
+
+Integrated artifacts:
+
+- `be06-provider-precreate-policy-v1.json` — provider-specific Oracle/Google admission contract;
+- `be06-provider-precreate-guard.mjs` — fail-closed executable guard;
+- `be-06-precreate-guard.test.mjs` — positive and adversarial fixtures;
+- dedicated Block Explorer workflow coverage.
+
+The guard deliberately distinguishes **safe to request creation authority** from **resource creation authorized** and from **persistent host eligible**. A passing configuration still creates nothing.
+
+Exact integrated revision `f4d47149f0b089f89754b2a2766b1f868da998e0` passed:
+
+- Block Explorer Lab: run `35861061648`;
+- cross-Lab integration: run `35861061874`;
+- recurring public-code assurance: run `35861061634`;
+- CodeQL: run `35861061793`;
+- canonical-source verification: run `35861061815`.
+
+Current provider order is Oracle Cloud first, Google Cloud fallback. Oracle's larger Always Free envelope is compatible with the intended host, but account/home-region/quota/capacity evidence is still missing and the documented idle-reclamation condition must be handled by honest real-workload observation rather than synthetic load. Google remains a fallback because ordinary VM external IPv4 is billable under current pricing; an IPv6-only zero-cost path would require separate reachability/TLS/egress evidence.
+
+```text
+BE-06 hardening = INTEGRATED
+BE-06 provider evidence model = INTEGRATED
+BE-06 zero-cost pre-create guard = INTEGRATED + EXACT-MAIN VERIFIED
+eligible persistent host = NOT YET PROVEN
+host creation authority = CLOSED
+spend authority = CLOSED
+Explorer = PUBLIC_PREBIND / UNBOUND
+Explorer LIVE = NOT_LIVE
+```
+
+At this point additional source-only work is return-decreasing. The next BE-06 evidence must come from the Oracle account itself. If that evidence passes the guard, a separate bounded authorization is still required before creating the candidate host.
