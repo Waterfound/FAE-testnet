@@ -226,10 +226,10 @@
   },
   "source_writes_frozen": true,
   "next_transition": {
-    "trigger": "Account-specific zero-cost provider evidence plus provider-risk/runtime acceptance becomes GREEN without consuming protected FAE infrastructure.",
+    "trigger": "Account-specific zero-cost Oracle evidence plus real reclaim-guard acceptance becomes GREEN; Google remains fallback only with a proven zero-cost public HTTPS path.",
     "required_evidence": [
-      "Google: eligible Free Tier account/region/quota/billing posture, real 1 GiB runtime headroom, and fail-closed egress disposition; or",
-      "Oracle: eligible Always Free home-region/quota/capacity evidence plus a proven acceptable idle-reclamation/recovery disposition.",
+      "Oracle: eligible Always Free home-region/quota/capacity evidence and a right-sized real workload observed not to satisfy the documented idle-reclamation conditions, without synthetic load.",
+      "If Oracle fails: Google requires eligible Free Tier account evidence plus a zero-cost public HTTPS path; ordinary external IPv4 is not admissible because it is billed.",
       "be06-host-preflight.mjs returns eligible=true on the exact host evidence bundle.",
       "No paid resource and no protected workstream capacity is consumed."
     ],
@@ -298,14 +298,14 @@
     "provider_eligibility": "lab/block-explorer/be06-provider-eligibility-20260923.json",
     "current_testnet_footprint": "lab/block-explorer/be06-current-testnet-footprint-20260923.json",
     "google_cloud": {
-      "next_probe": true,
-      "eligible_persistent_host": false,
-      "blocker": "account/billing/quota evidence + real 1 GiB runtime/egress acceptance"
-    },
-    "oracle_cloud": {
       "next_probe": false,
       "eligible_persistent_host": false,
-      "blocker": "account/home-region/capacity evidence + explicit idle-reclamation/recovery disposition"
+      "blocker": "account/billing/quota evidence + zero-cost public HTTPS path (external IPv4 is billed) + real 1 GiB runtime/egress acceptance"
+    },
+    "oracle_cloud": {
+      "next_probe": true,
+      "eligible_persistent_host": false,
+      "blocker": "account/home-region/capacity evidence + real non-synthetic idle-reclamation guard"
     },
     "selected_provider": null,
     "provisioning_authorized": false,
