@@ -148,6 +148,7 @@ static void expand_program(const uint8_t seed[32],Ins prog[PROGRAM_SIZE]){
 uint8_t raw[PROGRAM_SIZE*8];size_t pos=0;for(uint32_t ctr=0;pos<sizeof raw;ctr++){uint8_t cb[4],d[32];wr32(cb,ctr);h2("FAE-RW5-PROGRAM",seed,32,cb,4,d);size_t take=sizeof(raw)-pos<32?sizeof(raw)-pos:32;fae_memcpy(raw+pos,d,take);pos+=take;}for(uint32_t i=0;i<PROGRAM_SIZE;i++){uint8_t*b=raw+i*8;prog[i]=Ins{(uint8_t)(b[0]&31),(uint8_t)(b[1]&7),(uint8_t)(b[2]&7),(uint8_t)(b[3]&7),rd32(b+4)};}}
 static void rw5(const uint8_t mh[32],const uint8_t hdr[32],uint64_t nonce,const uint8_t task[32],uint8_t tr[32],uint64_t r[8],block*M){
 #pragma HLS INLINE off
+#pragma HLS ARRAY_PARTITION variable=r complete dim=1
 uint8_t nb[8],base[32];wr64(nb,nonce);h4("FAE-RW5-SEED",mh,32,hdr,32,nb,8,task,32,base);uint64_t*s=(uint64_t*)M;const uint64_t mask=(256u*1024u*1024u/8u)-1u;for(int i=0;i<8;i++){uint8_t tmp[8]={0};int st=i*4,n=32-st;if(n>8)n=8;if(n>0)fae_memcpy(tmp,base+st,(size_t)n);r[i]=rd64(tmp);}fae_memcpy(tr,base,32);uint64_t chain=rd64(mh)^rd64(base+8)^nonce^0xA0761D6478BD642FULL;
 for(uint32_t pidx=0;pidx<PROGRAMS;pidx++){uint8_t pi[4],pseed[32];wr32(pi,pidx);h3("FAE-RW5-CHAIN",tr,32,pi,4,mh,32,pseed);Ins prog[PROGRAM_SIZE];expand_program(pseed,prog);uint32_t pc=rd32(pseed)%PROGRAM_SIZE;
 for(uint32_t step=0;step<STEPS;step++){Ins q=prog[pc];uint8_t op=q.op,dst=q.dst,src=q.src,src2=q.src2;uint64_t imm=q.imm,a=r[src],b=r[src2];uint32_t nxt=(pc+1)%PROGRAM_SIZE;
@@ -159,7 +160,9 @@ r[7]^=chain;uint8_t state[64],samples[64],inner[32];for(int i=0;i<8;i++)wr64(sta
 
 static int dp6_run_bytes(const uint8_t in[112],uint8_t out[160],block*M){
 #pragma HLS INLINE off
-const uint8_t*hdr=in;uint64_t nonce=rd64(in+32);const uint8_t*task=in+40;const uint8_t*prev=in+72;uint64_t height=rd64(in+104);uint8_t hb[8],saltfull[32],nb[8],pwd[32],mh[32],tr[32],inner[32],final[32],regbytes[64];uint64_t regs[8];wr64(hb,height);h3("FAE-DP6-MH3-SALT",prev,32,hb,8,task,32,saltfull);wr64(nb,nonce);h3("FAE-DP6-MH3-INPUT",hdr,32,nb,8,task,32,pwd);argon2d_fixed(pwd,saltfull,mh,M);rw5(mh,hdr,nonce,task,tr,regs,M);for(int i=0;i<8;i++)wr64(regbytes+8*i,regs[i]);h6("FAE-DP6-FINAL",hdr,32,nb,8,task,32,mh,32,tr,32,regbytes,64,inner);shad(inner,32,final);fae_memcpy(out,mh,32);fae_memcpy(out+32,tr,32);fae_memcpy(out+64,regbytes,64);fae_memcpy(out+128,final,32);return 0;}
+const uint8_t*hdr=in;uint64_t nonce=rd64(in+32);const uint8_t*task=in+40;const uint8_t*prev=in+72;uint64_t height=rd64(in+104);uint8_t hb[8],saltfull[32],nb[8],pwd[32],mh[32],tr[32],inner[32],final[32],regbytes[64];uint64_t regs[8];
+#pragma HLS ARRAY_PARTITION variable=regs complete dim=1
+wr64(hb,height);h3("FAE-DP6-MH3-SALT",prev,32,hb,8,task,32,saltfull);wr64(nb,nonce);h3("FAE-DP6-MH3-INPUT",hdr,32,nb,8,task,32,pwd);argon2d_fixed(pwd,saltfull,mh,M);rw5(mh,hdr,nonce,task,tr,regs,M);for(int i=0;i<8;i++)wr64(regbytes+8*i,regs[i]);h6("FAE-DP6-FINAL",hdr,32,nb,8,task,32,mh,32,tr,32,regbytes,64,inner);shad(inner,32,final);fae_memcpy(out,mh,32);fae_memcpy(out+32,tr,32);fae_memcpy(out+64,regbytes,64);fae_memcpy(out+128,final,32);return 0;}
 
 
 extern "C" void fae_dp6_hls(const uint8_t *input, uint8_t *output, uint64_t *matrix_words) {
