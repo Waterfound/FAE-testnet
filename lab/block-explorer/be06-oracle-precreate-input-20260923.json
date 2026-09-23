@@ -31,6 +31,9 @@
     "public_ipv4_no_charge_verified": true,
     "ingress_hardening_before_public_ipv4_required": true,
     "world_open_tcp_22_forbidden": true,
-    "admin_path_without_ssh_key_verified": true
+    "admin_path_without_ssh_key_verified": true,
+    "cloud_guard_workload_protection_enabled": false,
+    "compute_instance_run_command_enabled": true,
+    "compute_instance_monitoring_enabled": true
   }
 }
