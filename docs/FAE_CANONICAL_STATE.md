@@ -176,7 +176,7 @@ Accepted implementation state carried by canonical main after BE-02 integration:
 - Explorer public frontend: verified at `https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/` in `PUBLIC_PREBIND / UNBOUND` state;
 - hosted config: `api_base: null`, `read_only: true`, source-bound to `eabddc8db3f79f4ac6a7544316809f3d879954fe`;
 - public frontend QA: no reported frontend, network or backend errors in the provider snapshot;
-- public HTTPS Independent Node binding: unresolved;
+- public HTTPS Independent Node binding: blocked pending an eligible persistent Independent Node host;
 - Explorer LIVE state: **NOT_LIVE**; the public prebind does not authorize chain data, consensus, wallet, signing or mining authority;
 - BE-05 provider discovery: no eligible existing persistent Independent Node host found in the connected Render, Vercel, AppDeploy, DigitalOcean, AWS EC2 or accessible Lightsail inventory;
 - BE-05 provider-neutral runtime contract: prepared for a private-loopback Independent Node with durable validated state behind an exact-route read-only gateway and provider HTTPS termination;
