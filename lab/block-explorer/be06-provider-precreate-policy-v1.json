@@ -40,9 +40,15 @@
       "public_ipv4_no_charge_verified": true,
       "ingress_hardening_before_public_ipv4_required": true,
       "world_open_tcp_22_forbidden": true,
-      "admin_path_without_ssh_key_verified": true
+      "admin_path_without_ssh_key_verified": true,
+      "cloud_guard_workload_protection_enabled": false,
+      "compute_instance_run_command_enabled": true,
+      "compute_instance_monitoring_enabled": true
     },
     "launch_time_gate": [
+      "Disable Cloud Guard Workload Protection before launch; do not admit node-hour-billed workload-protection services into the 0 USD envelope.",
+      "Keep Compute Instance Run Command enabled for provider-console administration.",
+      "Keep Compute Instance Monitoring enabled within the Always Free monitoring allowance.",
       "Launch the candidate without a public IPv4 address, matching the OCI Review evidence.",
       "Use OCI Compute Instance Run Command / provider console for initial administration; do not require world-open SSH.",
       "Before public exposure, harden ingress so TCP/22 is not open to 0.0.0.0/0 and only the planned public service ports 80/443 are admitted.",
