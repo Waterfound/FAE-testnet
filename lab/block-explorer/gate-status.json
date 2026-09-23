@@ -405,7 +405,10 @@
       ],
       "administration": "OCI Compute Instance Run Command / provider console; no SSH key at launch",
       "reserved_public_ipv4_available": 6,
-      "reserved_public_ipv4_no_charge_verified": true
+      "reserved_public_ipv4_no_charge_verified": true,
+      "cloud_guard_workload_protection": "DISABLED_REQUIRED",
+      "compute_instance_run_command": "ENABLED_REQUIRED",
+      "compute_instance_monitoring": "ENABLED_ALLOWED"
     },
     "host_creation_authorized": false,
     "persistent_host_eligible": false
