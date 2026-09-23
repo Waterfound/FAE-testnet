@@ -1,6 +1,6 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_06_PREPROVISION_INTEGRATED_ACCOUNT_AND_RUNTIME_EVIDENCE_BLOCKED",
+  "status": "BE_06_PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
@@ -454,7 +454,7 @@
     }
   },
   "be06_authority": {
-    "state": "PREPROVISION_INTEGRATED_EXTERNAL_EVIDENCE_REQUIRED",
+    "state": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
     "prerequisite": "BE-06 preprovision package integrated and exact-main verified at e11679cce8697aeeecc89d78454adb123acef563",
     "intended_scope": "Select and prove one zero-cost persistent host for the Explorer Independent Node without granting provider, Explorer, or hosting infrastructure FAE authority.",
     "allowed_actions": [
@@ -476,6 +476,23 @@
     "provider_selection_authorized": false,
     "host_creation_authorized": false,
     "explorer_binding_authorized": false,
-    "live_authorized": false
+    "live_authorized": false,
+    "integrated_main_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+    "integrated_guard": "lab/block-explorer/be06-provider-precreate-guard.mjs",
+    "integrated_policy": "lab/block-explorer/be06-provider-precreate-policy-v1.json",
+    "source_writes_frozen": true,
+    "account_specific_evidence_authorized_read_only": true,
+    "paid_spend_authorized": false,
+    "next_authority_transition": "Only after account-specific zero-cost evidence passes the pre-create guard may a separate bounded host-creation authorization be considered.",
+    "exact_main_verification": {
+      "pull_request": 247,
+      "revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+      "block_explorer_lab_run_id": 35861061648,
+      "cross_lab_run_id": 35861061874,
+      "recurring_assurance_run_id": 35861061634,
+      "codeql_run_id": 35861061793,
+      "canonical_source_run_id": 35861061815,
+      "result": "GREEN"
+    }
   }
 }

@@ -2,8 +2,8 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-06",
-  "status": "PREPROVISION_INTEGRATED_ACCOUNT_AND_RUNTIME_EVIDENCE_BLOCKED",
-  "source_revision": "e11679cce8697aeeecc89d78454adb123acef563",
+  "status": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
+  "source_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
   "candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
   "public_frontend": {
     "status": "READY_PUBLIC_PREBIND",
@@ -226,12 +226,16 @@
   },
   "source_writes_frozen": true,
   "next_transition": {
-    "trigger": "Account-specific zero-cost Oracle evidence plus real reclaim-guard acceptance becomes GREEN; Google remains fallback only with a proven zero-cost public HTTPS path.",
+    "trigger": "Account-specific Oracle Always Free evidence is observed and the exact candidate evidence bundle passes the BE-06 pre-create guard.",
     "required_evidence": [
-      "Oracle: eligible Always Free home-region/quota/capacity evidence and a right-sized real workload observed not to satisfy the documented idle-reclamation conditions, without synthetic load.",
-      "If Oracle fails: Google requires eligible Free Tier account evidence plus a zero-cost public HTTPS path; ordinary external IPv4 is not admissible because it is billed.",
-      "be06-host-preflight.mjs returns eligible=true on the exact host evidence bundle.",
-      "No paid resource and no protected workstream capacity is consumed."
+      "Oracle tenancy/account scope and home region verified.",
+      "Selected compute shape visibly marked Always Free-eligible and inside remaining account entitlement.",
+      "Boot/durable storage and public networking proven inside the 0 USD envelope.",
+      "Provider console cost preview for the exact resource set verified at 0 USD.",
+      "Current Always Free capacity available without paid upgrade.",
+      "Synthetic reclaim evasion remains false and post-create real-workload reclaim observation remains mandatory.",
+      "lab/block-explorer/be06-provider-precreate-guard.mjs returns admitted=true.",
+      "Separate explicit authority is still required before resource creation."
     ],
     "live_status_until_then": "NOT_LIVE"
   },
@@ -290,9 +294,9 @@
     }
   },
   "be06": {
-    "phase": "PREPROVISION_INTEGRATED_ACCOUNT_AND_RUNTIME_EVIDENCE_BLOCKED",
+    "phase": "PRECREATE_GUARD_INTEGRATED_EXTERNAL_ACCOUNT_EVIDENCE_REQUIRED",
     "preprovision_integrated": true,
-    "integrated_main_revision": "e11679cce8697aeeecc89d78454adb123acef563",
+    "integrated_main_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
     "hardening_contract": "lab/block-explorer/be06-host-hardening-v1.json",
     "host_preflight": "lab/block-explorer/be06-host-preflight.mjs",
     "provider_eligibility": "lab/block-explorer/be06-provider-eligibility-20260923.json",
@@ -312,6 +316,43 @@
     "deployment_performed": false,
     "explorer_binding_authorized": false,
     "explorer_live_authorized": false,
-    "protected_capacity_consumed": false
+    "protected_capacity_consumed": false,
+    "provider_precreate_policy": "lab/block-explorer/be06-provider-precreate-policy-v1.json",
+    "provider_precreate_guard": "lab/block-explorer/be06-provider-precreate-guard.mjs",
+    "source_writes_frozen": true,
+    "preferred_next_probe": "oracle_cloud",
+    "integration": {
+      "status": "EXACT_MAIN_VERIFIED",
+      "pull_request": 246,
+      "merge_revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+      "verification_pull_request": 247,
+      "exact_revision_verification": {
+        "block_explorer_lab": {
+          "run_id": 35861061648,
+          "job_id": 107181114044,
+          "status": "GREEN"
+        },
+        "cross_lab": {
+          "run_id": 35861061874,
+          "job_id": 107181117436,
+          "status": "GREEN"
+        },
+        "recurring_assurance": {
+          "run_id": 35861061634,
+          "job_id": 107181113917,
+          "status": "GREEN"
+        },
+        "codeql": {
+          "run_id": 35861061793,
+          "job_id": 107181114639,
+          "status": "GREEN"
+        },
+        "canonical_source": {
+          "run_id": 35861061815,
+          "job_id": 107181115686,
+          "status": "GREEN"
+        }
+      }
+    }
   }
 }
