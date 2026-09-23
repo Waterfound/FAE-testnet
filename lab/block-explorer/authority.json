@@ -1,13 +1,13 @@
 {
   "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
-  "status": "BE_04_PUBLIC_PREBIND_VERIFIED_NODE_BINDING_BLOCKED",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE_EXTERNAL_HOST_BLOCKED",
   "created": "2026-09-18",
   "project": "FAE",
   "lab": "FAE – Block Explorer",
   "source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
-  "current_frontier": "BE-04",
-  "authority_ceiling": "VERIFIED_PUBLIC_FRONTEND_PREBIND_AND_HTTPS_NODE_BINDING_PREPARATION",
+  "current_frontier": "BE-05",
+  "authority_ceiling": "PUBLIC_HTTPS_INDEPENDENT_NODE_DISCOVERY_AND_BINDING_GATE",
   "explorer_principle": "Explorer observes FAE; it never authorizes FAE.",
   "current_stage_runtime_write_authorized": false,
   "node_query_surface_write_authorized": false,
@@ -131,6 +131,31 @@
       "canonical_success_run_id": 35849223848,
       "canonical_latest_concurrent_run_id": 35849397225,
       "canonical_latest_concurrent_run_note": "Run-level conclusion was cancelled by concurrency after all 40 substantive gates and cleanup steps individually completed success; exact same HEAD already has canonical success run 35849223848."
+    },
+    "BE-05": {
+      "status": "GREEN_SOFTWARE_PREPARED_EXTERNAL_HOST_BLOCKED",
+      "verified_candidate_revision": "73b5a21297ad55e5f47a0f50b29c58b05fbd3b05",
+      "block_explorer_lab_run_id": 35851580782,
+      "block_explorer_lab_job_id": 107150266517,
+      "tests": "BE-01/02/03/04 regressions + BE-05 contract/gateway/binding-probe + syntax PASS",
+      "cross_lab_preintegration_run_id": 35851580759,
+      "cross_lab_job_id": 107150286121,
+      "canonical_source_run_id": 35851580740,
+      "canonical_source_job_id": 107150393187,
+      "canonical_source_substantive_gates": "40/40 PASS",
+      "codeql_run_id": 35851580760,
+      "codeql_job_id": 107150266473,
+      "recurring_assurance_run_id": 35851580803,
+      "recurring_assurance_job_id": 107150304720,
+      "psr15_whitebox_run_id": 35851580732,
+      "psr15_whitebox_job_id": 107150266652,
+      "provider_scan": "NO_EXISTING_ELIGIBLE_HOST_DISCOVERED",
+      "gateway": "PREPARED_TESTED",
+      "binding_probe": "PREPARED_TESTED",
+      "deployment_performed": false,
+      "binding_performed": false,
+      "live_status": "NOT_LIVE",
+      "authority_change": "NONE; runtime deployment and public HTTPS binding remain unauthorized"
     }
   },
   "be02_authority": {
@@ -194,7 +219,7 @@
     "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
     "runtime_writes_frozen": true
   },
-  "frontier_source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
+  "frontier_source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
   "current_stage_protected_path_exceptions": [],
   "explorer_application_write_authorized": false,
   "explorer_application_live_authorized": false,
@@ -312,5 +337,74 @@
       "deployment_state": "PUBLIC_PREBIND",
       "qa": "CLEAN"
     }
+  },
+  "be05_authority": {
+    "state": "EXTERNAL_BLOCKED_FROZEN",
+    "prerequisite": "BE-04 is integrated and post-merge verified at 0341ed060be0f030d5cb677953cef141ae7eb415",
+    "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+    "intended_scope": "Discover and prove an eligible persistent HTTPS Independent Node hosting path, then bind the already-public UNBOUND Explorer only after independent validation and live-read gates pass.",
+    "allowed_write_scopes": [
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      },
+      {
+        "path": "explorer/config.json"
+      },
+      {
+        "path": "explorer/README.md"
+      }
+    ],
+    "discovery_allowed": [
+      "inspect existing connected hosting infrastructure read-only",
+      "inspect zero-cost or already-entitled hosting eligibility",
+      "define deployment manifest and live binding acceptance contract",
+      "probe an already-existing eligible Independent Node if one exists"
+    ],
+    "deployment_forbidden_until_promoted": true,
+    "forbidden_actions": [
+      "consume Stability Soak V3 reserved Render instance-hours",
+      "repurpose Wallet/Mining or audit deployments as Independent Node authority",
+      "create paid infrastructure or consume a separate lab budget without explicit authority",
+      "bind Explorer to raw feed, Supabase database, cache, Vercel function, or any non-validating source",
+      "mark Explorer LIVE before exact HTTPS node and combined-main evidence",
+      "change consensus, economics, fork choice, wallet signing, transaction admission, or mining"
+    ],
+    "minimum_eligible_node_requirements": [
+      "persistent runtime suitable for the reference Independent Node",
+      "persistent node-owned validated state",
+      "HTTPS public origin",
+      "fairyelf-public-testnet-v4 identity",
+      "full local validation of feed/peer inputs rather than trusting upstream truth",
+      "GET /explorer/status returns valid observed tip binding",
+      "Explorer mutation methods remain rejected",
+      "provider can disappear without affecting FAE consensus or chain survival"
+    ],
+    "current_disposition": "SOFTWARE_PREPARED_EXTERNAL_HOST_REQUIRED",
+    "live_status": "NOT_AUTHORIZED",
+    "source_writes_frozen": true,
+    "eligible_existing_host_found": false,
+    "external_host_required": true,
+    "discovery_completed": true,
+    "external_unblock_conditions": [
+      "An eligible persistent host is discovered without consuming protected infrastructure envelopes, or explicit authority is granted for a new host with a bounded budget/credit scope.",
+      "The host satisfies lab/block-explorer/be05-node-deployment-v1.json.",
+      "The deployed public origin passes lab/block-explorer/be05-binding-probe.mjs on exact deployment evidence.",
+      "Only then may a later authority transition permit Explorer BOUND_CANDIDATE configuration."
+    ],
+    "prepared_artifacts": [
+      "lab/block-explorer/be05-provider-scan.json",
+      "lab/block-explorer/be05-node-deployment-v1.json",
+      "lab/block-explorer/be05-readonly-gateway.mjs",
+      "lab/block-explorer/be05-binding-probe.mjs"
+    ]
   }
 }
