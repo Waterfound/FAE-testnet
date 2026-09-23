@@ -1,6 +1,6 @@
 # FAE – Block Explorer Lab
 
-Status: **BE-06 — PRE-CREATE GUARD INTEGRATED / ORACLE ACCOUNT EVIDENCE REQUIRED**
+Status: **BE-06 — ORACLE PRE-CREATE ADMITTED / HOST CREATION AUTHORITY REQUIRED**
 
 The Block Explorer is a separate read-only application in the FAE ecosystem.
 
@@ -282,3 +282,37 @@ Explorer LIVE = NOT_LIVE
 ```
 
 At this point additional source-only work is return-decreasing. The next BE-06 evidence must come from the Oracle account itself. If that evidence passes the guard, a separate bounded authorization is still required before creating the candidate host.
+
+
+## BE-06 Oracle account admission
+
+Read-only OCI evidence collected on 2026-09-23 is now serialized without credentials or personal account identifiers.
+
+Observed candidate:
+
+- Home Region: `GRU / sa-saopaulo-1`;
+- `VM.Standard.A1.Flex` visibly labeled **Always Free-eligible**;
+- 2 OCPUs / 12 GB RAM selected;
+- Oracle Linux 9 with Console price **Free**;
+- 200 GB Free Tier Block Volume available, usage 0;
+- default boot volume ~46.6 GB, no additional block volume;
+- regional public-IP quota available;
+- OCI create-instance estimator showed R$10.45/month for the boot volume **while explicitly stating that the estimate does not reflect tier unit pricing**.
+
+The BE-06 guard was corrected to treat OCI raw estimator output as list-price evidence, not final Always Free billing evidence. The exact Oracle input passes the executable guard and the integrated revision `c5794bbf190f5848da9ff0289b15d7ac213916b0` is exact-main verified by Block Explorer Lab, cross-Lab, recurring assurance, CodeQL, and canonical-source.
+
+Current authority:
+
+```text
+selected provider = Oracle Cloud
+pre-create guard = ADMITTED
+safe_to_request_host_creation_authority = true
+host creation authority = CLOSED
+monthly cost ceiling = US$0
+paid fallback = FORBIDDEN
+persistent host eligible = false
+Explorer binding authority = CLOSED
+Explorer LIVE = NOT_LIVE
+```
+
+The bounded creation request is one A1 VM in São Paulo, 2 OCPU / 12 GB, Oracle Linux 9, default ~46.6 GB boot volume, dedicated VCN/public subnet/public IPv4, and no world-open SSH. If Always Free A1 capacity is unavailable or any component requires paid usage, creation must fail closed instead of substituting a paid resource.
