@@ -2,7 +2,7 @@
   "schema": "FAE_BLOCK_EXPLORER_GATE_STATUS_V1",
   "updated": "2026-09-23",
   "frontier": "BE-04",
-  "status": "VERIFICATION_PENDING",
+  "status": "LAB_VERIFIED_INTEGRATION_CANDIDATE",
   "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
   "candidate_branch": "lab/block-explorer-be04-20260918",
   "public_frontend": {
@@ -21,7 +21,34 @@
   },
   "evidence": {
     "public_prebind": "lab/block-explorer/be04-public-prebind-evidence.json",
-    "infrastructure_scan": "lab/block-explorer/be04-infrastructure-scan.json"
+    "infrastructure_scan": "lab/block-explorer/be04-infrastructure-scan.json",
+    "block_explorer_lab": {
+      "run_id": 35849223884,
+      "job_id": 107142650282,
+      "status": "GREEN",
+      "tests": "BE-01/02/03/04 + syntax + boundary guard PASS"
+    },
+    "cross_lab_preintegration": {
+      "run_id": 35849223850,
+      "status": "GREEN"
+    },
+    "canonical_source": {
+      "run_id": 35849223848,
+      "status": "GREEN"
+    },
+    "codeql": {
+      "run_id": 35849223829,
+      "status": "GREEN"
+    },
+    "recurring_assurance": {
+      "run_id": 35849223946,
+      "status": "GREEN"
+    },
+    "psr15_whitebox": {
+      "run_id": 35849223877,
+      "status": "GREEN"
+    }
   },
-  "integration_required_before_next_frontier": true
+  "integration_required_before_next_frontier": true,
+  "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d"
 }
