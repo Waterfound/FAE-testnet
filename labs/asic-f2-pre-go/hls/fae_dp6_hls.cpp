@@ -127,7 +127,7 @@ static inline uint64_t blamka(uint64_t x,uint64_t y){uint64_t xy=(x&0xffffffffUL
 #define AROUND(v0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15) do{AG(v0,v4,v8,v12);AG(v1,v5,v9,v13);AG(v2,v6,v10,v14);AG(v3,v7,v11,v15);AG(v0,v5,v10,v15);AG(v1,v6,v11,v12);AG(v2,v7,v8,v13);AG(v3,v4,v9,v14);}while(0)
 static void fill_block(const block*prev,const block*ref,block*next){
 #pragma HLS INLINE off
-block r,t;for(int i=0;i<128;i++){r.v[i]=ref->v[i]^prev->v[i];t.v[i]=r.v[i];}for(int i=0;i<8;i++){uint64_t*x=&r.v[16*i];AROUND(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],x[11],x[12],x[13],x[14],x[15]);}for(int i=0;i<8;i++){AROUND(r.v[2*i],r.v[2*i+1],r.v[2*i+16],r.v[2*i+17],r.v[2*i+32],r.v[2*i+33],r.v[2*i+48],r.v[2*i+49],r.v[2*i+64],r.v[2*i+65],r.v[2*i+80],r.v[2*i+81],r.v[2*i+96],r.v[2*i+97],r.v[2*i+112],r.v[2*i+113]);}for(int i=0;i<128;i++)next->v[i]=t.v[i]^r.v[i];}
+uint64_t r[128],t[128];\n#pragma HLS BIND_STORAGE variable=r type=ram_2p impl=lutram\nfor(int i=0;i<128;i++){r[i]=ref->v[i]^prev->v[i];t[i]=r[i];}for(int i=0;i<8;i++){uint64_t*x=&r[16*i];AROUND(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],x[11],x[12],x[13],x[14],x[15]);}for(int i=0;i<8;i++){AROUND(r[2*i],r[2*i+1],r[2*i+16],r[2*i+17],r[2*i+32],r[2*i+33],r[2*i+48],r[2*i+49],r[2*i+64],r[2*i+65],r[2*i+80],r[2*i+81],r[2*i+96],r[2*i+97],r[2*i+112],r[2*i+113]);}for(int i=0;i<128;i++)next->v[i]=t[i]^r[i];}
 #undef AG
 #undef AROUND
 static uint32_t index_alpha0(uint32_t slice,uint32_t i,uint32_t pseudo){uint32_t area=(slice==0)?(i-1):(slice*ARGON_SEGMENT+i-1);uint64_t rel=(uint64_t)pseudo*(uint64_t)pseudo;rel>>=32;rel=(uint64_t)area-1-(((uint64_t)area*rel)>>32);return (uint32_t)rel;}
