@@ -1,0 +1,18 @@
+{
+  "domain_id": "hls-synthesis-verification",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "hls-synthesis"
+  ],
+  "independent_checks": [
+    "Worker terminated normally with exit_code=0 and PASS_CSIM_CSYNTH_EXPORT.",
+    "Vitis CSIM independently reports FAE_DP6_HLS_16VECTORS=16/16.",
+    "Loop constraint status independently reports all constraints satisfied.",
+    "Estimated Fmax is 315.81 MHz against the 250 MHz target.",
+    "RW5 and dp6_run_bytes binding reports contain zero Width=64, Depth=8 RAM instances for r/regs after C1.",
+    "csynth resource increase versus R11 is bounded: FF 154054->167160 and LUT 306908->310980; SLR LUT 70%->71%.",
+    "IP export artifacts are present. Final routed physical timing remains the next authoritative gate."
+  ],
+  "reasons": []
+}
