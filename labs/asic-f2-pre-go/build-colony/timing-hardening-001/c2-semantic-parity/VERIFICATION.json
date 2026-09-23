@@ -1,0 +1,10 @@
+{
+  "accepted": true,
+  "checks": [
+    "canonical 160-byte parity passed",
+    "16/16 independent nonce vectors passed",
+    "tested git blob matches C2 corrected source",
+    "worker exited 0 and auto-terminated"
+  ],
+  "next_gate": "C2 Vitis CSIM/csynth/export + binding/resource verification"
+}
