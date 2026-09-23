@@ -1,0 +1,46 @@
+{
+  "domain_id": "semantic-preservation-map",
+  "outcome": "built",
+  "source_revision": "07c7b03237b2eaa59c0252bd85b8a2e16769c706",
+  "source_observations": [
+    {
+      "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+      "lines": "149-158",
+      "fact": "rw5 receives uint64_t r[8] and uses dynamic r[src], r[src2], r[dst] accesses."
+    },
+    {
+      "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+      "lines": "160-162",
+      "fact": "dp6_run_bytes declares uint64_t regs[8], passes it to rw5, then serializes all eight registers into the output."
+    },
+    {
+      "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+      "lines": "128-143",
+      "fact": "Argon2 fill_block uses larger local block r,t structures and Blamka arithmetic."
+    },
+    {
+      "path": "labs/asic-f2-pre-go/hls/run_hls.tcl",
+      "fact": "automatic loop pipelining is disabled for tractability; target remains 4.000 ns."
+    }
+  ],
+  "hls_binding_evidence": [
+    "Vitis binding report identifies dynamic RW5 r[] loads/stores as CoreInst=RAM, Width=64, Depth=8, Latency=1.",
+    "Physical routed reports identify regs_U/ram_reg_bram_* repeatedly in the worst paths."
+  ],
+  "risk_map": {
+    "low": [
+      "Change only HLS storage realization for the 8x64-bit regs/r array, with exact C calculations and update order unchanged.",
+      "Use an HLS ARRAY_PARTITION-style directive to prevent the tiny register file from remaining a single inferred RAM, subject to parity and synthesis verification."
+    ],
+    "medium": [
+      "Partition/reshape Argon2 fill_block local r/t storage.",
+      "Change explicit operator binding or latency around Blamka/DSP."
+    ],
+    "high_or_deferred": [
+      "Reorder RW5 state updates or memory accesses.",
+      "Change matrix addressing/layout semantics.",
+      "Alter Argon2 parameters, RW5 operations, constants, or DP6 bytes.",
+      "Rewrite the algorithm merely to satisfy timing."
+    ]
+  }
+}
