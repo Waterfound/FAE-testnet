@@ -31,7 +31,7 @@ const requiredIds=[
 ];
 
 for(const id of requiredIds){
-  assert.match(html,new RegExp('id=["\\\']'+id+'["\\\']'),'missing #'+id);
+  assert.match(html,new RegExp(`id=[\"']${id}[\"']`),'missing #'+id);
 }
 
 assert.match(
