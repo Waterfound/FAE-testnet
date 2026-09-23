@@ -405,6 +405,9 @@
       "lab/block-explorer/be05-node-deployment-v1.json",
       "lab/block-explorer/be05-readonly-gateway.mjs",
       "lab/block-explorer/be05-binding-probe.mjs"
-    ]
+    ],
+    "verified_candidate_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
+    "reconciled_candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
+    "exact_head_verification": "GREEN"
   }
 }
