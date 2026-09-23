@@ -67,6 +67,15 @@ const localStorage={
 };
 
 let submittedTransaction=null;
+let deferTransactionHistory=false;
+const transactionHistoryResolvers=[];
+const waitFor=async predicate=>{
+  for(let attempt=0;attempt<200;attempt++){
+    if(predicate())return;
+    await new Promise(resolve=>setTimeout(resolve,1));
+  }
+  throw Error('Timed out waiting for smoke-test condition');
+};
 const fetch=async(url,options={})=>{
   const path=String(url).split('fae-public-testnet-v4')[1]||'';
   let body={};
@@ -79,6 +88,14 @@ const fetch=async(url,options={})=>{
   }else if(path.startsWith('/spendable')){
     body={spendable_fae:'2',utxos:[{outpoint:'smoke:0',amount_atoms:'200000000'}]};
   }else if(path.startsWith('/transactions')){
+    if(deferTransactionHistory){
+      return await new Promise(resolve=>{
+        transactionHistoryResolvers.push(payload=>resolve(new Response(
+          JSON.stringify(payload),
+          {status:200,headers:{'content-type':'application/json'}}
+        )));
+      });
+    }
     body={transactions:[]};
   }else if(path.startsWith('/submit-tx')){
     submittedTransaction=JSON.parse(options.body).tx;
@@ -199,6 +216,54 @@ await vm.runInContext('copySendTransactionId()',context);
 assert.match(document.getElementById('sendcopyfeedback').textContent,/manually/i);
 context.navigator.clipboard.writeText=originalWriteText;
 document.execCommand=originalExecCommand;
+
+// A stale A response must never be accepted after a rapid A -> B -> A context
+// change. Address equality alone cannot prove freshness because the final
+// address can equal the initial one.
+const raceAddress=vm.runInContext('wallet.address',context);
+const raceDestination=vm.runInContext('walletAccount.addresses[1].address',context);
+deferTransactionHistory=true;
+const staleRefresh=vm.runInContext('refresh()',context);
+await waitFor(()=>transactionHistoryResolvers.length===1);
+const switchToB=vm.runInContext('activateAccountAddress(1)',context);
+const switchBackToA=vm.runInContext('activateAccountAddress(3)',context);
+transactionHistoryResolvers.shift()({
+  ok:true,
+  transactions:[{
+    txid:'e'.repeat(64),
+    from_address:raceAddress,
+    inputs:['race-old:0'],
+    outputs:[{address:raceDestination,amount_atoms:'1'}],
+    status:'pending',
+    confirmed_height:null,
+    created_at:'2026-09-23T10:30:00.000Z',
+    mempool_seq:20
+  }]
+});
+await waitFor(()=>transactionHistoryResolvers.length===1);
+const midRaceTxids=vm.runInContext('walletHistory?.transactions?.map(item=>item.txid)||[]',context);
+assert.equal(midRaceTxids.includes('e'.repeat(64)),false,'stale A response must be discarded after A -> B -> A');
+transactionHistoryResolvers.shift()({
+  ok:true,
+  transactions:[{
+    txid:'f'.repeat(64),
+    from_address:raceAddress,
+    inputs:['race-current:0'],
+    outputs:[{address:raceDestination,amount_atoms:'2'}],
+    status:'pending',
+    confirmed_height:null,
+    created_at:'2026-09-23T10:31:00.000Z',
+    mempool_seq:21
+  }]
+});
+await Promise.all([staleRefresh,switchToB,switchBackToA]);
+deferTransactionHistory=false;
+assert.equal(vm.runInContext('wallet.address',context),raceAddress);
+assert.equal(vm.runInContext('walletHistory.address',context),raceAddress);
+assert.deepEqual(
+  vm.runInContext('walletHistory.transactions.map(item=>item.txid)',context),
+  ['f'.repeat(64)]
+);
 
 const packageJson=await vm.runInContext('recoveryPackage().then(JSON.stringify)',context);
 assert.equal(packageJson.includes('FAE_WALLET_TX_RECEIPT_V1'),false);
