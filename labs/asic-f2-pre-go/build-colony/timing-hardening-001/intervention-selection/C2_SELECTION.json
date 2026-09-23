@@ -1,0 +1,20 @@
+{
+  "candidate": "C2-ARGON2-FILLBLOCK-R-LUTRAM",
+  "base": "clean pre-C1 HLS source at 07c7b03237b2eaa59c0252bd85b8a2e16769c706",
+  "scope": "fill_block local working array r only",
+  "intended_change": "Preserve the 128x64 two-port RAM abstraction but bind r to LUTRAM; leave t on baseline auto storage.",
+  "rationale": [
+    "Baseline Vitis binding proves fill_block r and t are RAM, Width=64, Depth=128, Ports=2, Latency=1.",
+    "Baseline physical evidence contains Argon2/fill_block/Blamka timing hotspots.",
+    "Unlike C1, C2 preserves the memory abstraction instead of fully partitioning it into scalar registers.",
+    "Only r participates in the Blamka rounds; t is a saved XOR copy used at the final combine and is left untouched to minimize scope."
+  ],
+  "fail_closed": [
+    "canonical 160-byte parity must pass",
+    "16/16 vectors must pass",
+    "Vitis CSIM/csynth/export must pass",
+    "binding must show r implemented as LUTRAM while t remains memory",
+    "resource/tractability must remain bounded",
+    "physical WNS >= 0, TNS=0, WHS>=0, THS=0 required for promotion"
+  ]
+}
