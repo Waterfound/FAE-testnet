@@ -1,0 +1,15 @@
+{
+  "domain_id": "critical-path-attribution",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "path-attribution"
+  ],
+  "independent_checks": [
+    "Baseline/A/B final WNS/TNS reproduced from routed implementation evidence.",
+    "Worst-path hierarchy names independently confirm fae_dp6_hls as the failing region.",
+    "regs_U/ram_reg_bram, RW5, Argon2 fill_block and Blamka/DSP families recur across variants.",
+    "No evidence supports attributing the remaining setup failure to the AWS shell."
+  ],
+  "reasons": []
+}
