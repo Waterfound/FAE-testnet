@@ -1,0 +1,30 @@
+{
+  "domain_id": "semantic-parity-verification",
+  "outcome": "built",
+  "worker": {
+    "provider": "aws-ec2",
+    "instance_id": "i-0ccf8d90a0ea781a9",
+    "instance_type": "r7i.large",
+    "exit_code": 0
+  },
+  "tested_hls_blob": "2cb81e81ee05a56a9676a3ca4c0863ca3b33940b",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0ccf8d90a0ea781a9/build-colony-semantic-parity/",
+  "results": {
+    "canonical": {
+      "status": "PASS",
+      "bytes_checked": 160,
+      "elapsed_s": 0.371673
+    },
+    "vectors": {
+      "status": "PASS",
+      "passed": 16,
+      "total": 16,
+      "total_s": 4.850775
+    }
+  },
+  "sha256": {
+    "fae_dp6_hls_cpp": "b07455dcc8d786cf6577941303f0b38422968967ec75bc657b9d3cfa4de89096",
+    "test_canonical_cpp": "7cc1601f18e8df65e45664016b63c15915020c201f97d21b8e58ddb3d6172683",
+    "test_16_vectors_cpp": "01dd7aad3cffa4be0ff103638dabd91f66d758c033a1a4ebe06bfe73d18e7d90"
+  }
+}
