@@ -525,6 +525,9 @@
     "reserved_public_ipv4_after_hardening": true,
     "world_open_tcp_22_forbidden": true,
     "initial_admin_path": "OCI Compute Instance Run Command / provider console",
-    "spend_authorized": false
+    "spend_authorized": false,
+    "cloud_guard_workload_protection_allowed": false,
+    "compute_instance_run_command_required": true,
+    "compute_instance_monitoring_allowed": true
   }
 }
