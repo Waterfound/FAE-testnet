@@ -300,7 +300,40 @@
       "run_id": "bc2-dd33c8ff4d4e5073",
       "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 28,
+      "role": "builder",
+      "event_type": "submit_built",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:localized-hls-patch:1\",\"result_digest\":\"281124a47b1afd2e2f798afc4974a850a6f4db2f27aa0d23e3d67c36e2366c7e\",\"result_envelope_digest\":\"fc754be5cc342d414ee75c2e904b03681d83e0be517799b1979475b4ece8beb8\",\"revision\":\"af1c0cb649fc0118de9ba28c9c3c3b525a2533d7\"}",
+      "previous_event_digest": "5f2b21990b029e8fc6317e7b2f00bb8b98c8b156da2562fb50f9403cc2af2f04",
+      "event_digest": "e9123b7fa0e7e19c1c1dcb1e25aca73c7651245fcffcb44bec60b12d31ef0fb4",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 29,
+      "role": "verifier",
+      "event_type": "verify_accept",
+      "payload_json": "{\"result_digest\":\"281124a47b1afd2e2f798afc4974a850a6f4db2f27aa0d23e3d67c36e2366c7e\",\"verification_digest\":\"f6aae85a6cefcd53bebe919ca3c125ef0a1181349c3f4e079472f267a503e142\"}",
+      "previous_event_digest": "e9123b7fa0e7e19c1c1dcb1e25aca73c7651245fcffcb44bec60b12d31ef0fb4",
+      "event_digest": "558beabf0f087ec4b58d4a044bda615d7eb3f999c71f3d59156376af85e48b67",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 30,
+      "role": "integrator",
+      "event_type": "integrate",
+      "payload_json": "{\"revision\":\"af1c0cb649fc0118de9ba28c9c3c3b525a2533d7\"}",
+      "previous_event_digest": "558beabf0f087ec4b58d4a044bda615d7eb3f999c71f3d59156376af85e48b67",
+      "event_digest": "593fbf4317ca5733f53c2626dabe5ebc87af56ab0cf072f7f8d6821dc13ccf9d",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
     }
   ],
-  "head_event_digest": "5f2b21990b029e8fc6317e7b2f00bb8b98c8b156da2562fb50f9403cc2af2f04"
+  "head_event_digest": "593fbf4317ca5733f53c2626dabe5ebc87af56ab0cf072f7f8d6821dc13ccf9d"
 }
