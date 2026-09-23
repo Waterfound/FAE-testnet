@@ -64,6 +64,12 @@ const stale=UX.historyUnavailable(address,new Error('offline'),ready);
 assert.equal(stale.state,UX.HISTORY_STATES.STALE);
 assert.equal(stale.transactions.length,1);
 assert.equal(stale.error,'offline');
+const loadingFromReady=UX.historyLoading(address,ready);
+assert.equal(loadingFromReady.transactions.length,1);
+assert.equal(loadingFromReady.fetched_at_ms,ready.fetched_at_ms);
+const staleAfterLoading=UX.historyUnavailable(address,new Error('offline again'),loadingFromReady);
+assert.equal(staleAfterLoading.state,UX.HISTORY_STATES.STALE);
+assert.equal(staleAfterLoading.transactions.length,1);
 
 const receipt=UX.acceptedReceipt({txid,address,submittedAt:'2026-09-23T10:01:00.000Z'});
 assert.equal(receipt.state,UX.RECEIPT_STATES.ACCEPTED);
