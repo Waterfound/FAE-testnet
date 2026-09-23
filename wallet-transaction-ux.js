@@ -222,6 +222,30 @@ window.FAEWalletTransactionUX=(()=>{
     return Object.freeze({...receipt,state:RECEIPT_STATES.UNKNOWN,confirmed_height:null,observed_at_ms:observed,observation:'unknown_status_in_history'});
   }
 
+
+  function transactionPerspective(transaction,address){
+    if(typeof address!=='string'||!address)throw Error('Active wallet address is required');
+    const outputs=Array.isArray(transaction?.outputs)?transaction.outputs:[];
+    const sent=transaction?.from_address===address;
+    const receivedOutputs=outputs.filter(output=>output?.address===address);
+    const externalOutputs=sent?outputs.filter(output=>output?.address!==address):[];
+    const sum=items=>items.reduce((total,item)=>{
+      const amount=String(item?.amount_atoms??'');
+      return /^\d+$/.test(amount)?total+BigInt(amount):total;
+    },0n);
+
+    if(sent&&externalOutputs.length){
+      return Object.freeze({direction:'sent',amount_atoms:sum(externalOutputs).toString(),amount_basis:'outputs_to_other_addresses'});
+    }
+    if(sent){
+      return Object.freeze({direction:'self',amount_atoms:null,amount_basis:'not_inferred'});
+    }
+    if(receivedOutputs.length){
+      return Object.freeze({direction:'received',amount_atoms:sum(receivedOutputs).toString(),amount_basis:'outputs_to_active_address'});
+    }
+    return Object.freeze({direction:'related',amount_atoms:null,amount_basis:'not_inferred'});
+  }
+
   function statusLabel(state){
     if(state===TX_STATES.CONFIRMED||state===RECEIPT_STATES.CONFIRMED)return 'Confirmed';
     if(state===TX_STATES.PENDING||state===RECEIPT_STATES.PENDING)return 'Pending';
@@ -247,6 +271,7 @@ window.FAEWalletTransactionUX=(()=>{
     receiptFromPublicRecord,
     receiptPublicRecord,
     observeReceipt,
+    transactionPerspective,
     statusLabel
   });
 })();
