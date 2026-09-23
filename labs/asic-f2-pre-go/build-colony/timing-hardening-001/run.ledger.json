@@ -333,7 +333,18 @@
       "run_id": "bc2-dd33c8ff4d4e5073",
       "package_id": "bc2-dd33c8ff4d4e5073:localized-hls-patch",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 31,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:semantic-parity-verification",
+      "role": "coordinator",
+      "event_type": "issue",
+      "payload_json": "{}",
+      "previous_event_digest": "593fbf4317ca5733f53c2626dabe5ebc87af56ab0cf072f7f8d6821dc13ccf9d",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "e43aecc42a61d17f2d139c0bb58ad52e9479f6d435387f325f5a1880b76d2ef2"
     }
   ],
-  "head_event_digest": "593fbf4317ca5733f53c2626dabe5ebc87af56ab0cf072f7f8d6821dc13ccf9d"
+  "head_event_digest": "e43aecc42a61d17f2d139c0bb58ad52e9479f6d435387f325f5a1880b76d2ef2"
 }
