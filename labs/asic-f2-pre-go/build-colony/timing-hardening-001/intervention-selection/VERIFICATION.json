@@ -1,0 +1,16 @@
+{
+  "domain_id": "intervention-selection",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "selection"
+  ],
+  "independent_checks": [
+    "Physical evidence: regs_U/ram_reg_bram_* is present in the worst-path families across the routed baseline and valid P&R variants.",
+    "HLS evidence: RW5 r[] accesses are bound as a 64-bit, depth-8 RAM with latency 1.",
+    "Source evidence: r/regs contains eight 64-bit DP6 state registers; the selected intervention changes only HLS storage realization, not calculations or matrix addresses.",
+    "Verification contract guarantees full 160-byte canonical parity plus 16-vector parity before paid physical implementation.",
+    "Selection includes explicit rejection and bounded fallback conditions; it does not authorize algorithm, consensus, shell, HBM, or HFB changes."
+  ],
+  "reasons": []
+}
