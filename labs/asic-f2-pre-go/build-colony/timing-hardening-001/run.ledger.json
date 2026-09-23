@@ -201,7 +201,73 @@
       "previous_event_digest": "b332bd2fec650ebaac1a221dd263457b01cbd81d96a6f570cb62ebf8b20b52d2",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
       "event_digest": "0cdf91621345274819e3469149abb3a7c325c3d66d30879e79064b5b6059884a"
+    },
+    {
+      "seq": 19,
+      "role": "coordinator",
+      "event_type": "issue",
+      "payload_json": "{}",
+      "previous_event_digest": "0cdf91621345274819e3469149abb3a7c325c3d66d30879e79064b5b6059884a",
+      "event_digest": "adeb69d4d0ed26456c2affb26b57cab82fd94f7e931ce2706341056715aac817",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 20,
+      "role": "coordinator",
+      "event_type": "bind_dispatch",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:intervention-selection:1\",\"dispatch_receipt_digest\":\"b36fbc5ead485fc3c7e7e40e417e2400f4de3d8d7201bdda8922ef913e97e7b3\"}",
+      "previous_event_digest": "adeb69d4d0ed26456c2affb26b57cab82fd94f7e931ce2706341056715aac817",
+      "event_digest": "9acda581c9d6ecf604836a65165e143c4d1662be1155f8987b6e5fdf5d6eb671",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 21,
+      "role": "builder",
+      "event_type": "start",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:intervention-selection:1\",\"dispatch_receipt_digest\":\"b36fbc5ead485fc3c7e7e40e417e2400f4de3d8d7201bdda8922ef913e97e7b3\"}",
+      "previous_event_digest": "9acda581c9d6ecf604836a65165e143c4d1662be1155f8987b6e5fdf5d6eb671",
+      "event_digest": "2499579d05c3b2100bcf664e9a08f7a57f534e699e10bf30cd29266c461a0c35",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 22,
+      "role": "builder",
+      "event_type": "submit_built",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"tool-runner:bc2-dd33c8ff4d4e5073:intervention-selection:1\",\"result_digest\":\"5448b91af21b1252baa6c798125eb969ddf0fa132cf30d1431c2ab77f4beefc1\",\"result_envelope_digest\":\"68f75475d446db52051685317657ed2e5fb31a0997c17e828e01d19126c78c56\",\"revision\":\"aae57cbb976ec714b96c7df1fd4922cd38ec0fd3\"}",
+      "previous_event_digest": "2499579d05c3b2100bcf664e9a08f7a57f534e699e10bf30cd29266c461a0c35",
+      "event_digest": "4474e0dc3f368040b664bfe6eb6e4ae675caa77bfb5a74aea8fa38bdfbfb864c",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 23,
+      "role": "verifier",
+      "event_type": "verify_accept",
+      "payload_json": "{\"result_digest\":\"5448b91af21b1252baa6c798125eb969ddf0fa132cf30d1431c2ab77f4beefc1\",\"verification_digest\":\"5f37ab05606c5841e5bd680f0511e44979d40ef38a359568b93c574eceed5bc3\"}",
+      "previous_event_digest": "4474e0dc3f368040b664bfe6eb6e4ae675caa77bfb5a74aea8fa38bdfbfb864c",
+      "event_digest": "cb7cc2582590b35e72c4dd4ad57b4c3890e5f5d76685b41528a1dd809eb676e1",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
+    },
+    {
+      "seq": 24,
+      "role": "integrator",
+      "event_type": "integrate",
+      "payload_json": "{\"revision\":\"aae57cbb976ec714b96c7df1fd4922cd38ec0fd3\"}",
+      "previous_event_digest": "cb7cc2582590b35e72c4dd4ad57b4c3890e5f5d76685b41528a1dd809eb676e1",
+      "event_digest": "016f1d11ba07b90c404392c8a971a24269298cb8cb2a559bdec3ca837dccb34d",
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:intervention-selection",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e"
     }
   ],
-  "head_event_digest": "0cdf91621345274819e3469149abb3a7c325c3d66d30879e79064b5b6059884a"
+  "head_event_digest": "016f1d11ba07b90c404392c8a971a24269298cb8cb2a559bdec3ca837dccb34d"
 }
