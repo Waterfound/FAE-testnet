@@ -123,8 +123,11 @@ window.FAEWalletTransactionUX=(()=>{
   }
 
   function historyLoading(address,previous=null){
-    const transactions=previous?.address===address&&Array.isArray(previous.transactions)?previous.transactions:[];
-    return baseHistory(address,HISTORY_STATES.LOADING,transactions);
+    const sameAddress=previous?.address===address;
+    const transactions=sameAddress&&Array.isArray(previous.transactions)?previous.transactions:[];
+    return baseHistory(address,HISTORY_STATES.LOADING,transactions,{
+      fetched_at_ms:sameAddress?(previous.fetched_at_ms??null):null
+    });
   }
 
   function historyFromPayload(payload,address,{fetchedAt=Date.now()}={}){
@@ -144,7 +147,12 @@ window.FAEWalletTransactionUX=(()=>{
 
   function historyUnavailable(address,error,previous=null){
     const message=error?.message||String(error||'Transaction history unavailable');
-    if(previous?.address===address&&Array.isArray(previous.transactions)&&(previous.state===HISTORY_STATES.READY||previous.state===HISTORY_STATES.EMPTY||previous.state===HISTORY_STATES.STALE)){
+    if(previous?.address===address&&Array.isArray(previous.transactions)&&(
+      previous.state===HISTORY_STATES.READY||
+      previous.state===HISTORY_STATES.EMPTY||
+      previous.state===HISTORY_STATES.STALE||
+      (previous.state===HISTORY_STATES.LOADING&&previous.fetched_at_ms!==null)
+    )){
       return baseHistory(address,HISTORY_STATES.STALE,previous.transactions,{
         fetched_at_ms:previous.fetched_at_ms??null,
         error:message,
