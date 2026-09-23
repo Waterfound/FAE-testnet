@@ -38,11 +38,19 @@ jobs:
         run: node --test lab/block-explorer/tests/be-03-app.test.mjs
       - name: BE-04 deployment-boundary tests
         run: node --test lab/block-explorer/tests/be-04-deployment.test.mjs
+      - name: BE-05 discovery/deployment contract tests
+        run: node --test lab/block-explorer/tests/be-05-contract.test.mjs
+      - name: BE-05 public gateway tests
+        run: node --test lab/block-explorer/tests/be-05-readonly-gateway.test.mjs
+      - name: BE-05 HTTPS binding probe tests
+        run: node --test lab/block-explorer/tests/be-05-binding-probe.test.mjs
       - name: Check Explorer application syntax
         run: |
           node --check explorer/api-client.mjs
           node --check explorer/app.mjs
           node --check explorer/build.mjs
+          node --check lab/block-explorer/be05-readonly-gateway.mjs
+          node --check lab/block-explorer/be05-binding-probe.mjs
       - name: Check Independent Node syntax
         run: |
           node --check sovereign-forge/node/explorer-read.mjs
