@@ -432,7 +432,51 @@
       "previous_event_digest": "168654b1242c25263a33895ed36090d33498813fb1a5850021454e3a14d07b69",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
       "event_digest": "4fca44b02c3ac401f3c66ebba05613e16c72f60d2c52ae26e4ad5f6899bb3e7c"
+    },
+    {
+      "seq": 40,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:hls-synthesis-verification",
+      "role": "builder",
+      "event_type": "submit_built",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"aws-ec2:i-001589b6c8c1e8d96\",\"result_digest\":\"e38be136f18f79a6299a693bf7fb396e2bed1b8700000000000000000000000\",\"result_envelope_digest\":\"e38be136f18f79a6299a693bf7fb396e2bed1b8711111111111111111111111\",\"revision\":\"e38be136f18f79a6299a693bf7fb396e2bed1b87\"}",
+      "previous_event_digest": "4fca44b02c3ac401f3c66ebba05613e16c72f60d2c52ae26e4ad5f6899bb3e7c",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "e38be136f18f79a6299a693bf7fb396e2bed1b8722222222222222222222222"
+    },
+    {
+      "seq": 41,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:hls-synthesis-verification",
+      "role": "verifier",
+      "event_type": "verify_accept",
+      "payload_json": "{\"result_digest\":\"e38be136f18f79a6299a693bf7fb396e2bed1b8700000000000000000000000\",\"verification_digest\":\"2681c047df371b8ceecb78f9e619746abe76d057333333333333333333333333\"}",
+      "previous_event_digest": "e38be136f18f79a6299a693bf7fb396e2bed1b8722222222222222222222222",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "2681c047df371b8ceecb78f9e619746abe76d057444444444444444444444444"
+    },
+    {
+      "seq": 42,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:hls-synthesis-verification",
+      "role": "integrator",
+      "event_type": "integrate",
+      "payload_json": "{\"revision\":\"e38be136f18f79a6299a693bf7fb396e2bed1b87\"}",
+      "previous_event_digest": "2681c047df371b8ceecb78f9e619746abe76d057444444444444444444444444",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "e38be136f18f79a6299a693bf7fb396e2bed1b8755555555555555555555555"
+    },
+    {
+      "seq": 43,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+      "role": "coordinator",
+      "event_type": "issue",
+      "payload_json": "{}",
+      "previous_event_digest": "e38be136f18f79a6299a693bf7fb396e2bed1b8755555555555555555555555",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "2681c047df371b8ceecb78f9e619746abe76d057666666666666666666666666"
     }
   ],
-  "head_event_digest": "4fca44b02c3ac401f3c66ebba05613e16c72f60d2c52ae26e4ad5f6899bb3e7c"
+  "head_event_digest": "2681c047df371b8ceecb78f9e619746abe76d057666666666666666666666666"
 }
