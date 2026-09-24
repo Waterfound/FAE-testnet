@@ -1,0 +1,27 @@
+{
+  "candidate": "C2-P1-ROUTE-AGGRESSIVEEXPLORE",
+  "purpose": "Attempt to close the remaining ~48.7 ps setup deficit on the already validated C2 HLS/IP without changing HLS semantics.",
+  "base_hls_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+  "base_hls_ip_sha256": "d23ba20497b0f4cde5fadd76d0ae1754783c95f3deff8e2e9d2a0c3eb9998ab8",
+  "physical_knobs": {
+    "global_strategy": "Vivado Implementation Defaults",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "phys_opt_design": "Explore",
+    "route_design": "AggressiveExplore",
+    "post_route_phys_opt": false
+  },
+  "invariants": [
+    "No HLS source changes",
+    "No consensus/testnet/wallet/private-key changes",
+    "Same C2 exported HLS IP",
+    "AWS HLx/HBM topology unchanged",
+    "Fail closed unless WNS>=0, TNS=0, WHS>=0, THS=0",
+    "Developer_CL tar is inadmissible if timing fails"
+  ],
+  "runtime_controls": {
+    "watchdog_hours": 6,
+    "evidence_sync_seconds": 120,
+    "instance_shutdown_behavior": "terminate"
+  }
+}
