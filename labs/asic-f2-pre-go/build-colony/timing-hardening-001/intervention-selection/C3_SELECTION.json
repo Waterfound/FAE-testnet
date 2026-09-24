@@ -1,0 +1,36 @@
+{
+  "candidate": "C3-RW5-REGS-LUTRAM",
+  "parent_candidate": "C2-ARGON2-FILLBLOCK-R-LUTRAM",
+  "rationale": {
+    "best_physical_parent": {
+      "wns_ns": -0.048743,
+      "tns_ns": -6.387605,
+      "whs_ns": 0.00939,
+      "ths_ns": 0
+    },
+    "routed_top_paths": [
+      "regs_U/ram_reg_bram_0 -> regs_U/ram_reg_bram_1",
+      "regs_U/ram_reg_bram_0 -> regs_U/ram_reg_bram_1"
+    ],
+    "c2_hls_binding": "RW5 r/regs is RAM, latency 1, II 1, 2 ports, width 64, depth 8",
+    "rejected_prior_approach": "C1 complete partition removed BRAM but worsened routing substantially; do not repeat scalarization",
+    "intervention": "Keep indexed 8x64 RW5 regs memory and bind only storage implementation to ram_2p LUTRAM"
+  },
+  "source_change": {
+    "file": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "parent_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+    "candidate_blob": "0581cceae39f181986020de0f5f18cf8fb6ee99f",
+    "pragma": "#pragma HLS BIND_STORAGE variable=regs type=ram_2p impl=lutram"
+  },
+  "invariants": [
+    "DP6 semantics unchanged",
+    "C2 fill_block.r LUTRAM binding retained",
+    "No ARRAY_PARTITION of RW5 regs",
+    "No consensus/testnet/wallet/private-key changes",
+    "Canonical parity and independent 16-vector parity required before physical promotion",
+    "HLS binding must show RW5 regs/r as LUTRAM and fill_block r as LUTRAM",
+    "Strict physical gate: WNS>=0, TNS=0, WHS>=0, THS=0",
+    "Any negative WNS rejects Developer_CL"
+  ],
+  "decision_rule": "Proceed to physical only if semantic parity passes and HLS csim/csynth/export + exact binding pass."
+}
