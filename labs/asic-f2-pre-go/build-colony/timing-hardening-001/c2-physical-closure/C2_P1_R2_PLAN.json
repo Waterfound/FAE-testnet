@@ -1,0 +1,29 @@
+{
+  "candidate": "C2-P1-R2-ROUTE-AGGRESSIVEEXPLORE",
+  "predecessor": "C2-P1-ROUTE-AGGRESSIVEEXPLORE",
+  "predecessor_outcome": "INVALID_RUNNER_BOOTSTRAP",
+  "failure_observed": "Vivado exited before project generation with invalid command name aws::make_ipi",
+  "bootstrap_fix": [
+    "Create ~/.Xilinx/Vivado/Vivado_init.tcl before invoking Vivado",
+    "set shell small_shell",
+    "source $::env(HDK_SHELL_DIR)/hlx/hlx_setup.tcl"
+  ],
+  "source": "AWS aws-fpga hdk/docs/IPI-GUI-Vivado-Setup.md",
+  "base_hls_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+  "base_hls_ip_sha256": "d23ba20497b0f4cde5fadd76d0ae1754783c95f3deff8e2e9d2a0c3eb9998ab8",
+  "physical_knobs": {
+    "global_strategy": "Vivado Implementation Defaults",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "phys_opt_design": "Explore",
+    "route_design": "AggressiveExplore",
+    "post_route_phys_opt": false
+  },
+  "invariants": [
+    "No HLS source changes",
+    "No consensus/testnet/wallet/private-key changes",
+    "Same validated C2 HLS IP",
+    "Only bootstrap defect is corrected versus C2-P1",
+    "Fail closed unless WNS>=0, TNS=0, WHS>=0, THS=0"
+  ]
+}
