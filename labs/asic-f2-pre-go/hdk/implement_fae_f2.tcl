@@ -5,6 +5,8 @@
 # Optional timing-closure knobs:
 #   FAE_PHYS_OPT_DIRECTIVE=<Vivado phys_opt_design directive>
 #   FAE_ROUTE_DIRECTIVE=<Vivado route_design directive>
+#   FAE_POST_ROUTE_PHYS_OPT_ENABLE=1
+#   FAE_POST_ROUTE_PHYS_OPT_DIRECTIVE=<Vivado post-route phys_opt directive>
 #
 # IMPORTANT: the AWS HLx global implementation STRATEGY is intentionally left
 # untouched. AWS launch hooks depend on the default FaaS run configuration.
@@ -33,6 +35,8 @@ puts "BASE_OPT_DIRECTIVE=[get_property STEPS.OPT_DESIGN.ARGS.DIRECTIVE $impl]"
 puts "BASE_PLACE_DIRECTIVE=[get_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE $impl]"
 puts "BASE_PHYS_OPT_DIRECTIVE=[get_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
 puts "BASE_ROUTE_DIRECTIVE=[get_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "BASE_POST_ROUTE_PHYS_OPT_ENABLED=[get_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED $impl]"
+puts "BASE_POST_ROUTE_PHYS_OPT_DIRECTIVE=[get_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
 
 if {[info exists ::env(FAE_PHYS_OPT_DIRECTIVE)] && $::env(FAE_PHYS_OPT_DIRECTIVE) ne ""} {
   set pd $::env(FAE_PHYS_OPT_DIRECTIVE)
@@ -43,6 +47,15 @@ if {[info exists ::env(FAE_ROUTE_DIRECTIVE)] && $::env(FAE_ROUTE_DIRECTIVE) ne "
   set rd $::env(FAE_ROUTE_DIRECTIVE)
   puts "FAE_ROUTE_DIRECTIVE=$rd"
   set_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $rd $impl
+}
+if {[info exists ::env(FAE_POST_ROUTE_PHYS_OPT_ENABLE)] && $::env(FAE_POST_ROUTE_PHYS_OPT_ENABLE) eq "1"} {
+  puts "FAE_POST_ROUTE_PHYS_OPT_ENABLE=1"
+  set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true $impl
+  if {[info exists ::env(FAE_POST_ROUTE_PHYS_OPT_DIRECTIVE)] && $::env(FAE_POST_ROUTE_PHYS_OPT_DIRECTIVE) ne ""} {
+    set prd $::env(FAE_POST_ROUTE_PHYS_OPT_DIRECTIVE)
+    puts "FAE_POST_ROUTE_PHYS_OPT_DIRECTIVE=$prd"
+    set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE $prd $impl
+  }
 }
 
 # Fail closed if an external change silently altered AWS-sensitive knobs.
@@ -58,6 +71,8 @@ if {[get_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE $impl] ne "Explore"} {
 
 puts "EFFECTIVE_PHYS_OPT_DIRECTIVE=[get_property STEPS.PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
 puts "EFFECTIVE_ROUTE_DIRECTIVE=[get_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE $impl]"
+puts "EFFECTIVE_POST_ROUTE_PHYS_OPT_ENABLED=[get_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED $impl]"
+puts "EFFECTIVE_POST_ROUTE_PHYS_OPT_DIRECTIVE=[get_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.ARGS.DIRECTIVE $impl]"
 
 launch_runs impl_1 -jobs 12
 wait_on_run impl_1
