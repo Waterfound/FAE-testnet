@@ -1,0 +1,35 @@
+{
+  "candidate": "C4-P1-MORE-GLOBAL-ITERATIONS",
+  "parent": "C4-FILLBLOCK-T-LUTRAM",
+  "evidence": {
+    "signoff": {
+      "wns_ns": -0.022,
+      "tns_ns": -0.28,
+      "setup_failing_endpoints": 32,
+      "whs_ns": 0.005,
+      "ths_ns": 0
+    },
+    "comparison": {
+      "c3_wns_ns": -0.043078,
+      "c3_tns_ns": -1.074543
+    },
+    "path_character": "remaining worst setup paths are predominantly routing-dominated (~71-76%)",
+    "router_internal_physopt": "improved WNS from about -0.035 ns to -0.022 ns"
+  },
+  "intervention": {
+    "hls_source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+    "hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "phys_opt_design": "Explore",
+    "route_design": "MoreGlobalIterations"
+  },
+  "invariants": [
+    "No source/HLS semantic change",
+    "No consensus/testnet/wallet/private-key change",
+    "Use exact C4 exported HLS IP",
+    "Strict physical pass requires WNS>=0, TNS=0, WHS>=0, THS=0",
+    "Failed Developer_CL must never be promoted to AFI"
+  ],
+  "reason": "C4 is only 22 ps short at signoff and remaining violations are route-dominated. Test one routing-specific directive before another HLS intervention."
+}
