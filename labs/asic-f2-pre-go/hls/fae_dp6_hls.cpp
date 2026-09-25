@@ -129,7 +129,6 @@ static void fill_block(const block*prev,const block*ref,block*next){
 #pragma HLS INLINE off
 uint64_t r[128],t[128];
 #pragma HLS BIND_STORAGE variable=r type=ram_2p impl=lutram
-#pragma HLS ARRAY_PARTITION variable=r cyclic factor=2 dim=1
 #pragma HLS BIND_STORAGE variable=t type=ram_2p impl=lutram
 for(int i=0;i<128;i++){r[i]=ref->v[i]^prev->v[i];t[i]=r[i];}for(int i=0;i<8;i++){uint64_t*x=&r[16*i];AROUND(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],x[11],x[12],x[13],x[14],x[15]);}for(int i=0;i<8;i++){AROUND(r[2*i],r[2*i+1],r[2*i+16],r[2*i+17],r[2*i+32],r[2*i+33],r[2*i+48],r[2*i+49],r[2*i+64],r[2*i+65],r[2*i+80],r[2*i+81],r[2*i+96],r[2*i+97],r[2*i+112],r[2*i+113]);}for(int i=0;i<128;i++)next->v[i]=t[i]^r[i];}
 #undef AG
