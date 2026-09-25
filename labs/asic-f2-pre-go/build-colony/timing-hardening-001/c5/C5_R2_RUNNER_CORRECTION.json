@@ -1,0 +1,17 @@
+{
+  "invalid_runs": [
+    {
+      "instance_id": "i-004a890204734c638",
+      "gate": "parity"
+    },
+    {
+      "instance_id": "i-0dfb23f466dd90b89",
+      "gate": "hls"
+    }
+  ],
+  "classification": "RUNNER_EXPECTED_BLOB_MISMATCH_NO_CANDIDATE_EVIDENCE",
+  "actual_blob": "6a40fa552efd668236dc678ff29fe7fd7373db65",
+  "failure_point": "test BLOB = EXPECTED_BLOB before compile/HLS",
+  "correction": "set EXPECTED_BLOB to actual frozen C5 blob",
+  "candidate_semantics_changed": false
+}
