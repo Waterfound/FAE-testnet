@@ -19,7 +19,7 @@
   "source_change": {
     "file": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
     "parent_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
-    "candidate_blob": "0581cceae39f181986020de0f5f18cf8fb6ee99f",
+    "candidate_blob": "bfca3bd9236b24665a377fc797b9404ea4cad3c4",
     "pragma": "#pragma HLS BIND_STORAGE variable=regs type=ram_2p impl=lutram"
   },
   "invariants": [
@@ -32,5 +32,10 @@
     "Strict physical gate: WNS>=0, TNS=0, WHS>=0, THS=0",
     "Any negative WNS rejects Developer_CL"
   ],
-  "decision_rule": "Proceed to physical only if semantic parity passes and HLS csim/csynth/export + exact binding pass."
+  "decision_rule": "Proceed to physical only if semantic parity passes and HLS csim/csynth/export + exact binding pass.",
+  "runner_corrections": {
+    "source_edit": "literal newline escape corrected; no semantic change",
+    "hls_command": "vitis-run --mode hls --tcl run_hls.tcl",
+    "prior_attempt_disposition": "INVALID_RUNNER/EDITING, not candidate rejection"
+  }
 }
