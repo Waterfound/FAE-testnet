@@ -1,0 +1,47 @@
+{
+  "candidate": "C5-FILLBLOCK-R-CYCLIC2",
+  "parent_candidate": "C4-FILLBLOCK-T-LUTRAM",
+  "rejected_physical_variant": {
+    "candidate": "C4-P1-R2-MORE-GLOBAL-ITERATIONS",
+    "result": {
+      "wns_ns": -0.09717,
+      "tns_ns": -16.386246,
+      "whs_ns": 0.00084,
+      "ths_ns": 0
+    },
+    "disposition": "REJECTED"
+  },
+  "evidence": {
+    "c4_signoff": {
+      "wns_ns": -0.022002,
+      "tns_ns": -0.27971,
+      "whs_ns": 0.004824,
+      "ths_ns": 0,
+      "setup_failing_endpoints": 32
+    },
+    "c4_top10_distribution": {
+      "fill_block.control_or_reg -> fill_block.r": 7,
+      "fill_block.control_or_reg -> blake2": 1,
+      "fill_block.control_or_reg -> fill_block.control_or_reg": 1,
+      "rw5_or_regs -> rw5_or_regs": 1
+    },
+    "route_dominance_pct": "~71-76"
+  },
+  "intervention": {
+    "source_path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "candidate_blob": "6a40fa552efd668236dc678ff29fe7fd7373db65",
+    "change": "#pragma HLS ARRAY_PARTITION variable=r cyclic factor=2 dim=1",
+    "retained": "#pragma HLS BIND_STORAGE variable=r type=ram_2p impl=lutram"
+  },
+  "invariants": [
+    "No semantic changes to DP6",
+    "No complete partition/scalarization",
+    "Only fill_block.r receives cyclic factor=2",
+    "fill_block.t remains dual-port LUTRAM",
+    "RW5 regs remain dual-port LUTRAM",
+    "Canonical parity + 16 vectors required",
+    "HLS must synthesize/export cleanly before any physical run",
+    "Physical gate remains WNS>=0, TNS=0, WHS>=0, THS=0"
+  ],
+  "rationale": "7/10 worst C4 setup paths terminate in fill_block.r and are routing-dominated. Two LUTRAM banks are the smallest structural change aimed at reducing address/control fanout without repeating the failed complete-partition behavior of C1."
+}
