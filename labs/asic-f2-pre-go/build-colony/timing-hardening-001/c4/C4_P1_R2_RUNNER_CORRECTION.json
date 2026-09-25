@@ -1,0 +1,19 @@
+{
+  "candidate": "C4-P1-R2-MORE-GLOBAL-ITERATIONS",
+  "parent": "C4-P1-MORE-GLOBAL-ITERATIONS",
+  "invalid_run": {
+    "instance_id": "i-0096b44d189b674f7",
+    "classification": "RUNNER_BOOTSTRAP_INVALID_NO_CANDIDATE_EVIDENCE",
+    "failure": "cloud-init shell syntax error before BOOTSTRAP/stage emission",
+    "console_marker": "part-001: line 20: syntax error near unexpected token `('",
+    "action": "instance terminated immediately after diagnosis"
+  },
+  "correction": {
+    "scope": "runner only",
+    "change": "replace grouped find expression in sync function with simple find + shell case filter",
+    "physical_hypothesis_unchanged": true,
+    "hls_source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+    "hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+    "route_directive": "MoreGlobalIterations"
+  }
+}
