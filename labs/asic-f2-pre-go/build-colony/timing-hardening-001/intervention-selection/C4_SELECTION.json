@@ -1,0 +1,38 @@
+{
+  "candidate": "C4-FILLBLOCK-T-LUTRAM",
+  "parent_candidate": "C3-RW5-REGS-LUTRAM",
+  "evidence": {
+    "c3_signoff": {
+      "wns_ns": -0.043078,
+      "tns_ns": -1.074543,
+      "whs_ns": 0.007196,
+      "ths_ns": 0,
+      "failing_setup_endpoints": 65
+    },
+    "top10_distribution": {
+      "fill_block": 8,
+      "rw5_regs": 2
+    },
+    "routing_dominance_pct": "71-83",
+    "fill_block_storage_before": {
+      "r": "RAM_2P_LUTRAM depth=128 width=64",
+      "t": "RAM depth=128 width=64"
+    }
+  },
+  "intervention": "Bind only fill_block.t[128] to ram_2p LUTRAM; retain C3 regs LUTRAM and C2 fill_block.r LUTRAM.",
+  "source": {
+    "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "parent_blob": "bfca3bd9236b24665a377fc797b9404ea4cad3c4",
+    "candidate_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+    "pragma": "#pragma HLS BIND_STORAGE variable=t type=ram_2p impl=lutram"
+  },
+  "invariants": [
+    "No semantic changes to DP6",
+    "No ARRAY_PARTITION",
+    "No consensus/testnet/wallet/private-key changes",
+    "Canonical parity + 16-vector parity required",
+    "HLS must show fill_block.r and fill_block.t as RAM_2P_LUTRAM and RW5 regs as RAM_2P_LUTRAM",
+    "Physical gate remains WNS>=0, TNS=0, WHS>=0, THS=0"
+  ],
+  "rationale": "C3 reduced TNS sharply but left 8/10 worst setup paths inside fill_block. Those paths are route-dominated, and t is the only remaining local BRAM in fill_block. C4 removes that placement constraint with one storage-binding change."
+}
