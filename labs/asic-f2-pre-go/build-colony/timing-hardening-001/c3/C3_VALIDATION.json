@@ -1,0 +1,21 @@
+{
+  "candidate": "C3-RW5-REGS-LUTRAM",
+  "source_blob": "bfca3bd9236b24665a377fc797b9404ea4cad3c4",
+  "parity": {
+    "worker": "i-0fc7c8bde7b141f3c",
+    "stage": "PASS_CANONICAL_AND_16V",
+    "canonical": "PASS",
+    "vectors": "16/16",
+    "exit_code": 0
+  },
+  "hls": {
+    "worker": "i-0474461d2e2eb43b5",
+    "stage": "PASS_CSIM_CSYNTH_EXPORT_BINDING",
+    "exit_code": 0,
+    "rw5_regs_binding": "RAM_2P_LUTRAM, latency=1, II=1, ports=2, width=64, depth=8",
+    "fill_block_r_binding": "RAM_2P_LUTRAM, latency=1, II=1, ports=2, width=64, depth=128",
+    "ip_sha256": "972ac2b78791e4189ce86315ea3ea88c3ec9de7b1f1ac6aa5b12d758a83f0679"
+  },
+  "physical_admission": "PASS",
+  "physical_policy": "Same physical directives as best C2: global Vivado Implementation Defaults, opt Explore, place Explore, phys_opt Explore, route Explore."
+}
