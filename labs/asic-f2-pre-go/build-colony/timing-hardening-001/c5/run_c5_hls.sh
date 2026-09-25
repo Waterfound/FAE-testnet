@@ -3,7 +3,7 @@ set -Eeuo pipefail
 export HOME=/root
 BUCKET="fae-asic-lab-203842200752-20260922"
 BRANCH="lab/asic-f2-timing-hardening-bc-001"
-EXPECTED_BLOB="a663c5928123c7a379c9c5478e492fbb92cd8abe"
+EXPECTED_BLOB="6a40fa552efd668236dc678ff29fe7fd7373db65"
 WORK="/opt/fae-c5-hls"
 LOG="/var/log/fae-c5-hls"
 mkdir -p "$WORK" "$LOG"
