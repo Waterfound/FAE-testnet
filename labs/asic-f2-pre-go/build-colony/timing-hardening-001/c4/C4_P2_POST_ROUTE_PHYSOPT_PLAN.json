@@ -1,0 +1,43 @@
+{
+  "candidate": "C4-P2-POST-ROUTE-PHYSOPT-EXPLORE",
+  "baseline": "C4-FILLBLOCK-T-LUTRAM",
+  "baseline_source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+  "baseline_hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+  "baseline_signoff": {
+    "wns_ns": -0.022002,
+    "tns_ns": -0.27971,
+    "whs_ns": 0.004824,
+    "ths_ns": 0
+  },
+  "evidence": {
+    "pre_route_physopt_wns_ns": 0.001,
+    "final_route_wns_ns": -0.022002,
+    "interpretation": "C4 was effectively closed before routing and lost ~23 ps during routing; residual top paths are ~72-76% route-dominated."
+  },
+  "rejected": {
+    "c4_p1_more_global_iterations": {
+      "wns_ns": -0.09717,
+      "tns_ns": -16.386246
+    },
+    "c5_r_cyclic2": {
+      "wns_ns": -0.60897,
+      "tns_ns": -378.75473
+    }
+  },
+  "intervention": {
+    "hls_change": "none",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "phys_opt_design": "Explore",
+    "route_design": "Explore",
+    "post_route_phys_opt_enabled": true,
+    "post_route_phys_opt_directive": "Explore"
+  },
+  "invariants": [
+    "Exact C4 source blob and exact C4 exported HLS IP",
+    "No consensus/testnet/wallet/private-key changes",
+    "No HLS/storage/topology change",
+    "Strict final gate WNS>=0, TNS=0, WHS>=0, THS=0",
+    "No AFI promotion from failed timing"
+  ]
+}
