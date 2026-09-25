@@ -3,7 +3,7 @@ set -Eeuo pipefail
 export HOME=/root
 BUCKET="fae-asic-lab-203842200752-20260922"
 BRANCH="lab/asic-f2-timing-hardening-bc-001"
-EXPECTED_BLOB="0581cceae39f181986020de0f5f18cf8fb6ee99f"
+EXPECTED_BLOB="bfca3bd9236b24665a377fc797b9404ea4cad3c4"
 WORK="/opt/fae-c3-hls"
 LOG="/var/log/fae-c3-hls"
 mkdir -p "$WORK" "$LOG"
@@ -44,7 +44,7 @@ sha256sum fae_dp6_hls.cpp test_16_vectors.cpp run_hls.tcl > "$LOG/input_sha256.t
 
 echo VITIS_HLS_RUNNING > "$LOG/stage.txt"; sync_all
 set +e
-timeout 9600 vitis_hls -f run_hls.tcl > "$LOG/vitis_hls.log" 2>&1
+timeout 9600 vitis-run --mode hls --tcl run_hls.tcl > "$LOG/vitis_hls.log" 2>&1
 RC=$?
 set -e
 echo "$RC" > "$LOG/vitis_hls_rc.txt"
