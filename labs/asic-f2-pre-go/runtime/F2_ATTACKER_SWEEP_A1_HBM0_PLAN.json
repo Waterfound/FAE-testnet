@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "stage": "F2_ATTACKER_SWEEP_A1_HBM0",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "change_class": "runtime memory placement only",
+  "semantic_change": false,
+  "bitstream_change": false,
+  "matrix_bytes": 268435456,
+  "mapping": {
+    "matrix": "HBM0 @ 0x0200000000",
+    "input": "DDR-A @ 0x1020000000",
+    "output": "DDR-A @ 0x1020001000"
+  },
+  "rationale": "The integrated C6 address map exposes HBM segments to the HLS masters. Testing the nonce-private 256 MiB matrix in HBM is the lowest-cost attacker-oriented memory-placement sweep after the parity-correct DDR baseline.",
+  "gates": [
+    "DDR/HBM calibration PASS",
+    "canonical full 160-byte parity PASS",
+    "nonces 1200-1215 16/16 PASS",
+    "shell errors remain zero",
+    "compare mean seconds/work against DDR R6 baseline",
+    "fail closed on any semantic mismatch"
+  ],
+  "baseline_seconds_per_work": 21.5163611875,
+  "baseline_work_per_second": 0.04647626015
+}
