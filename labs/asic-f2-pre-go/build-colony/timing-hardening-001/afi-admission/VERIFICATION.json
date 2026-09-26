@@ -1,0 +1,19 @@
+{
+  "domain_id": "afi-admission",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "afi-eligibility"
+  ],
+  "independent_checks": [
+    "C6 Developer_CL.tar exists in S3 with size 186267136 bytes.",
+    "Recorded SHA-256 is 0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c.",
+    "Final routed timing report states all user specified timing constraints are met.",
+    "AFI afi-0dac1ced9e125e5d9 is owned by account 203842200752 and state is available.",
+    "AFI AGFI is agfi-09f46d7fe160c51df.",
+    "No failed-timing tarball was used."
+  ],
+  "fpga_image_id": "afi-0dac1ced9e125e5d9",
+  "fpga_image_global_id": "agfi-09f46d7fe160c51df",
+  "next_gate": "F2 runtime parity"
+}
