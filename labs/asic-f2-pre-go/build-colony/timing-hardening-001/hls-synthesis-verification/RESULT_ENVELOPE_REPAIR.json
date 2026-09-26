@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "repair_kind": "reconstructed_result_envelope",
+  "package_id": "bc2-dd33c8ff4d4e5073:hls-synthesis-verification",
+  "dispatch_id": "aws-ec2:i-001589b6c8c1e8d96",
+  "dispatch_attempt": 1,
+  "revision": "e38be136f18f79a6299a693bf7fb396e2bed1b87",
+  "result_digest": "766762f06d587e0d61edc952e03d7cc34deef04512817af75a432a047fe16d7d",
+  "result_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/hls-synthesis-verification/RESULT.json",
+  "verification_digest": "76c06886440e271266f5c47097a0a4d6bb9f3d3d490cdad0099b4317e6b4ce04",
+  "verification_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/hls-synthesis-verification/VERIFICATION.json",
+  "provenance": "existing immutable GitHub result and verifier artifacts"
+}
