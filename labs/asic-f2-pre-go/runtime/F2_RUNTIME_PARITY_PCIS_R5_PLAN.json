@@ -1,0 +1,18 @@
+{
+  "stage": "F2_RUNTIME_PARITY_PCIS_R5",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "transport": "AppPF BAR4 / PCIS",
+  "xdma_required": false,
+  "rationale": "Use the supported F2 AppPF BAR4 PCIS path and avoid dependence on unsupported XDMA engine features.",
+  "source_sha256": "9b80cbf38a4d72e97f2c850e02ac6b39e40397a782537895f1183a2c01dc4b53",
+  "gates": [
+    "AGFI load succeeds on slot 0",
+    "BAR4 input readback matches",
+    "canonical full 160-byte vector PASS",
+    "nonces 1200-1215 final hash 16/16 PASS",
+    "fail closed on mismatch or timeout",
+    "sync evidence before automatic termination"
+  ]
+}
