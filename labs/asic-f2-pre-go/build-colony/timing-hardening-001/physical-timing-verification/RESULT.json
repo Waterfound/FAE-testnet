@@ -1,0 +1,247 @@
+{
+  "domain_id": "physical-timing-verification",
+  "outcome": "built",
+  "campaign": "C1-through-C6 timing-hardening evidence reconstruction",
+  "authority": {
+    "timing_gate": "WNS >= 0, TNS = 0, WHS >= 0, THS = 0",
+    "failed_timing_tar_admissible_for_afi": false,
+    "consensus_source_unchanged": true
+  },
+  "evidence": [
+    {
+      "id": "C1",
+      "classification": "REJECT",
+      "instance_id": "i-08c2e47c356867c02",
+      "evidence_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification/C1_RESULT.json",
+      "timing": {
+        "wns_ns": -0.631657,
+        "tns_ns": -2308.980225,
+        "whs_ns": 0.009511,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "8ebbdd548b79e8fa81e506e7f90b7d60dff693da98b9f3037b05dad5158c4a91",
+      "afi_admissible": false
+    },
+    {
+      "id": "C2_FINAL",
+      "classification": "FAIL_CLOSED_TIMING",
+      "instance_id": "i-06ef4c6a9c0d5c393",
+      "source_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+      "stage": "PHYSICAL_IMPLEMENTATION_FAIL_CLOSED",
+      "timing": {
+        "wns_ns": -0.048743,
+        "tns_ns": -6.387605,
+        "whs_ns": 0.00939,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "ec7a7fb933383bad6f22f4e9d5c3c96aa29a8176077dddce22fa2cde42ccdcdd",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-06ef4c6a9c0d5c393/build-colony-physical-c2/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C2_P1_R2",
+      "classification": "FAIL_CLOSED_TIMING",
+      "instance_id": "i-00dfe0b827a850184",
+      "source_blob": "ca80f2ee39b3eb1d47e3e5b4121854f7116cbb45",
+      "route_directive": "AggressiveExplore",
+      "timing": {
+        "wns_ns": -0.090738,
+        "tns_ns": -13.745345,
+        "whs_ns": 0,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "25908196bad84b4625cb9e05edec7c2b71f08a24e78610bbee9c06fde05221fd",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-00dfe0b827a850184/build-colony-physical-c2-p1-r2/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C3",
+      "classification": "FAIL_CLOSED_TIMING",
+      "validation_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c3/C3_VALIDATION.json",
+      "instance_id": "i-02810318013ab7979",
+      "source_blob": "bfca3bd9236b24665a377fc797b9404ea4cad3c4",
+      "hls_ip_sha256": "972ac2b78791e4189ce86315ea3ea88c3ec9de7b1f1ac6aa5b12d758a83f0679",
+      "timing": {
+        "wns_ns": -0.043078,
+        "tns_ns": -1.074543,
+        "whs_ns": 0.007196,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "47afb49080a7979bcdf9d5e46d8dc5f2619a0ce238abf6b66525a1177b3d39f5",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-02810318013ab7979/build-colony-physical-c3/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C4",
+      "classification": "FAIL_CLOSED_TIMING_BEST_PRE_C6",
+      "instance_id": "i-0bfa8613d7056a966",
+      "source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+      "hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+      "timing": {
+        "wns_ns": -0.022002,
+        "tns_ns": -0.27971,
+        "whs_ns": 0.004824,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "721c30a3ab6cc02d87de2bba4d823d640fe7b30f24cc1ddd4edb99434df589d4",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0bfa8613d7056a966/build-colony-physical-c4/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C4_P1_INVALID_RUNNER",
+      "classification": "RUNNER_BOOTSTRAP_INVALID_NO_CANDIDATE_EVIDENCE",
+      "instance_id": "i-0096b44d189b674f7",
+      "correction_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c4/C4_P1_R2_RUNNER_CORRECTION.json",
+      "counts_against_candidate": false
+    },
+    {
+      "id": "C4_P1_R2",
+      "classification": "FAIL_CLOSED_TIMING",
+      "instance_id": "i-09476b29c93ae5efe",
+      "source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+      "hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+      "route_directive": "MoreGlobalIterations",
+      "timing": {
+        "wns_ns": -0.09717,
+        "tns_ns": -16.386246,
+        "whs_ns": 0.00084,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "2e481b5c4f7bfc106db68a0bbbfd5f2760ec0b6ed9e3cdaae4211ed65c94bb53",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-09476b29c93ae5efe/build-colony-physical-c4-p1-r2/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C5_R1_INVALID_RUNNER",
+      "classification": "RUNNER_EXPECTED_BLOB_MISMATCH_NO_CANDIDATE_EVIDENCE",
+      "instance_ids": [
+        "i-004a890204734c638",
+        "i-0dfb23f466dd90b89"
+      ],
+      "correction_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c5/C5_R2_RUNNER_CORRECTION.json",
+      "counts_against_candidate": false
+    },
+    {
+      "id": "C5_R2_VALIDATION",
+      "classification": "VALIDATION_PASS",
+      "source_blob": "6a40fa552efd668236dc678ff29fe7fd7373db65",
+      "parity": {
+        "instance_id": "i-07f071ff808f04f64",
+        "stage": "PASS_CANONICAL_AND_16V",
+        "canonical": "PASS",
+        "vectors": "16/16",
+        "exit_code": 0
+      },
+      "hls": {
+        "instance_id": "i-002b63bd9418ed14c",
+        "stage": "PASS_CSIM_CSYNTH_EXPORT_BINDING",
+        "exit_code": 0,
+        "ip_sha256": "473ef927ffd6694f66baa29735448470fa4674bc076c3a4e2dd72f9718e8ff8f"
+      }
+    },
+    {
+      "id": "C5_PHYSICAL",
+      "classification": "FAIL_CLOSED_TIMING",
+      "instance_id": "i-0000bb45139dd1eb1",
+      "source_blob": "6a40fa552efd668236dc678ff29fe7fd7373db65",
+      "hls_ip_sha256": "473ef927ffd6694f66baa29735448470fa4674bc076c3a4e2dd72f9718e8ff8f",
+      "timing": {
+        "wns_ns": -0.60897,
+        "tns_ns": -378.75473,
+        "whs_ns": 0.009438,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "68ec1b6a2103912c73bbd63993b6e5ce9daf5d00d374d986a502f4ab5e5bea81",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0000bb45139dd1eb1/build-colony-physical-c5/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C4_P2",
+      "classification": "FAIL_CLOSED_TIMING_NO_GAIN",
+      "instance_id": "i-08413f0eed71b2600",
+      "source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+      "hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+      "intervention": "post-route phys_opt Explore",
+      "timing": {
+        "wns_ns": -0.022002,
+        "tns_ns": -0.27971,
+        "whs_ns": 0.004824,
+        "ths_ns": 0
+      },
+      "developer_cl_sha256": "c8f97a1b0ca0f435f41a1955910e60fdb2906a1b8a970f17fdf770e0f5cd3969",
+      "s3_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-08413f0eed71b2600/build-colony-physical-c4-p2/",
+      "afi_admissible": false
+    },
+    {
+      "id": "C6_R1_INVALID_PATCH",
+      "classification": "SOURCE_PATCH_TOOLING_ERROR_NO_CANDIDATE_EVIDENCE",
+      "instance_ids": [
+        "i-0ba3fb9b9c79d449c",
+        "i-0ce184a464d4625ad"
+      ],
+      "bad_blob": "d6631dbd952d6d75c302c4ce6cf6a751670ec44f",
+      "corrected_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+      "correction_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c6/C6_R2_PATCH_CORRECTION.json",
+      "counts_against_candidate": false
+    },
+    {
+      "id": "C6_R2_VALIDATION",
+      "classification": "VALIDATION_PASS",
+      "source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+      "intervention": "#pragma HLS INLINE in rotr64",
+      "parity": {
+        "instance_id": "i-005c7ab3da36538af",
+        "stage": "PASS_CANONICAL_AND_16V",
+        "canonical": "PASS",
+        "vectors": "16/16",
+        "exit_code": 0
+      },
+      "hls": {
+        "instance_id": "i-0c43c11717fabb6e7",
+        "stage": "PASS_CSIM_CSYNTH_EXPORT_BINDING",
+        "exit_code": 0,
+        "inline_gate": "C6_ROTR64_INLINE_CONFIRMED",
+        "ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+      }
+    },
+    {
+      "id": "C6_PHYSICAL_FINAL",
+      "classification": "PASS_TIMING_CLOSED",
+      "instance_id": "i-054ee456e5965d4d3",
+      "source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+      "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+      "stage": "PHYSICAL_TIMING_AND_DEVELOPER_CL_PASS",
+      "vivado_rc": 0,
+      "exit_code": 0,
+      "timing": {
+        "wns_ns": 0.018575,
+        "tns_ns": 0,
+        "whs_ns": 0.00692,
+        "ths_ns": 0
+      },
+      "route_status": {
+        "routable_nets": 417637,
+        "fully_routed_nets": 417637,
+        "routing_errors": 0
+      },
+      "timing_report": {
+        "locator": "s3://fae-asic-lab-203842200752-20260922/evidence/i-054ee456e5965d4d3/build-colony-physical-c6/artifacts/example_projects/cl_ipi_cdma_test.runs/impl_1/cl_top_timing_summary_routed.rpt",
+        "size_bytes": 8229411,
+        "statement": "All user specified timing constraints are met."
+      },
+      "developer_cl": {
+        "locator": "s3://fae-asic-lab-203842200752-20260922/evidence/i-054ee456e5965d4d3/build-colony-physical-c6/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_26-030151.Developer_CL.tar",
+        "size_bytes": 186267136,
+        "sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c",
+        "afi_admissible": true
+      },
+      "finished_utc": "2026-09-26T04:53:28Z"
+    }
+  ],
+  "selected_result": {
+    "candidate": "C6-ROTR64-HLS-INLINE",
+    "physical_timing_gate": "PASS",
+    "timing_clean_developer_cl_sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c",
+    "next_package": "afi-admission"
+  }
+}
