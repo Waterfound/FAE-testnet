@@ -39,7 +39,7 @@ static inline uint64_t rd64(const uint8_t*p){return (uint64_t)rd32(p)|((uint64_t
 static inline void wr32(uint8_t*p,uint32_t x){p[0]=(uint8_t)x;p[1]=(uint8_t)(x>>8);p[2]=(uint8_t)(x>>16);p[3]=(uint8_t)(x>>24);}
 static inline void wr64(uint8_t*p,uint64_t x){wr32(p,(uint32_t)x);wr32(p+4,(uint32_t)(x>>32));}
 static inline uint64_t rotl64(uint64_t x,unsigned n){n&=63;return (x<<n)|(x>>((-n)&63));}
-static inline uint64_t rotr64(uint64_t x,unsigned n){n&=63;return (x>>n)|(x<<((-n)&63));}
+static inline uint64_t rotr64(uint64_t x,unsigned n){\n#pragma HLS INLINE\nn&=63;return (x>>n)|(x<<((-n)&63));\n}
 static inline uint32_t rotr32(uint32_t x,unsigned n){return (x>>n)|(x<<(32-n));}
 static inline uint64_t mulh64(uint64_t a,uint64_t b){
     uint64_t a0=(uint32_t)a,a1=a>>32,b0=(uint32_t)b,b1=b>>32;
