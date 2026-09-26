@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "repair_kind": "reconstructed_result_envelope",
+  "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+  "dispatch_id": "aws-campaign:bc2-dd33c8ff4d4e5073:physical-timing-verification:c1-c6",
+  "dispatch_attempt": 1,
+  "revision": "4cc1d549689090914dda7acee95150d7df41567f",
+  "result_digest": "69ccab344215e99064ad74a53a673877d469e4af605c0b93dc20a93652fc2076",
+  "result_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification/RESULT.json",
+  "verification_digest": "f0ccba6e163054b5926eece8c238d63585c8d57dd201d97dd73fd4b7dfd33fea",
+  "verification_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification/VERIFICATION.json",
+  "timing_clean_developer_cl_sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c",
+  "final_evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-054ee456e5965d4d3/build-colony-physical-c6/",
+  "provenance": "reconstructed from immutable GitHub campaign artifacts and AWS S3 evidence"
+}
