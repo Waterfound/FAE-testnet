@@ -1,0 +1,32 @@
+{
+  "stage": "F2_RUNTIME_PARITY_PCIS_R6",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "transport": "AppPF BAR4 / AXI_PCIS using fpga_pci_poke/peek",
+  "host_global_map": {
+    "ddr_a_base": "0x1000000000",
+    "matrix": "0x1000000000",
+    "input": "0x1020000000",
+    "output": "0x1020001000"
+  },
+  "aws_reference_alignment": {
+    "mgmt_sda_reset_offset": "0x00058014",
+    "ocl_calibration_status_offset": "0x00010000",
+    "required_calibration_value": "0x00000003",
+    "note": "Matches the official cl_ipi_cdma_test_hlx runtime sequence: release CL reset through MgmtPF BAR4, wait for DDR/HBM calibration on OCL, then access DDR/HBM through AppPF BAR4 using the global AXI_PCIS map."
+  },
+  "gates": [
+    "source downloaded from controlled S3 and SHA-256 recorded",
+    "AGFI load succeeds on slot 0",
+    "CL reset released",
+    "DDR+HBM calibration reaches 0x3",
+    "PCIS input readback matches",
+    "canonical full 160-byte vector PASS",
+    "nonces 1200-1215 final hash 16/16 PASS",
+    "fail closed on mismatch or timeout",
+    "sync evidence and terminate instance automatically"
+  ],
+  "watchdog_seconds": 6600,
+  "authority": "No wallet, testnet, mainnet, consensus, monetary-policy, or release authority."
+}
