@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "operation": "CreateFpgaImage",
+  "status": "ACCEPTED_ASYNC_PENDING",
+  "region": "us-east-1",
+  "fpga_image_id": "afi-0dac1ced9e125e5d9",
+  "fpga_image_global_id": "agfi-09f46d7fe160c51df",
+  "name": "fae-dp6-c6-250mhz-timing-clean",
+  "create_time_utc": "2026-09-26T13:28:33Z",
+  "owner_id": "203842200752",
+  "initial_state": "pending",
+  "input_storage_location": {
+    "bucket": "fae-asic-lab-203842200752-20260922",
+    "key": "evidence/i-054ee456e5965d4d3/build-colony-physical-c6/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_26-030151.Developer_CL.tar"
+  },
+  "input_tar": {
+    "size_bytes": 186267136,
+    "sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c"
+  },
+  "timing_gate": {
+    "wns_ns": 0.018575,
+    "tns_ns": 0,
+    "whs_ns": 0.00692,
+    "ths_ns": 0,
+    "constraints_met": true
+  },
+  "logs_storage_location": {
+    "bucket": "fae-asic-lab-203842200752-20260922",
+    "key": "afi/c6-20260926/logs/"
+  },
+  "client_token": "fae-c6-0e8bd9bfbf34445232db3529283be262",
+  "ledger_head_at_start": "9f025755c22c9a61339fac69d30868964e94588ad7ffd90b78559fc8bba6a5bd",
+  "next_action": "Wait for AWS AFI state transition from pending; do not submit/verify/integrate afi-admission or launch F2 runtime until AFI is available."
+}
