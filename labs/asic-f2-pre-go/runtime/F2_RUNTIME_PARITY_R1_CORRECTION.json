@@ -1,0 +1,20 @@
+{
+  "invalid_run": {
+    "instance_id": "i-0a297b9038fc818bf",
+    "instance_type": "f2.6xlarge",
+    "afi": "afi-0dac1ced9e125e5d9",
+    "agfi": "agfi-09f46d7fe160c51df",
+    "afi_load_status": "loaded",
+    "pci_vendor_id": "0x1d0f",
+    "pci_device_id": "0xf010",
+    "stage": "XDMA_FALLBACK_INSTALL",
+    "exit_code": 1
+  },
+  "classification": "RUNNER_XDMA_FALLBACK_PATCH_INVALID_NO_CANDIDATE_EVIDENCE",
+  "failure": "sed expression error while patching the Xilinx XDMA pci_ids table; parity runner was never compiled or executed",
+  "candidate_evidence": false,
+  "correction": "patch only the observed F2 application PF 0x1d0f:0xf010 using a single-line sed insertion, then rebuild/load XDMA and rerun parity",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "c6_source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+  "c6_hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+}
