@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "stage": "F2_SINGLE_LANE_BASELINE",
+  "status": "PASS",
+  "source_run": "F2_RUNTIME_PARITY_PCIS_R6",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "instance_id": "i-05a5159c331f6d963",
+  "instance_type": "f2.6xlarge",
+  "sample_count": 16,
+  "parity": {
+    "canonical_full_160_bytes": "PASS",
+    "vectors": "16/16 PASS"
+  },
+  "elapsed_seconds": {
+    "mean": 21.5163611875,
+    "median": 21.512809,
+    "population_stddev": 0.0112790674,
+    "min": 21.501475,
+    "max": 21.53803,
+    "sum": 344.261779
+  },
+  "throughput": {
+    "single_lane_work_per_second": 0.04647626015,
+    "single_lane_seconds_per_work": 21.5163611875
+  },
+  "source_sha256": "d7f9154047bd64dca881d228db0f88014150842369f24fde917112ed8286dff1",
+  "binary_sha256": "5cd16b0b7a60a4c24e154402b8c80ebaada9c41bb53e2be4b29485da736a482a",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/runtime/i-05a5159c331f6d963/f2-parity-pcis-r6/",
+  "interpretation": "This is the parity-correct single-lane reference baseline. It is not the admissible final FPGA attacker result; the adversarial sweep remains mandatory."
+}
