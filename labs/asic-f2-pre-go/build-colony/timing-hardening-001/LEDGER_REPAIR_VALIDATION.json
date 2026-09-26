@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "validation": "PASS",
+  "validated_against": {
+    "build_colony_repo": "Waterfound/Build-Colony",
+    "state_protocol_version": "0.0.5",
+    "ledger_schema_version": 1,
+    "protocol_rules": [
+      "canonical payload JSON",
+      "SHA-256 event material",
+      "previous-event hash chaining",
+      "role/event authorization",
+      "package state transitions",
+      "dispatch binding and attempt matching",
+      "verification result matching",
+      "serialized integration order",
+      "manifest and package digest binding"
+    ]
+  },
+  "immutable_valid_prefix": {
+    "first_seq": 1,
+    "last_seq": 39,
+    "head_event_digest": "4fca44b02c3ac401f3c66ebba05613e16c72f60d2c52ae26e4ad5f6899bb3e7c"
+  },
+  "repaired_ledger": {
+    "event_count": 48,
+    "head_event_digest": "df059287ac03d424338abbb78ef07bb7b3e07d3a32e4cf1f104c926750f8eefb",
+    "repair_commit": "1fd885ad711e24cb934e79110ba53f9e15418c83"
+  },
+  "replay_states": {
+    "critical-path-attribution": "integrated",
+    "semantic-preservation-map": "integrated",
+    "verification-contract": "integrated",
+    "intervention-selection": "integrated",
+    "localized-hls-patch": "integrated",
+    "semantic-parity-verification": "integrated",
+    "hls-synthesis-verification": "integrated",
+    "physical-timing-verification": "integrated",
+    "afi-admission": "pending"
+  },
+  "next_ready": [
+    "afi-admission"
+  ],
+  "c6_timing_clean_tar_sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c",
+  "synthetic_post_39_digests_present": false
+}
