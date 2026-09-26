@@ -1,0 +1,21 @@
+{
+  "stage": "F2_RUNTIME_PARITY_PCIS_R5",
+  "instance_id": "i-017e2d26b5e424a64",
+  "status": "INVALID_RUNNER_TRANSPORT_MAPPING_NO_CANDIDATE_EVIDENCE",
+  "candidate_evidence": false,
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "exit_code": 21,
+  "observed_failure": "The first BAR4 PCIS input write returned rc=0 but immediate readback at host offset 0x20000000 did not match. No HLS ap_start was issued and no C6 computation occurred.",
+  "fpga_status": "loaded_ok",
+  "shell_metrics": {
+    "ocl_slave_timeout_count": 0,
+    "dma_pcis_timeout_count": 0,
+    "dma_range_error_count": 0,
+    "pcim_range_error_count": 0
+  },
+  "root_cause": "The R5 harness incorrectly treated DDR-A as host-PCIS address 0x0. The official AWS cl_ipi_cdma_test_hlx runtime uses the global PCIS map, with DDR at 0x1001000000 and HBM at 0x0200000000, and also releases CL reset / waits for DDR+HBM calibration before memory access.",
+  "correction": "R6 will preserve normal fpga_pci_poke/peek on AppPF BAR4, use DDR-A global base 0x1000000000 for both host PCIS and HLS pointers, release CL reset through MgmtPF BAR4, and wait for calibration status 0x3 on OCL offset 0x10000 before the first PCIS transaction.",
+  "next_runner": "F2_RUNTIME_PARITY_PCIS_R6"
+}
