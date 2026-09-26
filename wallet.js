@@ -5,6 +5,8 @@ const WATCH_KEY='fae-public-v4-active-watch';
 const KEYRING_KEY='fae-public-v4-keyring-v3';
 let sessionMnemonic='';
 let walletLoadError='';
+let lastSubmittedTxid='';
+let lastSubmittedAddress='';
 
 function storedAddress(record){
   return{
@@ -195,6 +197,10 @@ function renderWallet(){
   $('send').disabled=!full;
   $('exportwallet').disabled=!full||!walletAccount;
   $('togglehistory').disabled=!wallet;
+  const showSubmittedTxid=Boolean(lastSubmittedTxid&&wallet?.address===lastSubmittedAddress);
+  $('lastsendtx').hidden=!showSubmittedTxid;
+  $('lastsendtxid').value=showSubmittedTxid?lastSubmittedTxid:'';
+  $('copylastsendtx').disabled=!showSubmittedTxid;
   $('restorefromsend').hidden=full||!wallet;
   $('usesaved').hidden=!watch||!walletAccount;
 
@@ -486,8 +492,21 @@ async function sendFAE(){
     headers:{'content-type':'application/json'},
     body:JSON.stringify({tx:transaction})
   });
-  setStatus('sendstate','Queued '+accepted.txid.slice(0,20)+'… · the transaction is waiting for a block.','ok');
+  const acceptedTxid=String(accepted.txid||'');
+  if(!/^[0-9a-f]{64}$/.test(acceptedTxid))throw Error('Node returned an invalid transaction ID');
+  lastSubmittedTxid=acceptedTxid;
+  lastSubmittedAddress=wallet.address;
+  $('lastsendtx').hidden=false;
+  $('lastsendtxid').value=acceptedTxid;
+  $('copylastsendtx').disabled=false;
+  setStatus('sendstate','Transaction queued. Its full ID is available below while it waits for a block.','ok');
   await refresh();
+}
+
+async function copyLastSentTxid(){
+  if(!lastSubmittedTxid||wallet?.address!==lastSubmittedAddress)throw Error('No submitted transaction ID is available for this address');
+  await copyTransactionId(lastSubmittedTxid,$('copylastsendtx'));
+  setStatus('sendstate','Full transaction ID copied.','ok');
 }
 
 function toggleHistory(){
@@ -495,6 +514,7 @@ function toggleHistory(){
   const open=panel.hidden;
   panel.hidden=!open;
   $('togglehistory').setAttribute('aria-expanded',String(open));
+  $('togglehistory').textContent=open?'Hide history':'Show history';
   if(open)refresh().catch(()=>{});
 }
 
@@ -519,6 +539,7 @@ $('restorefromsend').addEventListener('click',()=>{
   showWalletAction('insert');
 });
 $('togglehistory').addEventListener('click',toggleHistory);
+$('copylastsendtx').addEventListener('click',()=>copyLastSentTxid().catch(error=>setStatus('sendstate',error.message,'bad')));
 $('refresh').addEventListener('click',()=>refresh().catch(()=>{}));
 $('useaddr').addEventListener('click',()=>useExistingAddress().catch(error=>setStatus('mstate',error.message,'bad')));
 $('usesaved').addEventListener('click',()=>useSavedFullWallet().catch(error=>setStatus('mstate',error.message,'bad')));

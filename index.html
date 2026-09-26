@@ -72,6 +72,16 @@ textarea{min-height:72px;resize:vertical}
 .backup{margin-top:12px;padding:13px;border:1px solid var(--line-strong);border-radius:13px;background:#0a1710}
 .transaction-list,.block-list{display:grid;gap:7px;margin-top:10px}
 .transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+.transaction-row.transaction-details{display:block}
+.transaction-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer;list-style:none}
+.transaction-summary::-webkit-details-marker{display:none}
+.transaction-summary::marker{content:""}
+.transaction-details[open]{border-color:var(--line-strong)}
+.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:8px}
+.txid-full{display:block;white-space:normal;overflow-wrap:anywhere;color:var(--text);font-size:12px}
+.transaction-copy{justify-self:start}
+.txid-result{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.txid-result textarea{min-height:64px;margin-top:5px}
 .transaction-title{font-weight:720}
 .transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}
 .right{text-align:right}
@@ -240,9 +250,29 @@ textarea{min-height:72px;resize:vertical}
             <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
           </div>
           <div id="sendstate" class="status">Create, insert, or recover a full wallet to send.</div>
+          <div id="lastsendtx" class="txid-result" hidden>
+            <label class="field" for="lastsendtxid">Transaction ID</label>
+            <textarea id="lastsendtxid" class="mono" readonly aria-label="Full submitted transaction ID"></textarea>
+            <div class="actions">
+              <button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button>
+            </div>
+          </div>
           <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
         </section>
       </div>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Transactions</h2>
+            <div class="small">History follows the active address. Open any transaction to view and copy its full ID.</div>
+          </div>
+          <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
+        </div>
+        <div id="history-panel">
+          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">No transactions.</div></div>
+        </div>
+      </section>
 
       <section class="card">
         <div class="section-head">
@@ -252,19 +282,6 @@ textarea{min-height:72px;resize:vertical}
           </div>
         </div>
         <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
-      </section>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h2>Transactions</h2>
-            <div class="small">History follows the active address.</div>
-          </div>
-          <button id="togglehistory" class="alt" disabled aria-expanded="false" aria-controls="history-panel">Transaction history</button>
-        </div>
-        <div id="history-panel" hidden>
-          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">No transactions.</div></div>
-        </div>
       </section>
     </div>
   </section>
