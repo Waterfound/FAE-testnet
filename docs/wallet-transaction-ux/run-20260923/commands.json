@@ -1,0 +1,72 @@
+[
+  {
+    "arguments": [
+      "plan",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "01-plan"
+  },
+  {
+    "arguments": [
+      "compile-run",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json",
+      "--source-revision",
+      "0341ed060be0f030d5cb677953cef141ae7eb415",
+      "--output",
+      "manifest.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "02-compile"
+  },
+  {
+    "arguments": [
+      "check-manifest",
+      "manifest.json",
+      "--profile",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "03-check-manifest"
+  },
+  {
+    "arguments": [
+      "ledger-init",
+      "manifest.json",
+      "--profile",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json",
+      "--output",
+      "initial-ledger.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "04-ledger-init"
+  },
+  {
+    "arguments": [
+      "ledger-check",
+      "manifest.json",
+      "ledger.json",
+      "--profile",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "05-ledger-check"
+  },
+  {
+    "arguments": [
+      "frontier",
+      "manifest.json",
+      "ledger.json",
+      "--profile",
+      "/workspace/scratch/4634cf188af0/FAE-testnet/docs/wallet-transaction-ux/profile.json"
+    ],
+    "entrypoint": "build_colony.strict_cli:main",
+    "exit_code": 0,
+    "label": "06-frontier"
+  }
+]

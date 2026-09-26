@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-09-23T10:42:26.813Z",
+  "site": "https://fairyelf-fae-testnet.vercel.app",
+  "method": "GET only; byte-hash comparison against frozen source",
+  "assets": [
+    {
+      "path": "index.html",
+      "status": 200,
+      "sha256": "13b8d69f204443239bd9915986f68cfb9770b9e89ec74e241cd72d8eca08ccbc",
+      "matches_source": true
+    },
+    {
+      "path": "core.js",
+      "status": 200,
+      "sha256": "bfddc9cef3fb1a686e11e910ee5d5c594eb8ca12d0a9bd6f39a56dc422da9589",
+      "matches_source": true
+    },
+    {
+      "path": "wallet.js",
+      "status": 200,
+      "sha256": "e163a490be56cc4220e56ad0ef34cb7a0be87be47d2c8b4b8657dc06a8a5db8f",
+      "matches_source": true
+    }
+  ],
+  "limitation": "This is served-source evidence, not interactive browser or backend contract verification."
+}

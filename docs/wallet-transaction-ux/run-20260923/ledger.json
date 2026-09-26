@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "event_digest": "18260930a1252f1ddd834316db2ae76cd9c39aa7733174dcb809a6271e97edda",
+      "event_type": "issue",
+      "manifest_digest": "000132518c011395cad47ab10d68bbedc01df566097d2942a56ac56354287f66",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-01-contract",
+      "payload_json": "{\"active_gate_class\":\"capability_gap\",\"native_progress_unit\":\"verified_user_acceptance_criteria_out_of_7\",\"selection_contract_digest\":\"62af2fc6ff4e4d9fe0a69e880d5012c9ac25d8a462bd032a28ff576c238eca7e\",\"selection_decision_digest\":\"c512156129335a06ee732690c171538b3614b76b3afd0b07ad8b7684abaa092d\"}",
+      "previous_event_digest": "",
+      "role": "coordinator",
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "seq": 1
+    }
+  ],
+  "head_event_digest": "18260930a1252f1ddd834316db2ae76cd9c39aa7733174dcb809a6271e97edda",
+  "manifest_digest": "000132518c011395cad47ab10d68bbedc01df566097d2942a56ac56354287f66",
+  "run_id": "bc2-ebd32ede17ccb49b",
+  "schema_version": 1,
+  "state_protocol_version": "0.0.5"
+}

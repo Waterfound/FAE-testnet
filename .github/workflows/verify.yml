@@ -37,6 +37,7 @@ jobs:
       - name: Check browser, P2P v6, coordinator and candidate Edge source syntax
         run: |
           node --check core.js
+          node --check wallet-transaction-ux.js
           node --check wallet-crypto.js
           node --check wallet.js
           node --check mining.js
@@ -74,6 +75,9 @@ jobs:
       - name: Verify browser wallet, client, coordinator fallback, trust and rotation flows
         run: |
           node tests/crypto-compat.mjs
+          node tests/wallet-transaction-ux-contract.mjs
+          node tests/wallet-transaction-ux-acceptance.mjs
+          node tests/wallet-transaction-ux-ui-contract.mjs
           node tests/client-smoke.mjs
           node tests/mining-coordinator-smoke.mjs
           node tests/coordinator-trust-smoke.mjs

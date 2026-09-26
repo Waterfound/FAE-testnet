@@ -1,0 +1,92 @@
+{
+  "schema": "FAE_WALLET_TRANSACTION_UX_FIXTURES_V1",
+  "active_address": "faet1fixtureactive",
+  "cases": [
+    {
+      "id": "sent_pending_with_change",
+      "transaction": {
+        "txid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "from_address": "faet1fixtureactive",
+        "inputs": ["funding-a:0"],
+        "outputs": [
+          {"address": "faet1fixturedestination", "amount_atoms": "100000000"},
+          {"address": "faet1fixtureactive", "amount_atoms": "900000000"}
+        ],
+        "status": "pending",
+        "confirmed_height": null,
+        "created_at": "2026-09-23T10:00:00.000Z",
+        "mempool_seq": 11
+      },
+      "expected": {
+        "state": "pending",
+        "direction": "sent",
+        "amount_atoms": "100000000"
+      }
+    },
+    {
+      "id": "received_confirmed",
+      "transaction": {
+        "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "from_address": "faet1fixturesender",
+        "inputs": ["funding-b:1"],
+        "outputs": [
+          {"address": "faet1fixtureactive", "amount_atoms": "250000000"}
+        ],
+        "status": "confirmed",
+        "confirmed_height": 321,
+        "created_at": "2026-09-23T10:05:00.000Z",
+        "mempool_seq": 10
+      },
+      "expected": {
+        "state": "confirmed",
+        "direction": "received",
+        "amount_atoms": "250000000"
+      }
+    },
+    {
+      "id": "self_transfer_no_amount_inference",
+      "transaction": {
+        "txid": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "from_address": "faet1fixtureactive",
+        "inputs": ["funding-c:2"],
+        "outputs": [
+          {"address": "faet1fixtureactive", "amount_atoms": "500000000"}
+        ],
+        "status": "pending",
+        "confirmed_height": null,
+        "created_at": "2026-09-23T10:07:00.000Z",
+        "mempool_seq": 9
+      },
+      "expected": {
+        "state": "pending",
+        "direction": "self",
+        "amount_atoms": null
+      }
+    },
+    {
+      "id": "unknown_status_not_pending",
+      "transaction": {
+        "txid": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "from_address": "faet1fixturesender",
+        "inputs": ["funding-d:3"],
+        "outputs": [
+          {"address": "faet1fixtureactive", "amount_atoms": "1"}
+        ],
+        "status": "future-state",
+        "confirmed_height": null,
+        "created_at": "2026-09-23T10:08:00.000Z",
+        "mempool_seq": 8
+      },
+      "expected": {
+        "state": "unknown",
+        "direction": "received",
+        "amount_atoms": "1"
+      }
+    }
+  ],
+  "invalid_payloads": [
+    {"id": "transactions_missing", "payload": {"ok": true}},
+    {"id": "bad_txid", "payload": {"ok": true, "transactions": [{"txid": "bad", "from_address": "faet1fixtureactive", "inputs": [], "outputs": [], "status": "pending"}]}},
+    {"id": "confirmed_without_height", "payload": {"ok": true, "transactions": [{"txid": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "from_address": "faet1fixtureactive", "inputs": ["x:0"], "outputs": [{"address": "faet1fixtureactive", "amount_atoms": "1"}], "status": "confirmed", "confirmed_height": null}]}}
+  ]
+}

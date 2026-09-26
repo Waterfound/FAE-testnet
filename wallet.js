@@ -3,8 +3,11 @@
 const WALLET_KEY='fae-public-v4-wallet';
 const WATCH_KEY='fae-public-v4-active-watch';
 const KEYRING_KEY='fae-public-v4-keyring-v3';
+const TX_RECEIPT_KEY='fae-public-v4-last-tx-receipt-v1';
 let sessionMnemonic='';
 let walletLoadError='';
+let lastAcceptedTransactionReceipt=null;
+let lastAcceptedTransaction=null;
 
 function storedAddress(record){
   return{
@@ -107,6 +110,7 @@ async function loadWallet(){
     wallet=null;
     walletLoadError=error.message;
   }
+  restoreTransactionReceiptForWallet();
 }
 
 function replacementConfirmed(){
@@ -115,10 +119,15 @@ function replacementConfirmed(){
 }
 
 async function copyText(value){
-  if(!value)throw Error('No address or recovery phrase to copy');
+  if(!value)throw Error('No text to copy');
   if(navigator.clipboard?.writeText){
-    await navigator.clipboard.writeText(value);
-    return;
+    try{
+      await navigator.clipboard.writeText(value);
+      return;
+    }catch{
+      // Fall through to the selection-based copy path. If both paths fail the
+      // caller keeps the complete value visible for manual copying.
+    }
   }
   const temporary=document.createElement('textarea');
   temporary.value=value;
@@ -185,6 +194,7 @@ function renderAddressList(){
 }
 
 function renderWallet(){
+  walletViewGeneration++;
   const full=Boolean(wallet&&!wallet.watchOnly&&wallet.priv);
   const watch=Boolean(wallet?.watchOnly);
   $('addr').value=wallet?.address||'';
@@ -195,6 +205,8 @@ function renderWallet(){
   $('send').disabled=!full;
   $('exportwallet').disabled=!full||!walletAccount;
   $('togglehistory').disabled=!wallet;
+  $('openhistory').disabled=!wallet;
+  $('retryhistory').disabled=!wallet;
   $('restorefromsend').hidden=full||!wallet;
   $('usesaved').hidden=!watch||!walletAccount;
 
@@ -220,6 +232,8 @@ function renderWallet(){
   }
   $('watchstate').textContent=watch?'External address is active. Its private key is not present in this browser.':'';
   renderAddressList();
+  renderTransactionReceiptForWallet();
+  if(!wallet)closeWalletTransactionDetails();
 }
 
 async function activateAccountAddress(listIndex,{refreshData=true}={}){
@@ -456,12 +470,125 @@ async function useSavedFullWallet(){
   await activateAccountAddress(walletAccount.activeIndex);
 }
 
+function restoreTransactionReceiptForWallet(){
+  lastAcceptedTransactionReceipt=null;
+  lastAcceptedTransaction=null;
+  const raw=localStorage.getItem(TX_RECEIPT_KEY);
+  if(!raw)return;
+  try{
+    const record=JSON.parse(raw);
+    lastAcceptedTransactionReceipt=window.FAEWalletTransactionUX.receiptFromPublicRecord(record);
+  }catch{
+    localStorage.removeItem(TX_RECEIPT_KEY);
+  }
+}
+
+function persistTransactionReceipt(){
+  if(!lastAcceptedTransactionReceipt)return;
+  localStorage.setItem(
+    TX_RECEIPT_KEY,
+    JSON.stringify(window.FAEWalletTransactionUX.receiptPublicRecord(lastAcceptedTransactionReceipt))
+  );
+}
+
+function receiptMatchesActiveWallet(){
+  return Boolean(
+    wallet&&
+    lastAcceptedTransactionReceipt&&
+    lastAcceptedTransactionReceipt.network===NETWORK&&
+    lastAcceptedTransactionReceipt.active_address===wallet.address
+  );
+}
+
+function renderTransactionReceiptForWallet(){
+  const panel=$('sendreceipt');
+  if(!receiptMatchesActiveWallet()){
+    panel.hidden=true;
+    return;
+  }
+  panel.hidden=false;
+  $('sendtxid').textContent=lastAcceptedTransactionReceipt.txid;
+  $('sendtxstatus').textContent=window.FAEWalletTransactionUX.statusLabel(lastAcceptedTransactionReceipt.state);
+  $('opensendtxdetails').disabled=!lastAcceptedTransaction;
+}
+
+function reconcileLastAcceptedReceipt(history){
+  if(!lastAcceptedTransactionReceipt||history?.address!==lastAcceptedTransactionReceipt.active_address)return;
+  lastAcceptedTransactionReceipt=window.FAEWalletTransactionUX.observeReceipt(lastAcceptedTransactionReceipt,history);
+  const match=Array.isArray(history?.transactions)
+    ?history.transactions.find(transaction=>transaction.identity_txid===lastAcceptedTransactionReceipt.identity_txid)
+    :null;
+  if(match){
+    lastAcceptedTransaction=match;
+  }else if(lastAcceptedTransaction){
+    lastAcceptedTransaction={...lastAcceptedTransaction,status:lastAcceptedTransactionReceipt.state,confirmed_height:lastAcceptedTransactionReceipt.confirmed_height};
+  }
+  renderTransactionReceiptForWallet();
+}
+
+function acceptedTransactionDetails(transaction,receipt){
+  return{
+    txid:receipt.txid,
+    identity_txid:receipt.identity_txid,
+    from_address:receipt.active_address,
+    inputs:Array.isArray(transaction.inputs)?transaction.inputs.slice():[],
+    outputs:Array.isArray(transaction.outputs)?transaction.outputs.map(output=>({...output})):[],
+    status:receipt.state,
+    confirmed_height:null,
+    timestamp_ms:receipt.submitted_at_ms
+  };
+}
+
+async function copySendTransactionId(){
+  if(!receiptMatchesActiveWallet())throw Error('No transaction receipt is available for this address');
+  const feedback=$('sendcopyfeedback');
+  try{
+    await copyText(lastAcceptedTransactionReceipt.txid);
+    feedback.textContent='TX ID copied.';
+    feedback.className='small copy-feedback ok';
+  }catch{
+    feedback.textContent='Could not copy the TX ID automatically. Select the complete ID above and copy it manually.';
+    feedback.className='small copy-feedback bad';
+  }
+}
+
+async function copyDetailTransactionId(){
+  if(!selectedWalletTransaction?.txid)throw Error('No transaction is open');
+  const feedback=$('txcopyfeedback');
+  try{
+    await copyText(selectedWalletTransaction.txid);
+    feedback.textContent='TX ID copied.';
+    feedback.className='small copy-feedback ok';
+  }catch{
+    feedback.textContent='Could not copy the TX ID automatically. Select the complete ID above and copy it manually.';
+    feedback.className='small copy-feedback bad';
+  }
+}
+
+function showAcceptedTransactionDetails(){
+  if(!receiptMatchesActiveWallet()||!lastAcceptedTransaction)return;
+  openTransactionHistory({refreshData:false});
+  showWalletTransactionDetails(lastAcceptedTransaction,lastAcceptedTransactionReceipt.active_address);
+}
+
+function openTransactionHistory({refreshData=true}={}){
+  if(!wallet)return;
+  const panel=$('history-panel');
+  panel.hidden=false;
+  $('togglehistory').setAttribute('aria-expanded','true');
+  $('togglehistory').textContent='Hide history';
+  $('history-title').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>$('history-title').focus(),0);
+  if(refreshData)refresh().catch(()=>{});
+}
+
 async function sendFAE(){
   if(!wallet||wallet.watchOnly||!wallet.priv)throw Error('Insert the full wallet to send');
+  const sendingWallet=wallet;
   const amount=parseAmt($('sendamt').value);
   const destination=$('sendto').value.trim();
   if(!validAddr(destination)||amount<=0n)throw Error('Invalid destination or amount');
-  const spendable=await api('/spendable?address='+encodeURIComponent(wallet.address));
+  const spendable=await api('/spendable?address='+encodeURIComponent(sendingWallet.address));
   let total=0n;
   const inputs=[];
   for(const output of spendable.utxos){
@@ -471,23 +598,51 @@ async function sendFAE(){
   }
   if(total<amount)throw Error('Insufficient spendable balance');
   const outputs=[{address:destination,amount_atoms:String(amount)}];
-  if(total>amount)outputs.push({address:wallet.address,amount_atoms:String(total-amount)});
+  if(total>amount)outputs.push({address:sendingWallet.address,amount_atoms:String(total-amount)});
   const transaction={
     version:2,
     network:NETWORK,
     inputs,
     outputs,
-    public_key_spki:wallet.pub,
+    public_key_spki:sendingWallet.pub,
     signature:''
   };
-  transaction.signature=b64(await crypto.subtle.sign('Ed25519',wallet.priv,E.encode(stable(txPayload(transaction)))));
+  transaction.signature=b64(await crypto.subtle.sign('Ed25519',sendingWallet.priv,E.encode(stable(txPayload(transaction)))));
   const accepted=await api('/submit-tx',{
     method:'POST',
     headers:{'content-type':'application/json'},
     body:JSON.stringify({tx:transaction})
   });
-  setStatus('sendstate','Queued '+accepted.txid.slice(0,20)+'… · the transaction is waiting for a block.','ok');
-  await refresh();
+
+  if(!window.FAEWalletTransactionUX.validTxid(accepted?.txid)){
+    setStatus('sendstate','The submit endpoint reported success but returned an invalid TX ID. Do not resend automatically; refresh history before taking another action.','warn');
+    return;
+  }
+
+  lastAcceptedTransactionReceipt=window.FAEWalletTransactionUX.acceptedReceipt({
+    txid:accepted.txid,
+    address:sendingWallet.address
+  });
+  lastAcceptedTransaction=acceptedTransactionDetails(transaction,lastAcceptedTransactionReceipt);
+  persistTransactionReceipt();
+  renderTransactionReceiptForWallet();
+  setStatus('sendstate','Transaction accepted. The full TX ID is shown below; confirmation is still pending network observation.','ok');
+
+  try{
+    await refresh();
+  }catch(error){
+    setStatus('sendstate','Transaction accepted, but the follow-up network refresh failed. Do not resend automatically; confirmation status is currently unavailable.','warn');
+    return lastAcceptedTransactionReceipt;
+  }
+
+  if(lastAcceptedTransactionReceipt.state==='confirmed'){
+    setStatus('sendstate','Transaction confirmed in block '+lastAcceptedTransactionReceipt.confirmed_height+'.','ok');
+  }else if(lastAcceptedTransactionReceipt.state==='pending'){
+    setStatus('sendstate','Transaction accepted and visible as pending. It is waiting for a block.','ok');
+  }else{
+    setStatus('sendstate','Transaction accepted. It is not currently visible inside the bounded recent-history window; this does not mean it was rejected.','warn');
+  }
+  return lastAcceptedTransactionReceipt;
 }
 
 function toggleHistory(){
@@ -495,7 +650,9 @@ function toggleHistory(){
   const open=panel.hidden;
   panel.hidden=!open;
   $('togglehistory').setAttribute('aria-expanded',String(open));
+  $('togglehistory').textContent=open?'Hide history':'Show history';
   if(open)refresh().catch(()=>{});
+  if(!open)closeWalletTransactionDetails();
 }
 
 function showWalletError(error){
@@ -519,6 +676,12 @@ $('restorefromsend').addEventListener('click',()=>{
   showWalletAction('insert');
 });
 $('togglehistory').addEventListener('click',toggleHistory);
+$('openhistory').addEventListener('click',()=>openTransactionHistory());
+$('retryhistory').addEventListener('click',()=>refresh().catch(()=>{}));
+$('copysendtx').addEventListener('click',()=>copySendTransactionId().catch(()=>{}));
+$('opensendtxdetails').addEventListener('click',showAcceptedTransactionDetails);
+$('copytxid').addEventListener('click',()=>copyDetailTransactionId().catch(()=>{}));
+$('closetxdetail').addEventListener('click',closeWalletTransactionDetails);
 $('refresh').addEventListener('click',()=>refresh().catch(()=>{}));
 $('useaddr').addEventListener('click',()=>useExistingAddress().catch(error=>setStatus('mstate',error.message,'bad')));
 $('usesaved').addEventListener('click',()=>useSavedFullWallet().catch(error=>setStatus('mstate',error.message,'bad')));

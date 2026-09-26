@@ -1,0 +1,30 @@
+{"verified_files": 47, "revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239"}
+test_evidence_bound_capability_gap_allows_bounded_exploration (test_work_selection.AGDWSTests.test_evidence_bound_capability_gap_allows_bounded_exploration) ... ok
+test_material_new_basis_reopens_saturated_route (test_work_selection.AGDWSTests.test_material_new_basis_reopens_saturated_route) ... ok
+test_missing_package_binding_fails_closed (test_work_selection.AGDWSTests.test_missing_package_binding_fails_closed) ... ok
+test_required_serial_dependency_remains_eligible (test_work_selection.AGDWSTests.test_required_serial_dependency_remains_eligible) ... ok
+test_rls_replay_dispatches_only_two_currently_actionable_routes (test_work_selection.AGDWSTests.test_rls_replay_dispatches_only_two_currently_actionable_routes) ... ok
+test_route_suspends_after_two_distinct_same_boundary_zero_delta_attempts (test_work_selection.AGDWSTests.test_route_suspends_after_two_distinct_same_boundary_zero_delta_attempts) ... ok
+test_sqmr_replay_filters_wrong_phase_work (test_work_selection.AGDWSTests.test_sqmr_replay_filters_wrong_phase_work) ... ok
+test_two_zero_yield_runs_emit_advisory_only_di_escalation (test_work_selection.AGDWSTests.test_two_zero_yield_runs_emit_advisory_only_di_escalation) ... ok
+test_unbound_capability_gap_fails_closed (test_work_selection.AGDWSTests.test_unbound_capability_gap_fails_closed) ... ok
+test_unclassified_gate_fails_closed_and_recommends_di (test_work_selection.AGDWSTests.test_unclassified_gate_fails_closed_and_recommends_di) ... ok
+test_unrelated_work_remains_filtered_under_valid_capability_gap (test_work_selection.AGDWSTests.test_unrelated_work_remains_filtered_under_valid_capability_gap) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK
+test_r1_fae_exploration (test_ebcg_replay.EBCGFrozenReplayTests.test_r1_fae_exploration) ... ok
+test_r2_fae_closure (test_ebcg_replay.EBCGFrozenReplayTests.test_r2_fae_closure) ... ok
+test_r3_fae_engineering_defect (test_ebcg_replay.EBCGFrozenReplayTests.test_r3_fae_engineering_defect) ... ok
+test_r4_sqmr_regression (test_ebcg_replay.EBCGFrozenReplayTests.test_r4_sqmr_regression) ... ok
+test_r5_rls_regression (test_ebcg_replay.EBCGFrozenReplayTests.test_r5_rls_regression) ... ok
+test_r6_unknown_gate_negative_control (test_ebcg_replay.EBCGFrozenReplayTests.test_r6_unknown_gate_negative_control) ... ok
+test_r7_unbound_capability_gap_negative_control (test_ebcg_replay.EBCGFrozenReplayTests.test_r7_unbound_capability_gap_negative_control) ... ok
+test_r8_unrelated_under_valid_gap_negative_control (test_ebcg_replay.EBCGFrozenReplayTests.test_r8_unrelated_under_valid_gap_negative_control) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK

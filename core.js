@@ -27,6 +27,11 @@ let powReject=null;
 let mining=false;
 let attemptsTotal=0;
 let refreshPromise=null;
+let refreshGeneration=null;
+let walletViewGeneration=0;
+let walletHistory=null;
+let selectedWalletTransaction=null;
+let selectedWalletTransactionAddress=null;
 
 function b64(bytes){
   let value='';
@@ -160,9 +165,18 @@ function short(value,start=16,end=8){
 
 function readableTime(timestamp){
   if(!timestamp)return '';
-  const numeric=Number(timestamp);
-  const date=new Date(numeric<1e12?numeric*1000:numeric);
-  if(Number.isNaN(date.getTime()))return '';
+  const ux=window.FAEWalletTransactionUX;
+  const milliseconds=ux
+    ?ux.finiteTimestampMs(timestamp)
+    :(()=>{
+      const numeric=Number(timestamp);
+      const date=Number.isFinite(numeric)
+        ?new Date(numeric<1e12?numeric*1000:numeric)
+        :new Date(timestamp);
+      return Number.isNaN(date.getTime())?null:date.getTime();
+    })();
+  if(milliseconds===null)return '';
+  const date=new Date(milliseconds);
   return date.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
 }
 
@@ -181,36 +195,124 @@ function appendEmpty(container,message){
   container.append(empty);
 }
 
-function renderWalletHistory(transactions,addressValue){
+function walletHistoryMessage(history){
+  if(!history)return 'Select a wallet to load recent transfer history.';
+  if(history.state==='loading')return history.transactions.length?'Refreshing recent transfer history; the previous result remains visible.':'Loading recent transfer history…';
+  if(history.state==='ready')return 'Recent transfers for the active address. The source checks the latest 100 network transfers and returns up to 30 matches; mining rewards are not included.';
+  if(history.state==='empty')return 'No transfers were found within the current recent-history coverage. Older transfers and mining rewards may not appear.';
+  if(history.state==='stale')return 'Showing the last successfully loaded recent history. Refresh failed, so this data may be stale.';
+  if(history.state==='invalid')return 'Transaction history data was invalid and was not shown.';
+  return 'Transaction history is unavailable. This is not an empty-history result.';
+}
+
+function renderWalletHistory(history){
   const container=$('txhist');
-  const list=Array.isArray(transactions)?transactions:[];
+  $('historystate').textContent=walletHistoryMessage(history);
+  const list=Array.isArray(history?.transactions)?history.transactions:[];
   if(!list.length){
-    appendEmpty(container,'No transactions for this address.');
+    const emptyMessage=history?.state==='loading'
+      ?'Loading recent transfers…'
+      :history?.state==='invalid'
+        ?'No transaction rows shown because the response was invalid.'
+        :history?.state==='unavailable'
+          ?'Recent transfer history could not be loaded.'
+          :history?.state==='empty'
+            ?'No transfers found in the available recent-history window.'
+            :'No transactions loaded.';
+    appendEmpty(container,emptyMessage);
     return;
   }
+
   clearElement(container);
   for(const transaction of list){
-    const row=document.createElement('div');
-    row.className='transaction-row';
+    const row=document.createElement('button');
+    row.type='button';
+    row.className='transaction-row transaction-button';
+    row.setAttribute('aria-label','Open transaction '+transaction.txid);
     const left=document.createElement('div');
     const title=document.createElement('div');
     title.className='transaction-title';
-    const sent=transaction.from_address===addressValue;
-    title.textContent=(sent?'Sent':'Received')+' · '+short(transaction.txid,18,8);
+    const perspective=window.FAEWalletTransactionUX.transactionPerspective(transaction,history.address);
+    const directionLabel=perspective.direction==='sent'?'Sent':perspective.direction==='received'?'Received':perspective.direction==='self'?'Self-transfer':'Related';
+    title.textContent=directionLabel+' · '+short(transaction.txid,18,8);
     const meta=document.createElement('div');
     meta.className='transaction-meta mono';
-    const parts=[transaction.status==='confirmed'?'Confirmed':'Pending'];
-    if(transaction.confirmed_height)parts.push('block '+transaction.confirmed_height);
-    const time=readableTime(transaction.timestamp_ms||transaction.created_at);
+    const parts=[window.FAEWalletTransactionUX.statusLabel(transaction.status)];
+    if(transaction.confirmed_height!==null&&transaction.confirmed_height!==undefined)parts.push('block '+transaction.confirmed_height);
+    const time=readableTime(transaction.timestamp_ms);
     if(time)parts.push(time);
     meta.textContent=parts.join(' · ');
     left.append(title,meta);
     const state=document.createElement('div');
-    state.className='right '+(transaction.status==='confirmed'?'ok':'warn');
-    state.textContent=transaction.status==='confirmed'?'✓':'…';
+    const confirmed=transaction.status==='confirmed';
+    const pending=transaction.status==='pending';
+    state.className='right '+(confirmed?'ok':pending?'warn':'');
+    state.textContent=confirmed?'✓':pending?'…':'?';
     row.append(left,state);
+    row.addEventListener('click',()=>showWalletTransactionDetails(transaction,history.address));
     container.append(row);
   }
+}
+
+function showWalletTransactionDetails(transaction,addressValue){
+  if(!transaction||!window.FAEWalletTransactionUX.validTxid(transaction.txid))throw Error('Transaction details require a valid TX ID');
+  selectedWalletTransaction=transaction;
+  selectedWalletTransactionAddress=addressValue||wallet?.address||'';
+  const perspective=window.FAEWalletTransactionUX.transactionPerspective(transaction,selectedWalletTransactionAddress);
+  const directionLabel=perspective.direction==='sent'?'Sent':perspective.direction==='received'?'Received':perspective.direction==='self'?'Self-transfer':'Related';
+  $('txdetailid').textContent=transaction.txid;
+  $('txdetailstatus').textContent=window.FAEWalletTransactionUX.statusLabel(transaction.status);
+  $('txdetaildirection').textContent=directionLabel;
+  $('txdetailamount').textContent=perspective.amount_atoms===null?'Not inferred from available data':formatAtoms(perspective.amount_atoms);
+  $('txdetailfrom').textContent=transaction.from_address||'Not available';
+  const blockAvailable=transaction.confirmed_height!==null&&transaction.confirmed_height!==undefined;
+  $('txdetailblockrow').hidden=!blockAvailable;
+  $('txdetailblock').textContent=blockAvailable?String(transaction.confirmed_height):'';
+  const time=readableTime(transaction.timestamp_ms||transaction.created_at);
+  $('txdetailtimerow').hidden=!time;
+  $('txdetailtime').textContent=time;
+  const outputs=$('txdetailoutputs');
+  clearElement(outputs);
+  for(const output of Array.isArray(transaction.outputs)?transaction.outputs:[]){
+    const row=document.createElement('div');
+    row.className='transaction-output';
+    const address=document.createElement('span');
+    address.className='mono';
+    address.textContent=output.address||'Unknown output';
+    const amount=document.createElement('span');
+    amount.textContent=formatAtoms(output.amount_atoms||0);
+    row.append(address,amount);
+    outputs.append(row);
+  }
+  if(!outputs.children.length)appendEmpty(outputs,'Output details are not available from this receipt.');
+  $('txcopyfeedback').textContent='';
+  const panel=$('transaction-detail');
+  panel.hidden=false;
+  setTimeout(()=>panel.focus(),0);
+}
+
+function closeWalletTransactionDetails(){
+  $('transaction-detail').hidden=true;
+  selectedWalletTransaction=null;
+  selectedWalletTransactionAddress=null;
+}
+
+function setWalletHistory(next){
+  walletHistory=next;
+  renderWalletHistory(walletHistory);
+  if(typeof reconcileLastAcceptedReceipt==='function')reconcileLastAcceptedReceipt(walletHistory);
+}
+
+function walletTransactionUXUnavailable(address,error='Wallet transaction UX module is unavailable'){
+  return{
+    state:'unavailable',
+    address:address||null,
+    transactions:[],
+    coverage:null,
+    fetched_at_ms:null,
+    error,
+    stale_reason:null
+  };
 }
 
 function renderRecentNetwork(state){
@@ -296,12 +398,22 @@ function bindEnvironmentTabs(){
   }
 }
 
-async function refreshNow(){
+async function refreshNow(generation=walletViewGeneration){
   const networkResults=await Promise.allSettled([api('/status'),api('/state')]);
   const statusResult=networkResults[0];
   const stateResult=networkResults[1];
 
-  if(statusResult.status==='rejected')throw statusResult.reason;
+  if(statusResult.status==='rejected'){
+    if(wallet?.address&&generation===walletViewGeneration){
+      const ux=window.FAEWalletTransactionUX;
+      setWalletHistory(
+        ux
+          ?ux.historyUnavailable(wallet.address,statusResult.reason,walletHistory)
+          :walletTransactionUXUnavailable(wallet.address,statusResult.reason?.message||String(statusResult.reason))
+      );
+    }
+    throw statusResult.reason;
+  }
   const status=statusResult.value;
   $('height').textContent=status.height;
   $('issued').textContent=status.issued_fae+' / '+Number(status.max_supply_fae).toLocaleString('en-US')+' FAE';
@@ -314,21 +426,28 @@ async function refreshNow(){
   setNetworkStatus('online');
 
   if(stateResult.status==='fulfilled')renderRecentNetwork(stateResult.value);
+  if(generation!==walletViewGeneration)return status;
 
   if(!wallet){
     $('bal').textContent='0 FAE';
     $('ustate').textContent='Select or create a wallet.';
-    renderWalletHistory([],null);
+    setWalletHistory(null);
     return status;
   }
 
   const requestedAddress=wallet.address;
+  const ux=window.FAEWalletTransactionUX;
+  setWalletHistory(
+    ux
+      ?ux.historyLoading(requestedAddress,walletHistory)
+      :walletTransactionUXUnavailable(requestedAddress)
+  );
   const accountResults=await Promise.allSettled([
     api('/balance?address='+encodeURIComponent(requestedAddress)),
     api('/spendable?address='+encodeURIComponent(requestedAddress)),
     api('/transactions?address='+encodeURIComponent(requestedAddress))
   ]);
-  if(wallet?.address!==requestedAddress)return status;
+  if(generation!==walletViewGeneration||wallet?.address!==requestedAddress)return status;
 
   if(accountResults[0].status==='fulfilled'){
     $('bal').textContent=accountResults[0].value.balance_fae+' FAE';
@@ -338,23 +457,37 @@ async function refreshNow(){
   }else{
     $('ustate').textContent='Could not refresh this address balance.';
   }
-  if(accountResults[2].status==='fulfilled'){
-    renderWalletHistory(accountResults[2].value.transactions,requestedAddress);
+
+  if(!ux){
+    setWalletHistory(walletTransactionUXUnavailable(requestedAddress));
+  }else if(accountResults[2].status==='fulfilled'){
+    setWalletHistory(ux.historyFromPayload(accountResults[2].value,requestedAddress));
   }else{
-    appendEmpty($('txhist'),'Could not load transaction history.');
+    setWalletHistory(ux.historyUnavailable(requestedAddress,accountResults[2].reason,walletHistory));
   }
   return status;
 }
 
 function refresh(){
-  if(refreshPromise)return refreshPromise;
+  const generation=walletViewGeneration;
+  if(refreshPromise){
+    if(refreshGeneration===generation)return refreshPromise;
+    const prior=refreshPromise;
+    return prior.catch(()=>{}).then(()=>refresh());
+  }
   if($('netstatus')?.dataset.state!=='online')setNetworkStatus('connecting');
-  refreshPromise=refreshNow().catch(error=>{
+  refreshGeneration=generation;
+  refreshPromise=refreshNow(generation).catch(error=>{
     $('runtime').textContent='Network error: '+error.message;
     $('runtime').className='status bad';
     setNetworkStatus('offline');
     throw error;
-  }).finally(()=>{refreshPromise=null});
+  }).finally(()=>{
+    if(refreshGeneration===generation){
+      refreshPromise=null;
+      refreshGeneration=null;
+    }
+  });
   return refreshPromise;
 }
 

@@ -67,6 +67,15 @@ const localStorage={
 };
 
 let submittedTransaction=null;
+let deferTransactionHistory=false;
+const transactionHistoryResolvers=[];
+const waitFor=async predicate=>{
+  for(let attempt=0;attempt<200;attempt++){
+    if(predicate())return;
+    await new Promise(resolve=>setTimeout(resolve,1));
+  }
+  throw Error('Timed out waiting for smoke-test condition');
+};
 const fetch=async(url,options={})=>{
   const path=String(url).split('fae-public-testnet-v4')[1]||'';
   let body={};
@@ -79,6 +88,14 @@ const fetch=async(url,options={})=>{
   }else if(path.startsWith('/spendable')){
     body={spendable_fae:'2',utxos:[{outpoint:'smoke:0',amount_atoms:'200000000'}]};
   }else if(path.startsWith('/transactions')){
+    if(deferTransactionHistory){
+      return await new Promise(resolve=>{
+        transactionHistoryResolvers.push(payload=>resolve(new Response(
+          JSON.stringify(payload),
+          {status:200,headers:{'content-type':'application/json'}}
+        )));
+      });
+    }
     body={transactions:[]};
   }else if(path.startsWith('/submit-tx')){
     submittedTransaction=JSON.parse(options.body).tx;
@@ -125,7 +142,7 @@ const context={
 context.window=context;
 vm.createContext(context);
 
-for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
+for(const file of ['bip39-en.js','network-status.js','wallet-transaction-ux.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
 await new Promise(resolve=>setTimeout(resolve,25));
@@ -167,12 +184,89 @@ assert.equal(clipboard,vm.runInContext('wallet.address',context));
 
 document.getElementById('sendto').value=vm.runInContext('walletAccount.addresses[1].address',context);
 document.getElementById('sendamt').value='1';
+document.getElementById('sendreceipt').hidden=true;
 await vm.runInContext('sendFAE()',context);
 assert.ok(submittedTransaction?.signature);
 assert.equal(submittedTransaction.inputs[0],'smoke:0');
 assert.equal(submittedTransaction.outputs.length,2);
+assert.equal(document.getElementById('sendreceipt').hidden,false);
+assert.equal(document.getElementById('sendtxid').textContent,'a'.repeat(64));
+await vm.runInContext('copySendTransactionId()',context);
+assert.equal(clipboard,'a'.repeat(64));
+vm.runInContext('showAcceptedTransactionDetails()',context);
+assert.equal(document.getElementById('txdetailid').textContent,'a'.repeat(64));
+await vm.runInContext('copyDetailTransactionId()',context);
+assert.equal(clipboard,'a'.repeat(64));
+vm.runInContext('openTransactionHistory({refreshData:false})',context);
+assert.equal(document.getElementById('history-panel').hidden,false);
+assert.equal(document.getElementById('togglehistory').getAttribute('aria-expanded'),'true');
+
+const receiptKey=vm.runInContext('TX_RECEIPT_KEY',context);
+const storedReceipt=JSON.parse(localStorage.getItem(receiptKey));
+assert.deepEqual(Object.keys(storedReceipt).sort(),['active_address','format','network','submitted_at_ms','txid']);
+vm.runInContext('lastAcceptedTransactionReceipt=null;lastAcceptedTransaction=null;restoreTransactionReceiptForWallet();renderTransactionReceiptForWallet()',context);
+assert.equal(document.getElementById('sendtxid').textContent,'a'.repeat(64));
+assert.equal(vm.runInContext('lastAcceptedTransactionReceipt.state',context),'accepted');
+
+const originalWriteText=context.navigator.clipboard.writeText;
+const originalExecCommand=document.execCommand;
+context.navigator.clipboard.writeText=async()=>{throw Error('denied')};
+document.execCommand=()=>false;
+await vm.runInContext('copySendTransactionId()',context);
+assert.match(document.getElementById('sendcopyfeedback').textContent,/manually/i);
+context.navigator.clipboard.writeText=originalWriteText;
+document.execCommand=originalExecCommand;
+
+// A stale A response must never be accepted after a rapid A -> B -> A context
+// change. Address equality alone cannot prove freshness because the final
+// address can equal the initial one.
+const raceAddress=vm.runInContext('wallet.address',context);
+const raceDestination=vm.runInContext('walletAccount.addresses[1].address',context);
+deferTransactionHistory=true;
+const staleRefresh=vm.runInContext('refresh()',context);
+await waitFor(()=>transactionHistoryResolvers.length===1);
+const switchToB=vm.runInContext('activateAccountAddress(1)',context);
+const switchBackToA=vm.runInContext('activateAccountAddress(3)',context);
+transactionHistoryResolvers.shift()({
+  ok:true,
+  transactions:[{
+    txid:'e'.repeat(64),
+    from_address:raceAddress,
+    inputs:['race-old:0'],
+    outputs:[{address:raceDestination,amount_atoms:'1'}],
+    status:'pending',
+    confirmed_height:null,
+    created_at:'2026-09-23T10:30:00.000Z',
+    mempool_seq:20
+  }]
+});
+await waitFor(()=>transactionHistoryResolvers.length===1);
+const midRaceTxids=vm.runInContext('walletHistory?.transactions?.map(item=>item.txid)||[]',context);
+assert.equal(midRaceTxids.includes('e'.repeat(64)),false,'stale A response must be discarded after A -> B -> A');
+transactionHistoryResolvers.shift()({
+  ok:true,
+  transactions:[{
+    txid:'f'.repeat(64),
+    from_address:raceAddress,
+    inputs:['race-current:0'],
+    outputs:[{address:raceDestination,amount_atoms:'2'}],
+    status:'pending',
+    confirmed_height:null,
+    created_at:'2026-09-23T10:31:00.000Z',
+    mempool_seq:21
+  }]
+});
+await Promise.all([staleRefresh,switchToB,switchBackToA]);
+deferTransactionHistory=false;
+assert.equal(vm.runInContext('wallet.address',context),raceAddress);
+assert.equal(vm.runInContext('walletHistory.address',context),raceAddress);
+assert.deepEqual(
+  vm.runInContext('walletHistory.transactions.map(item=>item.txid)',context),
+  ['f'.repeat(64)]
+);
 
 const packageJson=await vm.runInContext('recoveryPackage().then(JSON.stringify)',context);
+assert.equal(packageJson.includes('FAE_WALLET_TX_RECEIPT_V1'),false);
 context.packageJson=packageJson;
 const roundTrip=await vm.runInContext('accountFromRecovery(packageJson)',context);
 assert.equal(roundTrip.account.addresses.length,5);

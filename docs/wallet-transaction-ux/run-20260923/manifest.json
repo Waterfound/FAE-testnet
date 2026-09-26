@@ -1,0 +1,580 @@
+{
+  "manifest_digest": "000132518c011395cad47ab10d68bbedc01df566097d2942a56ac56354287f66",
+  "packages": [
+    {
+      "dependencies": [],
+      "domain_id": "WTX-01-contract",
+      "exclusive_resources": [],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "TXID format/source, known/unknown/pending/confirmed states and missing fields are explicit.",
+          "id": "contract",
+          "minimum": 1
+        },
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Current address scope, 100 network/30 address limit, reward exclusion and recovery limits documented.",
+          "id": "coverage",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Freeze the transaction read model, state rules, limited coverage and receipt lifecycle; implement the small pure presentation adapter if justified.",
+      "package_digest": "ddd5d521673f718a295680d83228e7105f3f3ccacc18a91f4fff4026f7625196",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-01-contract",
+      "permitted_blockers": [
+        "data"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 1,
+      "write_scopes": [
+        "wallet-transactions.js",
+        "docs/wallet-transaction-ux/contract.json"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "domain_id": "WTX-02-acceptance-fixtures",
+      "exclusive_resources": [],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Expected user-visible outcomes frozen for copy, failure, status, coverage, address changes and recovery.",
+          "id": "fixtures",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Prepare independent acceptance fixtures and read-only/local verification covering product criteria, without encoding implementation-specific internals.",
+      "package_digest": "b8bc01424dd3878254434d6b5a69449e2533fd4a8e7499adfa29c0fb7cfde228",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-02-acceptance-fixtures",
+      "permitted_blockers": [
+        "data"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 2,
+      "write_scopes": [
+        "tests/wallet-transaction-ux"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "domain_id": "WTX-03-txid-details",
+      "exclusive_resources": [
+        "active-wallet-ui"
+      ],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Full ID accessible and exact copy, rejection feedback and manual selection verified.",
+          "id": "txid",
+          "minimum": 1
+        },
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Submit acceptance remains distinguishable from confirmation and later history/network failure.",
+          "id": "receipt",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Implement accessible full TXID and exact copy with feedback in the accepted-send receipt and transaction details; preserve accepted receipts across refresh failures.",
+      "package_digest": "dd3969c06c24fd79dcde435c16da900c883d3f6fead126c37a0a99dadfbb89a1",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-03-txid-details",
+      "permitted_blockers": [],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 2,
+      "write_scopes": [
+        "core.js",
+        "wallet.js",
+        "index.html"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-01-contract"
+      ],
+      "domain_id": "WTX-04-history-lifecycle",
+      "exclusive_resources": [
+        "active-wallet-ui"
+      ],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "History reachable from active-wallet primary controls with accessible focus and return navigation.",
+          "id": "discovery",
+          "minimum": 1
+        },
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Reload, recovery, active-address changes and stale requests preserve correct attribution and coverage.",
+          "id": "lifecycle",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Make history a primary wallet action; implement explicit loading, empty-within-coverage, unavailable, invalid and stale states, retry, address isolation, reload and recovery behavior.",
+      "package_digest": "fd8748581d426ec343550029b9ed778cc44e6a40052d772c4bfd660c3923fb83",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-04-history-lifecycle",
+      "permitted_blockers": [
+        "data"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [
+        "WTX-03-txid-details"
+      ],
+      "wave": 3,
+      "write_scopes": [
+        "core.js",
+        "wallet.js",
+        "index.html"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-02-acceptance-fixtures",
+        "WTX-03-txid-details",
+        "WTX-04-history-lifecycle"
+      ],
+      "domain_id": "WTX-05-browser-validation",
+      "exclusive_resources": [
+        "wallet-browser-validation"
+      ],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "All seven acceptance criteria traced to tests/evidence; exact clipboard contents verified.",
+          "id": "journey",
+          "minimum": 1
+        },
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Mouse, keyboard, touch emulation, layout and error/recovery flows verified; native clipboard limitations recorded.",
+          "id": "interaction",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Verify the full journey using deterministic independent checks and real browser engines with desktop, tablet and phone viewports; record physical-device coverage separately.",
+      "package_digest": "14243b896082660eab8e0000eef19051cd23940a2cd1f8a9358e091a62bc1a30",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-05-browser-validation",
+      "permitted_blockers": [
+        "external_evidence",
+        "hardware"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 4,
+      "write_scopes": [
+        "docs/wallet-transaction-ux/validation"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-05-browser-validation"
+      ],
+      "domain_id": "WTX-06-integration",
+      "exclusive_resources": [
+        "canonical-main-integration"
+      ],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Latest-main ancestry, focused wallet tests, existing client/crypto checks and cross-Lab integration gate pass on exact revision.",
+          "id": "combined",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Reconcile with latest main, register narrow combined checks, integrate serially and verify the exact combined revision using existing FAE policy.",
+      "package_digest": "537236f42fa38ba553ec320b7c624eaa434dc5cbf92deec4a6cbd1d44bd9a5ae",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-06-integration",
+      "permitted_blockers": [
+        "authority"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 5,
+      "write_scopes": [
+        "lab/integration/registry.json",
+        "docs/FAE_CANONICAL_STATE.md",
+        "docs/wallet-transaction-ux/integration"
+      ]
+    },
+    {
+      "dependencies": [
+        "WTX-06-integration"
+      ],
+      "domain_id": "WTX-07-live-closure",
+      "exclusive_resources": [
+        "canonical-main-integration",
+        "public-frontend-release"
+      ],
+      "forbidden_actions": [
+        "change consensus, economics, transaction serialization, signing or key derivation",
+        "collect real wallet recovery phrases or private keys for evidence",
+        "couple wallet transaction availability to Explorer uptime",
+        "treat reference-runner or planning output as delivered product evidence",
+        "deploy backend changes or provision paid infrastructure under this planning run",
+        "run public mutation or vulnerability probes as validation",
+        "mark a locally created or broadcast transaction as confirmed",
+        "claim complete history or physical-device testing without supporting evidence"
+      ],
+      "gates": [
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Served frontend matches approved source and read-only live journey passes; Explorer binding remains optional.",
+          "id": "live",
+          "minimum": 1
+        },
+        {
+          "accepted_kinds": [
+            "test",
+            "artifact",
+            "reproduction"
+          ],
+          "description": "Implemented/validated/merged/combined/live status and all coverage limits recorded.",
+          "id": "closure",
+          "minimum": 1
+        }
+      ],
+      "invariants": [
+        "The wallet stays non-custodial; seeds and private keys remain local and never enter run evidence.",
+        "Wallet/Mining and Block Explorer remain separate applications; Explorer observes FAE and never authorizes it.",
+        "Transaction creation or broadcast acceptance never implies confirmation.",
+        "Read failures, invalid payloads and a bounded empty result never prove absence of lifetime activity.",
+        "History follows the active address; stale responses may not replace a newer address or request.",
+        "Copy success means the exact validated full TXID was written successfully; manual selection remains available.",
+        "A durable local receipt is only a scoped cache of submission metadata, never network state or recovered history.",
+        "Independent verification uses separate methods/processes; one operator is sufficient.",
+        "Project status separates implemented, validated, integrated main, combined-main verified and live.",
+        "Parallelize independent files; serialize core.js, wallet.js, index.html and canonical integration."
+      ],
+      "objective": "Use the configured frontend release path when authorized; bind served assets to integrated revision and exercise read-only live navigation/details/copy; publish status for both tasks.",
+      "package_digest": "1785fa1cb8c39f56d42c6ed4da4ed3ebc3be794f17ddd79e8f867c6d2556b945",
+      "package_id": "bc2-ebd32ede17ccb49b:WTX-07-live-closure",
+      "permitted_blockers": [
+        "external_evidence",
+        "authorization",
+        "authority"
+      ],
+      "role_contract_ids": [
+        "coordinator/v0.0.2",
+        "builder/v0.0.2",
+        "verifier/v0.0.2",
+        "integrator/v0.0.2"
+      ],
+      "run_id": "bc2-ebd32ede17ccb49b",
+      "serialize_after": [],
+      "wave": 6,
+      "write_scopes": [
+        "docs/wallet-transaction-ux/live",
+        "docs/FAE_CANONICAL_STATE.md"
+      ]
+    }
+  ],
+  "profile_digest": "6b8714f209c72500fc0ce7380136dae158aabb2898855995d217036c39ae7740",
+  "profile_version": "wallet-transaction-ux-20260923-v1",
+  "project": "FAE Wallet Transaction UX",
+  "protocol_version": "0.0.2",
+  "role_contracts": [
+    {
+      "id": "coordinator/v0.0.2",
+      "permissions": [
+        "compile immutable run manifests",
+        "schedule declared work packages",
+        "route results between separated roles"
+      ],
+      "prohibitions": [
+        "modify project implementation as coordinator",
+        "self-verify builder evidence",
+        "integrate revisions",
+        "override profile gates or authority boundaries"
+      ],
+      "role": "coordinator"
+    },
+    {
+      "id": "builder/v0.0.2",
+      "permissions": [
+        "modify only the work package declared write scopes",
+        "use only declared exclusive resources while assigned",
+        "run tests and produce evidence",
+        "emit built blocked or failed worker results"
+      ],
+      "prohibitions": [
+        "modify undeclared write scopes",
+        "verify or approve own result",
+        "integrate own revision",
+        "change the run manifest profile or authority boundaries"
+      ],
+      "role": "builder"
+    },
+    {
+      "id": "verifier/v0.0.2",
+      "permissions": [
+        "inspect worker results and declared evidence",
+        "reproduce evidence independently",
+        "accept or reject declared evidence gates"
+      ],
+      "prohibitions": [
+        "modify the builder implementation under verification",
+        "integrate revisions",
+        "weaken evidence gates",
+        "change the run manifest or profile"
+      ],
+      "role": "verifier"
+    },
+    {
+      "id": "integrator/v0.0.2",
+      "permissions": [
+        "integrate independently verified revisions in manifest order",
+        "run cross-package integration checks"
+      ],
+      "prohibitions": [
+        "integrate non-verified work",
+        "rewrite worker evidence or verifier verdicts",
+        "override dependency or serialization order",
+        "change profile authority boundaries"
+      ],
+      "role": "integrator"
+    }
+  ],
+  "run_id": "bc2-ebd32ede17ccb49b",
+  "schedule": [
+    [
+      "WTX-01-contract"
+    ],
+    [
+      "WTX-02-acceptance-fixtures",
+      "WTX-03-txid-details"
+    ],
+    [
+      "WTX-04-history-lifecycle"
+    ],
+    [
+      "WTX-05-browser-validation"
+    ],
+    [
+      "WTX-06-integration"
+    ],
+    [
+      "WTX-07-live-closure"
+    ]
+  ],
+  "schema_version": 1,
+  "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415"
+}

@@ -66,7 +66,7 @@ const fetch=async(url,options={})=>{
 };
 
 let clipboard='';const context={window:null,document,localStorage,fetch,crypto:webcrypto,TextEncoder,TextDecoder,Uint8Array,Array,Map,Set,BigInt,Blob,URL,Response,Error,String,Number,Object,JSON,Date,Math,Promise,console,atob,btoa,AbortController,navigator:{clipboard:{writeText:async value=>{clipboard=value}}},setTimeout,clearTimeout,setInterval:()=>0,clearInterval,confirm:()=>true,FAE_SHARE_COORDINATORS:[MALICIOUS,OFFLINE,GOOD],powCalls:0};context.window=context;vm.createContext(context);
-for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js'])vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
+for(const file of ['bip39-en.js','network-status.js','wallet-transaction-ux.js','core.js','wallet-crypto.js','wallet.js','mining.js'])vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 await new Promise(resolve=>setTimeout(resolve,25));await vm.runInContext('createNewWallet()',context);const address=vm.runInContext('wallet.address',context);context.address=address;context.goodBase=GOOD;
 vm.runInContext(`localPow=async()=>{powCalls++;return{nonce:7,hash:'${SHARE_HASH}',attempts:1}}`,context);
 
