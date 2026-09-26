@@ -1,0 +1,32 @@
+{
+  "domain_id": "physical-timing-verification",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "timing-closure"
+  ],
+  "independent_checks": [
+    "C2 final, C2-P1-R2, C3, C4, C4-P1-R2, C5 physical, and C4-P2 all remained fail-closed with negative WNS and their Developer_CL tarballs are inadmissible for AFI.",
+    "C4-P1 initial runner failure occurred before candidate execution and is classified RUNNER_BOOTSTRAP_INVALID_NO_CANDIDATE_EVIDENCE.",
+    "C5 R1 parity/HLS failures occurred at frozen-blob runner validation before compile/HLS and are classified RUNNER_EXPECTED_BLOB_MISMATCH_NO_CANDIDATE_EVIDENCE.",
+    "C6 R1 failures were caused by malformed literal backslash-n patch serialization before semantic/HLS evaluation and are classified SOURCE_PATCH_TOOLING_ERROR_NO_CANDIDATE_EVIDENCE.",
+    "C5 R2 canonical parity and 16/16 vectors passed; HLS csim/csynth/export/binding passed, but routed physical timing failed.",
+    "C6 R2 canonical parity and 16/16 vectors passed; HLS csim/csynth/export/binding passed and C6_ROTR64_INLINE_CONFIRMED was recorded.",
+    "C6 physical implementation completed with WNS=0.018575 ns, TNS=0, WHS=0.006920 ns, THS=0.",
+    "C6 routed timing report states All user specified timing constraints are met.",
+    "C6 route status reports 417637 routable nets, 417637 fully routed nets, and 0 routing errors.",
+    "C6 timing-clean Developer_CL.tar exists in S3, size 186267136 bytes, SHA-256 0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c.",
+    "No failed-timing Developer_CL.tar is admitted for AFI."
+  ],
+  "evidence_locators": [
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification/RESULT.json",
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c3/C3_VALIDATION.json",
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c4/C4_P1_R2_RUNNER_CORRECTION.json",
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c5/C5_R2_RUNNER_CORRECTION.json",
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/c6/C6_R2_PATCH_CORRECTION.json",
+    "s3://fae-asic-lab-203842200752-20260922/evidence/i-054ee456e5965d4d3/build-colony-physical-c6/"
+  ],
+  "selected_candidate": "C6-ROTR64-HLS-INLINE",
+  "timing_clean_developer_cl_sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c",
+  "next_gate": "afi-admission"
+}
