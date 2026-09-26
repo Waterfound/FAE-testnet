@@ -1,0 +1,13 @@
+{
+  "invalid_run": {
+    "instance_id": "i-0717d2166da4fcb11",
+    "instance_type": "f2.6xlarge",
+    "final_stage": "BOOTSTRAP",
+    "exit_code": 1
+  },
+  "classification": "RUNNER_BUILD_ENV_ASSUMPTION_INVALID_NO_CANDIDATE_EVIDENCE",
+  "failure": "The versioned R3 bootstrap assumed sdk_setup.sh exports LDFLAGS. On the current FPGA Developer AMI it does not; set -u aborted at the environment capture before AFI load or parity execution.",
+  "correction": "Compile the host runner directly against $SDK_DIR/userspace/lib/libfpga_mgmt.a via -L$SDK_DIR/userspace/lib -lfpga_mgmt -lrt -lpthread; do not depend on LDFLAGS or LD_LIBRARY_PATH.",
+  "candidate_evidence": false,
+  "candidate": "C6-ROTR64-HLS-INLINE"
+}
