@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "stage": "F2_RUNTIME_PARITY",
+  "source_revision": "3ec368a186a5be29d09b7a10fefca99cad7862bc",
+  "runtime_source_blob": "eb59cf09f2276085e384423bd8ee0aef107541e2",
+  "compile_check": {
+    "instance_id": "i-0e32086732c07d143",
+    "status": "COMPILE_PASS",
+    "binary_sha256": "acf36dadcca26818d8dbadf58048194a7e5bba74716ab0bd33f838eb6a5c124c"
+  },
+  "afi": {
+    "afi_id": "afi-0dac1ced9e125e5d9",
+    "agfi_id": "agfi-09f46d7fe160c51df",
+    "state": "available",
+    "developer_cl_sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c"
+  },
+  "instance_type": "f2.6xlarge",
+  "region": "us-east-1",
+  "availability_zone": "us-east-1a",
+  "memory_path": {
+    "host": "AppPF BAR4 / PCIS",
+    "host_ddr_base": "0x0000000000",
+    "fae_master_ddra_base": "0x1000000000",
+    "input_offset": "0x00000000",
+    "output_offset": "0x00001000",
+    "matrix_offset": "0x01000000",
+    "note": "XDMA explicitly avoided because current AWS F2 documentation marks XDMA engine features unsupported on F2."
+  },
+  "control_map": {
+    "ap_ctrl": "0x00",
+    "input": "0x10",
+    "output": "0x1c",
+    "matrix_words": "0x28"
+  },
+  "gates": [
+    "AGFI load succeeds on slot 0",
+    "canonical full 160-byte vector PASS",
+    "nonces 1200-1215 final hash 16/16 PASS",
+    "fail closed on any mismatch or timeout",
+    "sync evidence to S3",
+    "terminate instance automatically"
+  ],
+  "watchdog_seconds": 3600
+}
