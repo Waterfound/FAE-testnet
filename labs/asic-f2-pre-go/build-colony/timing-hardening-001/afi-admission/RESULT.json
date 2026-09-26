@@ -1,0 +1,30 @@
+{
+  "domain_id": "afi-admission",
+  "outcome": "built",
+  "status": "AFI_AVAILABLE",
+  "fpga_image_id": "afi-0dac1ced9e125e5d9",
+  "fpga_image_global_id": "agfi-09f46d7fe160c51df",
+  "name": "fae-dp6-c6-250mhz-timing-clean",
+  "owner_id": "203842200752",
+  "create_time_utc": "2026-09-26T13:28:33Z",
+  "available_time_utc": "2026-09-26T13:57:30Z",
+  "input_tar": {
+    "size_bytes": 186267136,
+    "sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c"
+  },
+  "physical_gate": {
+    "candidate": "C6-ROTR64-HLS-INLINE",
+    "source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "wns_ns": 0.018575,
+    "tns_ns": 0,
+    "whs_ns": 0.00692,
+    "ths_ns": 0
+  },
+  "logs": [
+    "s3://fae-asic-lab-203842200752-20260922/afi/c6-20260926/logs/afi-0dac1ced9e125e5d9/2026-09-26T13:57:16.153Z_timing_summary.rpt",
+    "s3://fae-asic-lab-203842200752-20260922/afi/c6-20260926/logs/afi-0dac1ced9e125e5d9/2026-09-26T13:57:16.153Z_io_summary.rpt",
+    "s3://fae-asic-lab-203842200752-20260922/afi/c6-20260926/logs/afi-0dac1ced9e125e5d9/2026-09-26T13:57:16.153Z_vivado.log"
+  ],
+  "next_gate": "F2 runtime parity"
+}
