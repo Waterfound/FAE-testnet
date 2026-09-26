@@ -1,0 +1,24 @@
+{
+  "stage": "F2_ATTACKER_SWEEP_A1_HBM0",
+  "accepted": true,
+  "status": "verified",
+  "candidate_evidence": true,
+  "satisfied_gates": [
+    "same timing-clean C6 AFI as DDR baseline",
+    "runtime-only matrix placement change",
+    "DDR/HBM calibration PASS",
+    "canonical full 160-byte parity PASS",
+    "16/16 independent vectors PASS",
+    "runtime exit code 0",
+    "shell timeout/range/protocol counters zero",
+    "mean runtime improved over DDR baseline"
+  ],
+  "comparison": {
+    "ddr_seconds_per_work": 21.5163611875,
+    "hbm0_seconds_per_work": 19.44993975,
+    "time_reduction_percent": 9.603954031,
+    "throughput_gain_percent": 10.62430765
+  },
+  "boundary": "A1 is the current fastest measured parity-correct single-lane FPGA configuration. It is not yet the final attacker result because practical multi-lane feasibility remains open and the sustained >=1800 s gate has not run.",
+  "next_gate": "A2 multi-lane physical feasibility and timing-closed implementation"
+}
