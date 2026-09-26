@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "repair_kind": "campaign_dispatch_receipt",
+  "run_id": "bc2-dd33c8ff4d4e5073",
+  "package_id": "bc2-dd33c8ff4d4e5073:physical-timing-verification",
+  "dispatch_id": "aws-campaign:bc2-dd33c8ff4d4e5073:physical-timing-verification:c1-c6",
+  "dispatch_attempt": 1,
+  "accepted": true,
+  "provider": "aws-ec2",
+  "external_run_ids": [
+    "i-08c2e47c356867c02",
+    "i-06ef4c6a9c0d5c393",
+    "i-00dfe0b827a850184",
+    "i-02810318013ab7979",
+    "i-0bfa8613d7056a966",
+    "i-0096b44d189b674f7",
+    "i-09476b29c93ae5efe",
+    "i-004a890204734c638",
+    "i-0dfb23f466dd90b89",
+    "i-07f071ff808f04f64",
+    "i-002b63bd9418ed14c",
+    "i-0000bb45139dd1eb1",
+    "i-08413f0eed71b2600",
+    "i-0ba3fb9b9c79d449c",
+    "i-0ce184a464d4625ad",
+    "i-005c7ab3da36538af",
+    "i-0c43c11717fabb6e7",
+    "i-054ee456e5965d4d3"
+  ],
+  "final_evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-054ee456e5965d4d3/build-colony-physical-c6/",
+  "note": "Reconstructed logical receipt for the physical-timing-verification package. Individual AWS runs remain immutable evidence and are enumerated in RESULT.json."
+}
