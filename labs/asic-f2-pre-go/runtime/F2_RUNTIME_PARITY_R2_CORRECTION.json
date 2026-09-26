@@ -1,0 +1,23 @@
+{
+  "invalid_run": {
+    "instance_id": "i-00e93cf73027f7d1f",
+    "instance_type": "f2.6xlarge",
+    "afi_load_status": "loaded",
+    "pci_identity": "0x1d0f:0xf010",
+    "xdma_driver": "built_and_loaded",
+    "xdma_devices_present": true,
+    "final_stage": "RUNNER_BUILD",
+    "exit_code": 1,
+    "shell_metrics": {
+      "ocl_slave_timeout_count": 0,
+      "dma_pcis_timeout_count": 0,
+      "dma_range_error_count": 0,
+      "pcim_range_error_count": 0
+    }
+  },
+  "classification": "RUNNER_ENV_REINITIALIZATION_INVALID_NO_CANDIDATE_EVIDENCE",
+  "failure": "sdk_setup.sh was sourced a second time after cwd changed to the FAE clone; the AWS script recomputed AWS_FPGA_REPO_DIR incorrectly and aborted before compiling or executing run_f2_parity",
+  "correction": "source sdk_setup.sh only once at bootstrap; preserve SDK_DIR/LDFLAGS/LD_LIBRARY_PATH and compile the FAE runner directly after cloning it",
+  "candidate_evidence": false,
+  "candidate": "C6-ROTR64-HLS-INLINE"
+}
