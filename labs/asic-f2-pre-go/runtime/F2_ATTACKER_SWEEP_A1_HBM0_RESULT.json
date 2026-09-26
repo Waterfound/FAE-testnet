@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "stage": "F2_ATTACKER_SWEEP_A1_HBM0",
+  "status": "PASS_AND_FASTER_THAN_DDR_BASELINE",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "instance_id": "i-0362363eda19afbc8",
+  "instance_type": "f2.6xlarge",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "mapping": {
+    "matrix": "HBM0 @ 0x0200000000",
+    "input": "DDR-A @ 0x1020000000",
+    "output": "DDR-A @ 0x1020001000"
+  },
+  "parity": {
+    "canonical_full_160_bytes": "PASS",
+    "vectors": "16/16 PASS",
+    "runtime_rc": 0
+  },
+  "timing_seconds": {
+    "mean": 19.44993975,
+    "median": 19.447007,
+    "population_stddev": 0.01012624325,
+    "min": 19.434537,
+    "max": 19.469697,
+    "sum_16": 311.199036
+  },
+  "throughput": {
+    "work_per_second": 0.05141404101,
+    "ddr_baseline_work_per_second": 0.04647626015,
+    "throughput_gain_fraction": 0.1062430765,
+    "time_reduction_fraction": 0.09603954031
+  },
+  "shell_metrics": {
+    "all_timeout_range_protocol_error_counters_zero": true,
+    "ddr0_write_count": 1136,
+    "ddr0_read_count": 1120,
+    "vccint_last_w": 6,
+    "vccint_average_w": 6,
+    "vccint_max_w": 7,
+    "power_boundary": "Vccint only; not total board/system power."
+  },
+  "finished_utc": "2026-09-26T23:57:08Z",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/runtime/i-0362363eda19afbc8/f2-attacker-hbm0-a1/",
+  "disposition": "PROMOTE_AS_CURRENT_SINGLE_LANE_ATTACKER",
+  "next_gate": "A2 multi-lane physical feasibility and timing-closed implementation"
+}
