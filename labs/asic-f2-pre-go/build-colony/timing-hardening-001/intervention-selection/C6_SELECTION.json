@@ -1,0 +1,40 @@
+{
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "baseline": "C4-FILLBLOCK-T-LUTRAM",
+  "baseline_source_blob": "a663c5928123c7a379c9c4478e492fbb92cd8abe",
+  "candidate_source_blob": "d6631dbd952d6d75c302c4ce6cf6a751670ec44f",
+  "baseline_hls_ip_sha256": "bcdbd34f43b78751b7a2098bad28b50be23e8644c4e0e08768fa1531af1f26f8",
+  "baseline_signoff": {
+    "wns_ns": -0.022002,
+    "tns_ns": -0.27971,
+    "whs_ns": 0.004824,
+    "ths_ns": 0
+  },
+  "evidence": {
+    "c4_post_route_physopt_gain": {
+      "wns_ns": 0,
+      "tns_ns": 0
+    },
+    "c4_residual_paths": "Repeated grp_rotr64/fill_block/blake2 path participation; route-dominated residual violations.",
+    "rotr64_hls_latency_cycles": 0
+  },
+  "intervention": {
+    "source_path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "change": "#pragma HLS INLINE inside rotr64",
+    "semantic_change": false,
+    "storage_change": false,
+    "consensus_change": false
+  },
+  "gates": [
+    "Canonical parity PASS",
+    "16/16 vectors PASS",
+    "csim/csynth/export PASS",
+    "fill_block.r remains RAM_2P_LUTRAM depth 128",
+    "fill_block.t remains RAM_2P_LUTRAM depth 128",
+    "RW5 regs remains RAM_2P_LUTRAM",
+    "rotr64 must no longer be emitted as a standalone HLS module",
+    "Only then physical Explore/Explore/Explore/Explore",
+    "Strict final WNS>=0, TNS=0, WHS>=0, THS=0"
+  ],
+  "rationale": "C4 is only 22 ps short. Global routing and post-route physopt did not improve it, while changing RAM topology caused a severe regression. Inlining the zero-latency rotate helper is the smallest logic-boundary intervention aimed at eliminating shared module routing/fanout without altering DP6 semantics."
+}
