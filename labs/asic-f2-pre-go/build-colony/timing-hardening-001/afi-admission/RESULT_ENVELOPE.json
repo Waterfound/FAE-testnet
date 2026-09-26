@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+  "dispatch_id": "aws-ec2:create-fpga-image:fae-c6-20260926",
+  "dispatch_attempt": 1,
+  "revision": "1143127a014cc127db19ec447cfc89b57002b0cc",
+  "result_digest": "976a1b192b1f14394211b404f8ed9e72e2435ba6bd0581c549507a212312acc9",
+  "result_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/afi-admission/RESULT.json",
+  "verification_digest": "426c1ed97d48f74038e5e8edc35599e1210efbfc344987c11da45fd3e547e4ed",
+  "verification_locator": "labs/asic-f2-pre-go/build-colony/timing-hardening-001/afi-admission/VERIFICATION.json",
+  "fpga_image_id": "afi-0dac1ced9e125e5d9",
+  "fpga_image_global_id": "agfi-09f46d7fe160c51df",
+  "provenance": "AWS DescribeFpgaImages state=available plus immutable timing-clean C6 tar evidence"
+}
