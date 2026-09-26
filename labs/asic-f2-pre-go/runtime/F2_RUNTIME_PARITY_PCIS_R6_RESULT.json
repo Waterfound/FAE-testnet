@@ -1,0 +1,55 @@
+{
+  "stage": "F2_RUNTIME_PARITY_PCIS_R6",
+  "status": "PASS",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "instance_id": "i-05a5159c331f6d963",
+  "instance_type": "f2.6xlarge",
+  "region": "us-east-1",
+  "afi_id": "afi-0dac1ced9e125e5d9",
+  "agfi_id": "agfi-09f46d7fe160c51df",
+  "shell_version": "0x10212415",
+  "source_sha256": "d7f9154047bd64dca881d228db0f88014150842369f24fde917112ed8286dff1",
+  "binary_sha256": "5cd16b0b7a60a4c24e154402b8c80ebaada9c41bb53e2be4b29485da736a482a",
+  "transport": {
+    "interface": "AppPF BAR4 / AXI_PCIS",
+    "ddr_a_global_base": "0x1000000000",
+    "matrix": "0x1000000000",
+    "input": "0x1020000000",
+    "output": "0x1020001000",
+    "calibration_status": "0x00000003"
+  },
+  "parity": {
+    "canonical_full_160_bytes": "PASS",
+    "nonces": "1200-1215",
+    "vectors_passed": 16,
+    "vectors_total": 16,
+    "runtime_rc": 0
+  },
+  "timing_seconds": {
+    "mean": 21.5163611875,
+    "median": 21.512809,
+    "population_stddev": 0.0112790674,
+    "min": 21.501475,
+    "max": 21.538030,
+    "sum_16": 344.261779,
+    "single_lane_observed_throughput_per_second": 0.04647626015
+  },
+  "shell_metrics": {
+    "ocl_slave_timeout_count": 0,
+    "sda_slave_timeout_count": 0,
+    "dma_pcis_timeout_count": 0,
+    "dma_range_error_count": 0,
+    "pcim_range_error_count": 0,
+    "ddr0_write_count": 84955624,
+    "ddr0_read_count": 1100614272
+  },
+  "fpga_vccint_telemetry_watts": {
+    "last": 6,
+    "average": 6,
+    "max": 7,
+    "interpretation": "FPGA Vccint telemetry only; not total board/system power and not sufficient by itself for HFB economics."
+  },
+  "finished_utc": "2026-09-26T23:44:01Z",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/runtime/i-05a5159c331f6d963/f2-parity-pcis-r6/",
+  "next_gate": "F2 benchmark baseline"
+}
