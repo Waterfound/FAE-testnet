@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "run_id": "bc2-dd33c8ff4d4e5073",
+  "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+  "dispatch_id": "aws-ec2:create-fpga-image:fae-c6-20260926",
+  "dispatch_attempt": 1,
+  "accepted": true,
+  "provider": "aws-ec2",
+  "operation": "CreateFpgaImage",
+  "region": "us-east-1",
+  "input_storage_location": {
+    "bucket": "fae-asic-lab-203842200752-20260922",
+    "key": "evidence/i-054ee456e5965d4d3/build-colony-physical-c6/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_26-030151.Developer_CL.tar"
+  },
+  "input_tar": {
+    "size_bytes": 186267136,
+    "sha256": "0e8bd9bfbf34445232db3529283be262d93bb5211a8a25c670c67e02a59bdc8c"
+  },
+  "timing_gate": {
+    "wns_ns": 0.018575,
+    "tns_ns": 0,
+    "whs_ns": 0.00692,
+    "ths_ns": 0,
+    "constraints_met": true
+  },
+  "logs_storage_location": {
+    "bucket": "fae-asic-lab-203842200752-20260922",
+    "key": "afi/c6-20260926/logs/"
+  },
+  "name": "fae-dp6-c6-250mhz-timing-clean",
+  "client_token": "fae-c6-0e8bd9bfbf34445232db3529283be262",
+  "source_ledger_head": "df059287ac03d424338abbb78ef07bb7b3e07d3a32e4cf1f104c926750f8eefb"
+}
