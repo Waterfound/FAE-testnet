@@ -1,0 +1,19 @@
+{
+  "stage": "F2_RUNTIME_PARITY_PCIS_R6",
+  "accepted": true,
+  "status": "verified",
+  "satisfied_gates": [
+    "AFI loaded and reported loaded/ok",
+    "DDR/HBM calibration reached 0x3",
+    "PCIS input path became coherent under the corrected global map",
+    "canonical full 160-byte vector PASS",
+    "nonces 1200-1215 final-hash parity 16/16 PASS",
+    "process exit code 0",
+    "shell timeout/range/protocol counters remained zero",
+    "evidence synced before instance shutdown"
+  ],
+  "candidate_evidence": true,
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "boundary": "This verifies frozen semantic parity on real F2 hardware. It does not by itself establish attacker-optimal throughput, sustained behavior, ASIC resistance, or HFB economics.",
+  "next_gate": "F2 benchmark baseline"
+}
