@@ -531,7 +531,40 @@
       "previous_event_digest": "eab038a5355bcafbc2ea2401b680d6550064393f242de372e42d885209a79126",
       "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
       "event_digest": "df059287ac03d424338abbb78ef07bb7b3e07d3a32e4cf1f104c926750f8eefb"
+    },
+    {
+      "seq": 49,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+      "role": "coordinator",
+      "event_type": "issue",
+      "payload_json": "{}",
+      "previous_event_digest": "df059287ac03d424338abbb78ef07bb7b3e07d3a32e4cf1f104c926750f8eefb",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "c7eccb520aa36b9af76ff3371da54c078020f3f3041f3197d9c43e2de76f6e5a"
+    },
+    {
+      "seq": 50,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+      "role": "coordinator",
+      "event_type": "bind_dispatch",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"aws-ec2:create-fpga-image:fae-c6-20260926\",\"dispatch_receipt_digest\":\"9a2ce3aba9612535ddaa8bd4f469a017219a46ccda7ad5fe375fc96b234aba7b\"}",
+      "previous_event_digest": "c7eccb520aa36b9af76ff3371da54c078020f3f3041f3197d9c43e2de76f6e5a",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "3263561463bdc58dfed785b5bdd046cc385e922ea29c690e5d3c21540559bd9f"
+    },
+    {
+      "seq": 51,
+      "run_id": "bc2-dd33c8ff4d4e5073",
+      "package_id": "bc2-dd33c8ff4d4e5073:afi-admission",
+      "role": "builder",
+      "event_type": "start",
+      "payload_json": "{\"dispatch_attempt\":1,\"dispatch_id\":\"aws-ec2:create-fpga-image:fae-c6-20260926\",\"dispatch_receipt_digest\":\"9a2ce3aba9612535ddaa8bd4f469a017219a46ccda7ad5fe375fc96b234aba7b\"}",
+      "previous_event_digest": "3263561463bdc58dfed785b5bdd046cc385e922ea29c690e5d3c21540559bd9f",
+      "manifest_digest": "921a31276a274f4270f2f889a37cbd2e0d90b5fd2b189fededc090394f1dd66e",
+      "event_digest": "9f025755c22c9a61339fac69d30868964e94588ad7ffd90b78559fc8bba6a5bd"
     }
   ],
-  "head_event_digest": "df059287ac03d424338abbb78ef07bb7b3e07d3a32e4cf1f104c926750f8eefb"
+  "head_event_digest": "9f025755c22c9a61339fac69d30868964e94588ad7ffd90b78559fc8bba6a5bd"
 }
