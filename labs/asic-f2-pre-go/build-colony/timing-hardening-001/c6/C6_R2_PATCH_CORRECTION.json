@@ -1,0 +1,19 @@
+{
+  "invalid_runs": [
+    {
+      "instance_id": "i-0ba3fb9b9c79d449c",
+      "gate": "parity"
+    },
+    {
+      "instance_id": "i-0ce184a464d4625ad",
+      "gate": "hls"
+    }
+  ],
+  "classification": "SOURCE_PATCH_TOOLING_ERROR_NO_CANDIDATE_EVIDENCE",
+  "bad_blob": "d6631dbd952d6d75c302c4ce6cf6a751670ec44f",
+  "corrected_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+  "failure": "literal backslash-n characters were inserted around #pragma HLS INLINE, causing C++ parse failure before parity/HLS evaluation",
+  "correction": "replace literal \\\\n text with actual newlines; intended semantic intervention remains only #pragma HLS INLINE inside rotr64",
+  "candidate_semantics_changed": false,
+  "physical_evidence": false
+}
