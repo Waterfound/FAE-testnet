@@ -1,0 +1,40 @@
+{
+  "schema": "fae.asic.f2.attacker_sweep.a2b_2lane_200mhz.r1.result.v1",
+  "candidate": "C6-2LANE-LOCAL200-HBM0-HBM1",
+  "aws_instance_id": "i-04c50a52c0eda070a",
+  "finished_utc": "2026-09-27T11:07:44Z",
+  "stage": "A2B_2LANE_200MHZ_PHYSICAL_FAIL_CLOSED",
+  "classification": "RUNNER_TIMEOUT_DURING_ACTIVE_ROUTE_NO_FINAL_CANDIDATE_VERDICT",
+  "candidate_verdict": "INCONCLUSIVE",
+  "infrastructure_failure": true,
+  "timeout_exit_code": 124,
+  "frozen_artifacts": {
+    "hls_source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "integrator_blob": "fca3640eecc7ab201600786d36a1144ca7b7b498",
+    "implement_blob": "e1eec19b499f0de8be510858c7337ec22decb44f",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "physical_progress": {
+    "place_design": "PASS",
+    "phys_opt_design": "PASS",
+    "post_physopt_wns_ns": 0.012,
+    "post_physopt_tns_ns": 0,
+    "route_started": true,
+    "route_completed": false,
+    "congestion_level": 6,
+    "route_iteration_at_timeout": "Phase 5.2 Global Iteration 1",
+    "overlap_progress_observed": "401780 -> 67",
+    "last_intermediate_route_timing": {
+      "wns_ns": -3.028,
+      "tns_ns": -3178.422,
+      "note": "Intermediate during congested rip-up/reroute; not a final timing verdict."
+    }
+  },
+  "developer_cl": {
+    "produced": false,
+    "admissible_for_afi": false
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-04c50a52c0eda070a/f2-attacker-a2b-2lane-200mhz-physical/",
+  "disposition": "RERUN_SAME_CANDIDATE_WITH_LONGER_WATCHDOG",
+  "next_frontier": "A2b-R2: same frozen candidate, longer runner window only; no architecture or semantic changes."
+}
