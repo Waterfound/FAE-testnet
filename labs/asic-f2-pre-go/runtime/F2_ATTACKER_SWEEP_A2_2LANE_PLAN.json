@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "stage": "F2_ATTACKER_SWEEP_A2_2LANE_PHYSICAL",
+  "candidate_base": "C6-ROTR64-HLS-INLINE",
+  "change_class": "hardware replication and memory placement",
+  "semantic_change": false,
+  "hls_source_change": false,
+  "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "lane_count": 2,
+  "clock_target_mhz": 250,
+  "resource_basis": {
+    "single_lane_hls_lut": 282035,
+    "single_lane_hls_ff": 167025,
+    "single_lane_hls_dsp": 59,
+    "single_lane_hls_bram18k": 7,
+    "vu47p_available_lut": 1303680,
+    "vu47p_available_ff": 2607360,
+    "vu47p_available_dsp": 9024,
+    "vu47p_available_bram18k": 4032
+  },
+  "mapping": {
+    "lane0_matrix": "HBM0 @ 0x0200000000",
+    "lane1_matrix": "HBM1 @ 0x0220000000",
+    "lane0_control": "OCL @ 0x00000000",
+    "lane1_control": "OCL @ 0x00001000",
+    "host_io": "DDR-A via AppPF BAR4/AXI_PCIS"
+  },
+  "gates": [
+    "same frozen C6 HLS IP bytes",
+    "Vivado block design validation PASS",
+    "implementation completes",
+    "WNS >= 0, TNS = 0, WHS >= 0, THS = 0",
+    "Developer_CL produced only when timing-clean",
+    "no consensus-source modification",
+    "fail closed before AFI on timing/resource failure"
+  ],
+  "fallback": "If 250 MHz fails timing, record the physical failure and evaluate a lower-clock two-lane build only if projected aggregate throughput can still beat A1.",
+  "next_on_pass": "AFI admission then 2-lane runtime parity and throughput benchmark"
+}
