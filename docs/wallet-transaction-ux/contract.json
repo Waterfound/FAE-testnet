@@ -1,0 +1,179 @@
+{
+  "schema": "FAE_WALLET_TRANSACTION_UX_CONTRACT_V1",
+  "package": "WTX-01-contract",
+  "planning_revision": "94e8d17f8f894780078695d64eae3cc7404ad823",
+  "baseline_source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "authority": {
+    "scope": "presentation/read-model contract only",
+    "changes_consensus": false,
+    "changes_backend": false,
+    "changes_wallet_key_material": false,
+    "explorer_dependency": false
+  },
+  "txid": {
+    "format": "exactly 64 lowercase hexadecimal characters",
+    "pattern": "^[0-9a-f]{64}$",
+    "sources": [
+      "accepted /submit-tx response txid",
+      "/transactions record txid"
+    ],
+    "display_rule": "A list may abbreviate for scanning, but details and manual selection expose the exact source value.",
+    "copy_rule": "Copy success may be announced only after the exact validated 64-character source TXID is written.",
+    "invalid_rule": "Missing, malformed, upper-case, shortened, padded or otherwise transformed identifiers are invalid presentation data."
+  },
+  "transaction_state": {
+    "pending": {
+      "source_status": "pending",
+      "confirmed_height": "must be absent/null/non-positive",
+      "meaning": "Accepted/present in the available transaction source but not confirmed by a block.",
+      "confirmation_claim": false
+    },
+    "confirmed": {
+      "source_status": "confirmed",
+      "confirmed_height": "required positive safe integer",
+      "meaning": "Source reports inclusion at the stated block height.",
+      "confirmation_claim": true
+    },
+    "unknown": {
+      "rule": "Any non-empty status string other than pending/confirmed is shown as unknown, preserving the raw status.",
+      "confirmation_claim": false
+    },
+    "invalid": {
+      "rule": "Missing status, confirmed without a valid height, pending with a confirmed height, malformed TXID, malformed outputs or unrelated record.",
+      "ui_meaning": "Data invalid; never silently coerce to Pending or Empty."
+    }
+  },
+  "history_lifecycle": {
+    "idle": "No request has been started for the active address.",
+    "loading": "A request for the current active address is in flight.",
+    "ready_recent": "A valid non-empty recent transfer result is available for the active address.",
+    "empty_within_available_coverage": "The bounded query returned no transfer records for this address; this is not a lifetime-history claim.",
+    "unavailable": "No valid current result is available because the source/read failed.",
+    "invalid_payload": "The source returned structurally inconsistent data; this is not an empty result.",
+    "stale": "A previously valid result is preserved but marked stale after refresh failure; it must remain bound to the address/request that produced it."
+  },
+  "coverage": {
+    "user_facing_scope": "recent transfers for the active address",
+    "source_behavior": "Supabase history source scans the latest 100 network transactions ordered by mempool_seq, filters the active address, then returns at most 30.",
+    "source_network_scan_limit": 100,
+    "address_result_limit": 30,
+    "pagination": false,
+    "mining_rewards_included": false,
+    "lifetime_complete": false,
+    "automatic_multi_address_aggregation": false,
+    "empty_result_claim": "No transfers were found within the currently available bounded source.",
+    "prohibited_claims": [
+      "complete wallet history",
+      "lifetime inactivity",
+      "transaction rejection/removal merely because it is absent from the bounded result"
+    ]
+  },
+  "wallet_and_recovery": {
+    "active_address_rule": "History is attributed only to the active address used for that request.",
+    "reload": "Reload queries the network again; a seed does not contain transaction history.",
+    "recovery": "Recovery reconstructs wallet addresses/keys and then queries the active address; it does not restore embedded transaction records.",
+    "address_count": "Current deterministic wallet derives five addresses; legacy recovery material may expose only one.",
+    "stale_response_rule": "A response from an older request/address must not replace the newer active-address view, including A→B→A races."
+  },
+  "direction": {
+    "received": "from_address differs from active address and at least one output targets active address",
+    "sent": "from_address equals active address and at least one output targets another address; outputs back to active address are change",
+    "self": "from_address equals active address and all outputs target active address",
+    "unrelated": "invalid for this address-scoped history result"
+  },
+  "timestamp": {
+    "accepted_inputs": [
+      "ISO/timestamptz string",
+      "finite numeric Unix seconds",
+      "finite numeric Unix milliseconds",
+      "numeric string using the same seconds/milliseconds rule"
+    ],
+    "missing": "May remain absent without inventing a date.",
+    "invalid": "Must be represented as invalid/missing presentation data; never coerce to 1970 or current time."
+  },
+  "accepted_send_receipt": {
+    "state": "accepted_unconfirmed",
+    "required_fields": [
+      "version",
+      "txid",
+      "address",
+      "network",
+      "accepted_at"
+    ],
+    "truth_rule": "A successful submit response proves acceptance only; it does not prove confirmation.",
+    "refresh_failure_rule": "A later balance/history/status refresh failure must not rewrite an accepted receipt into a send failure.",
+    "optional_persistence": "If later implementation persists the receipt, store only versioned public metadata scoped to network/address; it is cache, not recovered history or confirmation authority."
+  },
+  "error_separation": {
+    "invalid_payload_not_empty": true,
+    "network_failure_not_empty": true,
+    "stale_not_current": true,
+    "unknown_status_not_pending": true,
+    "clipboard_failure_not_success": true
+  },
+  "adapter": {
+    "file": "wallet-transactions.js",
+    "role": "Pure presentation adapter with no DOM, storage, network, signing, consensus or Explorer authority.",
+    "exported_functions": [
+      "validTxid",
+      "parseTimestamp",
+      "normalizeStatus",
+      "normalizeTransaction",
+      "normalizeHistoryPayload",
+      "historyFailure",
+      "acceptedReceipt"
+    ],
+    "coverage_constant": "FAEWalletTransactions.coverage"
+  },
+  "gates": {
+    "contract": {
+      "satisfied_by": [
+        "explicit TXID format/source",
+        "pending/confirmed/unknown/invalid state rules",
+        "missing/invalid timestamp and field rules",
+        "accepted-but-unconfirmed receipt lifecycle"
+      ]
+    },
+    "coverage": {
+      "satisfied_by": [
+        "active-address scope",
+        "100-network/30-address bounds",
+        "no pagination",
+        "mining reward exclusion",
+        "reload/recovery limitations",
+        "no complete-history claim"
+      ]
+    }
+  },
+  "verification": {
+    "package_state": "IMPLEMENTED_AND_LOCALLY_REPRODUCED",
+    "behavioral_checks": {
+      "passed": 38,
+      "total": 38
+    },
+    "reproduced_at": "2026-09-23",
+    "methods": [
+      "Parse wallet-transactions.js as standalone JavaScript.",
+      "Evaluate the adapter in an isolated JavaScript scope with synthetic public-only fixtures.",
+      "Exercise exact/malformed TXIDs; ISO, seconds, milliseconds and invalid timestamps; pending/confirmed/unknown/invalid states; received/sent-with-change/self/unrelated direction; bounded empty/invalid/stale/unavailable history; accepted-unconfirmed receipt; coverage constants.",
+      "Cross-check contract.json export names against the adapter."
+    ],
+    "defect_found_and_closed": {
+      "finding": "An empty outputs array was initially classified as sent.",
+      "correction": "normalizeOutputs now rejects outputs.length === 0 as outputs_empty.",
+      "regression_check": "empty outputs rejected",
+      "corrected_adapter_commit": "cebc2d49888f331b80606dde49eac1895dea937e"
+    },
+    "preview_delivery": {
+      "github_status": "success",
+      "vercel_deployment_state": "READY",
+      "served_bytes_reverified": false,
+      "note": "Preview access is authentication-protected; WTX-01 does not claim live/public-byte verification. That belongs to WTX-07."
+    },
+    "gate_verdicts": {
+      "contract": "PASS",
+      "coverage": "PASS"
+    },
+    "user_data_used": false
+  }
+}

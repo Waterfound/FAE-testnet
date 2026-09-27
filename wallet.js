@@ -5,6 +5,8 @@ const WATCH_KEY='fae-public-v4-active-watch';
 const KEYRING_KEY='fae-public-v4-keyring-v3';
 let sessionMnemonic='';
 let walletLoadError='';
+let lastSubmittedTxid='';
+let lastSubmittedAddress='';
 
 function storedAddress(record){
   return{
@@ -195,6 +197,10 @@ function renderWallet(){
   $('send').disabled=!full;
   $('exportwallet').disabled=!full||!walletAccount;
   $('togglehistory').disabled=!wallet;
+  const showSubmittedTxid=Boolean(lastSubmittedTxid&&wallet?.address===lastSubmittedAddress);
+  $('lastsendtx').hidden=!showSubmittedTxid;
+  $('lastsendtxid').value=showSubmittedTxid?lastSubmittedTxid:'';
+  $('copylastsendtx').disabled=!showSubmittedTxid;
   $('restorefromsend').hidden=full||!wallet;
   $('usesaved').hidden=!watch||!walletAccount;
 
@@ -486,8 +492,37 @@ async function sendFAE(){
     headers:{'content-type':'application/json'},
     body:JSON.stringify({tx:transaction})
   });
-  setStatus('sendstate','Queued '+accepted.txid.slice(0,20)+'… · the transaction is waiting for a block.','ok');
-  await refresh();
+  const acceptedTxid=String(accepted.txid||'');
+  const receipt=globalThis.FAEWalletTransactions?.acceptedReceipt
+    ?globalThis.FAEWalletTransactions.acceptedReceipt({
+      txid:acceptedTxid,
+      address:wallet.address,
+      network:NETWORK,
+      acceptedAt:new Date().toISOString()
+    })
+    :null;
+  if(!receipt)throw Error('Wallet transaction receipt adapter is unavailable');
+  lastSubmittedTxid=receipt.txid;
+  lastSubmittedAddress=receipt.address;
+  $('lastsendtx').hidden=false;
+  $('lastsendtxid').value=receipt.txid;
+  $('copylastsendtx').disabled=false;
+  setStatus('sendstate','Transaction accepted by the node and still unconfirmed. It is waiting for a block.','ok');
+  try{
+    await refresh();
+  }catch(error){
+    setStatus(
+      'sendstate',
+      'Transaction accepted and still unconfirmed. Wallet refresh is unavailable; the accepted TXID below is preserved. '+error.message,
+      'warn'
+    );
+  }
+}
+
+async function copyLastSentTxid(){
+  if(!lastSubmittedTxid||wallet?.address!==lastSubmittedAddress)throw Error('No submitted transaction ID is available for this address');
+  await copyTransactionId(lastSubmittedTxid,$('copylastsendtx'));
+  setStatus('sendstate','Full transaction ID copied. The transaction remains unconfirmed until a block includes it.','ok');
 }
 
 function toggleHistory(){
@@ -495,7 +530,10 @@ function toggleHistory(){
   const open=panel.hidden;
   panel.hidden=!open;
   $('togglehistory').setAttribute('aria-expanded',String(open));
-  if(open)refresh().catch(()=>{});
+  $('togglehistory').textContent=open?'Hide history':'Show history';
+  // Opening/closing history is presentation-only. An automatic refresh here can
+  // replace the focused transaction row while keyboard users are navigating it.
+  // Data refresh remains explicit via the wallet refresh/retry paths.
 }
 
 function showWalletError(error){
@@ -519,6 +557,7 @@ $('restorefromsend').addEventListener('click',()=>{
   showWalletAction('insert');
 });
 $('togglehistory').addEventListener('click',toggleHistory);
+$('copylastsendtx').addEventListener('click',()=>copyLastSentTxid().catch(error=>setStatus('sendstate',error.message,'bad')));
 $('refresh').addEventListener('click',()=>refresh().catch(()=>{}));
 $('useaddr').addEventListener('click',()=>useExistingAddress().catch(error=>setStatus('mstate',error.message,'bad')));
 $('usesaved').addEventListener('click',()=>useSavedFullWallet().catch(error=>setStatus('mstate',error.message,'bad')));
