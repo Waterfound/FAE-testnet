@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - lab/asic-a3-directsplit-static-20260927
+      - lab/asic-a3-axilite-warning-cleanup-20260927
     paths:
       - labs/asic-f2-pre-go/hdk/integrate_fae_f2_2lane_200mhz_a3_directsplit.tcl
       - labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp
