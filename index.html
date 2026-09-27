@@ -77,9 +77,12 @@ textarea{min-height:72px;resize:vertical}
 .transaction-summary::-webkit-details-marker{display:none}
 .transaction-summary::marker{content:""}
 .transaction-details[open]{border-color:var(--line-strong)}
-.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:8px}
-.txid-full{display:block;white-space:normal;overflow-wrap:anywhere;color:var(--text);font-size:12px}
+.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:10px}
+.transaction-detail-field{display:grid;gap:5px;min-width:0}
+.transaction-detail-value{white-space:pre-wrap;overflow-wrap:anywhere}
+.txid-full{display:block;width:100%;min-height:58px;resize:vertical;overflow-wrap:anywhere;color:var(--text);font-size:12px}
 .transaction-copy{justify-self:start}
+.transaction-copy-feedback{min-height:1.2em}
 .txid-result{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
 .txid-result textarea{min-height:64px;margin-top:5px}
 .transaction-title{font-weight:720}
@@ -249,10 +252,10 @@ textarea{min-height:72px;resize:vertical}
             <button id="send" disabled>Sign & send FAE</button>
             <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
           </div>
-          <div id="sendstate" class="status">Create, insert, or recover a full wallet to send.</div>
+          <div id="sendstate" class="status" role="status" aria-live="polite">Create, insert, or recover a full wallet to send.</div>
           <div id="lastsendtx" class="txid-result" hidden>
             <label class="field" for="lastsendtxid">Transaction ID</label>
-            <textarea id="lastsendtxid" class="mono" readonly aria-label="Full submitted transaction ID"></textarea>
+            <textarea id="lastsendtxid" class="mono" readonly spellcheck="false" aria-label="Full submitted transaction ID"></textarea>
             <div class="actions">
               <button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button>
             </div>
@@ -290,6 +293,7 @@ textarea{min-height:72px;resize:vertical}
 </main>
 <script src="/bip39-en.js"></script>
 <script src="/network-status.js"></script>
+<script src="/wallet-transactions.js"></script>
 <script src="/core.js"></script>
 <script src="/wallet-crypto.js"></script>
 <script src="/wallet.js"></script>
