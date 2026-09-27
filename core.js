@@ -159,9 +159,14 @@ function short(value,start=16,end=8){
 }
 
 function readableTime(timestamp){
-  if(!timestamp)return '';
-  const numeric=Number(timestamp);
-  const date=new Date(numeric<1e12?numeric*1000:numeric);
+  if(timestamp===undefined||timestamp===null||timestamp==='')return '';
+  let date;
+  if(typeof timestamp==='number'||(typeof timestamp==='string'&&/^\\d+$/.test(timestamp.trim()))){
+    const numeric=Number(timestamp);
+    date=new Date(numeric<1e12?numeric*1000:numeric);
+  }else{
+    date=new Date(timestamp);
+  }
   if(Number.isNaN(date.getTime()))return '';
   return date.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
 }
@@ -181,14 +186,57 @@ function appendEmpty(container,message){
   container.append(empty);
 }
 
-async function copyTransactionId(txid,button=null){
+async function copyTransactionId(txid,button=null,feedback=null){
   const value=String(txid||'');
-  if(!/^[0-9a-f]{64}$/.test(value))throw Error('Invalid transaction ID');
+  const valid=globalThis.FAEWalletTransactions?.validTxid
+    ?globalThis.FAEWalletTransactions.validTxid(value)
+    :/^[0-9a-f]{64}$/.test(value);
+  if(!valid)throw Error('Invalid transaction ID');
   await copyText(value);
   if(button){
     button.textContent='Copied';
     button.setAttribute('aria-label','Transaction ID copied');
   }
+  if(feedback)feedback.textContent='Full transaction ID copied.';
+}
+
+function transactionPresentation(transaction,addressValue){
+  const adapter=globalThis.FAEWalletTransactions;
+  if(adapter?.normalizeTransaction){
+    const normalized=adapter.normalizeTransaction(transaction,addressValue);
+    if(normalized.ok)return normalized;
+    return{ok:false,txid:String(transaction?.txid||''),reason:normalized.reason||'invalid_transaction'};
+  }
+  return{ok:false,txid:String(transaction?.txid||''),reason:'transaction_adapter_unavailable'};
+}
+
+function transactionStatusText(status){
+  if(status?.kind==='confirmed')return 'Confirmed';
+  if(status?.kind==='pending')return 'Pending';
+  if(status?.kind==='unknown')return 'Unknown · '+String(status.raw_status||'unspecified');
+  return 'Invalid transaction data';
+}
+
+function transactionDirectionText(direction){
+  if(direction==='sent')return 'Sent';
+  if(direction==='received')return 'Received';
+  if(direction==='self')return 'Self transfer';
+  return 'Unknown';
+}
+
+function appendTransactionDetail(container,key,labelText,value,{mono=false}={}){
+  const field=document.createElement('div');
+  field.className='transaction-detail-field';
+  field.dataset.detailKey=key;
+  const label=document.createElement('div');
+  label.className='small';
+  label.textContent=labelText;
+  const detail=document.createElement('div');
+  detail.className='transaction-detail-value'+(mono?' mono':'');
+  detail.textContent=String(value??'');
+  field.append(label,detail);
+  container.append(field);
+  return field;
 }
 
 function renderWalletHistory(transactions,addressValue){
@@ -200,7 +248,13 @@ function renderWalletHistory(transactions,addressValue){
   }
   clearElement(container);
   for(const transaction of list){
-    const txid=String(transaction.txid||'');
+    const presented=transactionPresentation(transaction,addressValue);
+    const txid=presented.txid||String(transaction?.txid||'');
+    const direction=presented.ok?transactionDirectionText(presented.direction):'Invalid';
+    const statusText=presented.ok?transactionStatusText(presented.status):'Invalid transaction data';
+    const confirmed=presented.ok&&presented.status.kind==='confirmed';
+    const pending=presented.ok&&presented.status.kind==='pending';
+
     const row=document.createElement('details');
     row.className='transaction-row transaction-details';
 
@@ -209,41 +263,75 @@ function renderWalletHistory(transactions,addressValue){
     const left=document.createElement('div');
     const title=document.createElement('div');
     title.className='transaction-title';
-    const sent=transaction.from_address===addressValue;
-    title.textContent=(sent?'Sent':'Received')+' · '+short(txid,18,8);
+    title.textContent=direction+' · '+short(txid,18,8);
     const meta=document.createElement('div');
     meta.className='transaction-meta mono';
-    const parts=[transaction.status==='confirmed'?'Confirmed':'Pending'];
-    if(transaction.confirmed_height)parts.push('block '+transaction.confirmed_height);
-    const time=readableTime(transaction.timestamp_ms||transaction.created_at);
+    const parts=[statusText];
+    if(confirmed&&presented.status.confirmed_height)parts.push('block '+presented.status.confirmed_height);
+    const time=presented.ok&&presented.timestamp?.kind==='valid'?readableTime(presented.timestamp.iso):'';
     if(time)parts.push(time);
     meta.textContent=parts.join(' · ');
     left.append(title,meta);
 
     const state=document.createElement('div');
-    state.className='right '+(transaction.status==='confirmed'?'ok':'warn');
-    state.textContent=transaction.status==='confirmed'?'✓':'…';
+    state.className='right '+(confirmed?'ok':pending?'warn':'bad');
+    state.textContent=confirmed?'✓':pending?'…':'!';
     summary.append(left,state);
 
     const body=document.createElement('div');
     body.className='transaction-detail-body';
+
+    const txidField=document.createElement('div');
+    txidField.className='transaction-detail-field';
+    txidField.dataset.detailKey='txid';
     const label=document.createElement('div');
     label.className='small';
     label.textContent='Transaction ID';
-    const fullId=document.createElement('code');
+    const fullId=document.createElement('textarea');
     fullId.className='txid-full mono';
-    fullId.textContent=txid;
+    fullId.value=txid;
+    fullId.readOnly=true;
+    fullId.rows=2;
+    fullId.setAttribute('aria-label','Full transaction ID');
+    fullId.setAttribute('spellcheck','false');
     const copy=document.createElement('button');
     copy.type='button';
     copy.className='alt transaction-copy';
     copy.textContent='Copy transaction ID';
     copy.setAttribute('aria-label','Copy transaction ID '+txid);
-    copy.disabled=!/^[0-9a-f]{64}$/.test(txid);
-    copy.addEventListener('click',()=>copyTransactionId(txid,copy).catch(error=>{
+    const validTxid=globalThis.FAEWalletTransactions?.validTxid
+      ?globalThis.FAEWalletTransactions.validTxid(txid)
+      :/^[0-9a-f]{64}$/.test(txid);
+    copy.disabled=!validTxid;
+    const feedback=document.createElement('span');
+    feedback.className='small transaction-copy-feedback';
+    feedback.setAttribute('role','status');
+    feedback.setAttribute('aria-live','polite');
+    copy.addEventListener('click',()=>copyTransactionId(txid,copy,feedback).catch(error=>{
       copy.textContent='Copy failed';
       copy.setAttribute('title',error.message);
+      feedback.textContent='Transaction ID was not copied: '+error.message;
     }));
-    body.append(label,fullId,copy);
+    txidField.append(label,fullId,copy,feedback);
+    body.append(txidField);
+
+    if(presented.ok){
+      appendTransactionDetail(body,'direction','Direction',direction);
+      appendTransactionDetail(body,'from','From',presented.from_address,{mono:true});
+      const outputs=presented.outputs.map(output=>output.address+' · '+formatAtoms(output.amount_atoms)).join('\n');
+      appendTransactionDetail(body,'outputs','Outputs',outputs,{mono:true});
+      appendTransactionDetail(body,'status','Status',statusText);
+      if(confirmed)appendTransactionDetail(body,'height','Confirmed block',presented.status.confirmed_height);
+      appendTransactionDetail(
+        body,
+        'date',
+        'Date',
+        presented.timestamp?.kind==='valid'?readableTime(presented.timestamp.iso):
+          presented.timestamp?.kind==='missing'?'Not supplied':'Invalid / unavailable'
+      );
+    }else{
+      appendTransactionDetail(body,'status','Status','Invalid transaction data · '+presented.reason);
+    }
 
     row.append(summary,body);
     container.append(row);
