@@ -16,11 +16,14 @@ async function activate(locator,touch){
 }
 
 async function installDeterministicNetwork(page){
-  await page.route('**/functions/v1/fae-public-testnet-v4**',async route=>{
+  await page.route('https://wfwwotuhectwknvbvgif.supabase.co/**',async route=>{
     const request=route.request();
     const url=new URL(request.url());
-    const marker='/fae-public-testnet-v4';
-    const path=url.pathname.slice(url.pathname.indexOf(marker)+marker.length);
+    const prefix='/functions/v1/fae-public-testnet-v4';
+    if(!url.pathname.startsWith(prefix)){
+      throw new Error('Unexpected FAE Supabase route: '+request.url());
+    }
+    const path=url.pathname.slice(prefix.length);
     let body={};
 
     if(path.startsWith('/status')){
@@ -43,8 +46,8 @@ async function installDeterministicNetwork(page){
       };
     }else if(path.startsWith('/transactions')){
       const address=url.searchParams.get('address');
-      console.log('WTX05 transactions request',request.url(),'address=',address);
-      body={transactions:address?[{
+      if(!address)throw new Error('Transactions request missing active address: '+request.url());
+      body={transactions:[{
         txid:HISTORY_TXID,
         from_address:address,
         inputs:['browser-fixture:0'],
@@ -53,9 +56,11 @@ async function installDeterministicNetwork(page){
         confirmed_height:null,
         created_at:'2026-09-27T17:00:00Z',
         mempool_seq:1
-      }]:[]};
+      }]};
     }else if(path.startsWith('/submit-tx')){
       body={txid:SUBMIT_TXID};
+    }else{
+      throw new Error('Unexpected FAE API route: '+request.url());
     }
 
     await route.fulfill({
