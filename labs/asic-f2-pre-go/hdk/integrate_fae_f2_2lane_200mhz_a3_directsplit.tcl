@@ -44,6 +44,13 @@ foreach n {ctrl0 ctrl1 mem00 mem01 mem10 mem11} {
   create_bd_cell -type ip -vlnv xilinx.com:ip:axi_clock_converter:2.1 fae_cc_$n
 }
 
+# The HLS control interfaces are AXI4-Lite. Make that protocol explicit on
+# their clock converters so Vivado propagates MAX_BURST_LENGTH=1 end-to-end.
+# Memory converters intentionally remain full AXI4.
+foreach n {ctrl0 ctrl1} {
+  set_property -dict [list CONFIG.PROTOCOL {AXI4LITE}] [get_bd_cells fae_cc_$n]
+}
+
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_clk_200/clk_in1]
 connect_bd_net [get_bd_pins proc_sys_reset_a0/peripheral_aresetn] [get_bd_pins fae_clk_200/resetn]
 connect_bd_net [get_bd_pins fae_clk_200/clk_out1] [get_bd_pins fae_reset_200/slowest_sync_clk]
