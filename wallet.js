@@ -531,7 +531,9 @@ function toggleHistory(){
   panel.hidden=!open;
   $('togglehistory').setAttribute('aria-expanded',String(open));
   $('togglehistory').textContent=open?'Hide history':'Show history';
-  if(open)refresh().catch(()=>{});
+  // Opening/closing history is presentation-only. An automatic refresh here can
+  // replace the focused transaction row while keyboard users are navigating it.
+  // Data refresh remains explicit via the wallet refresh/retry paths.
 }
 
 function showWalletError(error){
