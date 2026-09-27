@@ -1,0 +1,49 @@
+name: Wallet Transaction UX browser validation
+
+on:
+  push:
+    branches:
+      - build-colony/wallet-tx-ux-current-main-20260927
+    paths:
+      - tests/wallet-browser-validation.spec.mjs
+      - .github/workflows/wallet-tx-ux-browser.yml
+      - core.js
+      - index.html
+      - wallet.js
+      - wallet-transactions.js
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned real-browser harness
+        run: |
+          printf '{"private":true}\n' > package.json
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local static client
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/wtx05-http.log 2>&1 &
+          echo $! >/tmp/wtx05-http.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/wtx05-http.log
+          exit 1
+
+      - name: Run desktop tablet and mobile browser journeys
+        run: npx playwright test tests/wallet-browser-validation.spec.mjs --reporter=line --workers=1
