@@ -1,0 +1,29 @@
+{
+  "schema": "fae.asic.f2.attacker_sweep.a2b_2lane_200mhz.plan.v1",
+  "objective": "Test whether two frozen C6 lanes remain physically admissible and faster in aggregate when clocked at a locally generated 200 MHz with explicit CDC to the fixed 250 MHz F2 shell.",
+  "parent_result_commit": "4b5587df825bfae4daca8c1de45cf68e22cc3431",
+  "frozen_hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "lane_count": 2,
+  "shell_clock_mhz": 250,
+  "compute_clock_mhz": 200,
+  "architecture": {
+    "local_clock": "clk_wiz MMCM derived from clk_main_a0",
+    "reset": "proc_sys_reset synchronized to local 200 MHz",
+    "control_cdc": "2 x AXI Clock Converter, 250->200 MHz",
+    "memory_cdc": "4 x AXI Clock Converter, 200->250 MHz",
+    "memory_placement": [
+      "lane0 HBM0",
+      "lane1 HBM1"
+    ],
+    "semantics_change": false
+  },
+  "physical_gate": {
+    "wns_min_ns": 0,
+    "tns_required_ns": 0,
+    "whs_min_ns": 0,
+    "ths_required_ns": 0
+  },
+  "runtime_gate": "If timing-clean Developer_CL is produced, create AFI and require canonical parity plus 16/16 vectors before benchmarking.",
+  "benchmark_gate": "Promote only if aggregate measured throughput beats A1 HBM0 single-lane 0.05141404101 work/s.",
+  "fail_closed": true
+}
