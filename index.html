@@ -273,7 +273,12 @@ textarea{min-height:72px;resize:vertical}
           <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
         </div>
         <div id="history-panel">
-          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">No transactions.</div></div>
+          <div id="historystate" class="status" role="status" aria-live="polite" data-state="idle">Select or create a wallet to load recent transfers.</div>
+          <div class="actions">
+            <button id="retryhistory" class="ghost" hidden disabled>Retry transaction history</button>
+          </div>
+          <div id="historycoverage" class="small">Coverage: recent transfers for the active address. The source scans the latest 100 network transactions and returns up to 30 for this address. No pagination; mining rewards are excluded; this is not lifetime history.</div>
+          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">Select or create a wallet to load recent transfers.</div></div>
         </div>
       </section>
 
