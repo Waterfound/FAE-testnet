@@ -1,0 +1,216 @@
+{
+  "schema_version": "fae.wallet-transaction-ux.acceptance-fixtures.v1",
+  "public_test_data_only": true,
+  "contains_key_material": false,
+  "txids": {
+    "a": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "b": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "c": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "addresses": {
+    "A": "fixture-address-A",
+    "B": "fixture-address-B",
+    "C": "fixture-address-C"
+  },
+  "cases": [
+    {
+      "id": "clipboard-denied",
+      "domain": "copy",
+      "clipboard": {
+        "navigator_write": "reject",
+        "fallback_exec_command": false
+      },
+      "txid_ref": "a",
+      "expected": {
+        "copied": false,
+        "success_feedback": false,
+        "error_kind": "clipboard_denied"
+      }
+    },
+    {
+      "id": "clipboard-fallback-success",
+      "domain": "copy",
+      "clipboard": {
+        "navigator_write": "unavailable",
+        "fallback_exec_command": true
+      },
+      "txid_ref": "b",
+      "expected": {
+        "copied": true,
+        "exact_txid_ref": "b",
+        "success_feedback": true
+      }
+    },
+    {
+      "id": "consecutive-copy-isolation",
+      "domain": "copy",
+      "transaction_txid_refs": [
+        "a",
+        "b",
+        "c"
+      ],
+      "copy_order": [
+        "b",
+        "a",
+        "c",
+        "b"
+      ],
+      "expected": {
+        "clipboard_sequence": [
+          "b",
+          "a",
+          "c",
+          "b"
+        ],
+        "no_stale_id": true
+      }
+    },
+    {
+      "id": "accepted-submit-refresh-failure",
+      "domain": "send_receipt",
+      "submit": {
+        "accepted": true,
+        "txid_ref": "a",
+        "address_ref": "A",
+        "network": "fairyelf-public-testnet-v4",
+        "accepted_at": "2026-09-27T16:20:00Z"
+      },
+      "refresh": {
+        "status": "network_failure"
+      },
+      "expected": {
+        "receipt_state": "accepted_unconfirmed",
+        "send_failed": false,
+        "confirmation_claim": false,
+        "receipt_txid_ref": "a"
+      }
+    },
+    {
+      "id": "reload-requeries-network",
+      "domain": "reload",
+      "before_reload": {
+        "active_address_ref": "A",
+        "visible_txid_refs": [
+          "a",
+          "b"
+        ]
+      },
+      "persisted_transaction_history": false,
+      "after_reload": {
+        "active_address_ref": "A"
+      },
+      "expected": {
+        "network_history_query_for": "A",
+        "seed_embeds_history": false
+      }
+    },
+    {
+      "id": "recovery-requeries-network",
+      "domain": "recovery",
+      "recovery_fixture": {
+        "derived_address_refs": [
+          "A",
+          "B",
+          "C"
+        ],
+        "embedded_transaction_history": false
+      },
+      "selected_address_ref": "A",
+      "expected": {
+        "network_history_query_for": "A",
+        "history_restored_from_seed": false
+      }
+    },
+    {
+      "id": "stale-response-a-b-a",
+      "domain": "request_order",
+      "requests": [
+        {
+          "request_id": 1,
+          "address_ref": "A"
+        },
+        {
+          "request_id": 2,
+          "address_ref": "B"
+        },
+        {
+          "request_id": 3,
+          "address_ref": "A"
+        }
+      ],
+      "completion_order": [
+        3,
+        2,
+        1
+      ],
+      "expected": {
+        "accepted_request_id": 3,
+        "rejected_stale_request_ids": [
+          2,
+          1
+        ],
+        "final_address_ref": "A"
+      }
+    },
+    {
+      "id": "history-network-failure-preserves-stale",
+      "domain": "history_failure",
+      "previous": {
+        "state": "ready_recent",
+        "active_address_ref": "A",
+        "txid_refs": [
+          "a",
+          "b"
+        ]
+      },
+      "refresh": {
+        "status": "network_failure"
+      },
+      "expected": {
+        "state": "stale",
+        "preserve_txid_refs": [
+          "a",
+          "b"
+        ],
+        "must_not_claim_empty": true
+      }
+    },
+    {
+      "id": "bounded-empty-is-not-lifetime-empty",
+      "domain": "coverage",
+      "source_network_scan_limit": 100,
+      "address_result_limit": 30,
+      "result_txid_refs": [],
+      "expected": {
+        "state": "empty_within_available_coverage",
+        "lifetime_complete": false,
+        "mining_rewards_included": false,
+        "pagination": false
+      }
+    },
+    {
+      "id": "watch-only-history-and-copy",
+      "domain": "watch_only",
+      "active_address_ref": "A",
+      "watch_only": true,
+      "txid_refs": [
+        "c"
+      ],
+      "expected": {
+        "send_enabled": false,
+        "history_query_enabled": true,
+        "txid_copy_enabled": true
+      }
+    },
+    {
+      "id": "cache-absent-is-valid",
+      "domain": "cache",
+      "receipt_cache_present": false,
+      "expected": {
+        "allowed": true,
+        "reload_queries_network": true,
+        "recovery_does_not_restore_receipt": true
+      }
+    }
+  ]
+}
