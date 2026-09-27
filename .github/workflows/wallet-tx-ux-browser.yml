@@ -7,6 +7,7 @@ on:
     paths:
       - tests/wallet-browser-validation.spec.mjs
       - .github/workflows/wallet-tx-ux-browser.yml
+      - .github/workflows/wallet-tx-ux-current-main.yml
       - core.js
       - index.html
       - wallet.js
