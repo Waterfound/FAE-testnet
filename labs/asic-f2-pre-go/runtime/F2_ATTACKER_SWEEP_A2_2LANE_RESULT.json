@@ -1,0 +1,48 @@
+{
+  "schema": "fae.asic.f2.attacker_sweep.a2_2lane.result.v1",
+  "candidate": "C6-ROTR64-HLS-INLINE",
+  "lane_count": 2,
+  "target_clock_mhz": 250,
+  "aws_instance_id": "i-0c3ada0f29b9a07b4",
+  "completed_utc": "2026-09-27T03:32:10Z",
+  "stage": "A2_2LANE_PHYSICAL_FAIL_CLOSED",
+  "classification": "PHYSICAL_TIMING_FAILURE",
+  "infrastructure_failure": false,
+  "block_design_validation": "PASS",
+  "synthesis": "PASS",
+  "implementation": {
+    "status": "route_design Complete, Failed Timing!",
+    "progress_percent": 100,
+    "wns_ns": -0.615008,
+    "tns_ns": -924.219177,
+    "whs_ns": 0.005955,
+    "ths_ns": 0,
+    "setup_failing_endpoints": 4490,
+    "setup_total_endpoints": 1108696,
+    "violated_clock": "clk_main_a0",
+    "violated_clock_period_ns": 4,
+    "violated_clock_frequency_mhz": 250,
+    "congestion_observed": "level 5 during route",
+    "timing_gate": "FAIL"
+  },
+  "frozen_artifacts": {
+    "hls_source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "two_lane_integrator_blob": "4b1fe445a3b31806071af412a07efe0633b62b35",
+    "two_lane_implement_blob": "9a4794f126cef54a66603718eb74f4329d6a865f",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "developer_cl": {
+    "produced": true,
+    "sha256": "4ab1b107304e05184a1aea1a95679db346fddd04d5a18ad2b747032c7edebdb8",
+    "admissible_for_afi": false,
+    "reason": "Implementation failed timing. Fail-closed gate forbids AFI promotion."
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0c3ada0f29b9a07b4/f2-attacker-a2-2lane-physical/",
+  "disposition": "REJECT_2LANE_AT_250MHZ",
+  "notes": [
+    "This is real physical evidence, not a runner/bootstrap/infrastructure failure.",
+    "Hold closed; setup timing did not.",
+    "F2 clk_main_a0 is fixed at 250 MHz. A lower-frequency retry requires a distinct local clock/CDC architecture rather than a simple clock-constraint change."
+  ],
+  "next_frontier": "Evaluate a physically valid lower-frequency two-lane architecture using local clock generation plus explicit CDC, or reject it if complexity/cost would make the experiment non-comparable."
+}
