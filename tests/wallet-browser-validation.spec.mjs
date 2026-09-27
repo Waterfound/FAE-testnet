@@ -43,6 +43,7 @@ async function installDeterministicNetwork(page){
       };
     }else if(path.startsWith('/transactions')){
       const address=url.searchParams.get('address');
+      console.log('WTX05 transactions request',request.url(),'address=',address);
       body={transactions:address?[{
         txid:HISTORY_TXID,
         from_address:address,
