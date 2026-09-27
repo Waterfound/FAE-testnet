@@ -1,0 +1,104 @@
+{
+  "authority_boundary": {
+    "consensus_activation_authorized": false,
+    "current_authority": "AWS/Vivado A3 static provider validation only",
+    "existing_asic_lab_cap_usd": 20,
+    "new_afi_authorized": false,
+    "physical_build_authorized": false,
+    "release_authorized": false
+  },
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT",
+  "conclusion": "A3 direct-split passes provider-level Vivado block-design validation on the exact d00a49c source. The two AXI-Lite control MAX_BURST_LENGTH critical warnings remain explicitly open. No physical implementation or new AFI is admitted by this result.",
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-07d5c60cd831f135e/a3-directsplit-validate/",
+  "next_gate": "Pre-physical warning disposition and explicit physical-build authority decision.",
+  "provider": {
+    "cloud": "AWS",
+    "instance_id": "i-07d5c60cd831f135e",
+    "instance_name": "FAE-ASIC-A3-DIRECTSPLIT-VALIDATE",
+    "instance_state_observed": "terminated",
+    "instance_type": "r7i.xlarge",
+    "max_runtime_tag": "1h",
+    "new_instance_launched_after_current_authority": false,
+    "region": "us-east-1",
+    "spend_cap_tag_usd": "20"
+  },
+  "recorded_date": "2026-09-27",
+  "s3_objects": {
+    "address_map": {
+      "etag": "4fc9feea3142ab09065311e615952a77",
+      "size": 2296
+    },
+    "cells": {
+      "etag": "4155f4cbdf6644e80d79bcbcfc5eccc5",
+      "size": 776
+    },
+    "interfaces": {
+      "etag": "74dbd4299fabec7dab247489af5466f1",
+      "size": 1794
+    },
+    "markers": {
+      "etag": "0dd2c5b139e6f940302922e0ff4a63fc",
+      "size": 471
+    },
+    "vivado_log": {
+      "etag": "500836def3d5dc3f03ed0f1d42b21e94",
+      "size": 33009
+    }
+  },
+  "schema": "fae.asic.f2.a3_directsplit.provider_static_result.v1",
+  "source_revision": "d00a49c07f9c6b8d87076e7e90a19a84f2259c4b",
+  "status": "PASS_WITH_WARNINGS",
+  "timing": {
+    "finished_utc": "2026-09-27T23:05:00Z",
+    "started_utc": "2026-09-27T22:59:15Z"
+  },
+  "toolchain": {
+    "aws_fpga_branch": "f2",
+    "aws_hdk_setup": "PASS",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "vivado": "2025.2"
+  },
+  "topology": {
+    "axi_smc_cdma_cell_present": false,
+    "control_lane0": "OCL @ 0x00000000",
+    "control_lane1": "OCL @ 0x00001000",
+    "fae_mem_merge_present": false,
+    "lane0_gmem0": "DDR @ 0x1000000000",
+    "lane0_gmem1": "HBM_MEM00 @ 0x0200000000",
+    "lane1_gmem0": "DDR @ 0x1000000000",
+    "lane1_gmem1": "HBM_MEM01 @ 0x0220000000",
+    "smartconnect_ddr4_num_si": 3,
+    "smartconnect_hbm_num_si": 3
+  },
+  "validation": {
+    "afi_created": false,
+    "marker": "FAE_A3_DIRECTSPLIT_VALIDATE_PASS",
+    "physical_implementation_launched": false,
+    "process_exit_code": 0,
+    "validate_bd_design_completed": true,
+    "vivado_rc": 0
+  },
+  "warnings": [
+    {
+      "code": "BD 41-237",
+      "detail": "MAX_BURST_LENGTH metadata mismatch: 1 vs 256",
+      "disposition": "non-fatal for validate_bd_design; preserve as explicit pre-physical-build risk",
+      "scope": "fae_dp6_hls_0/s_axi_control -> fae_cc_ctrl0/M_AXI",
+      "severity": "CRITICAL WARNING"
+    },
+    {
+      "code": "BD 41-237",
+      "detail": "MAX_BURST_LENGTH metadata mismatch: 1 vs 256",
+      "disposition": "non-fatal for validate_bd_design; preserve as explicit pre-physical-build risk",
+      "scope": "fae_dp6_hls_1/s_axi_control -> fae_cc_ctrl1/M_AXI",
+      "severity": "CRITICAL WARNING"
+    },
+    {
+      "code": "BD 41-2671",
+      "detail": "dangling legacy interface net will not be written to the BD file",
+      "disposition": "consistent with deletion of the legacy CDMA cell; not an active routing cell",
+      "scope": "legacy net name axi_cdma_0_M_AXI",
+      "severity": "WARNING"
+    }
+  ]
+}
