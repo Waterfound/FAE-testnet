@@ -29,6 +29,7 @@ REQUIRED_SNIPPETS = [
     "fae_cc_mem11/M_AXI] [get_bd_intf_pins smartconnect_hbm/S02_AXI",
     "CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {200.000}",
     "CONFIG.PRIM_IN_FREQ {250.000}",
+    "CONFIG.PROTOCOL {AXI4LITE}",
     "assign_bd_address -offset 0x00000000 -range 0x00001000",
     "assign_bd_address -offset 0x00001000 -range 0x00001000",
     "assign_bd_address -offset 0x1000000000 -range 0x1000000000",
@@ -94,6 +95,11 @@ def main() -> int:
     )
 
     # Fail-closed static assertions embedded in TCL.
+    checks["control_cdc_axi4lite_explicit"] = (
+        text.count("CONFIG.PROTOCOL {AXI4LITE}") == 1
+        and "foreach n {ctrl0 ctrl1}" in text
+    )
+
     checks["self_checks_present"] = all(
         marker in text
         for marker in (
@@ -121,6 +127,7 @@ def main() -> int:
         and checks["control_offsets_preserved"]
         and checks["ddr_base_preserved"]
         and checks["hbm_split_present"]
+        and checks["control_cdc_axi4lite_explicit"]
         and checks["self_checks_present"]
     )
 
