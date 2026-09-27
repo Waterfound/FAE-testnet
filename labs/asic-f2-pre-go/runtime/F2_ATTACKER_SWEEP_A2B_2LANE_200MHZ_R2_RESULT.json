@@ -1,0 +1,64 @@
+{
+  "schema": "fae.asic.f2.attacker_sweep.a2b_2lane_200mhz.r2.result.v1",
+  "candidate": "C6-2LANE-LOCAL200-HBM0-HBM1",
+  "aws_instance_id": "i-08445e91ddea7ec87",
+  "finished_utc": "2026-09-27T21:17:08Z",
+  "stage": "A2B_R2_2LANE_200MHZ_PHYSICAL_FAIL_CLOSED",
+  "classification": "PHYSICAL_TIMING_FAILURE_AFTER_COMPLETE_ROUTE",
+  "infrastructure_failure": false,
+  "route_status": {
+    "progress_percent": 100,
+    "fully_routed_nets": 679618,
+    "routing_errors": 0
+  },
+  "timing": {
+    "wns_ns": -2.408699,
+    "tns_ns": -11692.304688,
+    "whs_ns": 0.003614,
+    "ths_ns": 0,
+    "setup_failing_endpoints": 20480,
+    "total_setup_endpoints": 1126498,
+    "timing_gate": "FAIL"
+  },
+  "clock_domains": {
+    "local_fae_200mhz": {
+      "wns_ns": -2.409,
+      "tns_ns": -7971.579,
+      "failing_endpoints": 10322
+    },
+    "shell_clk_main_a0_250mhz": {
+      "wns_ns": -1.208,
+      "tns_ns": -2336.229,
+      "failing_endpoints": 6845
+    },
+    "hbm_450mhz": {
+      "wns_ns": -1.251,
+      "tns_ns": -1384.496,
+      "failing_endpoints": 3313
+    }
+  },
+  "congestion": {
+    "level": 6,
+    "note": "Routing completed, but congestion materially degraded setup timing across local FAE, shell, and HBM domains."
+  },
+  "developer_cl": {
+    "produced": true,
+    "sha256": "bcd08fe35fc195ae335814b55af8a028ff0c1c4822213b18cf2705427cc6b5a5",
+    "admissible_for_afi": false,
+    "reason": "Final routed timing failed; fail-closed gate forbids AFI promotion."
+  },
+  "frozen_artifacts": {
+    "hls_source_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "integrator_blob": "fca3640eecc7ab201600786d36a1144ca7b7b498",
+    "implement_blob": "e1eec19b499f0de8be510858c7337ec22decb44f",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-08445e91ddea7ec87/f2-attacker-a2b-r2-2lane-200mhz-physical/",
+  "disposition": "REJECT_CURRENT_2LANE_CDC_TOPOLOGY",
+  "notes": [
+    "R1 was inconclusive due runner timeout; R2 completed route and establishes the physical verdict.",
+    "Lowering compute to local 200 MHz was insufficient because the final violations span local FAE, shell 250 MHz, and HBM 450 MHz domains.",
+    "Do not create an AFI from the produced Developer_CL."
+  ],
+  "next_frontier": "Statically redesign the two-lane memory/interconnect topology to reduce routing congestion before any further paid physical build."
+}
