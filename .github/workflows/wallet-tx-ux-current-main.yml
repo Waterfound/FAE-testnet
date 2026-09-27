@@ -13,7 +13,9 @@ on:
       - tests/wallet-transactions-contract.mjs
       - tests/wallet-transactions-acceptance.mjs
       - tests/wallet-history-lifecycle.mjs
+      - tests/wallet-browser-validation.spec.mjs
       - tests/fixtures/wallet-transactions-acceptance.json
+      - .github/workflows/wallet-tx-ux-browser.yml
       - docs/wallet-transaction-ux/contract.json
       - .github/workflows/wallet-tx-ux-current-main.yml
   workflow_dispatch:
