@@ -68,7 +68,8 @@ const localStorage={
 
 let submittedTransaction=null;
 const fetch=async(url,options={})=>{
-  const path=String(url).split('fae-public-testnet-v4')[1]||'';
+  const requestUrl=new URL(String(url));
+  const path=requestUrl.pathname.split('fae-public-testnet-v4')[1]||'';
   let body={};
   if(path.startsWith('/status')){
     body={height:150,issued_fae:'1500',max_supply_fae:'21000000',halving_era_blocks:600000,difficulty_bits:17,node_version:5};
@@ -79,7 +80,17 @@ const fetch=async(url,options={})=>{
   }else if(path.startsWith('/spendable')){
     body={spendable_fae:'2',utxos:[{outpoint:'smoke:0',amount_atoms:'200000000'}]};
   }else if(path.startsWith('/transactions')){
-    body={transactions:[]};
+    const activeAddress=requestUrl.searchParams.get('address');
+    body={transactions:activeAddress?[{
+      txid:'b'.repeat(64),
+      from_address:activeAddress,
+      inputs:['smoke:0'],
+      outputs:[{address:activeAddress,amount_atoms:'100000000'}],
+      status:'pending',
+      confirmed_height:null,
+      created_at:'2026-09-23T10:00:00Z',
+      mempool_seq:1
+    }]:[]};
   }else if(path.startsWith('/submit-tx')){
     submittedTransaction=JSON.parse(options.body).tx;
     body={txid:'a'.repeat(64)};
@@ -125,6 +136,12 @@ const context={
 context.window=context;
 vm.createContext(context);
 
+const indexHtml=await readFile(new URL('../index.html',import.meta.url),'utf8');
+assert.ok(indexHtml.includes('id="history-panel">'),'transaction history must be visible by default');
+assert.ok(indexHtml.includes('aria-expanded="true"'),'history toggle must reflect the default-open state');
+assert.ok(indexHtml.indexOf('id="history-panel"')<indexHtml.indexOf('id="addresslist"'),'transaction history must appear before the wallet address list');
+assert.ok(indexHtml.includes('id="lastsendtxid"'),'send flow must expose a full transaction ID field');
+
 for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
@@ -165,12 +182,24 @@ assert.equal(vm.runInContext('wallet.index',context),3);
 await vm.runInContext('copyReceiveAddress()',context);
 assert.equal(clipboard,vm.runInContext('wallet.address',context));
 
+const txHistory=document.getElementById('txhist');
+assert.equal(txHistory.children.length,1);
+assert.equal(txHistory.children[0].className,'transaction-row transaction-details');
+const fullHistoryTxid=txHistory.children[0].children[1].children[1].textContent;
+assert.equal(fullHistoryTxid,'b'.repeat(64));
+await vm.runInContext("copyTransactionId('"+'b'.repeat(64)+"')",context);
+assert.equal(clipboard,'b'.repeat(64));
+
 document.getElementById('sendto').value=vm.runInContext('walletAccount.addresses[1].address',context);
 document.getElementById('sendamt').value='1';
 await vm.runInContext('sendFAE()',context);
 assert.ok(submittedTransaction?.signature);
 assert.equal(submittedTransaction.inputs[0],'smoke:0');
 assert.equal(submittedTransaction.outputs.length,2);
+assert.equal(document.getElementById('lastsendtx').hidden,false);
+assert.equal(document.getElementById('lastsendtxid').value,'a'.repeat(64));
+await vm.runInContext('copyLastSentTxid()',context);
+assert.equal(clipboard,'a'.repeat(64));
 
 const packageJson=await vm.runInContext('recoveryPackage().then(JSON.stringify)',context);
 context.packageJson=packageJson;
@@ -188,4 +217,4 @@ assert.equal(document.getElementById('send').disabled,true);
 await vm.runInContext('useSavedFullWallet()',context);
 assert.equal(vm.runInContext('wallet.watchOnly',context),false);
 
-console.log('FAE client create, insert, receive, send, recovery, and watch-only checks passed.');
+console.log('FAE client create, insert, receive, send, TXID copy/history, recovery, and watch-only checks passed.');
