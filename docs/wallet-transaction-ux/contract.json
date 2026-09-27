@@ -167,13 +167,101 @@
     "preview_delivery": {
       "github_status": "success",
       "vercel_deployment_state": "READY",
-      "served_bytes_reverified": false,
-      "note": "Preview access is authentication-protected; WTX-01 does not claim live/public-byte verification. That belongs to WTX-07."
+      "served_bytes_reverified": true,
+      "note": "WTX-07 reverified the production-served Wallet Transaction UX bytes against the exact integrated main revision."
     },
     "gate_verdicts": {
       "contract": "PASS",
       "coverage": "PASS"
     },
-    "user_data_used": false
+    "user_data_used": false,
+    "wtx07_publication": {
+      "state": "PASS",
+      "closed_at": "2026-09-27",
+      "merge_pr": 259,
+      "candidate_revision": "a18484c7fc56d914a42105a0be80f9b974ee202f",
+      "integrated_main_revision": "4238e4b6de6a2863d0531ee5d78b526ba4efad92",
+      "candidate_to_integrated_file_diff_count": 0,
+      "combined_main_verification": {
+        "main_points_to_integrated_revision": true,
+        "post_merge_workflows": [
+          {
+            "name": "verify-canonical-source",
+            "run_id": 36339270407,
+            "conclusion": "success"
+          },
+          {
+            "name": "cross-lab-integration-gate",
+            "run_id": 36339270441,
+            "conclusion": "success"
+          },
+          {
+            "name": "public-code-security-recurring-assurance",
+            "run_id": 36339270417,
+            "conclusion": "success"
+          },
+          {
+            "name": "codeql-security",
+            "run_id": 36339270406,
+            "conclusion": "success"
+          }
+        ]
+      },
+      "publication": {
+        "provider": "Vercel",
+        "project": "fairyelf-fae-testnet",
+        "deployment_id": "dpl_8B4eqYfngFRANcFjiFyX2Q7bgrFM",
+        "deployment_state": "READY",
+        "target": "production",
+        "deployment_revision": "4238e4b6de6a2863d0531ee5d78b526ba4efad92",
+        "canonical_url": "https://fairyelf-fae-testnet.vercel.app",
+        "aliases": [
+          "https://fairyelf-fae-testnet.vercel.app",
+          "https://fairyelf-fae-testnet-waterfound.vercel.app",
+          "https://fairyelf-fae-testnet-git-main-waterfound.vercel.app"
+        ],
+        "public_root_http_status": 200
+      },
+      "served_file_reverification": {
+        "method": "Exact UTF-8 response-text equality against GitHub content at the integrated main revision.",
+        "files": [
+          {
+            "path": "index.html",
+            "http_status": 200,
+            "exact_match": true,
+            "chars": 18905,
+            "content_type": "text/html; charset=utf-8"
+          },
+          {
+            "path": "wallet.js",
+            "http_status": 200,
+            "exact_match": true,
+            "chars": 22857,
+            "content_type": "application/javascript; charset=utf-8"
+          },
+          {
+            "path": "wallet-transactions.js",
+            "http_status": 200,
+            "exact_match": true,
+            "chars": 7884,
+            "content_type": "application/javascript; charset=utf-8"
+          },
+          {
+            "path": "core.js",
+            "http_status": 200,
+            "exact_match": true,
+            "chars": 22583,
+            "content_type": "application/javascript; charset=utf-8"
+          }
+        ],
+        "all_exact": true
+      },
+      "browser_evidence_binding": {
+        "candidate_browser_validation": "4/4 PASS",
+        "candidate_and_integrated_main_have_identical_file_content": true,
+        "rationale": "The merge commit adds no file differences relative to the verified candidate, so the pre-merge browser evidence binds to the published file tree."
+      },
+      "verdict": "PUBLICATION_VERIFIED"
+    }
   }
 }
