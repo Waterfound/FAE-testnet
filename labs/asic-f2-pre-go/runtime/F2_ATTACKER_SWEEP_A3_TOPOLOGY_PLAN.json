@@ -1,0 +1,38 @@
+{
+  "schema": "fae.asic.f2.attacker_sweep.a3_topology.plan.v1",
+  "parent_result_commit": "16e0cdb833f130483437d8bc0761763651d25c90",
+  "objective": "Reduce two-lane physical routing pressure before any further paid build, without changing DP6 semantics.",
+  "evidence_basis": {
+    "a2_250mhz": "Complete route, timing fail",
+    "a2b_r2_200mhz": "Complete route, timing fail",
+    "a2b_r2_final": {
+      "wns_ns": -2.408699,
+      "tns_ns": -11692.304688,
+      "whs_ns": 0.003614,
+      "ths_ns": 0,
+      "congestion_level": 6
+    },
+    "routed_nets": 679618,
+    "routing_errors": 0
+  },
+  "diagnosis": "The current two-lane topology is routing-congestion limited rather than merely compute-clock limited. Violations span the local FAE 200 MHz domain, shell clk_main_a0 250 MHz, and HBM 450 MHz domain.",
+  "rejected_actions": [
+    "Do not create an AFI from the timing-failed Developer_CL.",
+    "Do not rerun the same topology with a longer watchdog.",
+    "Do not lower only the local compute clock again as the next experiment.",
+    "Do not alter frozen DP6 semantics to improve timing."
+  ],
+  "frontier": [
+    "Inspect the generated AWS IPI CDMA topology and current fae_mem_merge -> axi_smc_cdma/S00_AXI funnel.",
+    "Design a split or more localized memory/interconnect topology that reduces cross-device routing pressure while preserving host-visible addresses and lane semantics.",
+    "Validate the new block design statically and record interface/address/clock-domain evidence.",
+    "Only if static validation is clean, estimate routability/resource impact and decide whether a paid physical build is justified.",
+    "If physically built, require final WNS>=0, TNS=0, WHS>=0, THS=0 before AFI promotion."
+  ],
+  "current_best_admissible_attacker": {
+    "candidate": "A1 HBM0 single-lane",
+    "throughput_work_per_s": 0.05141404101,
+    "status": "remains current attacker candidate until a faster parity-preserving physical configuration passes"
+  },
+  "paid_build_authorization_status": "No A3 paid build should launch until the split-topology design validates statically."
+}
