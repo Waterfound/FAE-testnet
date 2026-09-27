@@ -11,6 +11,8 @@ on:
       - wallet-transactions.js
       - tests/client-smoke.mjs
       - tests/wallet-transactions-contract.mjs
+      - tests/wallet-transactions-acceptance.mjs
+      - tests/fixtures/wallet-transactions-acceptance.json
       - docs/wallet-transaction-ux/contract.json
       - .github/workflows/wallet-tx-ux-current-main.yml
   workflow_dispatch:
@@ -41,6 +43,8 @@ jobs:
           node --check network-status.js
       - name: Wallet transaction contract
         run: node tests/wallet-transactions-contract.mjs
+      - name: Wallet transaction acceptance fixtures
+        run: node tests/wallet-transactions-acceptance.mjs
       - name: Wallet crypto compatibility
         run: node tests/crypto-compat.mjs
       - name: Client smoke
