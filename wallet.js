@@ -493,20 +493,36 @@ async function sendFAE(){
     body:JSON.stringify({tx:transaction})
   });
   const acceptedTxid=String(accepted.txid||'');
-  if(!/^[0-9a-f]{64}$/.test(acceptedTxid))throw Error('Node returned an invalid transaction ID');
-  lastSubmittedTxid=acceptedTxid;
-  lastSubmittedAddress=wallet.address;
+  const receipt=globalThis.FAEWalletTransactions?.acceptedReceipt
+    ?globalThis.FAEWalletTransactions.acceptedReceipt({
+      txid:acceptedTxid,
+      address:wallet.address,
+      network:NETWORK,
+      acceptedAt:new Date().toISOString()
+    })
+    :null;
+  if(!receipt)throw Error('Wallet transaction receipt adapter is unavailable');
+  lastSubmittedTxid=receipt.txid;
+  lastSubmittedAddress=receipt.address;
   $('lastsendtx').hidden=false;
-  $('lastsendtxid').value=acceptedTxid;
+  $('lastsendtxid').value=receipt.txid;
   $('copylastsendtx').disabled=false;
-  setStatus('sendstate','Transaction queued. Its full ID is available below while it waits for a block.','ok');
-  await refresh();
+  setStatus('sendstate','Transaction accepted by the node and still unconfirmed. It is waiting for a block.','ok');
+  try{
+    await refresh();
+  }catch(error){
+    setStatus(
+      'sendstate',
+      'Transaction accepted and still unconfirmed. Wallet refresh is unavailable; the accepted TXID below is preserved. '+error.message,
+      'warn'
+    );
+  }
 }
 
 async function copyLastSentTxid(){
   if(!lastSubmittedTxid||wallet?.address!==lastSubmittedAddress)throw Error('No submitted transaction ID is available for this address');
   await copyTransactionId(lastSubmittedTxid,$('copylastsendtx'));
-  setStatus('sendstate','Full transaction ID copied.','ok');
+  setStatus('sendstate','Full transaction ID copied. The transaction remains unconfirmed until a block includes it.','ok');
 }
 
 function toggleHistory(){
