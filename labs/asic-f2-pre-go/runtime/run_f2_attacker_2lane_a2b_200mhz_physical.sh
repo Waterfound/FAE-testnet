@@ -107,7 +107,10 @@ echo "GLOBAL_IMPL_STRATEGY=Vivado Implementation Defaults" > "$LOG/physical_knob
 echo "OPT_DESIGN=Explore" >> "$LOG/physical_knobs.txt"
 echo "PLACE_DESIGN=Explore" >> "$LOG/physical_knobs.txt"
 echo "PHYS_OPT=Explore" >> "$LOG/physical_knobs.txt"
-echo "ROUTE=Explore" >> "$LOG/physical_knobs.txt"\necho "SHELL_CLK_MAIN_A0_MHZ=250" >> "$LOG/physical_knobs.txt"\necho "LOCAL_COMPUTE_CLK_MHZ=200" >> "$LOG/physical_knobs.txt"\necho "CDC=2xAXIL_250_TO_200+4xAXI_200_TO_250" >> "$LOG/physical_knobs.txt"
+echo "ROUTE=Explore" >> "$LOG/physical_knobs.txt"
+echo "SHELL_CLK_MAIN_A0_MHZ=250" >> "$LOG/physical_knobs.txt"
+echo "LOCAL_COMPUTE_CLK_MHZ=200" >> "$LOG/physical_knobs.txt"
+echo "CDC=2xAXIL_250_TO_200+4xAXI_200_TO_250" >> "$LOG/physical_knobs.txt"
 
 echo VIVADO_2LANE_IMPLEMENTATION_RUNNING > "$LOG/stage.txt"
 sync_all
