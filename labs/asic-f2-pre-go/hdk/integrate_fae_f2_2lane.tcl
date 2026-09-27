@@ -39,9 +39,6 @@ connect_bd_intf_net [get_bd_intf_pins fae_dp6_hls_1/m_axi_gmem0] [get_bd_intf_pi
 connect_bd_intf_net [get_bd_intf_pins fae_dp6_hls_1/m_axi_gmem1] [get_bd_intf_pins fae_mem_merge/S03_AXI]
 connect_bd_intf_net [get_bd_intf_pins fae_mem_merge/M00_AXI] [get_bd_intf_pins axi_smc_cdma/S00_AXI]
 
-foreach cell {fae_dp6_hls_0 fae_dp6_hls_1 fae_ctrl_split fae_mem_merge} {
-  connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins $cell/ap_clk] 2>/dev/null
-}
 # SmartConnect clock/reset pins are aclk/aresetn; HLS uses ap_clk/ap_rst_n.
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_ctrl_split/aclk] [get_bd_pins fae_mem_merge/aclk]
 connect_bd_net [get_bd_pins proc_sys_reset_a0/peripheral_aresetn] [get_bd_pins fae_ctrl_split/aresetn] [get_bd_pins fae_mem_merge/aresetn]
