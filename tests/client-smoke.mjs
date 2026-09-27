@@ -67,11 +67,16 @@ const localStorage={
 };
 
 let submittedTransaction=null;
+let failNextStatus=false;
 const fetch=async(url,options={})=>{
   const requestUrl=new URL(String(url));
   const path=requestUrl.pathname.split('fae-public-testnet-v4')[1]||'';
   let body={};
   if(path.startsWith('/status')){
+    if(failNextStatus){
+      failNextStatus=false;
+      return new Response(JSON.stringify({error:'refresh_unavailable'}),{status:503,headers:{'content-type':'application/json'}});
+    }
     body={height:150,issued_fae:'1500',max_supply_fae:'21000000',halving_era_blocks:600000,difficulty_bits:17,node_version:5};
   }else if(path.startsWith('/state')){
     body={recent:[]};
@@ -93,6 +98,7 @@ const fetch=async(url,options={})=>{
     }]:[]};
   }else if(path.startsWith('/submit-tx')){
     submittedTransaction=JSON.parse(options.body).tx;
+    failNextStatus=true;
     body={txid:'a'.repeat(64)};
   }
   return new Response(JSON.stringify(body),{status:200,headers:{'content-type':'application/json'}});
@@ -141,8 +147,10 @@ assert.ok(indexHtml.includes('id="history-panel">'),'transaction history must be
 assert.ok(indexHtml.includes('aria-expanded="true"'),'history toggle must reflect the default-open state');
 assert.ok(indexHtml.indexOf('id="history-panel"')<indexHtml.indexOf('id="addresslist"'),'transaction history must appear before the wallet address list');
 assert.ok(indexHtml.includes('id="lastsendtxid"'),'send flow must expose a full transaction ID field');
+assert.ok(indexHtml.includes('src="/wallet-transactions.js"'),'wallet transaction contract adapter must load before the client');
+assert.ok(indexHtml.includes('id="sendstate" class="status" role="status" aria-live="polite"'),'send receipt feedback must be announced accessibly');
 
-for(const file of ['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
+for(const file of ['bip39-en.js','network-status.js','wallet-transactions.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
 await new Promise(resolve=>setTimeout(resolve,25));
@@ -185,10 +193,22 @@ assert.equal(clipboard,vm.runInContext('wallet.address',context));
 const txHistory=document.getElementById('txhist');
 assert.equal(txHistory.children.length,1);
 assert.equal(txHistory.children[0].className,'transaction-row transaction-details');
-const fullHistoryTxid=txHistory.children[0].children[1].children[1].textContent;
-assert.equal(fullHistoryTxid,'b'.repeat(64));
-await vm.runInContext("copyTransactionId('"+'b'.repeat(64)+"')",context);
+const detailBody=txHistory.children[0].children[1];
+const detailField=key=>detailBody.children.find(child=>child.dataset.detailKey===key);
+const txidField=detailField('txid');
+assert.ok(txidField,'transaction details must expose a TXID field');
+assert.equal(txidField.children[1].value,'b'.repeat(64));
+assert.equal(txidField.children[1].readOnly,true);
+assert.equal(detailField('direction').children[1].textContent,'Self transfer');
+assert.equal(detailField('status').children[1].textContent,'Pending');
+assert.equal(detailField('from').children[1].textContent,vm.runInContext('wallet.address',context));
+assert.ok(detailField('outputs').children[1].textContent.includes('1 FAE'));
+const historyCopyButton=txidField.children[2];
+const historyCopyFeedback=txidField.children[3];
+await historyCopyButton.listeners.click[0]();
 assert.equal(clipboard,'b'.repeat(64));
+assert.equal(historyCopyButton.textContent,'Copied');
+assert.equal(historyCopyFeedback.textContent,'Full transaction ID copied.');
 
 document.getElementById('sendto').value=vm.runInContext('walletAccount.addresses[1].address',context);
 document.getElementById('sendamt').value='1';
@@ -198,8 +218,12 @@ assert.equal(submittedTransaction.inputs[0],'smoke:0');
 assert.equal(submittedTransaction.outputs.length,2);
 assert.equal(document.getElementById('lastsendtx').hidden,false);
 assert.equal(document.getElementById('lastsendtxid').value,'a'.repeat(64));
+assert.match(document.getElementById('sendstate').textContent,/accepted/i);
+assert.match(document.getElementById('sendstate').textContent,/unconfirmed/i);
+assert.match(document.getElementById('sendstate').textContent,/refresh is unavailable/i);
 await vm.runInContext('copyLastSentTxid()',context);
 assert.equal(clipboard,'a'.repeat(64));
+assert.match(document.getElementById('sendstate').textContent,/remains unconfirmed/i);
 
 const packageJson=await vm.runInContext('recoveryPackage().then(JSON.stringify)',context);
 context.packageJson=packageJson;
@@ -217,4 +241,4 @@ assert.equal(document.getElementById('send').disabled,true);
 await vm.runInContext('useSavedFullWallet()',context);
 assert.equal(vm.runInContext('wallet.watchOnly',context),false);
 
-console.log('FAE client create, insert, receive, send, TXID copy/history, recovery, and watch-only checks passed.');
+console.log('FAE client create, insert, receive, accepted-unconfirmed receipt, TXID details/copy, recovery, and watch-only checks passed.');
