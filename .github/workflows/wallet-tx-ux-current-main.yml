@@ -12,6 +12,7 @@ on:
       - tests/client-smoke.mjs
       - tests/wallet-transactions-contract.mjs
       - tests/wallet-transactions-acceptance.mjs
+      - tests/wallet-history-lifecycle.mjs
       - tests/fixtures/wallet-transactions-acceptance.json
       - docs/wallet-transaction-ux/contract.json
       - .github/workflows/wallet-tx-ux-current-main.yml
@@ -45,6 +46,8 @@ jobs:
         run: node tests/wallet-transactions-contract.mjs
       - name: Wallet transaction acceptance fixtures
         run: node tests/wallet-transactions-acceptance.mjs
+      - name: Wallet history lifecycle
+        run: node tests/wallet-history-lifecycle.mjs
       - name: Wallet crypto compatibility
         run: node tests/crypto-compat.mjs
       - name: Client smoke
