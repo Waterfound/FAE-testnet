@@ -1,0 +1,52 @@
+name: Wallet Transaction UX current-main
+
+on:
+  push:
+    branches:
+      - build-colony/wallet-tx-ux-current-main-20260927
+    paths:
+      - core.js
+      - index.html
+      - wallet.js
+      - wallet-transactions.js
+      - tests/client-smoke.mjs
+      - tests/wallet-transactions-contract.mjs
+      - docs/wallet-transaction-ux/contract.json
+      - .github/workflows/wallet-tx-ux-current-main.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pinned source manifests
+        run: |
+          sha256sum -c FAE_FORGE_MAIN.sha256
+          (cd supabase && sha256sum -c SOURCE_MANIFEST.sha256)
+      - name: Parse browser sources
+        run: |
+          node --check core.js
+          node --check wallet-crypto.js
+          node --check wallet.js
+          node --check wallet-transactions.js
+          node --check mining.js
+          node --check network-status.js
+      - name: Wallet transaction contract
+        run: node tests/wallet-transactions-contract.mjs
+      - name: Wallet crypto compatibility
+        run: node tests/crypto-compat.mjs
+      - name: Client smoke
+        run: node tests/client-smoke.mjs
+      - name: Independent node checks
+        run: |
+          npm ci --prefix sovereign-forge/node
+          npm run --prefix sovereign-forge/node check
+          node sovereign-forge/tests/smoke-independent-node.mjs
