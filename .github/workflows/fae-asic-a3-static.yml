@@ -1,0 +1,35 @@
+name: FAE ASIC A3 static topology verification
+
+on:
+  push:
+    branches:
+      - lab/asic-a3-directsplit-static-20260927
+    paths:
+      - labs/asic-f2-pre-go/hdk/integrate_fae_f2_2lane_200mhz_a3_directsplit.tcl
+      - labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp
+      - labs/asic-f2-pre-go/runtime/verify_f2_a3_directsplit_static.py
+      - .github/workflows/fae-asic-a3-static.yml
+
+permissions:
+  contents: read
+
+jobs:
+  static-source-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify A3 source topology invariants
+        run: |
+          python labs/asic-f2-pre-go/runtime/verify_f2_a3_directsplit_static.py \
+            --report /tmp/fae-a3-static.json
+      - name: Upload static evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-asic-a3-static-${{ github.run_id }}
+          path: /tmp/fae-a3-static.json
+          if-no-files-found: error
+          retention-days: 30
