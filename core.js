@@ -181,6 +181,16 @@ function appendEmpty(container,message){
   container.append(empty);
 }
 
+async function copyTransactionId(txid,button=null){
+  const value=String(txid||'');
+  if(!/^[0-9a-f]{64}$/.test(value))throw Error('Invalid transaction ID');
+  await copyText(value);
+  if(button){
+    button.textContent='Copied';
+    button.setAttribute('aria-label','Transaction ID copied');
+  }
+}
+
 function renderWalletHistory(transactions,addressValue){
   const container=$('txhist');
   const list=Array.isArray(transactions)?transactions:[];
@@ -190,13 +200,17 @@ function renderWalletHistory(transactions,addressValue){
   }
   clearElement(container);
   for(const transaction of list){
-    const row=document.createElement('div');
-    row.className='transaction-row';
+    const txid=String(transaction.txid||'');
+    const row=document.createElement('details');
+    row.className='transaction-row transaction-details';
+
+    const summary=document.createElement('summary');
+    summary.className='transaction-summary';
     const left=document.createElement('div');
     const title=document.createElement('div');
     title.className='transaction-title';
     const sent=transaction.from_address===addressValue;
-    title.textContent=(sent?'Sent':'Received')+' · '+short(transaction.txid,18,8);
+    title.textContent=(sent?'Sent':'Received')+' · '+short(txid,18,8);
     const meta=document.createElement('div');
     meta.className='transaction-meta mono';
     const parts=[transaction.status==='confirmed'?'Confirmed':'Pending'];
@@ -205,10 +219,33 @@ function renderWalletHistory(transactions,addressValue){
     if(time)parts.push(time);
     meta.textContent=parts.join(' · ');
     left.append(title,meta);
+
     const state=document.createElement('div');
     state.className='right '+(transaction.status==='confirmed'?'ok':'warn');
     state.textContent=transaction.status==='confirmed'?'✓':'…';
-    row.append(left,state);
+    summary.append(left,state);
+
+    const body=document.createElement('div');
+    body.className='transaction-detail-body';
+    const label=document.createElement('div');
+    label.className='small';
+    label.textContent='Transaction ID';
+    const fullId=document.createElement('code');
+    fullId.className='txid-full mono';
+    fullId.textContent=txid;
+    const copy=document.createElement('button');
+    copy.type='button';
+    copy.className='alt transaction-copy';
+    copy.textContent='Copy transaction ID';
+    copy.setAttribute('aria-label','Copy transaction ID '+txid);
+    copy.disabled=!/^[0-9a-f]{64}$/.test(txid);
+    copy.addEventListener('click',()=>copyTransactionId(txid,copy).catch(error=>{
+      copy.textContent='Copy failed';
+      copy.setAttribute('title',error.message);
+    }));
+    body.append(label,fullId,copy);
+
+    row.append(summary,body);
     container.append(row);
   }
 }
