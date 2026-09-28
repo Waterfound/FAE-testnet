@@ -49,6 +49,16 @@ foreach n {ctrl0 ctrl1 mem00 mem01 mem10 mem11} {
 # Memory converters intentionally remain full AXI4.
 foreach n {ctrl0 ctrl1} {
   set_property -dict [list CONFIG.PROTOCOL {AXI4LITE}] [get_bd_cells fae_cc_$n]
+
+  # Vivado 2025.2/AWS HLx does not reliably propagate the cell-level protocol
+  # setting onto the generated M_AXI metadata. Bind the AXI4-Lite contract
+  # explicitly at both control CDC interfaces; AXI4-Lite permits one-beat
+  # transactions only, so MAX_BURST_LENGTH must be 1.
+  foreach intf {S_AXI M_AXI} {
+    set p [get_bd_intf_pins fae_cc_$n/$intf]
+    set_property CONFIG.PROTOCOL {AXI4LITE} $p
+    set_property CONFIG.MAX_BURST_LENGTH {1} $p
+  }
 }
 
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_clk_200/clk_in1]
