@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,cp,unlink,readFile} from 'node:fs/promises';
+import {mkdtemp,rm,cp,unlink,readFile,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {contract,readJson,writeJson,digestFile,manifestPayloadHash,stableEntries} from '../lib.mjs';
 import {createRehearsalPortfolio} from '../run-rehearsal.mjs';
 import {verifyEvidenceBundle} from '../verify-evidence.mjs';
 import {verifyPortfolio} from '../verify-portfolio.mjs';
+import {prepareStaging} from '../prepare-staging.mjs';
+import {collectEvidence} from '../collect-evidence.mjs';
 
 async function rewriteManifest(dir){
   const run=await readJson(join(dir,'run.json'));
@@ -117,5 +119,37 @@ test('RDE portfolio verifier rejects duplicated run identity',async()=>{
     const r=await verifyPortfolio(portfolio,{expectedSourceRevision:contract.source_binding.baseline_source_revision,expectedEvidenceClass:'REHEARSAL_ONLY'});
     assert.equal(r.verdict,'INSUFFICIENT_REPRESENTATIVE_DEVICE_EVIDENCE');
     assert.ok(r.errors.some(x=>x.startsWith('duplicate_run_id:')));
+  }finally{await rm(parent,{recursive:true,force:true})}
+});
+
+test('RDE single-capture wrapper normalizes a capture before independent collection and verification',async()=>{
+  const parent=await mkdtemp(join(tmpdir(),'fae-rde-capture-')),portfolio=join(parent,'portfolio');
+  try{
+    await createRehearsalPortfolio(portfolio);
+    const base=join(portfolio,'run-00');
+    const capture={
+      schema:'FAE_RDE_OPERATOR_CAPTURE_V1',
+      contract_id:contract.contract_id,
+      template_only:false,
+      run:await readJson(join(base,'run.json')),
+      selection_lock:await readJson(join(base,'selection-lock.json')),
+      device:await readJson(join(base,'device.json')),
+      environment:await readJson(join(base,'environment.json')),
+      source_provenance:await readJson(join(base,'source-provenance.json')),
+      workload:await readJson(join(base,'workload.json')),
+      measurements:await readJson(join(base,'measurements.json')),
+      energy:await readJson(join(base,'energy.json')),
+      thermals:await readJson(join(base,'thermals.json')),
+      system_events:await readJson(join(base,'system-events.json')),
+      miner_events:await readJson(join(base,'miner-events.json')),
+      operator_attestation:await readJson(join(base,'operator-attestation.json')),
+      miner_log:await readFile(join(base,'logs/miner.log'),'utf8')
+    };
+    const capturePath=join(parent,'capture.json');await writeFile(capturePath,JSON.stringify(capture,null,2));
+    const staging=join(parent,'staging'),bundle=join(parent,'bundle');
+    const prep=await prepareStaging({capturePath,outDir:staging});
+    assert.equal(prep.run_id,capture.run.run_id);
+    await collectEvidence({inputDir:staging,outDir:bundle});
+    assert.equal((await verify(bundle)).verdict,'PASS');
   }finally{await rm(parent,{recursive:true,force:true})}
 });
