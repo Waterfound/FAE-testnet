@@ -96,8 +96,10 @@ def main() -> int:
 
     # Fail-closed static assertions embedded in TCL.
     checks["control_cdc_axi4lite_explicit"] = (
-        text.count("CONFIG.PROTOCOL {AXI4LITE}") == 1
-        and "foreach n {ctrl0 ctrl1}" in text
+        "foreach n {ctrl0 ctrl1}" in text
+        and "foreach intf {S_AXI M_AXI}" in text
+        and "set_property CONFIG.PROTOCOL {AXI4LITE} $p" in text
+        and "set_property CONFIG.MAX_BURST_LENGTH {1} $p" in text
     )
 
     checks["self_checks_present"] = all(
