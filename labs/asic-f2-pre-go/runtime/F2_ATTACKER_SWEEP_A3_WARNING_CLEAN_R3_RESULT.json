@@ -1,0 +1,55 @@
+{
+  "schema": "fae.asic.f2.a3_warning_clean.provider_revalidation.r3.v1",
+  "recorded_date": "2026-09-27",
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-AXILITE-METADATA-V1",
+  "source_revision": "4246c098468f59bca2c41d8db1e8651912ac9167",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-0067a1fda786da4b1",
+    "instance_type": "r7i.xlarge",
+    "instance_profile": "FAE-ASIC-Lab-BuildProfile",
+    "security_group": "sg-0979153734996011d",
+    "max_runtime_tag": "1h",
+    "spend_cap_tag_usd": "20",
+    "instance_state_observed": "terminated"
+  },
+  "authority_boundary": {
+    "current_authority": "AWS/Vivado A3 static revalidation of AXI4-Lite warning-clean candidate only",
+    "physical_build_authorized": false,
+    "new_afi_authorized": false,
+    "release_authorized": false,
+    "consensus_activation_authorized": false
+  },
+  "validation": {
+    "vivado": "2025.2",
+    "validate_bd_design_completed": true,
+    "vivado_rc": 0,
+    "topology_marker": "FAE_A3_DIRECTSPLIT_VALIDATE_PASS",
+    "physical_implementation_launched": false,
+    "afi_created": false,
+    "warning_clean_objective_passed": false,
+    "wrapper_exit_code": 9
+  },
+  "warning_verdict": {
+    "status": "FAIL_CLOSED",
+    "code": "BD 41-237",
+    "occurrences": 2,
+    "details": [
+      "fae_dp6_hls_0/s_axi_control MAX_BURST_LENGTH=1 vs fae_cc_ctrl0/M_AXI=256",
+      "fae_dp6_hls_1/s_axi_control MAX_BURST_LENGTH=1 vs fae_cc_ctrl1/M_AXI=256"
+    ],
+    "diagnosis": "Setting CONFIG.PROTOCOL=AXI4LITE on the axi_clock_converter cell did not propagate MAX_BURST_LENGTH=1 onto its M_AXI interface metadata in the AWS HLx Vivado 2025.2 block design. The topology itself still validates."
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0067a1fda786da4b1/a3-warning-clean-revalidate/",
+  "evidence_objects": {
+    "vivado_log_size": 33165,
+    "bd_41_237_size": 308,
+    "interface_map_size": 1794,
+    "address_map_size": 2296,
+    "cells_size": 776
+  },
+  "disposition": "REWORK_INTERFACE_METADATA_ONLY",
+  "next_action": "Set AXI4-Lite protocol and MAX_BURST_LENGTH=1 explicitly on the control CDC block-design interface pins (not only on the cell configuration), preserve all memory/HLS/clock/address topology, then run repository-level source verification before any new provider revalidation.",
+  "boundary": "This result does not reject the A3 direct-split topology. It rejects only the claim that the first AXI4-Lite metadata cleanup removed BD 41-237. No physical implementation or AFI was launched."
+}
