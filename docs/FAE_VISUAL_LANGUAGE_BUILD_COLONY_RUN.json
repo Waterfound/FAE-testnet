@@ -235,5 +235,32 @@
     "final_browser_qa": "https://agent.tinyfish.ai/runs/3519655b-b77f-4ce8-a338-7a1f820f4c3c",
     "final_browser_qa_result": "three directions rendered, no horizontal-overflow/broken-layout issues observed, divergence sufficient",
     "rendered_text_verification": "A/B/C pages each expose Wallet and Mining concepts in the rendered public preview"
+  },
+  "durable_execution": {
+    "runtime_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "runtime_source_revision": "a27a558d4ed0e28d96c3fec408212353d0077060",
+    "bootstrap": {
+      "event": "fae-visual-language-vl05-bootstrap-001",
+      "trigger_commit": "b5a8c2c9121611d816c2850f3aad68dc397914ff",
+      "workflow_run": 36460513395,
+      "conclusion": "SUCCESS",
+      "state_digest": "sha256:9154d48d88ac278606b9fc00c78e7b90c591e4c83a7d4c4c3cebe7a18b6c7854"
+    },
+    "authority_stop": {
+      "event": "fae-visual-language-vl05-verified-001",
+      "trigger_commit": "8f2affb39dcf3f967bd37a2d484ccbd7342fa1e7",
+      "workflow_run": 36460735106,
+      "conclusion": "SUCCESS",
+      "status": "committed",
+      "post_generation": 1,
+      "post_state_digest": "sha256:a3717ab32a95539064f41e7f85233fcb2e5c384941295806b2f125b36c0750ee",
+      "checkpoint_digest": "sha256:cd6baf8f9f536a614874ea2800e6c4be251b2695d4d5d883300828a301a4d039",
+      "human_required": true,
+      "requested_action_ref": "authority://fae-visual-language/select-art-direction",
+      "authority_created": false
+    },
+    "final_runtime_head_observed": "0299fa538705a5cdd3ea5f3079cf10c8ac531863",
+    "disposition": "STOPPED_AT_GENUINE_WATERFOUND_AUTHORITY_GATE"
   }
 }
