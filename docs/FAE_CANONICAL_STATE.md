@@ -157,11 +157,42 @@ The V3 criteria must not be weakened to make any provider topology pass. In part
 Current admitted state:
 
 - physical HFB / RTX + watts evidence: unresolved
-- representative-device evidence: unresolved
+- representative-device evidence: unresolved; readiness package is `REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY`
 - operational soak: unresolved; no PASS should be inferred from elapsed time or a partial run
 - independent-operator evidence: unresolved
 
 A fresh operational soak may be admitted only after its complete frozen window and predefined gates are satisfied. Do not convert a partial or interrupted run into PASS.
+
+## Representative Device Evidence Readiness
+
+Current readiness state:
+
+`DONE / REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY`
+
+The software-only preparation for future representative-device physical evidence is complete. The frozen package defines representative-device eligibility, pre-result selection locking, a four-class coverage contract, controlled physical workloads, environment/performance/energy/thermal schemas, a single-capture normalization path, checksummed evidence bundles, deterministic run/portfolio verifiers, adversarial false-PASS tests and a four-class synthetic clean-room rehearsal.
+
+The rehearsal passed only as `READINESS_REHEARSAL_ONLY`. It is explicitly not physical evidence and cannot satisfy the external gate.
+
+Representative Device Evidence therefore remains:
+
+`EXTERNAL_EVIDENCE / NOT_OBTAINED`
+
+The required initial physical portfolio covers:
+
+- mobile/tablet ARM;
+- thin-and-light integrated compute;
+- consumer discrete GPU;
+- compact/handheld consumer hardware.
+
+At least two ISA families and three form factors must be represented. Actual models must be selected and locked before any FAE result for those devices is observed. Historical measurements, MTS-12 iPad evidence and ASIC/F2 evidence are not retroactively promoted into this gate.
+
+Primary references:
+
+- `lab/representative-device-evidence-readiness/acceptance-contract.json`
+- `lab/representative-device-evidence-readiness/README.md`
+- `docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_BUILD_COLONY_RUN.json`
+- `docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_CLOSURE.json`
+- `.github/workflows/representative-device-evidence-readiness.yml`
 
 ## Final production freeze still unresolved
 
