@@ -37,7 +37,8 @@ export function verify(){
  checks.push({id:'software-hard-failure-scan',status:'PASS_NONE_CONFIRMED'});
  assert(f05.frontier_disposition.includes('INSUFFICIENT_DIRECT_180'),'F180-05 insufficiency boundary missing');
  assert(f09.direct_fae_evidence_added===false,'external literature was incorrectly promoted to direct FAE evidence');
- assert(f10.synthesis_disposition==='NO_MATERIAL_RISK_PROVEN_BUT_180S_REMAINS_UNDER_EVIDENCED_FOR_MAINNET_GRADE_CLAIM','F180-10 disposition mismatch');\n assert(f13.status==='RESOLVED_MISSING_EXTERNAL_EVIDENCE_CURRENT_RUN' && f13.direct_180_evidence_available===false,'F180-13 missing-evidence resolution mismatch');
+ assert(f10.synthesis_disposition==='NO_MATERIAL_RISK_PROVEN_BUT_180S_REMAINS_UNDER_EVIDENCED_FOR_MAINNET_GRADE_CLAIM','F180-10 disposition mismatch');
+ assert(f13.status==='RESOLVED_MISSING_EXTERNAL_EVIDENCE_CURRENT_RUN' && f13.direct_180_evidence_available===false,'F180-13 missing-evidence resolution mismatch');
  checks.push({id:'external-evidence-boundary',status:'PASS_MISSING_DIRECT_EVIDENCE_RETAINED'});
  const provenanceGap=f01.gaps.some(x=>x.includes('Stability V1/V2'));
  assert(provenanceGap,'historical soak provenance gap disappeared');
