@@ -1,0 +1,50 @@
+name: Mainnet Readiness State
+
+on:
+  pull_request:
+    paths:
+      - "docs/FAE_MAINNET_READINESS_STATE.json"
+      - "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json"
+      - "docs/FAE_MAINNET_READINESS_CONSUMPTION_CONTRACT.json"
+      - "docs/FAE_CANONICAL_STATE.md"
+      - "tools/verify-mainnet-readiness-state.mjs"
+      - ".github/workflows/mainnet-readiness-state.yml"
+      - "sovereign-forge/release/software-only-ceiling-freeze.json"
+      - "docs/wallet-transaction-ux/wtx-07-publication-evidence.json"
+      - "lab/block-explorer/gate-status.json"
+      - "lab/post-quantum-signatures/gate-status.json"
+      - "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json"
+      - "sovereign-forge/release/stability-soak-v3-fallbacks.json"
+      - "lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json"
+  push:
+    branches:
+      - "colony/fae-mainnet-readiness-reconciliation-001"
+    paths:
+      - "docs/FAE_MAINNET_READINESS_STATE.json"
+      - "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json"
+      - "docs/FAE_MAINNET_READINESS_CONSUMPTION_CONTRACT.json"
+      - "docs/FAE_CANONICAL_STATE.md"
+      - "tools/verify-mainnet-readiness-state.mjs"
+      - ".github/workflows/mainnet-readiness-state.yml"
+      - "sovereign-forge/release/software-only-ceiling-freeze.json"
+      - "docs/wallet-transaction-ux/wtx-07-publication-evidence.json"
+      - "lab/block-explorer/gate-status.json"
+      - "lab/post-quantum-signatures/gate-status.json"
+      - "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json"
+      - "sovereign-forge/release/stability-soak-v3-fallbacks.json"
+      - "lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify readiness state
+        run: node tools/verify-mainnet-readiness-state.mjs
