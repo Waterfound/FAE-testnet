@@ -1,0 +1,164 @@
+import fs from "node:fs";
+
+const readJson = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
+const fail = (message) => {
+  console.error(`MAINNET_READINESS_VERIFY_FAIL: ${message}`);
+  process.exitCode = 1;
+};
+
+const statePath = "docs/FAE_MAINNET_READINESS_STATE.json";
+const registryPath = "docs/FAE_CANONICAL_STATE.md";
+
+const state = readJson(statePath);
+const registry = fs.readFileSync(registryPath, "utf8");
+const ceiling = readJson("sovereign-forge/release/software-only-ceiling-freeze.json");
+const wallet = readJson("docs/wallet-transaction-ux/wtx-07-publication-evidence.json");
+const explorer = readJson("lab/block-explorer/gate-status.json");
+const pq = readJson("lab/post-quantum-signatures/gate-status.json");
+const security = readJson("docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json");
+const soak = readJson("sovereign-forge/release/stability-soak-v3-fallbacks.json");
+const mining = readJson("lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json");
+
+const expectedStates = [
+  "DONE","ACTIVE","SECONDARY","CONDITION_WAIT","SCHEDULED","HUMAN_GATE",
+  "EXTERNAL_EVIDENCE","RESEARCH_ONLY","BLOCKED","UNRESOLVED","CLOSED"
+];
+const expectedAuthorityClasses = [
+  "ACTIVE_PUBLIC_TESTNET","EVIDENCE_ONLY","RESEARCH_ONLY","LAB_ONLY",
+  "REHEARSAL_ONLY","PACKAGING_ONLY","VERIFICATION_ONLY","EXTERNAL_EVIDENCE",
+  "HUMAN_AUTHORITY","DOCUMENTATION_ONLY","FINAL_PRODUCTION_AUTHORITY"
+];
+
+if (state.schema !== "FAE_MAINNET_READINESS_STATE_V1" || state.schema_version !== 1) {
+  fail("unsupported readiness schema");
+}
+if (state.workstream_role !== "SECONDARY") fail("readiness workstream must remain SECONDARY");
+if (JSON.stringify(state.state_taxonomy) !== JSON.stringify(expectedStates)) fail("state taxonomy drift");
+if (JSON.stringify(state.authority_classes) !== JSON.stringify(expectedAuthorityClasses)) fail("authority class drift");
+if (!/^[0-9a-f]{40}$/.test(state.generated_from_revision)) fail("generated_from_revision must be a commit SHA");
+
+const gates = new Map();
+for (const gate of state.gates ?? []) {
+  if (!gate.gate_id || gates.has(gate.gate_id)) fail(`duplicate or empty gate_id: ${gate.gate_id}`);
+  gates.set(gate.gate_id, gate);
+  if (!expectedStates.includes(gate.state)) fail(`unsupported state on ${gate.gate_id}`);
+  if (!expectedAuthorityClasses.includes(gate.authority_class)) fail(`unsupported authority class on ${gate.gate_id}`);
+  if (!Array.isArray(gate.evidence_refs)) fail(`evidence_refs must be an array on ${gate.gate_id}`);
+  if (!Array.isArray(gate.dependency_refs)) fail(`dependency_refs must be an array on ${gate.gate_id}`);
+  if (typeof gate.human_action_required !== "boolean") fail(`human_action_required must be boolean on ${gate.gate_id}`);
+  if (typeof gate.mainnet_critical !== "boolean") fail(`mainnet_critical must be boolean on ${gate.gate_id}`);
+  if (typeof gate.can_auto_advance !== "boolean") fail(`can_auto_advance must be boolean on ${gate.gate_id}`);
+  if (gate.human_action_required !== (gate.state === "HUMAN_GATE")) {
+    fail(`HUMAN_GATE semantics violated on ${gate.gate_id}`);
+  }
+  if (gate.state === "HUMAN_GATE" && gate.can_auto_advance) {
+    fail(`HUMAN_GATE cannot auto-advance: ${gate.gate_id}`);
+  }
+  if (["DONE","CLOSED"].includes(gate.state) && gate.evidence_refs.length === 0) {
+    fail(`closed gate lacks evidence: ${gate.gate_id}`);
+  }
+  if (gate.state === "SCHEDULED" && !gate.wake_condition) {
+    fail(`scheduled gate lacks wake condition: ${gate.gate_id}`);
+  }
+}
+for (const gate of gates.values()) {
+  for (const dep of gate.dependency_refs) {
+    if (!gates.has(dep)) fail(`unknown dependency ${dep} on ${gate.gate_id}`);
+  }
+}
+
+const requireGate = (id, expectedState) => {
+  const gate = gates.get(id);
+  if (!gate) return fail(`required gate missing: ${id}`);
+  if (expectedState && gate.state !== expectedState) fail(`${id} expected ${expectedState}, observed ${gate.state}`);
+  return gate;
+};
+
+requireGate("research_180s_validation", "ACTIVE");
+requireGate("mainnet_readiness_reconciliation", "SECONDARY");
+requireGate("wallet_transaction_ux", "DONE");
+requireGate("stability_soak_v3", "SCHEDULED");
+requireGate("block_explorer_independent_binding", "HUMAN_GATE");
+requireGate("asic_resistance_f2", "HUMAN_GATE");
+requireGate("mining_tip_stale_work_recovery", "HUMAN_GATE");
+requireGate("post_quantum_signature_research", "RESEARCH_ONLY");
+requireGate("public_code_security_baseline", "CLOSED");
+requireGate("mainnet_authorization", "BLOCKED");
+
+const live = state.authority_snapshot?.current_live_public_testnet;
+if (
+  live?.network !== "fairyelf-public-testnet-v4" ||
+  live?.target_block_interval_seconds !== 180 ||
+  live?.initial_subsidy_fae !== 10 ||
+  live?.halving_era_blocks !== 600000 ||
+  live?.maximum_supply_fae !== 12000000
+) fail("live public-testnet authority drift");
+
+const future = state.authority_snapshot?.preferred_future_research_candidate;
+if (
+  future?.target_block_interval_seconds !== 300 ||
+  future?.initial_subsidy_fae !== 14 ||
+  future?.halving_era_blocks !== 430000 ||
+  future?.authority !== "RESEARCH_ONLY" ||
+  future?.activation_height !== null
+) fail("future economic candidate authority drift");
+
+if (state.authority_snapshot?.consensus_change_authorized !== false) fail("consensus authority must remain false");
+if (state.authority_snapshot?.economic_candidate_promoted !== false) fail("economic candidate promotion must remain false");
+if (state.authority_snapshot?.mainnet_launch_authorized !== false) fail("mainnet launch authority must remain false");
+if (state.authority_snapshot?.mainnet_ready_claimed !== false) fail("MAINNET_READY must not be claimed");
+
+const expectedCrossLab = ["LAB_VERIFIED","INTEGRATED_MAIN","COMBINED_MAIN_VERIFIED","LIVE"];
+if (JSON.stringify(state.cross_lab_hierarchy) !== JSON.stringify(expectedCrossLab)) fail("cross-Lab hierarchy drift");
+
+if (wallet.status !== "PUBLICATION_VERIFIED" || wallet.verdict !== "PASS") {
+  fail("Wallet Transaction UX evidence no longer matches DONE classification");
+}
+if (explorer.public_frontend?.binding_state !== "UNBOUND" || explorer.https_independent_node_binding?.live_authorized !== false) {
+  fail("Block Explorer evidence changed; reconcile before retaining HUMAN_GATE/NOT_LIVE state");
+}
+if (pq.active_frontier !== "SOFTWARE_ONLY_POST_QUANTUM_RESEARCH_CEILING_REACHED" || pq.activation_authorized !== false) {
+  fail("PQ research evidence changed");
+}
+if (security.terminal_state_on_success !== "BASELINE_READY_FOR_RECURRING_ASSURANCE__BOUNDED_PROJECT_CLOSED") {
+  fail("public-code security closeout evidence changed");
+}
+if (soak.common_invariants?.run_started !== false) fail("Stability Soak V3 started; scheduled state is stale");
+if (mining.status !== "TIP_GATE_PASS_RESUME_METRIC_INVALID_FOR_RUNTIME_VERDICT") {
+  fail("MTS-12 physical evidence changed; reconcile before retaining HUMAN_GATE state");
+}
+
+const unset = [...(ceiling.unresolved_final_freeze ?? [])].sort();
+const recordedUnset = [...(state.final_production_values_unset ?? [])].sort();
+if (JSON.stringify(unset) !== JSON.stringify(recordedUnset)) fail("final production freeze list drift");
+
+for (const required of ["physical_hfb","representative_device","operational_soak","independent_operators"]) {
+  if (!(ceiling.unresolved_external_evidence ?? []).includes(required)) {
+    fail(`external-evidence baseline changed for ${required}`);
+  }
+}
+
+for (const literal of [
+  "network: `fairyelf-public-testnet-v4`",
+  "target block interval: 180 seconds",
+  "initial subsidy: 10 FAE/block",
+  "halving era: 600,000 blocks",
+  "maximum supply: 12,000,000 FAE"
+]) {
+  if (!registry.includes(literal)) fail(`canonical registry lost live authority literal: ${literal}`);
+}
+
+if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
+  if (state.reconciliation_verdict !== "CANONICAL_STATE_RECONCILED") fail("reconciled state lacks matching verdict");
+  if (!registry.includes("Last reviewed: 2026-09-28")) fail("reconciled registry review date missing");
+  if (!registry.includes("docs/FAE_MAINNET_READINESS_STATE.json")) fail("registry does not reference readiness state");
+  if (!registry.includes("Wallet Transaction UX")) fail("registry does not record Wallet Transaction UX");
+} else if (state.reconciliation_status !== "CANDIDATE") {
+  fail("unsupported reconciliation_status");
+}
+
+if (!process.exitCode) {
+  console.log("MAINNET_READINESS_STATE_VERIFIED");
+  console.log(`gates=${gates.size}`);
+  console.log(`reconciliation_status=${state.reconciliation_status}`);
+}
