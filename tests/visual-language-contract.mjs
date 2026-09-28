@@ -24,7 +24,7 @@ const authority = JSON.parse(fs.readFileSync(path.join(root,"design/direction-d-
 assert.equal(authority.authority_owner,"Waterfound");
 assert.equal(authority.selected_direction.id,"D");
 assert.equal(authority.selected_direction.status,"CANONICAL_FOR_VISUAL_IMPLEMENTATION");
-assert.ok(authority.selected_direction.principles.some(x=>x.includes("probabilistic") || x.includes("non-deterministic")));
+assert.ok(authority.selected_direction.principles.some(x=>/probabilistic|non-deterministic/i.test(x)));
 
 const continuation = JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION.json"),"utf8"));
 assert.equal(continuation.authority.durable_consumed,true);
@@ -36,7 +36,8 @@ const grammar=fs.readFileSync(path.join(root,"design/direction-d-visual-grammar.
 assert.match(grammar,/Orange Top/);
 assert.match(grammar,/White Field/);
 assert.match(grammar,/Blue Circulation/);
-assert.match(grammar,/probabilistic/i);
-assert.doesNotMatch(grammar,/\d+% to reward/i);
+assert.match(grammar,/proof-of-work discovery is probabilistic/i);
+assert.match(grammar,/must not display .*% to reward.*ETA to success/i);
+assert.match(grammar,/Prohibited language:/);
 
 console.log("visual-language contract: PASS");
