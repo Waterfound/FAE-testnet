@@ -15,10 +15,7 @@
     "RDE-04",
     "RDE-05",
     "RDE-06",
-    "RDE-07"
-  ],
-  "active_frontier": "RDE-08",
-  "admissible_next": [
+    "RDE-07",
     "RDE-08",
     "RDE-09",
     "RDE-10",
@@ -28,6 +25,8 @@
     "RDE-14",
     "RDE-15"
   ],
+  "active_frontier": null,
+  "admissible_next": [],
   "terminal_external_gates": [
     "RDE-X1",
     "RDE-X2",
@@ -41,5 +40,18 @@
     "mainnet_ready": false,
     "mainnet_authorized": false,
     "new_spending_authorized": false
-  }
+  },
+  "terminal_state": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "external_gate": {
+    "state": "EXTERNAL_EVIDENCE",
+    "frontiers": [
+      "RDE-X1",
+      "RDE-X2",
+      "RDE-X3"
+    ],
+    "wake_condition": "Real selected devices are locked before measurement, physical runs are performed under FAE-RDE-ACCEPTANCE-V1-20260928, and provenance-bound bundles are returned for final admission."
+  },
+  "last_verified_candidate": "8ec70d55858e1ec16cb18a70d252a9df0921598d",
+  "last_verification_run": 36462215170,
+  "last_cross_lab_run": 36462215264
 }
