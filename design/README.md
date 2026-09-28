@@ -29,3 +29,13 @@ FAE-specific identity remains specialized: orange topper, ticker behavior, blue-
 ## Execution boundary
 
 Direction selection is resolved. Non-consensus UI implementation may proceed after reconciliation with newest `main`. Consensus, economics, address formats, cryptographic constants, transaction semantics and mining correctness remain outside this workstream.
+
+## Proven implementation references
+
+After Homepage, Wallet, Mining and Explorer QA, the proven cross-product primitives and source-bound reference gallery are recorded in:
+
+- `design/proven-primitives.json`
+- `design/reference-gallery.md`
+- `docs/FAE_VISUAL_LANGUAGE_VL12_QA.md`
+
+They remain inside FAE until another real product demonstrates reusable value.

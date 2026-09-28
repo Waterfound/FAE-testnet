@@ -109,3 +109,9 @@ assert.match(explorerHtml,/role="status" aria-live="polite"/);
 assert.match(explorerHtml,/Read-only/);
 assert.match(explorerHtml,/Validated-node boundary/);
 console.log('Direction D cross-product accessibility contract: PASS');
+
+const primitives=JSON.parse(fs.readFileSync(path.join(root,"design/proven-primitives.json"),"utf8"));
+assert.equal(primitives.status,"PROVEN_IN_REAL_SURFACES");
+assert.equal(primitives.extraction_decision,"KEEP_IN_FAE_REPOSITORY_FOR_NOW");
+assert.ok(primitives.fae_specific_do_not_extract.includes("orange topper as FAE identity signature"));
+assert.ok(fs.existsSync(path.join(root,"design/reference-gallery.md")));

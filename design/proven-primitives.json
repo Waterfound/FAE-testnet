@@ -1,0 +1,62 @@
+{
+  "schema": "FAE_PROVEN_VISUAL_PRIMITIVES_V1",
+  "status": "PROVEN_IN_REAL_SURFACES",
+  "source_surfaces": [
+    "Homepage",
+    "Wallet",
+    "Mining",
+    "Explorer"
+  ],
+  "extraction_policy": "Generalize proven patterns, not imagined reuse.",
+  "reusable_candidates": {
+    "color_roles": {
+      "identity_top": "#f47a20",
+      "live_active": "#1769ff",
+      "live_active_deep": "#0c4cc4",
+      "work_surface": "#ffffff",
+      "app_background": "#f6f7f9",
+      "primary_text": "#17191d",
+      "muted_text": "#68707b"
+    },
+    "typography": {
+      "ui": "system sans stack",
+      "machine_data": "ui-monospace / SFMono-Regular / Consolas",
+      "principle": "data typography is distinct from narrative/product typography"
+    },
+    "layout": [
+      "compact identity/broadcast layer above the working field",
+      "light-first high-legibility work surface",
+      "thin rules and deliberate spacing before nested cards",
+      "semantic containment only",
+      "responsive two-column-to-single-column product transitions"
+    ],
+    "motion": [
+      "horizontal broadcast ticker for circulating network facts",
+      "live-state activity rail for ongoing computation",
+      "all continuous motion removed or converted to static/scrollable state under prefers-reduced-motion"
+    ],
+    "accessibility": [
+      "focus-visible is mandatory",
+      "status combines text/ARIA with color",
+      "body/muted/action/topper contrast is contract-tested",
+      "mobile security and authority-boundary language must stay readable"
+    ],
+    "qa_method": [
+      "source-bound DOM/semantic contract",
+      "CI contract",
+      "build-ready preview",
+      "isolated browser visual QA",
+      "explicit uncertainty ledger when browser observations conflict with deterministic source evidence"
+    ]
+  },
+  "fae_specific_do_not_extract": [
+    "orange topper as FAE identity signature",
+    "blue circulation as FAE live-state metaphor",
+    "FAE-specific mining participation language",
+    "FAE network ticker content",
+    "future FAE logo/symbol/wordmark",
+    "FAE product narrative and sovereign/fair-launch visual voice"
+  ],
+  "extraction_decision": "KEEP_IN_FAE_REPOSITORY_FOR_NOW",
+  "future_trigger": "Extract a Waterfound Visual System only after another real product proves reuse of these primitives without carrying FAE-specific identity."
+}
