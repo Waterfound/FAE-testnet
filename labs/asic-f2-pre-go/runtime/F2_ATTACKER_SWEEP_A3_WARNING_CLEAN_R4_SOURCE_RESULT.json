@@ -1,0 +1,34 @@
+{
+  "schema": "fae.asic.f2.a3_warning_clean.r4_source_validation.v1",
+  "recorded_date": "2026-09-27",
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-CTRL-PC-R4",
+  "source_revision": "4fefe41c3119228e97d3822d502d6828b4381b1d",
+  "verification": {
+    "provider": "github-actions",
+    "run_id": 36362191867,
+    "status": "PASS",
+    "physical_implementation_launched": false,
+    "afi_created": false
+  },
+  "control_path": {
+    "shell_side": "AXI4 @ 250 MHz",
+    "cdc": "axi_clock_converter 250->200 MHz",
+    "post_cdc_protocol_conversion": "axi_protocol_converter AXI4 -> AXI4LITE @ 200 MHz",
+    "hls_side": "s_axi_control AXI4-Lite",
+    "lanes": [
+      "ctrl0",
+      "ctrl1"
+    ]
+  },
+  "preserved_invariants": [
+    "C6 DP6 HLS source remains frozen",
+    "control offsets remain 0x00000000 and 0x00001000",
+    "lane0 gmem0 remains DDR and lane0 gmem1 remains HBM0",
+    "lane1 gmem0 remains DDR and lane1 gmem1 remains HBM1",
+    "compute clock remains local 200 MHz",
+    "memory CDC remains full AXI4"
+  ],
+  "removed_workaround": "Direct writes to read-only block-design interface metadata are no longer used.",
+  "boundary": "Source-level PASS only. Provider Vivado validate_bd_design and zero-BD-41-237 proof remain required before any physical implementation decision.",
+  "next_gate": "AWS/Vivado static provider revalidation of R4 only; no physical implementation or AFI."
+}
