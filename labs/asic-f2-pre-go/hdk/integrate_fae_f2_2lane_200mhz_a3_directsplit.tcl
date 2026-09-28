@@ -44,21 +44,16 @@ foreach n {ctrl0 ctrl1 mem00 mem01 mem10 mem11} {
   create_bd_cell -type ip -vlnv xilinx.com:ip:axi_clock_converter:2.1 fae_cc_$n
 }
 
-# The HLS control interfaces are AXI4-Lite. Make that protocol explicit on
-# their clock converters so Vivado propagates MAX_BURST_LENGTH=1 end-to-end.
-# Memory converters intentionally remain full AXI4.
+# Control CDC stays full AXI4 across the 250 -> 200 MHz clock boundary.
+# Convert explicitly to AXI4-Lite only after CDC, in the 200 MHz domain,
+# so the HLS s_axi_control interface receives native single-beat metadata.
 foreach n {ctrl0 ctrl1} {
-  set_property -dict [list CONFIG.PROTOCOL {AXI4LITE}] [get_bd_cells fae_cc_$n]
-
-  # Vivado 2025.2/AWS HLx does not reliably propagate the cell-level protocol
-  # setting onto the generated M_AXI metadata. Bind the AXI4-Lite contract
-  # explicitly at both control CDC interfaces; AXI4-Lite permits one-beat
-  # transactions only, so MAX_BURST_LENGTH must be 1.
-  foreach intf {S_AXI M_AXI} {
-    set p [get_bd_intf_pins fae_cc_$n/$intf]
-    set_property CONFIG.PROTOCOL {AXI4LITE} $p
-    set_property CONFIG.MAX_BURST_LENGTH {1} $p
-  }
+  create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 fae_pc_$n
+  set_property -dict [list \
+    CONFIG.SI_PROTOCOL.VALUE_SRC {USER} \
+    CONFIG.MI_PROTOCOL.VALUE_SRC {USER} \
+    CONFIG.SI_PROTOCOL {AXI4} \
+    CONFIG.MI_PROTOCOL {AXI4LITE}] [get_bd_cells fae_pc_$n]
 }
 
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_clk_200/clk_in1]
@@ -80,15 +75,19 @@ connect_bd_net [get_bd_pins fae_reset_200/peripheral_aresetn] \
 
 connect_bd_intf_net [get_bd_intf_pins f2_inst_axi_periph/M01_AXI] [get_bd_intf_pins fae_ctrl_split/S00_AXI]
 connect_bd_intf_net [get_bd_intf_pins fae_ctrl_split/M00_AXI] [get_bd_intf_pins fae_cc_ctrl0/S_AXI]
-connect_bd_intf_net [get_bd_intf_pins fae_cc_ctrl0/M_AXI] [get_bd_intf_pins fae_dp6_hls_0/s_axi_control]
+connect_bd_intf_net [get_bd_intf_pins fae_cc_ctrl0/M_AXI] [get_bd_intf_pins fae_pc_ctrl0/S_AXI]
+connect_bd_intf_net [get_bd_intf_pins fae_pc_ctrl0/M_AXI] [get_bd_intf_pins fae_dp6_hls_0/s_axi_control]
 connect_bd_intf_net [get_bd_intf_pins fae_ctrl_split/M01_AXI] [get_bd_intf_pins fae_cc_ctrl1/S_AXI]
-connect_bd_intf_net [get_bd_intf_pins fae_cc_ctrl1/M_AXI] [get_bd_intf_pins fae_dp6_hls_1/s_axi_control]
+connect_bd_intf_net [get_bd_intf_pins fae_cc_ctrl1/M_AXI] [get_bd_intf_pins fae_pc_ctrl1/S_AXI]
+connect_bd_intf_net [get_bd_intf_pins fae_pc_ctrl1/M_AXI] [get_bd_intf_pins fae_dp6_hls_1/s_axi_control]
 
 foreach n {ctrl0 ctrl1} {
   connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_cc_$n/s_axi_aclk]
   connect_bd_net [get_bd_pins proc_sys_reset_a0/peripheral_aresetn] [get_bd_pins fae_cc_$n/s_axi_aresetn]
-  connect_bd_net [get_bd_pins fae_clk_200/clk_out1] [get_bd_pins fae_cc_$n/m_axi_aclk]
-  connect_bd_net [get_bd_pins fae_reset_200/peripheral_aresetn] [get_bd_pins fae_cc_$n/m_axi_aresetn]
+  connect_bd_net [get_bd_pins fae_clk_200/clk_out1] \
+    [get_bd_pins fae_cc_$n/m_axi_aclk] [get_bd_pins fae_pc_$n/aclk]
+  connect_bd_net [get_bd_pins fae_reset_200/peripheral_aresetn] \
+    [get_bd_pins fae_cc_$n/m_axi_aresetn] [get_bd_pins fae_pc_$n/aresetn]
 }
 
 connect_bd_intf_net [get_bd_intf_pins fae_dp6_hls_0/m_axi_gmem0] [get_bd_intf_pins fae_cc_mem00/S_AXI]
@@ -145,6 +144,11 @@ if {[llength [get_bd_cells -quiet fae_mem_merge]] != 0} { error "A3_UNEXPECTED_F
 if {[llength [get_bd_cells -quiet axi_smc_cdma]] != 0} { error "A3_UNEXPECTED_AXI_SMC_CDMA" }
 if {[get_property CONFIG.NUM_SI [get_bd_cells smartconnect_ddr4]] != 3} { error "A3_DDR_NUM_SI_NOT_3" }
 if {[get_property CONFIG.NUM_SI [get_bd_cells smartconnect_hbm]] != 3} { error "A3_HBM_NUM_SI_NOT_3" }
+foreach n {ctrl0 ctrl1} {
+  if {[llength [get_bd_cells -quiet fae_pc_$n]] != 1} { error "A3_CTRL_PROTOCOL_CONVERTER_MISSING_$n" }
+  if {[get_property CONFIG.SI_PROTOCOL [get_bd_cells fae_pc_$n]] ne "AXI4"} { error "A3_CTRL_PC_SI_NOT_AXI4_$n" }
+  if {[get_property CONFIG.MI_PROTOCOL [get_bd_cells fae_pc_$n]] ne "AXI4LITE"} { error "A3_CTRL_PC_MI_NOT_AXI4LITE_$n" }
+}
 
 if {[info exists ::env(FAE_EVIDENCE_DIR)]} {
   set edir $::env(FAE_EVIDENCE_DIR)
