@@ -1,0 +1,32 @@
+{
+  "schema": "fae-180s-f180-13-external-evidence-gate/1",
+  "frontier": "F180-13",
+  "status": "RESOLVED_MISSING_EXTERNAL_EVIDENCE_CURRENT_RUN",
+  "authority": "research-evidence-gate-only-no-consensus-authority",
+  "resolution_date": "2026-09-28",
+  "direct_180_evidence_available": false,
+  "reasons": [
+    "No fresh directly comparable 180s WAN/physical/natural-event dataset with raw provenance was produced or admitted in this run.",
+    "Historical Stability Soak V1 and V2 remain failed runs; their reported zero stale/reorg observations cannot be promoted to PASS and the repository-resident authoritative raw result bundle was not located by F180-01.",
+    "Economic + Block-Time v2 real-WAN evidence directly covers 300/600/900, not 180.",
+    "External papers and public-chain evidence in F180-09 are directional only and cannot stand in for FAE measurement.",
+    "Stability Soak V3 remains PREPARED_NOT_STARTED and is a separate operational gate; this research does not substitute or pre-judge it."
+  ],
+  "frozen_missing_requirements": [
+    "Fresh 180s propagation dataset with source/environment/period and >=500 admitted samples.",
+    "P50/mean/P95 and P99 when raw distribution permits.",
+    "Natural stale/fork/reorg denominator sufficient for frozen Wilson 95% gates (steady <1%, stress <2%).",
+    "Fresh recovery/partition evidence against a precommitted bound with deterministic state convergence.",
+    "Multi-host clock-health evidence kept separate from network-success evidence."
+  ],
+  "disposition": "MISSING_EVIDENCE_IS_NOT_A_PASS_AND_NOT_A_BLOCKTIME_FAILURE",
+  "effect_on_terminal_verdict": "For the current evidence snapshot, absence of required direct evidence forces INSUFFICIENT_EVIDENCE unless a verified MATERIAL_RISK_FOUND takes precedence.",
+  "reopen_conditions": [
+    "Admit fresh directly comparable evidence meeting the frozen F180 evidence-admission schema.",
+    "Or admit Stability Soak V3/new WAN evidence in a future research revision without retroactively changing this run."
+  ],
+  "stabilitySoakV3Substituted": false,
+  "newSpendAuthorized": false,
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
