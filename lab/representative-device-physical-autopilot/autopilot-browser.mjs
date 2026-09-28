@@ -36,7 +36,7 @@ function formProfile(){
     device_class:$('deviceClass').value,
     os:navigator.platform||'browser',
     os_version:navigator.userAgent,
-    isa_family:state.profile?.isa_family||(/arm|iphone|ipad|mac/i.test(navigator.userAgent)?'arm64':'unknown'),
+    isa_family:state.profile?.isa_family||($('deviceClass').value==='mobile_tablet_arm'?'arm64':(['consumer_discrete_gpu','compact_handheld_consumer'].includes($('deviceClass').value)?'x86_64':'unknown')),
     form_factor:({
       mobile_tablet_arm:'mobile_or_tablet',
       thin_light_integrated:'thin_and_light_laptop',
