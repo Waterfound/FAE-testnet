@@ -1,0 +1,278 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-28",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-representative-device-physical-autopilot-001",
+  "source_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+  "workstream": "FAE — Representative Device Physical Autopilot",
+  "portfolio_role": "SECONDARY",
+  "parent_contract": "FAE-RDE-ACCEPTANCE-V1-20260928",
+  "mission": "Move every admissible part of RDE-X1 physical execution from one-man operation to one-machine orchestration while preserving real-hardware provenance and frozen acceptance criteria.",
+  "portfolio_constraints": {
+    "active": {
+      "name": "FAE Research — 180s Economic + Block-Time Validation",
+      "preserved": true
+    },
+    "parallel_independent": {
+      "name": "FAE — Visual Language, Art Direction & Rebrand",
+      "preserved": true
+    },
+    "serialization_rule": "Parallelize independence. Serialize shared state."
+  },
+  "architecture": {
+    "browser_harness": "One frozen browser harness executes the canonical PoW semantics, full-duration RDE workloads, normal-use scripted latency measurement, lifecycle recording and capture export.",
+    "local_agent": "Optional zero-dependency Node.js controller detects device/OS, serves the harness on localhost, records telemetry where available, receives captures, packages evidence and invokes the existing deterministic verifier.",
+    "online_harness": "Public no-login browser harness is deployed at https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/; Vercel remains an optional branch-preview path and its final-head rebuild was rate-limited, not a functional acceptance dependency.",
+    "evidence_boundary": "The autopilot may prepare and execute real physical runs only on a real device actually running the harness. Rehearsal mode is permanently labeled REHEARSAL_ONLY."
+  },
+  "device_strategy": {
+    "mobile_tablet_arm": "online Safari harness; exact model is locked before first measurement; lifecycle transitions require actual background/foreground events.",
+    "thin_light_integrated": "local agent preferred; browser-only online path remains valid fallback.",
+    "consumer_discrete_gpu": "local agent preferred for GPU identity/thermal telemetry; workload remains the frozen browser PoW implementation rather than CUDA-specific mining.",
+    "compact_handheld_consumer": "local agent or browser-only path; lifecycle transitions remain required."
+  },
+  "automation_ceiling": {
+    "autonomous_after_bootstrap": [
+      "device discovery where OS permits",
+      "selection lock before measurement",
+      "network/source preflight",
+      "warmup timing",
+      "three sustained-mining repetitions",
+      "three normal-use coexistence repetitions",
+      "event-loop interaction baseline and p95 derivation",
+      "raw attempt/event capture",
+      "stale-tip replacement",
+      "capture generation",
+      "local evidence packaging",
+      "deterministic run verification",
+      "portfolio progress accounting",
+      "one-command localhost autostart through --autostart-physical",
+      "one-tap browser autostart through mode=PHYSICAL_EVIDENCE&autostart=1 when identity and public reward address are prefilled"
+    ],
+    "irreducible_physical_or_external": [
+      "turning on or physically connecting a device when no remote control exists",
+      "opening the online harness on iPad if no remote browser-control channel exists",
+      "five real iPad background/foreground transitions required by lifecycle evidence",
+      "reading a non-digital wall wattmeter unless the operator supplies readings or a machine-readable meter is attached",
+      "providing an unavailable required device class"
+    ]
+  },
+  "authority_envelope": {
+    "authority_owner": "Waterfound",
+    "may_autonomously": [
+      "create isolated branch and PR",
+      "implement browser/local physical execution tooling",
+      "deploy preview-only online harness through existing Vercel Git integration",
+      "run software/rehearsal/CI/browser verification",
+      "prepare deterministic physical campaign configs",
+      "package physical evidence that a real device actually produces",
+      "advance every software-only frontier without asking proceed"
+    ],
+    "may_not": [
+      "fabricate physical measurements",
+      "simulate background/foreground and label it physical",
+      "weaken RDE acceptance criteria",
+      "change frozen RDE contract",
+      "select devices after observing their FAE result",
+      "claim unavailable wall-power data",
+      "promote rehearsal to physical evidence",
+      "change consensus/economics/activation/mainnet authority",
+      "incur new paid spend"
+    ]
+  },
+  "execution_graph": [
+    {
+      "id": "RPA-00",
+      "name": "Canonical parent-contract and infrastructure inventory",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-01",
+      "name": "Physical automation ceiling and authority boundary",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-02",
+      "name": "Unified browser harness architecture",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-03",
+      "name": "Pre-result device discovery and selection-lock mechanism",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-04",
+      "name": "Canonical PoW measurement engine",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-05",
+      "name": "Sustained-mining campaign scheduler",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-06",
+      "name": "Normal-use coexistence automation",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-07",
+      "name": "Real lifecycle-transition recorder",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-08",
+      "name": "Desktop/Steam Deck local controller",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-09",
+      "name": "Hardware/thermal telemetry adapters",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-10",
+      "name": "Capture-to-RDE evidence packaging bridge",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-11",
+      "name": "Browser-only portfolio export/import path",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-12",
+      "name": "Adversarial fail-closed campaign",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-13",
+      "name": "Vercel preview deployment",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-14",
+      "name": "Real-browser preview verification",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-15",
+      "name": "Cross-lab/canonical regression",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-16",
+      "name": "Physical execution kit closure",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RPA-X1",
+      "name": "Real physical runs on required devices",
+      "class": "EXTERNAL_OR_PHYSICAL",
+      "state": "PHYSICAL_EVIDENCE"
+    },
+    {
+      "id": "RPA-X2",
+      "name": "Irreducible iPad lifecycle touches",
+      "class": "EXTERNAL_OR_PHYSICAL",
+      "state": "PHYSICAL_HUMAN_TOUCH"
+    },
+    {
+      "id": "RPA-X3",
+      "name": "Missing device-class access or machine-readable energy source",
+      "class": "EXTERNAL_OR_PHYSICAL",
+      "state": "EXTERNAL_EVIDENCE"
+    },
+    {
+      "id": "RPA-X4",
+      "name": "Final physical portfolio admission",
+      "class": "EXTERNAL_OR_PHYSICAL",
+      "state": "EXTERNAL_EVIDENCE"
+    }
+  ],
+  "verification": {
+    "verified_candidate_revision": "18bf625585500f722e2bac164cbaf149cece4f79",
+    "github_actions": {
+      "physical_autopilot": {
+        "run_id": 36486838180,
+        "result": "SUCCESS"
+      },
+      "cross_lab_integration": {
+        "run_id": 36486838342,
+        "result": "SUCCESS"
+      },
+      "verify_canonical_source": {
+        "run_id": 36486838087,
+        "result": "SUCCESS"
+      },
+      "codeql_security": {
+        "run_id": 36486838340,
+        "result": "SUCCESS"
+      },
+      "public_code_security_recurring_assurance": {
+        "run_id": 36486838090,
+        "result": "SUCCESS"
+      }
+    },
+    "local_controller": {
+      "result": "PASS",
+      "checks": [
+        "localhost_server_start",
+        "profile_endpoint",
+        "reward_address_prefill",
+        "autostart_mode_binding",
+        "harness_delivery",
+        "autostart_without_reward_address_fails_closed"
+      ]
+    },
+    "public_harness": {
+      "url": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/",
+      "app_id": "fae-rde-physical-autopilot-1lztsf",
+      "snapshot_version": "1790631207980",
+      "host_qa": {
+        "status": "READY",
+        "frontend_errors": 0,
+        "network_errors": 0
+      },
+      "zero_click_rehearsal": {
+        "browser_run_id": "07dfa2ce-94ee-41a7-85ff-e95adcb26379",
+        "result": "PASS",
+        "mode": "REHEARSAL_ONLY",
+        "device_locked": "Locked before results",
+        "campaign_status": "Campaign complete on this device",
+        "captures": 6,
+        "attempts": 3855940,
+        "observed_rate_hps": 50982,
+        "physical_evidence": false
+      }
+    },
+    "vercel": {
+      "branch_preview_verified": true,
+      "verified_preview": "https://fairyelf-fae-testnet-gwdetze92-waterfound.vercel.app/lab/representative-device-physical-autopilot/",
+      "live_lock_observed_height": 496,
+      "exact_final_head_rebuild": "BLOCKED_BY_BUILD_RATE_LIMIT",
+      "acceptance_dependency": false
+    }
+  },
+  "terminal_technical_state": "REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_READY",
+  "physical_evidence_obtained": false
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "FAE_RDE_PHYSICAL_AUTOPILOT_EXECUTION_KIT_V1",
+  "kit_id": "FAE-RDE-PHYSICAL-AUTOPILOT-KIT-V1-20260928",
+  "parent_contract_id": "FAE-RDE-ACCEPTANCE-V1-20260928",
+  "terminal_technical_state": "REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_READY",
+  "public_harness": {
+    "url": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/",
+    "no_login_required": true,
+    "private_key_required": false,
+    "prefill_parameters": [
+      "deviceClass",
+      "manufacturer",
+      "model",
+      "address",
+      "mode",
+      "autostart"
+    ],
+    "one_tap_physical_template": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/?deviceClass=<class>&manufacturer=<manufacturer>&model=<model>&address=<faet-public-address>&mode=PHYSICAL_EVIDENCE&autostart=1"
+  },
+  "local_controller": {
+    "requirements": [
+      "Node.js 22+",
+      "a real physical device",
+      "a public FAE reward address"
+    ],
+    "command": "node lab/representative-device-physical-autopilot/desktop-agent.mjs --reward-address <faet-public-address> --autostart-physical",
+    "optional_class_override": "--device-class <required-class>",
+    "output_directory": ".rde-physical-evidence/",
+    "automatic_pipeline": [
+      "device_discovery",
+      "pre_result_selection_lock",
+      "full_duration_campaign",
+      "capture",
+      "prepare_staging",
+      "collect_evidence",
+      "verify_evidence"
+    ]
+  },
+  "required_classes": [
+    "mobile_tablet_arm",
+    "thin_light_integrated",
+    "consumer_discrete_gpu",
+    "compact_handheld_consumer"
+  ],
+  "fixed_timed_seconds_per_device": 9180,
+  "fixed_timed_duration_human": "2h33m",
+  "parallel_execution_allowed": true,
+  "lifecycle": {
+    "required_for": [
+      "mobile_tablet_arm",
+      "compact_handheld_consumer"
+    ],
+    "minimum_real_hidden_visible_cycles": 5,
+    "synthetic_cycles_forbidden": true,
+    "irreducible_human_touch_on_ipad": true,
+    "compact_handheld_note": "The harness records only genuine browser lifecycle events; if the OS/browser does not expose a machine-control route, five physical background/foreground cycles remain required."
+  },
+  "energy": {
+    "machine_readable_meter_required_for_wall_power_autonomy": true,
+    "unavailable_is_allowed_for_technical_participation": true,
+    "unavailable_blocks_efficiency_claim": true,
+    "fabricated_reading_forbidden": true
+  },
+  "authority": {
+    "physical_evidence_obtained": false,
+    "final_portfolio_admitted": false,
+    "representative_device_evidence_pass": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}
