@@ -1,0 +1,501 @@
+{
+  "schema": "FAE_MAINNET_READINESS_STATE_V1",
+  "schema_version": 1,
+  "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
+  "workstream_role": "SECONDARY",
+  "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "last_reconciled_at": "2026-09-28",
+  "reconciliation_status": "CANDIDATE",
+  "source_precedence": [
+    "authoritative_or_frozen_source_artifact",
+    "current_canonical_repository_state",
+    "docs/FAE_CANONICAL_STATE.md_living_registry",
+    "conversation_context"
+  ],
+  "state_taxonomy": [
+    "DONE",
+    "ACTIVE",
+    "SECONDARY",
+    "CONDITION_WAIT",
+    "SCHEDULED",
+    "HUMAN_GATE",
+    "EXTERNAL_EVIDENCE",
+    "RESEARCH_ONLY",
+    "BLOCKED",
+    "UNRESOLVED",
+    "CLOSED"
+  ],
+  "authority_classes": [
+    "ACTIVE_PUBLIC_TESTNET",
+    "EVIDENCE_ONLY",
+    "RESEARCH_ONLY",
+    "LAB_ONLY",
+    "REHEARSAL_ONLY",
+    "PACKAGING_ONLY",
+    "VERIFICATION_ONLY",
+    "EXTERNAL_EVIDENCE",
+    "HUMAN_AUTHORITY",
+    "DOCUMENTATION_ONLY",
+    "FINAL_PRODUCTION_AUTHORITY"
+  ],
+  "authority_snapshot": {
+    "current_live_public_testnet": {
+      "network": "fairyelf-public-testnet-v4",
+      "target_block_interval_seconds": 180,
+      "initial_subsidy_fae": 10,
+      "halving_era_blocks": 600000,
+      "maximum_supply_fae": 12000000,
+      "premine_treasury_administrative_mint": "none"
+    },
+    "preferred_future_research_candidate": {
+      "target_block_interval_seconds": 300,
+      "initial_subsidy_fae": 14,
+      "halving_era_blocks": 430000,
+      "hard_ceiling_fae": 12040000,
+      "exact_scheduled_issuance_fae": "12039999.94840000",
+      "coinbase_maturity_blocks": 200,
+      "authority": "RESEARCH_ONLY",
+      "activation_height": null
+    },
+    "consensus_change_authorized": false,
+    "economic_candidate_promoted": false,
+    "mainnet_launch_authorized": false,
+    "mainnet_ready_claimed": false
+  },
+  "cross_lab_hierarchy": [
+    "LAB_VERIFIED",
+    "INTEGRATED_MAIN",
+    "COMBINED_MAIN_VERIFIED",
+    "LIVE"
+  ],
+  "gates": [
+    {
+      "gate_id": "live_public_testnet_authority",
+      "area": "Consensus / protocol",
+      "description": "Current public-testnet consensus authority remains the v4 180-second network.",
+      "state": "ACTIVE",
+      "authority_class": "ACTIVE_PUBLIC_TESTNET",
+      "evidence_refs": [
+        "README.md",
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "sovereign-forge/node/authoritative/fae-v4-core.mjs"
+      ],
+      "dependency_refs": [],
+      "next_action": "Observe only; no authority change is created by this ledger.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "research_180s_validation",
+      "area": "Consensus / protocol",
+      "description": "Direct falsification-oriented validation of the actually active 180-second parameter.",
+      "state": "ACTIVE",
+      "authority_class": "RESEARCH_ONLY",
+      "evidence_refs": [
+        "branch:colony/fae-180s-economic-block-time-validation-001",
+        "docs/FAE_180S_ECONOMIC_BLOCK_TIME_VALIDATION_BUILD_COLONY_RUN.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Continue under its own Durable Execution portfolio; this secondary workstream must not race its shared state.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "mainnet_readiness_reconciliation",
+      "area": "Documentation / orchestration",
+      "description": "Evidence-bound canonical-state reconciliation and machine-readable readiness registry.",
+      "state": "SECONDARY",
+      "authority_class": "DOCUMENTATION_ONLY",
+      "evidence_refs": [
+        "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json",
+        "docs/FAE_MAINNET_READINESS_STATE.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Advance MR-04 through MR-09 on an isolated branch and serialize canonical shared-state integration.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": false,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "preferred_future_economic_candidate",
+      "area": "Consensus / protocol",
+      "description": "300s / 14 FAE / 430000-block research incumbent remains non-authoritative.",
+      "state": "RESEARCH_ONLY",
+      "authority_class": "RESEARCH_ONLY",
+      "evidence_refs": [
+        "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md",
+        "sovereign-forge/release/software-only-ceiling-freeze.json"
+      ],
+      "dependency_refs": [
+        "research_180s_validation"
+      ],
+      "next_action": "Research may continue; do not activate or select an activation height here.",
+      "wake_condition": "Research evidence and a separate explicit authority gate would be required for any promotion.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "difficulty_timestamp_hardening",
+      "area": "Consensus / protocol",
+      "description": "Difficulty + Timestamp II measured clock-health WAN evidence is integrated as Lab/candidate evidence.",
+      "state": "DONE",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "commit:e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510",
+        "sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_ARRIVAL_CLOCK.md"
+      ],
+      "dependency_refs": [],
+      "next_action": "No documentation-only action; active-v4 180s DAA questions remain owned by research_180s_validation.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "peer_isolation_eclipse_resistance",
+      "area": "Network",
+      "description": "Peer Isolation & Eclipse Resistance real-WAN Gate 3 is integrated as non-activating evidence.",
+      "state": "DONE",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "commit:946bfc8b0baae2a50f960a4ca63756c08fdef319",
+        "sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_REAL_WAN.md"
+      ],
+      "dependency_refs": [],
+      "next_action": "Preserve non-activation boundary; future production topology remains a separate final-freeze concern.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "fork_reorg_recovery_software_ceiling",
+      "area": "Consensus / protocol",
+      "description": "Activation boundary, compatibility/replay and network-composition software ceilings are GREEN under H2.",
+      "state": "DONE",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "sovereign-forge/protocol/AGENT_BUILD_COLONY_H2_FINAL_SERIALIZED_INTEGRATION.md"
+      ],
+      "dependency_refs": [],
+      "next_action": "No software-only promotion is implied; operational evidence remains separate.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "asic_resistance_f2",
+      "area": "Mining / decentralization",
+      "description": "A3-R4 physical timing is closed and its existing AFI is available, but current admitted authority does not cover F2 runtime execution or subsequent attacker/benchmark gates.",
+      "state": "HUMAN_GATE",
+      "authority_class": "HUMAN_AUTHORITY",
+      "evidence_refs": [
+        "Waterfound/FAE-testnet@d1d98251dc2c58d53a843d5f04c2fc8ff3af0d4d",
+        "Waterfound/General-Execution:authority/fae-asic-a3-r4-existing-afi-authority-resume-001.json",
+        "Waterfound/General-Execution:provider-inbox/fae-a3-r4-afi-available-001.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Obtain explicit authority covering the next F2 runtime action before loading/running the AFI; do not create another AFI.",
+      "wake_condition": "Waterfound explicitly authorizes the bounded F2 runtime step.",
+      "human_action_required": true,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "physical_hfb_economics",
+      "area": "Mining / decentralization",
+      "description": "Physical HFB / work-per-watt / work-per-dollar evidence remains unresolved as a mainnet evidence gate.",
+      "state": "EXTERNAL_EVIDENCE",
+      "authority_class": "EXTERNAL_EVIDENCE",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json"
+      ],
+      "dependency_refs": [
+        "asic_resistance_f2"
+      ],
+      "next_action": "Admit only fresh, provenance-bound physical evidence; do not infer PASS from earlier partial measurements.",
+      "wake_condition": "Admissible physical HFB evidence exists.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "representative_device_evidence",
+      "area": "Mining / decentralization",
+      "description": "Representative-device evidence remains unresolved in the H2 external-evidence freeze.",
+      "state": "EXTERNAL_EVIDENCE",
+      "authority_class": "EXTERNAL_EVIDENCE",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Define and admit representative-device evidence under an explicit evidence contract.",
+      "wake_condition": "Representative-device evidence becomes available.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "stability_soak_v3",
+      "area": "Network",
+      "description": "V3 is prepared but has not started; historical V1/V2 failures remain immutable.",
+      "state": "SCHEDULED",
+      "authority_class": "EXTERNAL_EVIDENCE",
+      "evidence_refs": [
+        "docs/FAE_CANONICAL_STATE.md#stability-soak-v3-operational-state",
+        "sovereign-forge/release/stability-soak-v3-fallbacks.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Run the frozen preflight at the 2026-10-01 checkpoint; assign T0 only if every prestart gate passes.",
+      "wake_condition": "2026-10-01 checkpoint reached and provider/free-tier prerequisites can be revalidated.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "mining_tip_stale_work_recovery",
+      "area": "Mining / user journey",
+      "description": "Software and real-browser work is advanced, but MTS-12 still lacks valid terminal physical-iPad lifecycle evidence.",
+      "state": "HUMAN_GATE",
+      "authority_class": "LAB_ONLY",
+      "evidence_refs": [
+        "lab/mining-tip-sync/authority.json",
+        "lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json",
+        "lab/mining-tip-sync/evidence/mts-12-prep.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Execute the corrected MTS-12 physical iPad/Safari lifecycle protocol without weakening the frozen 1500 ms local reaction metric.",
+      "wake_condition": "Waterfound performs the physical iPad/Safari evidence run and exports admissible evidence.",
+      "human_action_required": true,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "wallet_transaction_ux",
+      "area": "Wallet / user journey",
+      "description": "TXID visibility/copyability and transaction-history discoverability are publication verified.",
+      "state": "DONE",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "docs/wallet-transaction-ux/contract.json",
+        "docs/wallet-transaction-ux/wtx-07-publication-evidence.json",
+        "commit:48ba1df01075f7e6714d2e98d5ce8df827d1e5f2"
+      ],
+      "dependency_refs": [],
+      "next_action": "Keep closed unless a regression or new product requirement reopens it.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "block_explorer_independent_binding",
+      "area": "Transparency",
+      "description": "Explorer frontend is public PREBIND/UNBOUND; LIVE remains false pending an eligible persistent Independent Node host.",
+      "state": "HUMAN_GATE",
+      "authority_class": "HUMAN_AUTHORITY",
+      "evidence_refs": [
+        "lab/block-explorer/gate-status.json",
+        "lab/block-explorer/be04-public-prebind-evidence.json",
+        "lab/block-explorer/be06-host-creation-authority-20260923.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Create the admitted zero-cost Oracle host through the account-bound provider surface, then verify BE-05/BE-06 binding without consuming Stability Soak capacity.",
+      "wake_condition": "Waterfound creates the eligible Oracle VM/persistent host or an equivalent separately admitted host exists.",
+      "human_action_required": true,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "public_code_security_baseline",
+      "area": "Security",
+      "description": "Bounded public-code security project is closed on a baseline ready for recurring assurance.",
+      "state": "CLOSED",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+        "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json",
+        ".github/workflows/public-code-security-recurring-assurance.yml"
+      ],
+      "dependency_refs": [],
+      "next_action": "Continue recurring Project Assurance; reopen deep review when the PSR-19 policy classifies a consequential change.",
+      "wake_condition": "A policy-triggering consequential change or recurring-assurance failure occurs.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "post_quantum_signature_research",
+      "area": "Security",
+      "description": "PQ-00 through PQ-11 are GREEN to the software-only shadow ceiling; activation remains unjustified and unauthorized.",
+      "state": "RESEARCH_ONLY",
+      "authority_class": "RESEARCH_ONLY",
+      "evidence_refs": [
+        "lab/post-quantum-signatures/gate-status.json",
+        "lab/post-quantum-signatures/authority.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "No activation. PQ-12 remains optional external evidence and is not a blocker for the admitted software-only ceiling.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": false,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "repository_recovery_git_independence",
+      "area": "Reproducibility / sovereignty",
+      "description": "Git-host recovery proof and GitLab sovereign backup-control tooling are integrated and fail closed.",
+      "state": "DONE",
+      "authority_class": "EVIDENCE_ONLY",
+      "evidence_refs": [
+        "commit:a9ae1980206c8b0d73cd391c4a970b76b70336e0",
+        "commit:51579c98073f1193da2c69f50cdfea0d26116fbb",
+        "tools/repository-recovery/"
+      ],
+      "dependency_refs": [],
+      "next_action": "Maintain recovery checks; do not infer that a particular external mirror is current without separate live evidence.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": true
+    },
+    {
+      "gate_id": "release_reproducibility_provenance",
+      "area": "Reproducibility / sovereignty",
+      "description": "Software release reproducibility and PSR-13 provenance evidence are integrated; final production release identities remain unset.",
+      "state": "DONE",
+      "authority_class": "PACKAGING_ONLY",
+      "evidence_refs": [
+        "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json",
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "commit:a0be46e22e5ecf3400922f9fa3f267c35bd46916"
+      ],
+      "dependency_refs": [],
+      "next_action": "Use this machinery only after final production source/artifacts are explicitly frozen.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "mainnet_rehearsal_package",
+      "area": "Production freeze",
+      "description": "Mainnet rehearsal package software ceiling is GREEN, rehearsal-only.",
+      "state": "DONE",
+      "authority_class": "REHEARSAL_ONLY",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "sovereign-forge/protocol/AGENT_BUILD_COLONY_F_MAINNET_REHEARSAL_PACKAGE_V2.md"
+      ],
+      "dependency_refs": [],
+      "next_action": "Do not treat rehearsal values as production authority.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "independent_release_mainnet_verifier",
+      "area": "Production freeze",
+      "description": "Independent release/mainnet verifier software ceiling is GREEN and verification-only.",
+      "state": "DONE",
+      "authority_class": "VERIFICATION_ONLY",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "sovereign-forge/protocol/AGENT_BUILD_COLONY_G2_INDEPENDENT_RELEASE_MAINNET_VERIFIER.md"
+      ],
+      "dependency_refs": [
+        "release_reproducibility_provenance",
+        "mainnet_rehearsal_package"
+      ],
+      "next_action": "Re-run against the exact final production freeze if and when that freeze is authorized.",
+      "wake_condition": "A final production candidate is explicitly frozen.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "independent_operator_evidence",
+      "area": "Network / sovereignty",
+      "description": "Independent-operator evidence remains unresolved in the H2 external-evidence freeze.",
+      "state": "EXTERNAL_EVIDENCE",
+      "authority_class": "EXTERNAL_EVIDENCE",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json"
+      ],
+      "dependency_refs": [],
+      "next_action": "Collect provenance-bound independent-operator evidence under a frozen acceptance contract.",
+      "wake_condition": "Independent operator evidence becomes available.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "final_production_freeze",
+      "area": "Production freeze",
+      "description": "Production-specific genesis, release, activation and bootstrap values remain intentionally unset.",
+      "state": "UNRESOLVED",
+      "authority_class": "FINAL_PRODUCTION_AUTHORITY",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "docs/FAE_CANONICAL_STATE.md#final-production-freeze-still-unresolved"
+      ],
+      "dependency_refs": [
+        "research_180s_validation",
+        "asic_resistance_f2",
+        "physical_hfb_economics",
+        "representative_device_evidence",
+        "stability_soak_v3",
+        "block_explorer_independent_binding",
+        "independent_operator_evidence"
+      ],
+      "next_action": "Keep all production values unset until prerequisite evidence is complete and a separate explicit authority gate is admissible.",
+      "wake_condition": "Every prerequisite mainnet-critical evidence gate is resolved.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "mainnet_authorization",
+      "area": "Production freeze",
+      "description": "No mainnet launch authorization exists.",
+      "state": "BLOCKED",
+      "authority_class": "FINAL_PRODUCTION_AUTHORITY",
+      "evidence_refs": [
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "docs/FAE_CANONICAL_STATE.md"
+      ],
+      "dependency_refs": [
+        "final_production_freeze"
+      ],
+      "next_action": "No action is admissible now. If all prerequisite evidence and final freeze gates later pass, Waterfound authority is still required.",
+      "wake_condition": "final_production_freeze becomes evidence-complete.",
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    }
+  ],
+  "final_production_values_unset": [
+    "genesis_timestamp_ms",
+    "initial_target_hex",
+    "genesis_miner_address",
+    "release_artifact_sha256",
+    "release_manifest_sha256",
+    "release_source_commit",
+    "release_source_tree",
+    "release_config_sha256",
+    "live_activation_height",
+    "bootstrap_requirements",
+    "bootstrap_nodes"
+  ],
+  "historical_evidence_policy": "append_only_no_retroactive_rewrite",
+  "reconciliation_verdict": null
+}
