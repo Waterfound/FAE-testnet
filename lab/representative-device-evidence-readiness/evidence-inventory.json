@@ -1,0 +1,48 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_EVIDENCE_INVENTORY_V1",
+  "recorded_date": "2026-09-28",
+  "source_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "items": [
+    {
+      "id": "RDE-INV-001",
+      "source": "docs/FAE_CANONICAL_STATE.md",
+      "classification": "CANONICAL_GATE_STATE",
+      "finding": "physical HFB / RTX + watts and representative-device evidence are unresolved."
+    },
+    {
+      "id": "RDE-INV-002",
+      "source": "lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json",
+      "classification": "ORTHOGONAL_PHYSICAL_REFERENCE",
+      "admissible_as_representative_device_evidence": false,
+      "finding": "Physical iPad evidence concerns stale-work/lifecycle behavior; it cannot satisfy representative-device mining evidence."
+    },
+    {
+      "id": "RDE-INV-003",
+      "source": "Waterfound/FAE-testnet@d1d98251dc2c58d53a843d5f04c2fc8ff3af0d4d",
+      "classification": "SPECIALIZED_HARDWARE_CROSS_LAB_REFERENCE",
+      "admissible_as_representative_device_evidence": false,
+      "finding": "ASIC A3-R4 physical timing/AFI evidence is specialized-hardware evidence and remains authority-gated for runtime."
+    },
+    {
+      "id": "RDE-INV-004",
+      "source": "mining.js",
+      "blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "classification": "FROZEN_RUNTIME_INPUT",
+      "finding": "Current browser miner exposes local double-SHA256 PoW, attempt counting, tip freshness and verified-share paths; displayed H/s is not independently authoritative."
+    },
+    {
+      "id": "RDE-INV-005",
+      "source": "lab/independent-operator-readiness/",
+      "classification": "TOOLING_PATTERN_REUSE",
+      "finding": "Checksummed bundles, deterministic fail-closed verification, rehearsal separation and adversarial false-PASS patterns are reusable methodology, not reusable verdicts."
+    },
+    {
+      "id": "RDE-INV-006",
+      "source": "project historical RTX/wattmeter measurements referenced outside canonical main",
+      "classification": "HISTORICAL_UNADMITTED_REFERENCE",
+      "admissible_as_final_evidence": false,
+      "finding": "No canonical-main artifact located for final admission; preserve original provenance and do not rewrite into the post-hoc RDE contract."
+    }
+  ],
+  "historical_policy": "append_only_no_retroactive_rewrite"
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_DURABLE_STATE_V1",
+  "workstream": "FAE — Representative Device Evidence Readiness",
+  "branch": "colony/fae-representative-device-evidence-readiness-001",
+  "source_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "portfolio_role": "SECONDARY",
+  "active_research_preserved": true,
+  "visual_language_parallel_independent_preserved": true,
+  "shared_state_serialization_required": true,
+  "completed_frontiers": [
+    "RDE-00",
+    "RDE-01",
+    "RDE-02",
+    "RDE-03",
+    "RDE-04",
+    "RDE-05",
+    "RDE-06",
+    "RDE-07",
+    "RDE-08",
+    "RDE-09",
+    "RDE-10",
+    "RDE-11",
+    "RDE-12",
+    "RDE-13",
+    "RDE-14",
+    "RDE-15"
+  ],
+  "active_frontier": null,
+  "admissible_next": [],
+  "terminal_external_gates": [
+    "RDE-X1",
+    "RDE-X2",
+    "RDE-X3"
+  ],
+  "readiness_target": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "physical_evidence_obtained": false,
+  "authority_flags": {
+    "consensus_changed": false,
+    "economics_changed": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  },
+  "terminal_state": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "external_gate": {
+    "state": "EXTERNAL_EVIDENCE",
+    "frontiers": [
+      "RDE-X1",
+      "RDE-X2",
+      "RDE-X3"
+    ],
+    "wake_condition": "Real selected devices are locked before measurement, physical runs are performed under FAE-RDE-ACCEPTANCE-V1-20260928, and provenance-bound bundles are returned for final admission."
+  },
+  "last_verified_candidate": "8ec70d55858e1ec16cb18a70d252a9df0921598d",
+  "last_verification_run": 36462215170,
+  "last_cross_lab_run": 36462215264
+}

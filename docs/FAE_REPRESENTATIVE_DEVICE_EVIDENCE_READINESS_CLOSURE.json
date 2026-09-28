@@ -1,0 +1,148 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_CLOSURE_V1",
+  "workstream": "FAE — Representative Device Evidence Readiness",
+  "portfolio_role": "SECONDARY",
+  "closure_date": "2026-09-28",
+  "source_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "verified_candidate_revision": "8ec70d55858e1ec16cb18a70d252a9df0921598d",
+  "verdict": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "readiness_complete": true,
+  "physical_representative_device_evidence_obtained": false,
+  "final_evidence_admission": false,
+  "frontiers": {
+    "RDE-00": "PASS",
+    "RDE-01": "PASS",
+    "RDE-02": "PASS",
+    "RDE-03": "PASS",
+    "RDE-04": "PASS",
+    "RDE-05": "PASS",
+    "RDE-06": "PASS",
+    "RDE-07": "PASS",
+    "RDE-08": "PASS",
+    "RDE-09": "PASS",
+    "RDE-10": "PASS",
+    "RDE-11": "PASS",
+    "RDE-12": "PASS",
+    "RDE-13": "PASS",
+    "RDE-14": "PASS",
+    "RDE-15": "PASS",
+    "RDE-X1": "EXTERNAL_EVIDENCE",
+    "RDE-X2": "EXTERNAL_EVIDENCE",
+    "RDE-X3": "EXTERNAL_EVIDENCE"
+  },
+  "frozen_acceptance_contract": "lab/representative-device-evidence-readiness/acceptance-contract.json",
+  "execution_package": [
+    "lab/representative-device-evidence-readiness/README.md",
+    "lab/representative-device-evidence-readiness/prepare-staging.mjs",
+    "lab/representative-device-evidence-readiness/collect-evidence.mjs",
+    "lab/representative-device-evidence-readiness/verify-evidence.mjs",
+    "lab/representative-device-evidence-readiness/verify-portfolio.mjs",
+    "lab/representative-device-evidence-readiness/run-rehearsal.mjs",
+    "lab/representative-device-evidence-readiness/tests/rde-readiness.test.mjs",
+    ".github/workflows/representative-device-evidence-readiness.yml"
+  ],
+  "verification": {
+    "candidate_revision": "8ec70d55858e1ec16cb18a70d252a9df0921598d",
+    "workflow": "Representative Device Evidence Readiness",
+    "workflow_run_id": 36462215170,
+    "job_id": 109063422285,
+    "result": "SUCCESS",
+    "adversarial_tests": {
+      "tests": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "rehearsal": {
+      "verdict": "READINESS_REHEARSAL_ONLY",
+      "run_count": 26,
+      "valid_run_count": 26,
+      "physical_evidence_admitted": false
+    },
+    "artifact": {
+      "id": 10987948026,
+      "name": "fae-rde-readiness-rehearsal-36462215170-1",
+      "digest": "sha256:c5bf294d5a9c993e5abb28803d173692631bf16050d0a29fa603f83118020eb9",
+      "expires_at": "2026-10-05T18:01:27Z"
+    },
+    "cross_lab": {
+      "workflow_run_id": 36462215264,
+      "job_id": 109063427886,
+      "result": "SUCCESS",
+      "latest_canonical_main_contained": true,
+      "canonical_browser_source_mirror": "PASS"
+    },
+    "canonical_readiness_invariants": "PASS",
+    "verify_canonical_source": "SUCCESS",
+    "codeql_security": "SUCCESS",
+    "public_code_security_recurring_assurance": "SUCCESS"
+  },
+  "selection_and_coverage": {
+    "required_classes": [
+      "mobile_tablet_arm",
+      "thin_light_integrated",
+      "consumer_discrete_gpu",
+      "compact_handheld_consumer"
+    ],
+    "minimum_distinct_isa_families": 2,
+    "minimum_distinct_form_factors": 3,
+    "selection_lock_precedes_measurement": true,
+    "post_result_selection_forbidden": true
+  },
+  "rehearsal_boundary": {
+    "verdict": "READINESS_REHEARSAL_ONLY",
+    "physical_evidence": false,
+    "may_satisfy_RDE_X1": false,
+    "may_satisfy_RDE_X3": false
+  },
+  "serialization_check": {
+    "checked_on": "2026-09-28",
+    "current_main_at_check": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+    "rde_compare_to_main": {
+      "status": "ahead",
+      "ahead_by": 17,
+      "behind_by": 0
+    },
+    "active_research": {
+      "branch": "colony/fae-180s-economic-block-time-validation-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "visual_language": {
+      "branch": "colony/fae-visual-language-rebrand-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "shared_state_conflict_observed": false
+  },
+  "residual_external_gates": [
+    {
+      "id": "RDE-X1",
+      "state": "EXTERNAL_EVIDENCE",
+      "required_for": "physical representative-device evidence",
+      "wake_condition": "Eligible preselected physical devices are available and measured under the frozen contract."
+    },
+    {
+      "id": "RDE-X2",
+      "state": "EXTERNAL_EVIDENCE",
+      "required_for": "coverage completion when a required class is unavailable",
+      "wake_condition": "Missing required device-class access is resolved without post-result cherry-picking."
+    },
+    {
+      "id": "RDE-X3",
+      "state": "EXTERNAL_EVIDENCE",
+      "required_for": "final representative_device_evidence admission",
+      "wake_condition": "A complete four-class provenance-bound physical portfolio passes deterministic verification and is independently admitted."
+    }
+  ],
+  "authority": {
+    "representative_device_evidence_pass": false,
+    "physical_hfb_economics_pass": false,
+    "asic_resistance_proven": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "activation_height_selected": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}
