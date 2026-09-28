@@ -27,7 +27,7 @@ Energy source is always explicit: `WALL_POWER`, `BATTERY_DELTA`, `COMPONENT_TELE
 
 ## Collection
 
-Platform-specific tooling produces raw observations. The universal collector packages those observations, derives integrity metadata and emits a checksummed bundle. This separation is deliberate: a Node process cannot directly read an iPad wall meter or all OS thermal sensors. Operators should never hand-edit final bundle JSON when the collector can derive it.
+Platform-specific tooling produces raw observations. A platform harness may export one `FAE_RDE_OPERATOR_CAPTURE_V1` JSON object plus its miner log; `prepare-staging.mjs` expands that single capture into the normalized staging layout. The independent `collect-evidence.mjs` then packages those observations, derives integrity metadata and emits a checksummed bundle. This separation is deliberate: a Node process cannot directly read an iPad wall meter or all OS thermal sensors. Operators should never hand-edit the final bundle JSON.
 
 Future physical procedure:
 
@@ -35,10 +35,11 @@ Future physical procedure:
 2. prepare the device exactly as declared;
 3. connect a wall meter when required/available;
 4. run the platform-specific workload/harness;
-5. export raw observations and miner log;
-6. run `collect-evidence.mjs` to create the immutable bundle;
-7. run `verify-evidence.mjs` independently;
-8. after all required repetitions/classes exist, run `verify-portfolio.mjs`.
+5. export a single capture object plus miner log from the platform harness;
+6. run `prepare-staging.mjs --capture <capture.json> --out <staging>`;
+7. run `collect-evidence.mjs --input <staging> --out <bundle>` to create the immutable bundle;
+8. run `verify-evidence.mjs` independently;
+9. after all required repetitions/classes exist, run `verify-portfolio.mjs`.
 
 ## Rehearsal
 
