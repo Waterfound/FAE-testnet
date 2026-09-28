@@ -13,6 +13,7 @@ const FILES=[
   'F180_08_OUTAGE_RECOVERY_RESULT.json',
   'F180_09_EXTERNAL_EVIDENCE_LEDGER.json',
   'F180_10_COMPARATIVE_SYNTHESIS.json',
+  'F180_12_TERMINAL_VERDICT.json',
   'F180_13_EXTERNAL_EVIDENCE_GATE.json'
 ];
 function sha256(data){return 'sha256:'+crypto.createHash('sha256').update(data).digest('hex');}
@@ -27,7 +28,7 @@ export function verify(){
    if('selectionAuthorized' in json)assert(json.selectionAuthorized===false,'selection fence violated: '+name);
  }
  const f01=read(FILES[0]).json,f02=read(FILES[1]).json,f03=read(FILES[2]).json,f04=read(FILES[3]).json,f05=read(FILES[4]).json;
- const f06=read(FILES[5]).json,f07=read(FILES[6]).json,f08=read(FILES[7]).json,f09=read(FILES[8]).json,f10=read(FILES[9]).json,f13=read(FILES[10]).json;
+ const f06=read(FILES[5]).json,f07=read(FILES[6]).json,f08=read(FILES[7]).json,f09=read(FILES[8]).json,f10=read(FILES[9]).json,f12=read(FILES[10]).json,f13=read(FILES[11]).json;
  assert(f02.constants.target_seconds===180 && f02.constants.initial_subsidy_fae===10 && f02.constants.halving_era_blocks===600000,'active economics mismatch');
  checks.push({id:'active-boundary',status:'PASS'});
  assert(f03.exact_source.workflow_conclusion==='success' && f03.frozen_gate_assessment.hard_failure_confirmed===false,'F180-03 verification mismatch');
@@ -40,6 +41,8 @@ export function verify(){
  assert(f09.direct_fae_evidence_added===false,'external literature was incorrectly promoted to direct FAE evidence');
  assert(f10.synthesis_disposition==='NO_MATERIAL_RISK_PROVEN_BUT_180S_REMAINS_UNDER_EVIDENCED_FOR_MAINNET_GRADE_CLAIM','F180-10 disposition mismatch');
  assert(f13.status==='RESOLVED_MISSING_EXTERNAL_EVIDENCE_CURRENT_RUN' && f13.direct_180_evidence_available===false,'F180-13 missing-evidence resolution mismatch');
+ assert(f12.verdict==='INSUFFICIENT_EVIDENCE','F180-12 terminal verdict mismatch');
+ assert(f12.activationAuthorized===false && f12.mainnetAuthorized===false,'F180-12 authority fence violated');
  checks.push({id:'external-evidence-boundary',status:'PASS_MISSING_DIRECT_EVIDENCE_RETAINED'});
  const provenanceGap=f01.gaps.some(x=>x.includes('Stability V1/V2'));
  assert(provenanceGap,'historical soak provenance gap disappeared');
@@ -54,6 +57,8 @@ export function verify(){
    hardFailureConfirmed:false,
    directExternalEvidenceStillMissing:true,
    terminalVerdictIfF180_13RemainsMissing:terminalIfNoNewExternal,
+   recordedTerminalVerdict:f12.verdict,
+   terminalVerdictMatchesComputed:f12.verdict===terminalIfNoNewExternal,
    researchConclusionDoesNotAuthorizeActivation:true
  };
 }
