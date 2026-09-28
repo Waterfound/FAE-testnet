@@ -1,0 +1,190 @@
+{
+  "schema_version": "fae.red-team.library.v0.0.1",
+  "library_id": "fae-attack-library-v0.0.1",
+  "attacks": [
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/consensus/invalid-accept-regression",
+      "version": "0.0.1",
+      "title": "Reconciled v4 invalid-accept and supply invariants",
+      "description": "Runs the isolated authoritative-v4 defensive regression without granting it deployment authority.",
+      "domain": "consensus",
+      "failure_class": "CONSENSUS_INVALID_ACCEPT",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/authoritative-v4-core.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "regression", "supply"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/activation/deep-reorg-boundary",
+      "version": "0.0.1",
+      "title": "Activation boundary deep-reorg fork attack",
+      "description": "Exercises pre/post-activation fork handling and rollback boundaries.",
+      "domain": "activation",
+      "failure_class": "ACTIVATION_BOUNDARY_CONFUSION",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/activation-deep-reorg-fork.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "reorg", "activation"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/p2p/identity-replay-downgrade",
+      "version": "0.0.1",
+      "title": "P2P identity, replay and downgrade attack",
+      "description": "Exercises signed peer envelopes and authenticated-channel defensive boundaries.",
+      "domain": "p2p",
+      "failure_class": "P2P_REPLAY_OR_DOWNGRADE",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/authoritative-p2p-security.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "identity", "replay", "downgrade"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/daa/timestamp-manipulation",
+      "version": "0.0.1",
+      "title": "Difficulty and timestamp manipulation simulation",
+      "description": "Runs seeded Poisson, daily-cycle, future-time and clock-skew defensive simulations.",
+      "domain": "difficulty_timestamp",
+      "failure_class": "TIMESTAMP_MANIPULATION",
+      "severity": "high",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/difficulty-timestamp-redteam.mjs"],
+        "cwd": ".",
+        "timeout_ms": 120000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "seeded", "timestamp", "daa"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/persistence/crash-restart-corruption",
+      "version": "0.0.1",
+      "title": "Crash, restart and durable-state corruption attack",
+      "description": "Exercises process death and fail-closed recovery of independent-node state.",
+      "domain": "persistence",
+      "failure_class": "STATE_ROLLBACK_OR_CORRUPTION",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/independent-node-v11-process-recovery.mjs"],
+        "cwd": ".",
+        "timeout_ms": 120000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "crash", "restart", "corruption"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/coordinator/rotation-forgery-replay",
+      "version": "0.0.1",
+      "title": "Coordinator rotation forgery and replay attack",
+      "description": "Exercises cryptographic rotation certificates, exact sequencing and runtime publication.",
+      "domain": "coordinator",
+      "failure_class": "COORDINATOR_FORGERY_OR_REPLAY",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/authoritative-coordinator-rotation.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "coordinator", "rotation", "replay"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/wallet-client/authorization-smoke",
+      "version": "0.0.1",
+      "title": "Wallet/client authorization and transaction boundary",
+      "description": "Runs the browser-client defensive smoke flow without live writes or key material.",
+      "domain": "wallet_client",
+      "failure_class": "WALLET_AUTHORIZATION_BYPASS",
+      "severity": "critical",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "tests/client-smoke.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "wallet", "client"]
+    },
+    {
+      "schema_version": "fae.red-team.attack.v0.0.1",
+      "id": "fae/release-integrity/external-kit-determinism",
+      "version": "0.0.1",
+      "title": "External validation kit determinism and integrity",
+      "description": "Exercises deterministic evidence packaging for independent multi-host validation.",
+      "domain": "release_integrity",
+      "failure_class": "RELEASE_OR_EVIDENCE_TAMPERING",
+      "severity": "high",
+      "executor": {
+        "kind": "process",
+        "argv": ["node", "--test", "sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs"],
+        "cwd": ".",
+        "timeout_ms": 60000,
+        "max_output_bytes": 1048576,
+        "network": "deny",
+        "stdin": "none"
+      },
+      "oracle": {"kind": "exit-code-defense", "defended_exit_code": 0},
+      "evidence_requirements": ["target_commit", "attack_digest", "stdout_sha256", "stderr_sha256", "exit_code", "duration_ms"],
+      "lineage": {"parent_id": null, "generation": 0},
+      "tags": ["offline", "evidence", "determinism"]
+    }
+  ]
+}

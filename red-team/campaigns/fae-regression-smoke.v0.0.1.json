@@ -1,0 +1,49 @@
+{
+  "schema_version": "fae.red-team.campaign.v0.0.1",
+  "campaign_id": "fae-regression-smoke-v0.0.1",
+  "title": "FAE cross-domain defensive regression smoke",
+  "target": {
+    "kind": "git",
+    "label": "Waterfound/FAE-testnet",
+    "root": "..",
+    "required_ref": "CURRENT",
+    "require_clean": true,
+    "writable": false
+  },
+  "taxonomy_path": "taxonomy/failure-taxonomy.v0.0.1.json",
+  "score_policy_path": "policies/score-policy.v0.0.1.json",
+  "attack_library_path": "attacks/fae-attack-library.v0.0.1.json",
+  "attack_ids": [
+    "fae/consensus/invalid-accept-regression",
+    "fae/activation/deep-reorg-boundary",
+    "fae/p2p/identity-replay-downgrade",
+    "fae/daa/timestamp-manipulation",
+    "fae/persistence/crash-restart-corruption",
+    "fae/coordinator/rotation-forgery-replay",
+    "fae/wallet-client/authorization-smoke",
+    "fae/release-integrity/external-kit-determinism"
+  ],
+  "seed": "fae-red-team-v0.0.1-campaign-001",
+  "repetitions": 2,
+  "execution": {
+    "order": "seeded",
+    "max_parallel": 1,
+    "fail_fast": false
+  },
+  "authority_boundary": {
+    "consensus_authority": false,
+    "testnet_mutation": false,
+    "wallet_keys": false,
+    "block_submission": false
+  },
+  "blind": {
+    "active_set": null,
+    "expected_answers_available_to_runner": false
+  },
+  "exclusions": [
+    "live production writes",
+    "active private holdouts",
+    "mainnet certification",
+    "consensus activation"
+  ]
+}
