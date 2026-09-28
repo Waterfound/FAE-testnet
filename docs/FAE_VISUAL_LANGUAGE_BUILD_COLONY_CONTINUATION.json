@@ -84,7 +84,7 @@
     "protocol_identity": "OUT_OF_SCOPE"
   },
   "latest_execution": {
-    "visual_basis_revision": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
+    "visual_basis_revision": "c221f307415ee01346bc04791cf91172b22f1216",
     "durable_generation": 9,
     "durable_state_digest": "sha256:8f76ceb02b4b71a6249b64672bdb829eafc3ffdf43b96caa4b2e264ff9ae5f48",
     "admitted_verified_frontiers": [
@@ -110,5 +110,14 @@
     "explorer_files_reverted_to_main": true,
     "prior_vl11_durable_evidence": "SUPERSEDED_FOR_INTEGRATION",
     "required_future_authority": "Explicit Block Explorer source-write authority compatible with the visual workstream."
+  },
+  "mining_authority_correction": {
+    "discovered_at": "2026-09-28T21:11:10Z",
+    "source": "lab/mining-tip-sync/boundary-guard.mjs",
+    "finding": "MTS-08 freezes root mining.js bytes; the earlier UI-only setMiningActivity hook was not authority-admissible.",
+    "disposition": "FAIL_CLOSED",
+    "mining_runtime_candidate": "UNCHANGED_FROM_MAIN",
+    "remediation": "Revert mining.js exactly to main and derive the blue activity rail from the existing Stop-button enabled state using CSS :has(), preserving mining logic byte-for-byte.",
+    "prior_vl10_visual_semantics": "PRESERVED_WITHOUT_MINER_SOURCE_WRITE"
   }
 }

@@ -329,17 +329,11 @@ async function mineOneIteration(rewardAddress){
 }
 
 function renderMiningControls(){$('mine').disabled=mining||!wallet;$('stop').disabled=!mining;$('copyminingaddr').disabled=!wallet}
-function setMiningActivity(state,label){
-  const panel=$('miningactivity'),text=$('miningactivitylabel');
-  if(!panel||!text)return;
-  panel.dataset.state=state;
-  text.textContent=label||(state==='active'?'Device contributing':'Idle');
-}
 
 async function miningLoop(){
   if(mining)return;
   if(!wallet){setStatus('mstate','Select a reward address before mining.','bad');return}
-  const rewardAddress=wallet.address;mining=true;attemptsTotal=0;renderMiningControls();setMiningActivity('active','Device contributing');setStatus('mstate',SHARE_COORDINATORS.length?'Requesting verified PPLNS share work; direct PoW remains available as fallback…':'Requesting a block template for local Proof of Work…');
+  const rewardAddress=wallet.address;mining=true;attemptsTotal=0;renderMiningControls();setStatus('mstate',SHARE_COORDINATORS.length?'Requesting verified PPLNS share work; direct PoW remains available as fallback…':'Requesting a block template for local Proof of Work…');
   try{
     while(mining){
       if(wallet?.address!==rewardAddress)throw Error('Reward address changed while mining');
@@ -363,10 +357,10 @@ async function miningLoop(){
       }
     }
   }catch(error){if(mining)setStatus('mstate','Mining error: '+error.message,'bad')}
-  finally{stopWorker();mining=false;setMiningActivity('idle');renderMiningControls()}
+  finally{stopWorker();mining=false;renderMiningControls()}
 }
 
-function stopMining(){if(!mining)return;mining=false;clearDirectTipObserver();stopWorker('STOP');setMiningActivity('idle');setStatus('mstate','Mining stopped locally.');renderMiningControls()}
+function stopMining(){if(!mining)return;mining=false;clearDirectTipObserver();stopWorker('STOP');setStatus('mstate','Mining stopped locally.');renderMiningControls()}
 
 $('mine').addEventListener('click',miningLoop);
 $('stop').addEventListener('click',stopMining);

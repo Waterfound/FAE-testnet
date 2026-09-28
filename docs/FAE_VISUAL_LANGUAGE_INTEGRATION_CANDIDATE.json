@@ -2,16 +2,17 @@
   "schema": "FAE_VISUAL_LANGUAGE_INTEGRATION_CANDIDATE_V1",
   "state": "VL14_CANDIDATE_PREPARED_AUTHORITY_CORRECTED",
   "direction": "D — Orange Top / White Field / Blue Circulation",
-  "candidate_basis_revision": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
+  "candidate_basis_revision": "c221f307415ee01346bc04791cf91172b22f1216",
   "reconciled_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
   "behind_main": 0,
   "changed_product_surfaces": [
-    "index.html",
-    "mining.js"
+    "index.html"
   ],
   "protected_unchanged_surfaces": [
     "core.js",
     "wallet-crypto.js",
+    "mining.js",
+    "sovereign-forge/browser/mining.js",
     "explorer/**",
     "sovereign-forge/node/authoritative/**",
     "sovereign-forge/protocol/**",
@@ -21,7 +22,7 @@
     "VL07": "brand thesis / grammar PASS",
     "VL08": "homepage PASS",
     "VL09": "wallet PASS",
-    "VL10": "mining PASS",
+    "VL10": "mining visual semantics PASS — implemented without mining.js source write",
     "VL11": "NOT_ADMITTED — Block Explorer source writes frozen",
     "VL12": "QA PASS for admitted Homepage/Wallet/Mining subset",
     "VL13": "reference gallery / proven primitives PASS for admitted subset"
@@ -46,5 +47,5 @@
     "final_logo_symbol": "WATERFOUND_AUTHORITY_REQUIRED",
     "explorer_visual_specialization": "BLOCK_EXPLORER_SOURCE_WRITE_AUTHORITY_REQUIRED"
   },
-  "integration_policy": "Integrate only Homepage/Wallet/Mining Direction D candidate after green checks and explicit public-rebrand authority. Explorer remains unchanged from main until its own frozen source-write authority is explicitly reopened."
+  "integration_policy": "Integrate only the Direction D root product surface (Homepage/Wallet/Mining presentation in index.html) after green checks and explicit public-rebrand authority. mining.js and Explorer remain byte-identical to main/frozen authority sources."
 }

@@ -31,8 +31,8 @@ assert.equal(continuation.authority.durable_consumed,true);
 assert.equal(continuation.authority.post_generation,2);
 assert.equal(continuation.frontiers.find(x=>x.id==="VL-07").state,"DONE");
 assert.equal(continuation.frontiers.find(x=>x.id==="VL-08").state,"DONE");
-assert.equal(continuation.frontiers.find(x=>x.id==="VL-13").state,"DONE");
-assert.equal(continuation.frontiers.find(x=>x.id==="VL-14").state,"CANDIDATE_PREPARING");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-13").state,"DONE_FOR_ADMITTED_SURFACES");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-14").state,"CANDIDATE_PREPARING_AUTHORITY_CORRECTED");
 assert.equal(continuation.frontiers.find(x=>x.id==="VL-15").state,"BLOCKED_BY_PUBLIC_REBRAND_AUTHORITY");
 
 const grammar=fs.readFileSync(path.join(root,"design/direction-d-visual-grammar.md"),"utf8");
@@ -69,9 +69,9 @@ const miningRuntime=fs.readFileSync(path.join(root,"mining.js"),"utf8");
 assert.match(miningProduct,/Computation in motion, not a countdown\./);
 assert.match(miningProduct,/id="miningactivity"/);
 assert.match(miningProduct,/Block discovery is probabilistic\./);
-assert.match(miningRuntime,/function setMiningActivity/);
-assert.match(miningRuntime,/setMiningActivity\('active','Device contributing'\)/);
-assert.match(miningRuntime,/setMiningActivity\('idle'\)/);
+assert.doesNotMatch(miningRuntime,/function setMiningActivity/);
+assert.match(miningProduct,/#panel-mining:has\(#stop:not\(:disabled\)\)/);
+assert.match(miningProduct,/class="mining-active-label">Device contributing/);
 assert.doesNotMatch(miningProduct + miningRuntime,/\d+%\s+to\s+reward|almost there|reward in \d+/i);
 
 function luminance(hex){
@@ -102,7 +102,7 @@ assert.ok(primitives.fae_specific_do_not_extract.includes("orange topper as FAE 
 assert.ok(fs.existsSync(path.join(root,"design/reference-gallery.md")));
 
 const integrationCandidate=JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_INTEGRATION_CANDIDATE.json"),"utf8"));
-assert.deepEqual(integrationCandidate.changed_product_surfaces,["index.html","mining.js"]);
+assert.deepEqual(integrationCandidate.changed_product_surfaces,["index.html"]);
 assert.equal(integrationCandidate.verified_frontiers.VL11,"NOT_ADMITTED — Block Explorer source writes frozen");
 assert.equal(continuation.frontiers.find(x=>x.id==="VL-11").state,"BLOCKED_BY_BLOCK_EXPLORER_SOURCE_AUTHORITY");
 assert.deepEqual(primitives.source_surfaces,["Homepage","Wallet","Mining"]);

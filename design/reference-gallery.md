@@ -32,7 +32,8 @@ Evidence:
 ## Mining — admitted
 
 - `index.html#panel-mining`
-- `mining.js` contains UI-only activity-state hooks.
+- `mining.js` is unchanged from the frozen main/MTS baseline.
+- Activity state is derived presentation-only in `index.html` using the existing Stop-button enabled state.
 - **Computation in motion, not a countdown.**
 - Blue rail means active device work only.
 - Block discovery explicitly remains probabilistic.

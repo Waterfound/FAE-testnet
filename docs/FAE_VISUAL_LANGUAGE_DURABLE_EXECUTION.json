@@ -1,7 +1,7 @@
 {
   "schema": "FAE_VISUAL_LANGUAGE_DURABLE_EXECUTION_V1",
   "recorded_at": "2026-09-28T21:03:00Z",
-  "visual_candidate_revision": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
+  "visual_candidate_revision": "c221f307415ee01346bc04791cf91172b22f1216",
   "runtime_repository": "Waterfound/General-Execution",
   "runtime_branch": "runtime/durable-asp-control",
   "persistent_runtime_source": "a27a558d4ed0e28d96c3fec408212353d0077060",
@@ -56,7 +56,9 @@
     "public_rebrand_authorized": false,
     "authority_created_by_runtime": false,
     "explorer_source_changed": false,
-    "authority_conflict_fail_closed": true
+    "authority_conflict_fail_closed": true,
+    "mining_runtime_changed": false,
+    "mining_authority_conflict_fail_closed": true
   },
   "direction_d_resume": {
     "authority_event": "fae-visual-language-direction-d-authority-001",
@@ -122,5 +124,13 @@
     "action": "Reverted explorer/index.html and explorer/styles.css exactly to current main; visual Explorer prototype remains non-admitted evidence.",
     "correction_commit": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
     "requires_new_waterfound_authority_for_explorer": true
+  },
+  "mining_authority_correction": {
+    "trigger": "PR #265 cross-lab integration gate exposed MTS-08 frozen root miner bytes.",
+    "authority_source": "lab/mining-tip-sync/boundary-guard.mjs",
+    "action": "Revert mining.js exactly to main; implement activity-state presentation in index.html CSS by observing existing #stop disabled state.",
+    "runtime_semantics": "UNCHANGED",
+    "requires_new_mining_authority": false,
+    "rationale": "No miner-source write is needed to satisfy the selected visual direction."
   }
 }
