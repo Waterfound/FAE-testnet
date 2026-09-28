@@ -35,6 +35,7 @@ jobs:
       - name: Syntax check RDE tooling
         run: |
           node --check lab/representative-device-evidence-readiness/lib.mjs
+          node --check lab/representative-device-evidence-readiness/prepare-staging.mjs
           node --check lab/representative-device-evidence-readiness/collect-evidence.mjs
           node --check lab/representative-device-evidence-readiness/verify-evidence.mjs
           node --check lab/representative-device-evidence-readiness/verify-portfolio.mjs
