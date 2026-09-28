@@ -106,49 +106,49 @@
       "id": "RDE-08",
       "name": "Automated collector tooling",
       "class": "SOFTWARE_ONLY",
-      "state": "ACTIVE"
+      "state": "PASS"
     },
     {
       "id": "RDE-09",
       "name": "Deterministic verifier",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-10",
       "name": "Adversarial false-PASS campaign",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-11",
       "name": "Historical evidence classification and calibration fixtures",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-12",
       "name": "Simulated clean-room rehearsal",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-13",
       "name": "Operator execution documentation",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-14",
       "name": "Cross-lab integration verification",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-15",
       "name": "Readiness closure",
       "class": "SOFTWARE_ONLY",
-      "state": "PENDING"
+      "state": "PASS"
     },
     {
       "id": "RDE-X1",
@@ -173,5 +173,42 @@
     "RDE-X1",
     "RDE-X2",
     "RDE-X3"
-  ]
+  ],
+  "verification": {
+    "candidate_revision": "8ec70d55858e1ec16cb18a70d252a9df0921598d",
+    "workflow": "Representative Device Evidence Readiness",
+    "workflow_run_id": 36462215170,
+    "job_id": 109063422285,
+    "result": "SUCCESS",
+    "adversarial_tests": {
+      "tests": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "rehearsal": {
+      "verdict": "READINESS_REHEARSAL_ONLY",
+      "run_count": 26,
+      "valid_run_count": 26,
+      "physical_evidence_admitted": false
+    },
+    "artifact": {
+      "id": 10987948026,
+      "name": "fae-rde-readiness-rehearsal-36462215170-1",
+      "digest": "sha256:c5bf294d5a9c993e5abb28803d173692631bf16050d0a29fa603f83118020eb9",
+      "expires_at": "2026-10-05T18:01:27Z"
+    },
+    "cross_lab": {
+      "workflow_run_id": 36462215264,
+      "job_id": 109063427886,
+      "result": "SUCCESS",
+      "latest_canonical_main_contained": true,
+      "canonical_browser_source_mirror": "PASS"
+    },
+    "canonical_readiness_invariants": "PASS",
+    "verify_canonical_source": "SUCCESS",
+    "codeql_security": "SUCCESS",
+    "public_code_security_recurring_assurance": "SUCCESS"
+  },
+  "readiness_closure": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "physical_evidence_obtained": false
 }
