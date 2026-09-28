@@ -70,3 +70,15 @@ assert.match(miningRuntime,/function setMiningActivity/);
 assert.match(miningRuntime,/setMiningActivity\('active','Device contributing'\)/);
 assert.match(miningRuntime,/setMiningActivity\('idle'\)/);
 assert.doesNotMatch(miningProduct + miningRuntime,/\d+%\s+to\s+reward|almost there|reward in \d+/i);
+
+const explorerHtml=fs.readFileSync(path.join(root,"explorer/index.html"),"utf8");
+const explorerCss=fs.readFileSync(path.join(root,"explorer/styles.css"),"utf8");
+assert.match(explorerHtml,/class="explorer-ticker"/);
+assert.match(explorerHtml,/id="metric-height"/);
+assert.match(explorerHtml,/id="metric-supply"/);
+assert.match(explorerHtml,/id="metric-target"/);
+assert.match(explorerHtml,/id="metric-mempool"/);
+assert.doesNotMatch(explorerHtml,/class="metrics-grid"/);
+assert.match(explorerCss,/--orange:#f47a20/);
+assert.match(explorerCss,/--blue:#1769ff/);
+assert.match(explorerCss,/color-scheme:light/);

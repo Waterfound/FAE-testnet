@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07120d">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#f47a20">
+<meta name="color-scheme" content="light">
 <meta name="description" content="Read-only explorer for the FAE public testnet.">
 <title>FAE Explorer</title>
 <link rel="stylesheet" href="./styles.css">
@@ -29,6 +29,17 @@
     </div>
   </header>
 
+  <section class="explorer-ticker" aria-label="Live explorer network ticker">
+    <div class="explorer-ticker-track">
+      <span>Height <strong id="metric-height">—</strong></span><i>◆</i>
+      <span>Issued <strong id="metric-supply">—</strong></span><i>◆</i>
+      <span>Target <strong id="metric-target">—</strong></span><i>◆</i>
+      <span>Mempool <strong id="metric-mempool">—</strong></span><i>◆</i>
+      <span aria-hidden="true">Read-only chain observation</span><i aria-hidden="true">◆</i>
+      <span aria-hidden="true">Validated-node boundary</span>
+    </div>
+  </section>
+
   <main>
     <section class="hero" aria-labelledby="hero-title">
       <p class="eyebrow">Observe the chain. Never authorize it.</p>
@@ -49,25 +60,6 @@
         <button type="submit">Search</button>
       </form>
       <p id="search-help" class="search-help">64-character digests are checked as both block hashes and transaction IDs.</p>
-    </section>
-
-    <section class="metrics-grid" aria-label="Network snapshot">
-      <article class="metric-card">
-        <span>Height</span>
-        <strong id="metric-height">—</strong>
-      </article>
-      <article class="metric-card">
-        <span>Issued supply</span>
-        <strong id="metric-supply">—</strong>
-      </article>
-      <article class="metric-card">
-        <span>Target</span>
-        <strong id="metric-target">—</strong>
-      </article>
-      <article class="metric-card">
-        <span>Mempool</span>
-        <strong id="metric-mempool">—</strong>
-      </article>
     </section>
 
     <section id="notice" class="notice" hidden role="status" aria-live="polite"></section>
