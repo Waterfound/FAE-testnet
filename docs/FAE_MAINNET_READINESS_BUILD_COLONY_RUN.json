@@ -185,7 +185,8 @@
       "name": "Current-main evidence inventory",
       "depends_on": [],
       "shared_state": false,
-      "initial_state": "DONE"
+      "initial_state": "DONE",
+      "current_state": "DONE"
     },
     {
       "id": "MR-01",
@@ -194,7 +195,8 @@
         "MR-00"
       ],
       "shared_state": false,
-      "initial_state": "DONE"
+      "initial_state": "DONE",
+      "current_state": "DONE"
     },
     {
       "id": "MR-02",
@@ -203,7 +205,8 @@
         "MR-01"
       ],
       "shared_state": false,
-      "initial_state": "DONE"
+      "initial_state": "DONE",
+      "current_state": "DONE"
     },
     {
       "id": "MR-03",
@@ -212,7 +215,8 @@
         "MR-02"
       ],
       "shared_state": false,
-      "initial_state": "DONE"
+      "initial_state": "DONE",
+      "current_state": "DONE"
     },
     {
       "id": "MR-04",
@@ -221,7 +225,8 @@
         "MR-03"
       ],
       "shared_state": false,
-      "initial_state": "ACTIVE"
+      "initial_state": "ACTIVE",
+      "current_state": "DONE"
     },
     {
       "id": "MR-05",
@@ -230,7 +235,8 @@
         "MR-04"
       ],
       "shared_state": true,
-      "initial_state": "BLOCKED_UNTIL_LEDGER_VERIFIED"
+      "initial_state": "BLOCKED_UNTIL_LEDGER_VERIFIED",
+      "current_state": "DONE"
     },
     {
       "id": "MR-06",
@@ -239,7 +245,8 @@
         "MR-05"
       ],
       "shared_state": true,
-      "initial_state": "PENDING"
+      "initial_state": "PENDING",
+      "current_state": "DONE"
     },
     {
       "id": "MR-07",
@@ -248,7 +255,8 @@
         "MR-04"
       ],
       "shared_state": false,
-      "initial_state": "PENDING"
+      "initial_state": "PENDING",
+      "current_state": "DONE"
     },
     {
       "id": "MR-08",
@@ -258,7 +266,8 @@
         "MR-07"
       ],
       "shared_state": false,
-      "initial_state": "PENDING"
+      "initial_state": "PENDING",
+      "current_state": "ACTIVE"
     },
     {
       "id": "MR-09",
@@ -267,7 +276,8 @@
         "MR-08"
       ],
       "shared_state": false,
-      "initial_state": "PENDING"
+      "initial_state": "PENDING",
+      "current_state": "PENDING_MR08"
     }
   ],
   "deterministic_gates": [
@@ -302,10 +312,66 @@
     ],
     "integration_rule": "Re-resolve main and compare the Research 180s branch before any shared-state update or merge."
   },
-  "current_frontier": "MR-04",
+  "current_frontier": "MR-08",
   "terminal_verdict": {
     "allowed_value": "CANONICAL_STATE_RECONCILED",
     "meaning": "Current documentation accurately represents known evidence-bound project state.",
     "explicitly_not_equivalent_to": "MAINNET_READY"
+  },
+  "durable_execution": {
+    "runtime_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "persistent_runtime_source_revision": "a27a558d4ed0e28d96c3fec408212353d0077060",
+    "authority_created": false,
+    "initial_bootstrap": {
+      "event_id": "fae-mainnet-readiness-reconciliation-bootstrap-002",
+      "status": "bootstrapped",
+      "state_digest": "sha256:07f0ddda65521679252ae018f247ad92f046a2431b5d5b1948fa8002852bdba4"
+    },
+    "valid_checkpoints": [
+      {
+        "frontier": "MR-04",
+        "event_id": "fae-mainnet-readiness-mr04-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:6b3a2228fc5ed37d502dfdab9927c0d6819928e0f45687b38459e3298f2a4b8b"
+      },
+      {
+        "frontier": "MR-07",
+        "event_id": "fae-mainnet-readiness-mr07-verified-001",
+        "status": "committed",
+        "post_generation": 2,
+        "checkpoint_digest": "sha256:168c7de8f3cec0d3756373909e6011695ecd02912015dce5468049c8db4fa1f4"
+      },
+      {
+        "frontier": "MR-05",
+        "portfolio_id": "fae-mainnet-readiness-mr05",
+        "event_id": "fae-mainnet-readiness-mr05-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:d7d229aebcabf6d02ca85ed56543c0162e952b7e1697670f1b48d48a99537f97"
+      },
+      {
+        "frontier": "MR-06",
+        "portfolio_id": "fae-mainnet-readiness-mr06",
+        "event_id": "fae-mainnet-readiness-mr06-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:3ce654db39f9475c38a125de85e4e82775e8d8412b7588a71d0b1b5aa85c466e"
+      }
+    ],
+    "model_diagnosis": {
+      "event_id": "fae-mainnet-readiness-dependent-chain-di-001",
+      "status": "committed",
+      "terminal_state": "di_required",
+      "checkpoint_digest": "sha256:15980ac89117058ea86f66f876cb74124c6e24e1720add7c79c62bcf3206e915",
+      "issue": "A strict dependent MR chain cannot safely use rotating Active–Secondary–Passive wake semantics when the replacement Secondary wake condition depends on work that has not yet completed.",
+      "correction": "Preserve the diagnosis as historical evidence and execute dependent frontiers as isolated Durable portfolios with no premature passive wake admission."
+    },
+    "concurrency_observation": "The General-Execution runtime interleaves FAE 180s Research events and readiness events under one serialized runtime branch; readiness does not displace or mutate the active Research portfolio.",
+    "remaining_durable_frontiers": [
+      "MR-08",
+      "MR-09"
+    ]
   }
 }
