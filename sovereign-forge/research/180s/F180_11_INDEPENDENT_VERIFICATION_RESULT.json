@@ -1,0 +1,49 @@
+{
+  "schema": "fae-180s-f180-11-independent-verification-result/1",
+  "frontier": "F180-11",
+  "status": "PASS",
+  "authority": "verification-only-no-consensus-authority",
+  "workflow": {
+    "run_id": 36448365915,
+    "conclusion": "success",
+    "head_sha": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
+    "artifact_id": 10981039826,
+    "artifact_sha256": "sha256:72ec9382da6e4c531c7f42a5734f560c5d4eb797591dd420ddff3a23a543f6f5"
+  },
+  "checks": [
+    {
+      "id": "active-boundary",
+      "status": "PASS"
+    },
+    {
+      "id": "software-hard-failure-scan",
+      "status": "PASS_NONE_CONFIRMED"
+    },
+    {
+      "id": "external-evidence-boundary",
+      "status": "PASS_MISSING_DIRECT_EVIDENCE_RETAINED"
+    },
+    {
+      "id": "historical-failure-preservation",
+      "status": "PASS"
+    }
+  ],
+  "source_file_hashes": {
+    "F180_01": "sha256:53a495778b3d393a7575c89488c3454b089a7a1dd84ceed4c049e873d0c199e9",
+    "F180_02": "sha256:f927010d2f4ad89e3ab47dd58ddad8f0e310a522ff11504786a6518a5d201a50",
+    "F180_03": "sha256:68abdf53fcc49fa37fd119ee4242cbe350c180e17696fb86b43ac62750719762",
+    "F180_04": "sha256:5e0ddcc4bd3b6ba8b6790ea82a2e6424f44575da465cb1c7a4eb2e8a737a4257",
+    "F180_05": "sha256:17d72716e0156829b8349315e3b73b58bcc84d0b3fa8b8f54f03a0caaa99f999",
+    "F180_06": "sha256:16b9349ffbe95a375bebabd972411040a5d02513a2cfeed858a8bf0ec38cade7",
+    "F180_07": "sha256:47fb9f5054b3c162a85aab815b682430370c735a52de3c961c35cc4f10a8feb0",
+    "F180_08": "sha256:06149ef405cece6158351b1b0485bf73c20308d8f13ae9084a4e8f4d304cd6cf",
+    "F180_09": "sha256:df7809bf97b63060b04250c43fb6db19f95f97b74226a080fba28d4a4efe161c",
+    "F180_10": "sha256:d694a3221d682802a245fcf04101444b9b5767382f03d8e33cb9f46420be8f97"
+  },
+  "allPassed": true,
+  "hardFailureConfirmed": false,
+  "directExternalEvidenceStillMissing": true,
+  "terminalVerdictIfF180_13RemainsMissing": "INSUFFICIENT_EVIDENCE",
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
