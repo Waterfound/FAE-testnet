@@ -1,0 +1,30 @@
+name: FAE ASIC A3 R4 physical preflight
+
+on:
+  push:
+    branches:
+      - lab/asic-a3-r4-physical-20260927
+    paths:
+      - labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp
+      - labs/asic-f2-pre-go/hdk/integrate_fae_f2_2lane_200mhz_a3_directsplit.tcl
+      - labs/asic-f2-pre-go/hdk/implement_fae_f2_2lane_200mhz_a3_r4.tcl
+      - labs/asic-f2-pre-go/runtime/run_f2_attacker_a3_r4_physical.sh
+      - labs/asic-f2-pre-go/runtime/verify_f2_a3_r4_physical_preflight.py
+      - .github/workflows/fae-asic-a3-r4-physical-preflight.yml
+
+permissions:
+  contents: read
+
+jobs:
+  physical-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Shell syntax
+        run: bash -n labs/asic-f2-pre-go/runtime/run_f2_attacker_a3_r4_physical.sh
+      - name: Verify frozen physical envelope
+        run: python labs/asic-f2-pre-go/runtime/verify_f2_a3_r4_physical_preflight.py
