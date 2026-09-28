@@ -147,5 +147,25 @@
     "mainnet_ready": false,
     "mainnet_authorized": false,
     "new_spending_authorized": false
+  },
+  "serialization_check": {
+    "current_main_at_check": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+    "autopilot_compare_to_main": {
+      "status": "ahead",
+      "ahead_by": 29,
+      "behind_by": 0
+    },
+    "active_research": {
+      "branch": "colony/fae-180s-economic-block-time-validation-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "visual_language": {
+      "branch": "colony/fae-visual-language-rebrand-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "shared_state_conflict_observed": false,
+    "rule": "Parallelize independence. Serialize shared state."
   }
 }
