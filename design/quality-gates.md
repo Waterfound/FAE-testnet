@@ -1,47 +1,42 @@
-# FAE Visual Quality Gates
-
-These gates are deliberately **not** a numeric score.
+# FAE Visual Quality Gates — Direction D
 
 ## Identity
+- Does the surface remain recognizably FAE without the logo?
+- Is Orange Top / White Field / Blue Circulation structurally visible?
+- Does it avoid generic SaaS, exchange, Web3 and financial-terminal language?
 
-- Does the surface still feel like FAE with the logo removed?
-- Is the mythic / computational tension interpreted rather than illustrated literally?
-- Could the result be mistaken for a generic SaaS, exchange or Web3 template?
+## Topper / network ticker
+- Are core network facts compact rather than large fixed balloons?
+- Is horizontal motion readable rather than frantic?
+- Does reduced motion preserve the information?
+- Can status be understood without color?
 
-## Composition
+## White field
+- Is the working surface predominantly light, readable and calm?
+- Are cards used only for meaningful containment?
+- Does spacing create hierarchy without wasting operational space?
 
-- Is hierarchy evident before reading every label?
-- Is negative space deliberate?
-- Are cards used only where containment is semantically useful?
-- Does mobile preserve the same visual language instead of collapsing into unrelated stacked boxes?
+## Blue circulation
+- Is blue consistently reserved for live/active/focus/processing states?
+- In Mining, is the activity rail explicitly non-deterministic?
+- Is there no language implying percentage-to-reward, ETA-to-block or “almost won”?
 
-## Typography
+## Wallet
+- Are ownership, signing locality, recovery and transaction traceability clearer than branding?
+- Are seed/recovery surfaces sober and high-contrast?
+- Are send/receive/history actions immediately discoverable?
 
-- Does type contribute to identity, not merely legibility?
-- Are numbers, hashes, addresses and metadata treated as first-class information?
-- Are line length, weight, tracking and case rules coherent?
-
-## Craft
-
-- Are borders, corners, dividers, states and spacing intentional?
-- Are decorative motifs repeated as grammar rather than isolated effects?
-- Are empty, loading and error states designed?
-
-## Product role
-
-- Wallet: ownership, security, confidence, traceability.
-- Mining: participation, computation, contribution, progress; never casino reward.
-- Explorer: observation, transparency, neutrality, dense-data legibility.
-- Institutional site: narrative and invitation without becoming documentation disguised as marketing.
+## Mining
+- Does the interface feel alive without feeling like gambling?
+- Is device contribution visible?
+- Does the activity visualization stop/settle correctly when work stops?
 
 ## Accessibility
+- Relevant contrast measured before integration.
+- Visible keyboard focus.
+- State not color-only.
+- Reduced motion supported.
+- Mobile security copy remains readable.
 
-- WCAG-relevant contrast must be measured before integration.
-- Keyboard focus must be visibly testable.
-- State cannot depend on color alone.
-- Reduced motion must retain meaning.
-- Security-critical copy must remain readable at mobile sizes.
-
-## Gate rule
-
-A direction may be artistically compelling and still fail product clarity. A direction may be technically clean and still fail identity. Both dimensions must survive before canonical integration.
+## Gate
+A surface passes only when **identity + semantic honesty + task clarity + accessibility** survive together.

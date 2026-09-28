@@ -1,0 +1,85 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION_V1",
+  "run_kind": "REAL_BUILD_COLONY_CONTINUATION",
+  "run_date": "2026-09-28",
+  "source_visual_revision": "18833d3f4d013e9077d4f0b18a42a86018376056",
+  "reconciled_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "authority": {
+    "event": "fae-visual-language-direction-d-authority-001",
+    "durable_consumed": true,
+    "post_generation": 2,
+    "post_state_digest": "sha256:ed0347800ee59dfedbd84f9737aa3ffed2e1f8f204c3b85fb68e0b74fab96ec4",
+    "selected_direction": "D — Orange Top / White Field / Blue Circulation"
+  },
+  "concurrency": {
+    "active_preserved": "FAE Research — 180s Economic + Block-Time Validation",
+    "this_workstream": "SECONDARY",
+    "policy": "Parallelize independence. Serialize shared state.",
+    "shared_state_policy": "Do not mutate docs/FAE_CANONICAL_STATE.md from the visual branch unless integration is serialized after verification."
+  },
+  "frontiers": [
+    {
+      "id": "VL-06A",
+      "name": "Direction D authority binding",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-07",
+      "name": "Freeze Direction D brand thesis and visual grammar",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-07R",
+      "name": "Reconcile visual branch against newest main",
+      "state": "DONE",
+      "main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69"
+    },
+    {
+      "id": "VL-08",
+      "name": "Homepage vertical slice",
+      "state": "READY"
+    },
+    {
+      "id": "VL-09",
+      "name": "Wallet vertical slice",
+      "state": "BLOCKED_BY_VL08_VERIFICATION"
+    },
+    {
+      "id": "VL-10",
+      "name": "Mining vertical slice",
+      "state": "BLOCKED_BY_VL09_VERIFICATION"
+    },
+    {
+      "id": "VL-11",
+      "name": "Explorer specialization",
+      "state": "CONDITIONAL_AFTER_PRODUCT_LANGUAGE_PROVEN"
+    },
+    {
+      "id": "VL-12",
+      "name": "Responsive/browser/accessibility QA",
+      "state": "BLOCKED_BY_IMPLEMENTATION"
+    },
+    {
+      "id": "VL-13",
+      "name": "Reference gallery/system extraction",
+      "state": "BLOCKED_BY_QA"
+    },
+    {
+      "id": "VL-14",
+      "name": "Canonical integration candidate",
+      "state": "BLOCKED_BY_QA"
+    },
+    {
+      "id": "VL-15",
+      "name": "Public testnet/site deployment",
+      "state": "BLOCKED_BY_INTEGRATION"
+    }
+  ],
+  "acceptance_boundary": {
+    "final_logo_symbol": "RESERVED_TO_WATERFOUND",
+    "public_rebrand": "RESERVED_TO_WATERFOUND",
+    "consensus": "OUT_OF_SCOPE",
+    "economics": "OUT_OF_SCOPE",
+    "protocol_identity": "OUT_OF_SCOPE"
+  }
+}

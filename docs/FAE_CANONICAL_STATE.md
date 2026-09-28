@@ -323,6 +323,30 @@ Accepted software/evidence state includes:
 
 These are capability/evidence completions, not proof that a particular external mirror is currently synchronized and not a production release freeze. Final production release identities remain unset under the production-freeze section above.
 
+## Independent Operator Readiness
+
+Current readiness state:
+
+`DONE / INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY`
+
+The software-only preparation for a future independent-operator proof is complete. The frozen package includes the independent-operator definition and acceptance contract, clean-room bootstrap procedure, source/release provenance binding, signed network/genesis identity evidence, authenticated-peer and tip observations, controlled restart/recovery evidence, a checksummed machine-readable bundle, a deterministic fail-closed verifier, adversarial false-PASS tests, and self-contained operator instructions.
+
+The real-process clean-room rehearsal passed as `READINESS_REHEARSAL_ONLY`. It is explicitly **not** independent-operator evidence and cannot satisfy the external gate.
+
+Independent Operator Evidence therefore remains:
+
+`EXTERNAL_EVIDENCE / NOT_OBTAINED`
+
+The next admissible step is IOR-X: an eligible real independent operator executes the frozen package using operator-controlled resources and returns provenance-bound evidence. No result in this readiness closure changes consensus, economics, activation height, production bootstrap values, mainnet readiness, or mainnet authorization.
+
+Primary references:
+
+- `lab/independent-operator-readiness/acceptance-contract.json`
+- `lab/independent-operator-readiness/README.md`
+- `docs/FAE_INDEPENDENT_OPERATOR_READINESS_BUILD_COLONY_RUN.json`
+- `docs/FAE_INDEPENDENT_OPERATOR_READINESS_CLOSURE.json`
+- `.github/workflows/independent-operator-readiness.yml`
+
 ## Mainnet-readiness unresolved evidence
 
 The machine-readable readiness registry preserves the distinction between completed software/evidence gates and unresolved external or authority gates.

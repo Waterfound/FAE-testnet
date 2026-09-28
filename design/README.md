@@ -1,50 +1,31 @@
 # FAE Visual Language
 
-This directory is the isolated design workspace for **FAE — Visual Language, Art Direction & Rebrand**.
+Canonical exploration/implementation direction: **Direction D — Orange Top / White Field / Blue Circulation**.
 
-## Architectural split
+Waterfound selected Direction D after rejecting A/B/C as final directions. A/B/C remain historical exploration evidence only.
 
-### Potential Waterfound Visual System primitives
+## Structural thesis
 
-Only patterns proven useful in real FAE surfaces may later be extracted:
+- **Orange Top** = FAE identity + broadcast/network context.
+- **White Field** = dominant working surface.
+- **Blue Circulation** = live activity, computation, focus and processing.
 
-- typography scale and data typography;
-- spacing rhythm and layout primitives;
-- accessibility rules;
-- motion grammar;
-- focus/interaction conventions;
-- component architecture;
-- design QA and visual critique methods.
+The implementation must remain recognizable without the logo and must preserve semantic honesty in Mining: a blue activity rail can make computation feel alive, but can never imply deterministic progress toward a block reward.
 
-### FAE-specific art direction
+See:
+- `design/direction-d-authority.json`
+- `design/direction-d-visual-grammar.md`
+- `design/quality-gates.md`
+- `design/anti-pattern-registry.json`
 
-These stay specialized unless reuse is demonstrated:
+## Reusable vs FAE-specific
 
-- identity, symbol and wordmark;
-- FAE palette;
-- mythic/ethereal visual metaphors;
-- surface textures;
-- brand narrative;
-- product-specific composition.
+Potential Waterfound Visual System primitives may later include typography/data treatment, spacing, accessibility, motion grammar, focus states and QA methods.
+
+FAE-specific identity remains specialized: orange topper, ticker behavior, blue-circulation semantics, FAE narrative and eventual symbol/wordmark.
 
 **Generalize proven patterns, not imagined reuse.**
 
-## Current baseline
+## Execution boundary
 
-The public testnet is functional and coherent, but its identity is dominated by dark forest green, mint accents, rounded cards and system UI typography. The goal is not to discard clarity; it is to add a recognizable visual grammar that survives removal of the logo.
-
-## Current execution boundary
-
-Exploration under `design/**` is non-production and non-consensus. Production files such as `index.html`, wallet/mining runtime modules, Explorer runtime and canonical state registries remain untouched until a direction is selected and the branch is reconciled against newest `main`.
-
-## Exploration order
-
-1. Current-state audit
-2. Divergent directions
-3. Human selection
-4. Brand thesis + visual grammar freeze
-5. Homepage / Wallet / Mining vertical slices
-6. Explorer specialization
-7. Responsive, accessibility and browser QA
-8. Reference gallery + systemization
-9. Serialized canonical integration
+Direction selection is resolved. Non-consensus UI implementation may proceed after reconciliation with newest `main`. Consensus, economics, address formats, cryptographic constants, transaction semantics and mining correctness remain outside this workstream.

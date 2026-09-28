@@ -1,5 +1,6 @@
 {
-  "schema": "FAE_VISUAL_ANTI_PATTERN_REGISTRY_V1",
+  "schema": "FAE_VISUAL_ANTI_PATTERN_REGISTRY_V2",
+  "direction": "D — Orange Top / White Field / Blue Circulation",
   "prohibited_or_suspect": [
     {
       "id": "AP-01",
@@ -28,8 +29,8 @@
     },
     {
       "id": "AP-06",
-      "pattern": "stock or generic AI fantasy fairy imagery",
-      "reason": "makes mythic language childish or synthetic"
+      "pattern": "generic AI fantasy fairy imagery",
+      "reason": "makes the identity childish or synthetic"
     },
     {
       "id": "AP-07",
@@ -43,7 +44,7 @@
     },
     {
       "id": "AP-09",
-      "pattern": "motion without state or narrative purpose",
+      "pattern": "motion without informational purpose",
       "reason": "costs clarity, battery and accessibility"
     },
     {
@@ -58,8 +59,33 @@
     },
     {
       "id": "AP-12",
-      "pattern": "identical art direction for Wallet, Mining and Explorer",
-      "reason": "coherence should not erase product-specific roles"
+      "pattern": "orange used as generic warning color everywhere",
+      "reason": "collapses identity and semantic warning roles"
+    },
+    {
+      "id": "AP-13",
+      "pattern": "blue implying guaranteed mining progress or imminent reward",
+      "reason": "misrepresents probabilistic proof-of-work"
+    },
+    {
+      "id": "AP-14",
+      "pattern": "ticker too fast or visually exhausting",
+      "reason": "turns live network context into noise"
+    },
+    {
+      "id": "AP-15",
+      "pattern": "large fixed network metric balloons as the primary presentation",
+      "reason": "contradicts the Direction D ticker grammar"
+    },
+    {
+      "id": "AP-16",
+      "pattern": "white corporate blandness",
+      "reason": "clarity without identity is not sufficient"
+    },
+    {
+      "id": "AP-17",
+      "pattern": "financial-terminal imitation",
+      "reason": "FAE is a public network product, not an asset-price terminal"
     }
   ]
 }
