@@ -1,0 +1,70 @@
+{
+  "schema": "fae-180s-f180-12-terminal-verdict/1",
+  "frontier": "F180-12",
+  "status": "COMPLETE",
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "verdict_precedence": [
+    "MATERIAL_RISK_FOUND",
+    "INSUFFICIENT_EVIDENCE",
+    "SUPPORTED_WITHIN_CURRENT_EVIDENCE"
+  ],
+  "authority": "RESEARCH_CONCLUSION_ONLY",
+  "source_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "build_colony_run": "bc-fae-180s-ebtv-20260928-001",
+  "final_independent_verification": {
+    "run_id": 36449101268,
+    "head_sha": "b9c991d8965b5c0d1c0bb420673744d46e18ac9f",
+    "conclusion": "success",
+    "artifact_id": 10981987238,
+    "artifact_sha256": "sha256:887526d8b7ef7e4a764abf189a9f20cfe066608fe28e3cc456e0fc669449411c",
+    "allPassed": true,
+    "hardFailureConfirmed": false,
+    "directExternalEvidenceStillMissing": true,
+    "computedVerdict": "INSUFFICIENT_EVIDENCE"
+  },
+  "decision_logic": {
+    "material_risk_found": false,
+    "sufficient_all_required_evidence_classes": false,
+    "reason": "No verified hard gate established a material 180s failure, but the frozen direct-evidence requirements for a supported mainnet-grade claim are not met.",
+    "mechanical_result": "INSUFFICIENT_EVIDENCE"
+  },
+  "supported_findings": [
+    "The exact active-v4 180s DAA converged under the frozen honest 0.1x–10x hash-rate shocks without floor/ceiling lock.",
+    "The active 180s package improves block/reward event frequency and reduces payout-count variance relative to 300s/600s at equal miner share.",
+    "Sub-second propagation reported in failed historical 180s soaks is directionally encouraging but is not promoted to PASS.",
+    "No relative miner block-share advantage from the tested +120s timestamp strategies was demonstrated in the paired model."
+  ],
+  "warnings": [
+    "The active integer-bit DAA is coarse: the stationary deterministic target envelope implied by nearest-bit quantization spans approximately 127.3s–254.6s around a nominal 180s target.",
+    "The 256-seed stable-hash model produced a median per-seed mean interval of about 191.6s and repeated retarget-bit changes.",
+    "The active +120s timestamp rule measurably couples into DAA cadence even though a relative reward-share advantage was not demonstrated.",
+    "180s amplifies fixed propagation-latency advantage and fixed-outage competing-block exposure relative to 300s/600s.",
+    "Very small solo miners still experience material payout lumpiness even though 180s reduces it relative to longer targets."
+  ],
+  "missing_required_evidence": [
+    "Fresh directly comparable 180s WAN/physical raw evidence with provenance.",
+    "At least 500 admitted 180s propagation samples with P50/mean/P95 and P99 when the raw distribution permits.",
+    "Natural stale/fork/reorg denominators sufficient to satisfy the frozen Wilson 95% confidence gates.",
+    "Fresh recovery/partition evidence against a precommitted recovery bound with deterministic state convergence.",
+    "Repository-resident authoritative raw provenance for the historical V1/V2 stability-soak result bundles, or a fresh superseding dataset."
+  ],
+  "preserved_failures": [
+    "Stability Soak V1 remains FAIL; pre-failure healthy observations are not a partial PASS.",
+    "Stability Soak V2 remains FAIL; the reported ~208s divergence exceeded its frozen 180s gate.",
+    "The failed CI runs created while binding later frontiers remain failed historical executions and were superseded only by new successful runs."
+  ],
+  "current_protocol_effect": {
+    "active_public_testnet_target_seconds": 180,
+    "active_consensus_changed": false,
+    "economic_parameters_changed": false,
+    "activation_height_selected": false,
+    "mainnet_authorized": false,
+    "research_incumbent_300s_changed": false,
+    "stability_soak_v3_substituted": false
+  },
+  "interpretation": "180s was not falsified by the completed software-only evidence, but it is not sufficiently supported by the currently admitted evidence for a mainnet-grade block-time claim.",
+  "reopen_condition": "Reopen this research verdict when fresh directly comparable 180s WAN/physical/natural-event evidence satisfying the frozen admission gates is available. A future Stability Soak V3 result may be admitted only as a separate, explicitly classified evidence source.",
+  "selectionAuthorized": false,
+  "activationAuthorized": false,
+  "mainnetAuthorized": false
+}
