@@ -109,4 +109,6 @@ test('browser harness exposes explicit physical/rehearsal boundary and lifecycle
   assert.match(browser,/PHYSICAL_EVIDENCE/);
   assert.match(browser,/document\.addEventListener\('visibilitychange'/);
   assert.doesNotMatch(browser,/dispatchEvent\(new Event\(['"]visibilitychange/);
+  assert.match(browser,/rewardAddressLooksUsable/);
+  assert.match(browser,/URLSearchParams\(location\.search\)/);
 });
