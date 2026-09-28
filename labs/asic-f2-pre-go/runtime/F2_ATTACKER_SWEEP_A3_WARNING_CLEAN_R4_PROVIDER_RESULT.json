@@ -1,0 +1,62 @@
+{
+  "schema": "fae.asic.f2.a3_warning_clean.r4_provider_revalidation.v1",
+  "recorded_date": "2026-09-27",
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-CTRL-PC-R4",
+  "source_revision": "4fefe41c3119228e97d3822d502d6828b4381b1d",
+  "source_verification": {
+    "run_id": 36362191867,
+    "status": "PASS"
+  },
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-0a78942ea16f63636",
+    "instance_type": "r7i.xlarge",
+    "max_runtime_tag": "1h",
+    "spend_cap_tag_usd": "20",
+    "instance_state_observed": "terminated"
+  },
+  "authority_boundary": {
+    "physical_build_authorized": false,
+    "afi_creation_authorized": false,
+    "release_authorized": false,
+    "consensus_activation_authorized": false,
+    "mainnet_action_authorized": false
+  },
+  "validation": {
+    "vivado": "2025.2",
+    "validate_bd_design_completed": true,
+    "vivado_rc": 0,
+    "wrapper_exit_code": 0,
+    "stage": "A3_WARNING_CLEAN_R4_REVALIDATE_PASS",
+    "topology_marker": "FAE_A3_DIRECTSPLIT_VALIDATE_PASS",
+    "bd_41_237_occurrences": 0,
+    "bd_41_737_occurrences": 0,
+    "physical_implementation_launched": false,
+    "afi_created": false
+  },
+  "residual_warnings": [
+    {
+      "code": "Coretcl 2-2367",
+      "detail": "Cannot update IP catalog while block design 'cl' is open.",
+      "scope": "AWS HLx/Vivado catalog setup; not the AXI4/AXI4-Lite control-path mismatch targeted by R4."
+    }
+  ],
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0a78942ea16f63636/a3-warning-clean-r4-revalidate/",
+  "evidence_objects": {
+    "vivado_log_size": 33135,
+    "bd_41_237_size": 0,
+    "bd_41_737_size": 0,
+    "interface_map_size": 2032,
+    "address_map_size": 2296,
+    "cells_size": 900
+  },
+  "timing": {
+    "started_utc": "2026-09-28T01:03:55Z",
+    "finished_utc": "2026-09-28T01:10:31Z"
+  },
+  "verdict": "PASS_TARGET_WARNINGS_CLEAN",
+  "disposition": "STOP_BEFORE_PHYSICAL_IMPLEMENTATION",
+  "next_action": "A separate human authority gate is required before any A3 physical implementation build. Provider static validation does not prove routability, timing closure, AFI eligibility, runtime parity, or throughput.",
+  "boundary": "R4 closes the AXI control metadata warning-clean objective at provider static-validation level only. No physical implementation, AFI, release, consensus activation, or mainnet action occurred."
+}
