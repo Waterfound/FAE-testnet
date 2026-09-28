@@ -6,7 +6,9 @@ on:
       - colony/fae-180s-economic-block-time-validation-001
     paths:
       - "sovereign-forge/node/lab/economic-block-time-180-daa-validation.mjs"
+      - "sovereign-forge/node/lab/economic-block-time-180-timestamp-daa-coupling.mjs"
       - "sovereign-forge/tests/economic-block-time-180-daa-validation.mjs"
+      - "sovereign-forge/tests/economic-block-time-180-timestamp-daa-coupling.mjs"
       - ".github/workflows/fae-180s-economic-block-time-validation.yml"
   workflow_dispatch:
 
@@ -27,14 +29,19 @@ jobs:
           git rev-parse HEAD
           test "$(git branch --show-current)" = "colony/fae-180s-economic-block-time-validation-001"
       - name: Run focused tests
-        run: node --test sovereign-forge/tests/economic-block-time-180-daa-validation.mjs
-      - name: Execute frozen 256-seed study
+        run: |
+          node --test sovereign-forge/tests/economic-block-time-180-daa-validation.mjs
+          node --test sovereign-forge/tests/economic-block-time-180-timestamp-daa-coupling.mjs
+      - name: Execute frozen studies
         run: |
           node sovereign-forge/node/lab/economic-block-time-180-daa-validation.mjs 256 > /tmp/fae-180s-daa-study.json
-          node -e "const r=require('/tmp/fae-180s-daa-study.json'); if(r.activationAuthorized!==false||r.selectionAuthorized!==false) process.exit(1); console.log(JSON.stringify({schema:r.schema,seeds:r.methodology.seeds,constants:r.active_constants},null,2));"
+          node sovereign-forge/node/lab/economic-block-time-180-timestamp-daa-coupling.mjs 256 > /tmp/fae-180s-timestamp-study.json
+          node -e "for(const p of ['/tmp/fae-180s-daa-study.json','/tmp/fae-180s-timestamp-study.json']){const r=require(p);if(r.activationAuthorized!==false||r.selectionAuthorized!==false)process.exit(1);console.log(JSON.stringify({schema:r.schema},null,2));}"
       - uses: actions/upload-artifact@v4
         with:
-          name: fae-180s-daa-study-${{ github.sha }}
-          path: /tmp/fae-180s-daa-study.json
+          name: fae-180s-validation-${{ github.sha }}
+          path: |
+            /tmp/fae-180s-daa-study.json
+            /tmp/fae-180s-timestamp-study.json
           if-no-files-found: error
           retention-days: 30
