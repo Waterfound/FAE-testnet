@@ -1,0 +1,12 @@
+{
+  "schema": "FAE_PQ_WAVE_D_EXECUTION_REQUEST_V1",
+  "state": "REQUESTED",
+  "requested_at": "2026-09-18",
+  "source_revision": "9f5ab833946aaec9569a83c6dd5af35f0c33aa92",
+  "executor": ".github/workflows/pq-lab-standards.yml",
+  "requested_gates": ["PQ-03", "PQ-04"],
+  "frozen_matrix": "lab/post-quantum-signatures/primitives/manifest.json",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "rule": "This request changes no test selection. It exists only to create an immutable execution revision under the narrow Wave D push trigger."
+}
