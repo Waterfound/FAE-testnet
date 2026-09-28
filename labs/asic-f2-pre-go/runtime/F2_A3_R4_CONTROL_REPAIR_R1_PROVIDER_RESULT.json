@@ -1,0 +1,45 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.provider_static.v1",
+  "run": "R1",
+  "status": "FAIL_CLOSED",
+  "candidate": "A3-R4-CTRL-AXILITE-CDC-DIRECT-R1",
+  "source_commit": "895c26daa6327c9171e30344a788feff0456b010",
+  "candidate_blob": "b9016b3e2d5edafdf43e54c208b4747d889c63ee",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-05cead161f1a61ade",
+    "instance_type": "r7i.xlarge",
+    "state": "terminated"
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-05cead161f1a61ade/a3-r4-controlrepair-static/",
+  "validation": {
+    "stage": "A3_R4_CONTROL_REPAIR_STATIC_FAIL_CLOSED",
+    "exit_code": 1,
+    "vivado_rc": 1,
+    "bd_41_237": 2,
+    "bd_41_737": 8,
+    "finished_utc": "2026-09-28T23:52:19Z"
+  },
+  "proven": [
+    "Generic AXI clock converter cell-level PROTOCOL=AXI4LITE alone did not cause its generated S_AXI/M_AXI metadata to expose burst length 1 in this BD.",
+    "Pin-level PROTOCOL and MAX_BURST_LENGTH are read-only and cannot be used as the repair mechanism.",
+    "The candidate therefore does not satisfy static admission."
+  ],
+  "not_proven": [
+    "The R4 runtime root cause.",
+    "That AXI-Lite CDC is inherently invalid.",
+    "Runtime liveness of any revised candidate."
+  ],
+  "disposition": "REFINE_WITHIN_EXISTING_REPAIR_AUTHORITY",
+  "next_candidate": "Use the same control topology but fully parameterize the AXI clock converter to match AWS cl_axi_clock_converter_light component parameters; do not override read-only interface properties.",
+  "authority": {
+    "new_afi": false,
+    "new_f2": false,
+    "physical_build": false,
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "mainnet": false
+  }
+}
