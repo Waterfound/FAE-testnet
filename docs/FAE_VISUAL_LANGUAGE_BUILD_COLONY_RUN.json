@@ -113,7 +113,7 @@
     {
       "id": "VL-05",
       "name": "Three divergent art-direction prototypes",
-      "state": "ACTIVE",
+      "state": "DONE",
       "depends_on": [
         "VL-04"
       ]
@@ -121,7 +121,7 @@
     {
       "id": "VL-06",
       "name": "Waterfound art-direction selection",
-      "state": "BLOCKED_BY_VL05",
+      "state": "HUMAN_GATE",
       "depends_on": [
         "VL-05"
       ],
@@ -210,5 +210,30 @@
     "network identity changes",
     "automatic final brand selection",
     "premature extraction into a separate Visual-System repository"
-  ]
+  ],
+  "observed_latest_main": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "latest_main_drift": {
+    "status": "diverged",
+    "visual_branch_ahead_by": 1,
+    "visual_branch_behind_by": 18,
+    "overlap_assessment": "NO_OVERLAPPING_CHANGED_PATHS",
+    "policy": "reconcile/rebase against newest main only after Waterfound selects an art direction and before product-surface implementation"
+  },
+  "current_frontier": "VL-06",
+  "current_state": "ART_DIRECTION_OPTIONS_READY_FOR_SELECTION",
+  "evidence": {
+    "build_commit": "c98293ada696b2ad8a5087181d60fce79a1066b6",
+    "visual_contract_run": "https://github.com/Waterfound/FAE-testnet/actions/runs/36458255122",
+    "visual_contract_conclusion": "SUCCESS",
+    "vercel_preview_note": "FAE-testnet preview provider failed from account build-rate limit; not treated as design failure",
+    "isolated_preview": "https://fae-art-direction-study-3wl2o8.v2.appdeploy.ai/",
+    "isolated_preview_state": "READY",
+    "isolated_preview_errors": {
+      "frontend": 0,
+      "network": 0
+    },
+    "final_browser_qa": "https://agent.tinyfish.ai/runs/3519655b-b77f-4ce8-a338-7a1f820f4c3c",
+    "final_browser_qa_result": "three directions rendered, no horizontal-overflow/broken-layout issues observed, divergence sufficient",
+    "rendered_text_verification": "A/B/C pages each expose Wallet and Mining concepts in the rendered public preview"
+  }
 }

@@ -1,0 +1,53 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_VL05_EVIDENCE_V1",
+  "source_revision": "c98293ada696b2ad8a5087181d60fce79a1066b6",
+  "baseline_main_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "latest_main_observed": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "outcome": "ART_DIRECTION_OPTIONS_READY_FOR_SELECTION",
+  "checks": [
+    {
+      "kind": "contract_ci",
+      "status": "PASS",
+      "ref": "github://Waterfound/FAE-testnet/actions/runs/36458255122"
+    },
+    {
+      "kind": "isolated_preview",
+      "status": "PASS",
+      "ref": "https://fae-art-direction-study-3wl2o8.v2.appdeploy.ai/"
+    },
+    {
+      "kind": "preview_runtime_errors",
+      "status": "PASS",
+      "detail": "0 frontend errors; 0 network errors"
+    },
+    {
+      "kind": "browser_visual_qa",
+      "status": "PASS",
+      "ref": "https://agent.tinyfish.ai/runs/3519655b-b77f-4ce8-a338-7a1f820f4c3c",
+      "detail": "comparison plus A/B/C rendered; no layout issues observed; divergence sufficient"
+    },
+    {
+      "kind": "rendered_semantics",
+      "status": "PASS",
+      "detail": "all three directions expose both Wallet and Mining concepts when rendered"
+    }
+  ],
+  "provider_exception": {
+    "provider": "Vercel",
+    "status": "EXTERNAL_RATE_LIMIT",
+    "detail": "automatic FAE-testnet preview status failed because of account build-rate limit",
+    "disposition": "non-blocking for isolated visual exploration; production/testnet deployment remains untouched"
+  },
+  "authority_stop": {
+    "frontier": "VL-06",
+    "owner": "Waterfound",
+    "decision": "select one direction, request a deliberate hybrid, or reject all three for another exploration round",
+    "why_human": "multiple artistically valid identities remain; machine autonomy does not include final identity selection"
+  },
+  "prohibited_promotions": [
+    "no branch merge to main",
+    "no production/testnet visual mutation",
+    "no logo/symbol freeze",
+    "no protocol/network identity mutation"
+  ]
+}
