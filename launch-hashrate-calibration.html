@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07100b">
+<title>FAE Launch Hashrate Calibration</title>
+<style>
+:root{color-scheme:dark;--bg:#07100b;--surface:#0e1a13;--surface2:#07110b;--line:#294733;--text:#edf8ef;--muted:#9eb3a4;--accent:#b8ffc8;--accentInk:#061108;--warn:#ffd58a;--bad:#ff9d9d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:860px;margin:auto;padding:20px 14px 64px}h1{font-size:clamp(28px,5vw,42px);line-height:1.08;margin:14px 0 7px;letter-spacing:-.035em}h2{font-size:20px;margin:0 0 10px}.card{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:16px;margin:12px 0}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #685731;background:#1c180d;color:var(--warn);border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800}.small{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:10px}.metric b{display:block;font-size:18px;margin-top:2px}.field{display:block;color:var(--muted);font-size:13px;margin:11px 0 5px}input,select,textarea,button{font:inherit}input,select,textarea{width:100%;background:#06100a;border:1px solid #355942;border-radius:10px;color:var(--text);padding:11px}textarea{min-height:80px;resize:vertical}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:var(--accentInk);font-weight:780;cursor:pointer}button.alt{background:#24392b;color:var(--text);border:1px solid #395744}button:disabled{opacity:.45;cursor:not-allowed}.status{margin-top:10px;background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:10px}.ok{color:var(--accent)}.warn{color:var(--warn)}.bad{color:var(--bad)}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.progress{height:10px;background:#051008;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:var(--accent);transition:width .3s linear}.checks{display:grid;gap:7px;margin-top:10px}.checks label{display:flex;gap:9px;align-items:flex-start}.checks input{width:auto;margin-top:3px}.history{display:grid;gap:7px}.row{padding:10px;background:var(--surface2);border:1px solid var(--line);border-radius:10px}.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:12px}@media(max-width:680px){.grid{grid-template-columns:1fr 1fr}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <span class="pill">Research-only · no block submission · no rewards</span>
+  <h1>FAE Launch Hashrate Calibration</h1>
+  <p class="small">Measures the browser PoW primitive used by FAE: canonical JSON → SHA-256 → SHA-256, with a sequential nonce, in a single Web Worker. This page never submits a block and does not alter public consensus.</p>
+
+  <section class="card">
+    <h2>Trial setup</h2>
+    <label class="field" for="device">Physical device class</label>
+    <input id="device" placeholder="e.g. iPad Pro M4 11-inch 16 GB">
+    <label class="field" for="duration">Trial duration</label>
+    <select id="duration">
+      <option value="1200">20 minutes — admissible minimum</option>
+      <option value="1500">25 minutes</option>
+      <option value="1800" selected>30 minutes</option>
+      <option value="2100">35 minutes</option>
+      <option value="300">5 minutes — diagnostic only</option>
+    </select>
+    <label class="field" for="notes">Operator notes</label>
+    <textarea id="notes" placeholder="Ambient conditions, case/charger state, thermal observations, foreground/background behavior, etc."></textarea>
+    <div class="actions">
+      <button id="start">Start sustained trial</button>
+      <button id="stop" class="alt" disabled>Stop early</button>
+    </div>
+    <div id="status" class="status">Ready. The self-test will run before each trial.</div>
+    <div class="progress"><div id="bar"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Live measurement</h2>
+    <div class="grid">
+      <div class="metric"><span class="small">Elapsed</span><b id="elapsed">0:00</b></div>
+      <div class="metric"><span class="small">Total hashes</span><b id="hashes">0</b></div>
+      <div class="metric"><span class="small">Average</span><b id="avg">— H/s</b></div>
+      <div class="metric"><span class="small">Recent 10 s</span><b id="recent">— H/s</b></div>
+    </div>
+    <div class="status"><span class="small">PoW implementation fingerprint</span><div class="mono">double-SHA256(stable-json(header+nonce)) · single-worker · v1</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Admission checklist</h2>
+    <div class="checks">
+      <label><input id="thermal" type="checkbox"> <span>Device reached a sustained thermal state during this trial.</span></label>
+      <label><input id="foreground" type="checkbox" checked> <span>The calibration page remained in the foreground for the measurement.</span></label>
+      <label><input id="uninterrupted" type="checkbox" checked> <span>The run was not intentionally paused or throttled by the operator.</span></label>
+    </div>
+    <p class="small">A ≥20 minute run can be retained as physical calibration evidence. A short diagnostic run remains useful for QA but is marked non-admissible automatically.</p>
+    <div class="actions">
+      <button id="export" class="alt" disabled>Export evidence JSON</button>
+      <button id="copy" class="alt" disabled>Copy summary</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Recent local trials</h2>
+    <div id="history" class="history"><div class="small">No completed trials stored on this device.</div></div>
+  </section>
+
+  <div class="footer">FAE v5 300s calibration lab · candidate-not-active-consensus</div>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const SELF_TEST_EXPECTED='0116e5d4169d15320b55a4664f43398e676a3124523998ca23ef007e295901f0';
+const CALIBRATION_FORMAT='FAE_INITIAL_TARGET_PHYSICAL_TRIAL_V1';
+const PROFILE='l3-ci-easy-pow-limit-explicit';
+const NETWORK='fairyelf-public-testnet-v5-candidate-300s';
+const HEADER={version:5,network:NETWORK,profile_id:PROFILE,genesis_commitment:'1a156bcd52747c18c021015503744930110b5ccb491a47cc52f01dac96de9da3',height:1,previous_hash:'0'.repeat(64),timestamp_ms:1900000000000,target_hex:'000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',subsidy_atoms:'1400000000',fee_atoms:'0',miner_address:'faet1-calibration-only',coinbase_root:'0'.repeat(64),coinbase_count:1,tx_root:'0'.repeat(64),tx_count:0};
+let worker=null,startMs=0,durationSec=0,totalHashes=0,lastSampleHashes=0,lastSampleMs=0,timer=null,latest=null,samples=[];
+function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));return value}
+async function digestHex(value){const e=new TextEncoder();const first=await crypto.subtle.digest('SHA-256',e.encode(JSON.stringify(canonical(value))));const second=await crypto.subtle.digest('SHA-256',first);return[...new Uint8Array(second)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function selfTest(){const got=await digestHex({a:1,b:'fae',nested:{x:true}});if(got!==SELF_TEST_EXPECTED)throw new Error('PoW self-test mismatch');return got}
+function workerSource(){return `
+'use strict';
+const E=new TextEncoder();
+function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])]));return value}
+async function digest(value){const first=await crypto.subtle.digest('SHA-256',E.encode(JSON.stringify(canonical(value))));await crypto.subtle.digest('SHA-256',first)}
+onmessage=async event=>{const header=event.data.header;let nonce=0,total=0,last=performance.now();for(;;){for(let i=0;i<64;i++,nonce++,total++)await digest({...header,nonce});const now=performance.now();if(now-last>=500){postMessage({total});last=now}}}
+`}
+function fmtTime(sec){sec=Math.max(0,Math.floor(sec));return`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`}
+function setRunning(running){$('start').disabled=running;$('stop').disabled=!running;$('duration').disabled=running;$('device').disabled=running}
+function updateLive(){if(!startMs)return;const now=performance.now(),elapsed=(now-startMs)/1000,avg=elapsed>0?totalHashes/elapsed:0,recent=(now-lastSampleMs)>0?(totalHashes-lastSampleHashes)/((now-lastSampleMs)/1000):0;$('elapsed').textContent=fmtTime(elapsed);$('hashes').textContent=totalHashes.toLocaleString();$('avg').textContent=Math.round(avg).toLocaleString()+' H/s';$('recent').textContent=Math.round(recent).toLocaleString()+' H/s';$('bar').style.width=Math.min(100,elapsed/durationSec*100)+'%';if(now-lastSampleMs>=10000){samples.push({elapsed_seconds:Math.round(elapsed),hashes:totalHashes,rate_hps:Math.round(recent)});lastSampleMs=now;lastSampleHashes=totalHashes}if(elapsed>=durationSec)finish(false)}
+async function startTrial(){if(worker)return;const device=$('device').value.trim();if(!device){$('status').textContent='Enter the physical device class before starting.';$('status').className='status warn';return}try{$('status').textContent='Running PoW self-test…';$('status').className='status';await selfTest()}catch(e){$('status').textContent='Self-test failed: '+e.message;$('status').className='status bad';return}durationSec=Number($('duration').value);totalHashes=0;lastSampleHashes=0;samples=[];startMs=performance.now();lastSampleMs=startMs;setRunning(true);$('export').disabled=true;$('copy').disabled=true;$('status').textContent='Sustained hashing in progress. Keep this page in the foreground.';$('status').className='status ok';const blob=new Blob([workerSource()],{type:'text/javascript'}),url=URL.createObjectURL(blob);worker=new Worker(url);worker.__url=url;worker.onmessage=e=>{totalHashes=Number(e.data.total)||totalHashes};worker.onerror=e=>finish(true,'Worker error: '+(e.message||'unknown'));worker.postMessage({header:HEADER});timer=setInterval(updateLive,500)}
+function finish(interrupted=false,errorText=''){if(!worker)return;clearInterval(timer);timer=null;worker.terminate();URL.revokeObjectURL(worker.__url);worker=null;const endPerf=performance.now(),elapsed=(endPerf-startMs)/1000,avg=elapsed>0?totalHashes/elapsed:0,selected=durationSec,admissible=!interrupted&&elapsed>=1200&&$('thermal').checked&&$('foreground').checked&&$('uninterrupted').checked;latest={format:CALIBRATION_FORMAT,authority:'research-only-no-consensus-authority',network:NETWORK,profile:PROFILE,pow_primitive:'double-SHA256(stable-json(header+nonce))',worker_count:1,device_class:$('device').value.trim(),operator_notes:$('notes').value.trim(),started_at:new Date(Date.now()-elapsed*1000).toISOString(),ended_at:new Date().toISOString(),selected_duration_seconds:selected,measured_duration_seconds:Number(elapsed.toFixed(3)),total_hashes:totalHashes,average_hashrate_hps:Number(avg.toFixed(3)),thermal_sustained:$('thermal').checked,foreground:$('foreground').checked,uninterrupted:$('uninterrupted').checked,minimum_20m_met:elapsed>=1200,admissible_for_target_calibration:admissible,interrupted:Boolean(interrupted),self_test_expected:SELF_TEST_EXPECTED,samples_10s:samples,browser:{userAgent:navigator.userAgent,platform:navigator.platform||null,hardwareConcurrency:navigator.hardwareConcurrency||null,deviceMemory:navigator.deviceMemory||null,screen:{width:screen.width,height:screen.height,pixelRatio:devicePixelRatio}},activationAuthorized:false,publicConsensusChanged:false};store(latest);renderHistory();setRunning(false);$('export').disabled=false;$('copy').disabled=false;$('bar').style.width=Math.min(100,elapsed/selected*100)+'%';$('status').textContent=errorText||(`Trial complete: ${Math.round(avg).toLocaleString()} H/s average · `+(admissible?'admissible evidence':'diagnostic / not yet admissible'));$('status').className='status '+(admissible?'ok':'warn')}
+function store(row){try{const current=JSON.parse(localStorage.getItem('fae-calibration-trials-v1')||'[]');localStorage.setItem('fae-calibration-trials-v1',JSON.stringify([row,...current].slice(0,8)))}catch{}}
+function history(){try{return JSON.parse(localStorage.getItem('fae-calibration-trials-v1')||'[]')}catch{return[]}}
+function renderHistory(){const rows=history();$('history').innerHTML=rows.length?rows.map(r=>`<div class="row"><b>${escapeHtml(r.device_class||'Unknown device')}</b><div>${Math.round(r.average_hashrate_hps).toLocaleString()} H/s · ${fmtTime(r.measured_duration_seconds)} · <span class="${r.admissible_for_target_calibration?'ok':'warn'}">${r.admissible_for_target_calibration?'admissible':'diagnostic'}</span></div><div class="small">${escapeHtml(r.ended_at||'')}</div></div>`).join(''):'<div class="small">No completed trials stored on this device.</div>'}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function exportLatest(){if(!latest)return;const blob=new Blob([JSON.stringify(latest,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='fae-hashrate-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function copySummary(){if(!latest)return;const s=`FAE calibration | ${latest.device_class} | ${Math.round(latest.average_hashrate_hps)} H/s | ${Math.round(latest.measured_duration_seconds)} s | admissible=${latest.admissible_for_target_calibration}`;await navigator.clipboard.writeText(s);$('status').textContent='Summary copied.'}
+$('start').onclick=startTrial;$('stop').onclick=()=>finish(true,'Trial stopped early; retained as diagnostic only.');$('export').onclick=exportLatest;$('copy').onclick=copySummary;window.addEventListener('beforeunload',()=>{if(worker)worker.terminate()});renderHistory();
+</script>
+</body>
+</html>
