@@ -7,7 +7,7 @@ import {
 const $=id=>document.getElementById(id);
 const state={
   lock:null,profile:null,captures:[],stopped:false,activeWorker:null,
-  lifecycleCycles:0,lifecycleHidden:false,localAgent:false,harnessRevision:'RPA-V1'
+  lifecycleCycles:0,lifecycleHidden:false,localAgent:false,harnessRevision:'RPA-V1',autostartRequested:false
 };
 const REQUIRED_LIFECYCLE=new Set(['mobile_tablet_arm','compact_handheld_consumer']);
 const physicalDurations={
@@ -37,6 +37,8 @@ function applyQueryPrefill(){
   const manufacturer=q.get('manufacturer');if(manufacturer)$('manufacturer').value=manufacturer.slice(0,120);
   const model=q.get('model');if(model)$('model').value=model.slice(0,160);
   const address=q.get('address');if(address&&/^faet1[a-z0-9]{20,}$/.test(address))$('rewardAddress').value=address;
+  const mode=q.get('mode');if(['REHEARSAL_ONLY','PHYSICAL_EVIDENCE'].includes(mode))$('mode').value=mode;
+  if(q.get('autostart')==='1')state.autostartRequested=true;
 }
 function formProfile(){
   return{
@@ -73,6 +75,8 @@ async function loadLocalProfile(){
     if(p.model)$('model').value=p.model;
     if(p.device_class)$('deviceClass').value=p.device_class;
     if(p.reward_address&&/^faet1[a-z0-9]{20,}$/.test(p.reward_address))$('rewardAddress').value=p.reward_address;
+    if(['REHEARSAL_ONLY','PHYSICAL_EVIDENCE'].includes(p.execution_mode))$('mode').value=p.execution_mode;
+    if(p.autostart===true)state.autostartRequested=true;
     $('profileState').textContent='Local agent detected · '+[p.manufacturer,p.model,p.os].filter(Boolean).join(' · ');
     $('profileState').className='status good';
   }catch{
@@ -375,3 +379,10 @@ window.addEventListener('beforeunload',()=>stopWorker());
 applyQueryPrefill();
 await loadLocalProfile();
 updateRunEligibility();
+if(state.autostartRequested){
+  try{
+    await lockSelection();
+    if(!rewardAddressLooksUsable())throw new Error('autostart_requires_valid_FAE_reward_address');
+    await runCampaign();
+  }catch(error){status('Autostart stopped/fail-closed: '+String(error.message||error),'bad')}
+}
