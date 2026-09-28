@@ -194,6 +194,45 @@ Primary references:
 - `docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_CLOSURE.json`
 - `.github/workflows/representative-device-evidence-readiness.yml`
 
+## Representative Device Physical Autopilot
+
+Current software execution-kit state:
+
+`DONE / REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_READY`
+
+The machine-side execution layer for the frozen Representative Device Evidence contract is complete. It provides:
+
+- a shared browser harness for physical-device PoW and evidence capture;
+- a zero-dependency Node.js localhost controller for Mac, Windows/Linux consumer-GPU machines and Steam Deck-class devices;
+- pre-result device selection locking bound to the live v4 tip;
+- full-duration sustained-mining and normal-use coexistence scheduling;
+- genuine browser lifecycle recording with no synthetic lifecycle credit;
+- optional local thermal/device telemetry;
+- automatic capture → staging → evidence bundle → deterministic verifier processing;
+- browser-only export/import for iPad/no-install devices;
+- one-command local physical autostart and one-tap URL autostart with fail-closed public-address requirements;
+- a public no-login browser harness at `https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/`.
+
+The public environment completed a zero-click end-to-end `REHEARSAL_ONLY` campaign with six captures. That result validates orchestration only and carries **no** physical-evidence authority.
+
+The remaining work is genuinely physical/external:
+
+- real runs on the preselected required devices;
+- five genuine hidden → visible lifecycle cycles on classes for which the frozen RDE contract requires them;
+- optional wall-power evidence only when a real/machine-readable source exists;
+- final external admission of the complete four-class portfolio.
+
+Representative-device physical evidence therefore remains `EXTERNAL_EVIDENCE / NOT_OBTAINED`.
+
+Primary references:
+
+- `lab/representative-device-physical-autopilot/protocol.json`
+- `lab/representative-device-physical-autopilot/execution-kit.json`
+- `lab/representative-device-physical-autopilot/README.md`
+- `docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_BUILD_COLONY_RUN.json`
+- `docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_CLOSURE.json`
+- `.github/workflows/representative-device-physical-autopilot.yml`
+
 ## Final production freeze still unresolved
 
 The H2 freeze still leaves production-specific values unselected, including:

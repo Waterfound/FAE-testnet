@@ -1,0 +1,66 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_DURABLE_STATE_V1",
+  "workstream": "FAE — Representative Device Physical Autopilot",
+  "branch": "colony/fae-representative-device-physical-autopilot-001",
+  "source_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+  "portfolio_role": "SECONDARY",
+  "active_research_preserved": true,
+  "visual_language_parallel_independent_preserved": true,
+  "shared_state_serialization_required": true,
+  "completed_frontiers": [
+    "RPA-00",
+    "RPA-01",
+    "RPA-02",
+    "RPA-03",
+    "RPA-04",
+    "RPA-05",
+    "RPA-06",
+    "RPA-07",
+    "RPA-08",
+    "RPA-09",
+    "RPA-10",
+    "RPA-11",
+    "RPA-12",
+    "RPA-13",
+    "RPA-14",
+    "RPA-15",
+    "RPA-16"
+  ],
+  "active_frontier": null,
+  "admissible_next": [],
+  "terminal_external_frontiers": [
+    "RPA-X1",
+    "RPA-X2",
+    "RPA-X3",
+    "RPA-X4"
+  ],
+  "parent_rde_terminal_state": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "physical_evidence_obtained": false,
+  "authority_flags": {
+    "contract_changed": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  },
+  "terminal_state": "REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_READY",
+  "verified_candidate_revision": "18bf625585500f722e2bac164cbaf149cece4f79",
+  "last_verification_runs": {
+    "physical_autopilot": 36486838180,
+    "cross_lab": 36486838342,
+    "canonical_source": 36486838087,
+    "codeql": 36486838340
+  },
+  "public_harness": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/",
+  "external_gate": {
+    "state": "PHYSICAL_OR_EXTERNAL",
+    "frontiers": [
+      "RPA-X1",
+      "RPA-X2",
+      "RPA-X3",
+      "RPA-X4"
+    ],
+    "wake_condition": "A real required-class device executes PHYSICAL_EVIDENCE under the frozen parent contract, with genuine lifecycle transitions where required, and returns provenance-bound captures for deterministic verification/admission."
+  }
+}

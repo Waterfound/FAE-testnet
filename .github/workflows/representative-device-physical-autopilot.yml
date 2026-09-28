@@ -1,0 +1,77 @@
+name: Representative Device Physical Autopilot
+
+on:
+  push:
+    branches:
+      - "colony/fae-representative-device-physical-autopilot-*"
+  pull_request:
+    paths:
+      - "lab/representative-device-physical-autopilot/**"
+      - "docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_*"
+      - ".github/workflows/representative-device-physical-autopilot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rde-physical-autopilot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax and shell checks
+        run: |
+          node --check lab/representative-device-physical-autopilot/autopilot-core.mjs
+          node --check lab/representative-device-physical-autopilot/autopilot-browser.mjs
+          node --check lab/representative-device-physical-autopilot/desktop-agent.mjs
+          node --check lab/representative-device-physical-autopilot/import-browser-portfolio.mjs
+          node --check lab/representative-device-physical-autopilot/tests/autopilot.test.mjs
+          sh -n lab/representative-device-physical-autopilot/run-autopilot.sh
+
+      - name: Parse Build Colony and protocol state
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('lab/representative-device-physical-autopilot/protocol.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_BUILD_COLONY_RUN.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_DURABLE_STATE.json'))"
+
+      - name: Run Physical Autopilot adversarial contract tests
+        run: node --test lab/representative-device-physical-autopilot/tests/autopilot.test.mjs
+
+      - name: Smoke real local controller lifecycle
+        run: |
+          OUT="$RUNNER_TEMP/rpa-local-agent"
+          ADDR="faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k"
+          if node lab/representative-device-physical-autopilot/desktop-agent.mjs --open false --port 43115 --device-class thin_light_integrated --autostart-physical --out "$RUNNER_TEMP/rpa-invalid" > "$RUNNER_TEMP/rpa-invalid.log" 2>&1; then
+            echo 'autostart without reward address unexpectedly succeeded' >&2
+            exit 1
+          fi
+          grep -q 'autostart_requires_valid_FAE_reward_address' "$RUNNER_TEMP/rpa-invalid.log"
+          node lab/representative-device-physical-autopilot/desktop-agent.mjs --open false --port 43114 --device-class thin_light_integrated --reward-address "$ADDR" --autostart-rehearsal --out "$OUT" > "$RUNNER_TEMP/rpa-agent.log" 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:43114/_rde/profile > "$RUNNER_TEMP/rpa-profile.json"; then break; fi
+            sleep 0.2
+          done
+          node -e "const p=JSON.parse(require('fs').readFileSync(process.argv[1]));if(p.schema!=='FAE_RDE_LOCAL_AGENT_PROFILE_V1'||p.device_class!=='thin_light_integrated'||p.reward_address!==process.argv[2]||p.execution_mode!=='REHEARSAL_ONLY'||p.autostart!==true)process.exit(1)" "$RUNNER_TEMP/rpa-profile.json" "$ADDR"
+          curl -fsS http://127.0.0.1:43114/ | grep -q 'FAE Physical Autopilot'
+          curl -fsS http://127.0.0.1:43114/autopilot-browser.mjs | grep -q 'rewardAddressLooksUsable'
+          kill "$PID"
+          wait "$PID" 2>/dev/null || true
+          trap - EXIT
+
+      - name: Preserve parent RDE verifier and canonical readiness invariants
+        run: |
+          node --test lab/representative-device-evidence-readiness/tests/rde-readiness.test.mjs
+          node tools/verify-mainnet-readiness-state.mjs
