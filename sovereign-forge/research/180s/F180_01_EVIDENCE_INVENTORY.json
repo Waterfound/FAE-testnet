@@ -1,0 +1,161 @@
+{
+  "schema": "fae-180s-evidence-inventory/1",
+  "frontier": "F180-01",
+  "source_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "plan_revision": "9b2b097f146a9abaa2523806c31ad20e1d1aec86",
+  "status": "COMPLETE_SOFTWARE_EVIDENCE_INVENTORY",
+  "authority": "research-only-no-consensus-authority",
+  "admission_rule": "Evidence may support only the property, population and environment it actually measured. Missing provenance fails closed.",
+  "items": [
+    {
+      "id": "canonical-registry",
+      "locator": "docs/FAE_CANONICAL_STATE.md",
+      "directness": "DIRECT_AUTHORITY_REGISTRY",
+      "supports": [
+        "active 180s/10 FAE/600k/12m authority",
+        "300s remains research incumbent",
+        "V3 separate prepared state"
+      ],
+      "limitations": [
+        "registry is state/authority evidence, not empirical block-time validation"
+      ]
+    },
+    {
+      "id": "active-v4-core",
+      "locator": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+      "blob_sha": "2cf4e8a12f1cfcec7d2f14d8b742b814c09bbd5f",
+      "directness": "DIRECT_ACTIVE_IMPLEMENTATION",
+      "supports": [
+        "TARGET_SECONDS=180",
+        "INITIAL_SUBSIDY=10 FAE",
+        "HALVING_ERA_BLOCKS=600000",
+        "MAX_SUPPLY=12m ceiling",
+        "RETARGET_INTERVAL=20",
+        "integer difficulty bits 12..28",
+        "retarget delta rounded log2 and clamped ±2",
+        "live timestamp future wall +120s",
+        "MAX_TXS_PER_BLOCK=20"
+      ],
+      "limitations": [
+        "source semantics do not prove real-world network performance"
+      ]
+    },
+    {
+      "id": "economic-v2-lab",
+      "locator": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md",
+      "directness": "DIRECTIONAL_FOR_180",
+      "supports": [
+        "economic/time/capacity/DAA/propagation coupling methodology"
+      ],
+      "limitations": [
+        "candidate set was 300/600/900, not 180",
+        "ASERT-style research DAA differs from active v4"
+      ]
+    },
+    {
+      "id": "economic-v2-l2",
+      "locator": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_L2_RESULTS.md",
+      "directness": "DIRECTIONAL_FOR_180",
+      "supports": [
+        "payout-variance method",
+        "race-proxy method",
+        "confirmation normalization",
+        "300/600/900 proxy results"
+      ],
+      "limitations": [
+        "not direct evidence for active v4 DAA or 180s network"
+      ]
+    },
+    {
+      "id": "economic-v2-external-gate",
+      "locator": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md",
+      "directness": "METHODOLOGY_REUSABLE",
+      "supports": [
+        "median<1s mean<2s P95<5s",
+        "500 propagation sample admission",
+        "Wilson 95% stale bounds",
+        "comparable-throughput discipline"
+      ],
+      "limitations": [
+        "schema itself admits only 300 baseline vs 600/900 candidate"
+      ]
+    },
+    {
+      "id": "economic-v2-pre-l3-ceiling",
+      "locator": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md",
+      "directness": "DIRECTIONAL_FOR_180",
+      "supports": [
+        "real three-region propagation evidence for 300/600/900",
+        "rare-event sample-size limitations",
+        "anti-evidence-manufacture boundary"
+      ],
+      "limitations": [
+        "not a 180s measurement"
+      ]
+    },
+    {
+      "id": "difficulty-timestamp-II",
+      "locator": "sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_ARRIVAL_CLOCK.md",
+      "directness": "CANDIDATE_LOCAL_DIRECTIONAL",
+      "supports": [
+        "arrival-clock/replay separation",
+        "candidate 90s wall",
+        "±30s declared host skew envelope",
+        "clock-health separation"
+      ],
+      "limitations": [
+        "not active public-v4 +120s semantics",
+        "local integration evidence not fresh WAN evidence"
+      ]
+    },
+    {
+      "id": "stability-v1",
+      "locator": "historical-stability-soak-v1",
+      "directness": "DIRECT_180_HISTORICAL_RUN_WITH_PROVENANCE_GAP",
+      "supports": [
+        "reported FAIL due runtime/harness abort",
+        "reported pre-failure 0 stale/0 reorg/P95~128ms"
+      ],
+      "limitations": [
+        "no repository-resident authoritative V1 result artifact was located in current main/commit search during F180-01",
+        "conversation report cannot be upgraded to canonical PASS"
+      ]
+    },
+    {
+      "id": "stability-v2",
+      "locator": "historical-stability-soak-v2",
+      "directness": "DIRECT_180_HISTORICAL_RUN_WITH_PROVENANCE_GAP",
+      "supports": [
+        "reported FAIL; ~208s divergence exceeded frozen 180s outage gate",
+        "reported 0 stale/0 reorg/P95~128ms"
+      ],
+      "limitations": [
+        "no repository-resident authoritative V2 result artifact was located in current main/commit search during F180-01",
+        "causality must not be assigned to block time without replay/analysis"
+      ]
+    },
+    {
+      "id": "stability-v3",
+      "locator": "docs/FAE_CANONICAL_STATE.md#stability-soak-v3-operational-state",
+      "directness": "FUTURE_SEPARATE_GATE",
+      "supports": [
+        "PREPARED_NOT_STARTED"
+      ],
+      "limitations": [
+        "no result yet",
+        "must not be substituted by this research"
+      ]
+    }
+  ],
+  "gaps": [
+    "Direct 180s active-v4 DAA shock/oscillation evidence.",
+    "Direct 180s timestamp/DAA adversarial evidence.",
+    "Statistically sufficient natural stale/fork evidence at 180s.",
+    "Fresh directly comparable WAN/physical recovery evidence for the 180s research question.",
+    "External/public evidence mapped explicitly to FAE rather than imported as representative.",
+    "Repository-resident authoritative provenance pointer for historical Stability V1/V2 result bundles."
+  ],
+  "verdict": "F180-01_COMPLETE_WITH_PROVENANCE_GAPS_EXPLICIT",
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
