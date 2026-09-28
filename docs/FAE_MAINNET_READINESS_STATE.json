@@ -5,7 +5,7 @@
   "workstream_role": "SECONDARY",
   "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
   "last_reconciled_at": "2026-09-28",
-  "reconciliation_status": "CANDIDATE",
+  "reconciliation_status": "CANONICAL_STATE_RECONCILED",
   "source_precedence": [
     "authoritative_or_frozen_source_artifact",
     "current_canonical_repository_state",
@@ -497,5 +497,5 @@
     "bootstrap_nodes"
   ],
   "historical_evidence_policy": "append_only_no_retroactive_rewrite",
-  "reconciliation_verdict": null
+  "reconciliation_verdict": "CANONICAL_STATE_RECONCILED"
 }

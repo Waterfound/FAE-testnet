@@ -112,10 +112,10 @@
     "MR-06": "PASS",
     "MR-07": "PASS",
     "MR-08": "PASS",
-    "MR-09": "VERIFYING_CLOSURE_CANDIDATE"
+    "MR-09": "PASS"
   },
-  "verdict": "MR08_INDEPENDENT_VERIFICATION_PASS",
-  "canonical_state_reconciled": false,
+  "verdict": "CANONICAL_STATE_RECONCILED",
+  "canonical_state_reconciled": true,
   "mainnet_ready": false,
   "durable_execution": {
     "runtime_repository": "Waterfound/General-Execution",
@@ -153,23 +153,21 @@
       }
     ],
     "correction_rule": "Strictly dependent frontiers use isolated Durable portfolios; no passive wake is admitted before its evidence predicate is true.",
-    "remaining": [
-      "MR-09"
-    ]
+    "remaining": []
   },
   "final_serialization_check": {
-    "checked_at": "2026-09-28T16:05:00Z",
+    "checked_at": "2026-09-28T16:12:00Z",
     "source_main_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
-    "candidate_preclosure_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
+    "candidate_preclosure_revision": "d9126d15e07823ebb8e3530b63f6ec3a147f1d02",
     "candidate_compare_to_main": {
       "status": "ahead",
       "behind_by": 0
     },
     "active_research_branch": "colony/fae-180s-economic-block-time-validation-001",
-    "active_research_head": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
+    "active_research_head": "109d86a9152faad9d4a01b8578588490929babbb",
     "active_research_compare_to_main": {
       "status": "ahead",
-      "ahead_by": 27,
+      "ahead_by": 35,
       "behind_by": 0
     },
     "research_touches_shared_registry": false,
@@ -214,5 +212,19 @@
       "checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68",
       "human_required": false
     }
+  },
+  "closure": {
+    "semantic_verdict": "CANONICAL_STATE_RECONCILED",
+    "explicitly_not_equivalent_to": "MAINNET_READY",
+    "active_research_preserved": true,
+    "readiness_workstream_role": "SECONDARY",
+    "shared_state_serialized": true,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "activation_height_selected": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false,
+    "final_production_values_remain_unset": true,
+    "merge_authority_created": false
   }
 }

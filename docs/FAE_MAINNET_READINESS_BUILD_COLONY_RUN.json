@@ -277,7 +277,7 @@
       ],
       "shared_state": false,
       "initial_state": "PENDING",
-      "current_state": "ACTIVE"
+      "current_state": "DONE"
     }
   ],
   "deterministic_gates": [
@@ -312,7 +312,7 @@
     ],
     "integration_rule": "Re-resolve main and compare the Research 180s branch before any shared-state update or merge."
   },
-  "current_frontier": "MR-09",
+  "current_frontier": "CLOSED",
   "terminal_verdict": {
     "allowed_value": "CANONICAL_STATE_RECONCILED",
     "meaning": "Current documentation accurately represents known evidence-bound project state.",
@@ -377,9 +377,7 @@
       "correction": "Preserve the diagnosis as historical evidence and execute dependent frontiers as isolated Durable portfolios with no premature passive wake admission."
     },
     "concurrency_observation": "The General-Execution runtime interleaves FAE 180s Research events and readiness events under one serialized runtime branch; readiness does not displace or mutate the active Research portfolio.",
-    "remaining_durable_frontiers": [
-      "MR-09"
-    ]
+    "remaining_durable_frontiers": []
   },
   "mr08_exact_verification": {
     "target_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
@@ -387,5 +385,17 @@
     "durable_checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68",
     "final_serialization_research_head": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
     "shared_state_conflicts": []
+  },
+  "closure_candidate": {
+    "preclosure_revision": "d9126d15e07823ebb8e3530b63f6ec3a147f1d02",
+    "source_main_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+    "active_research_head": "109d86a9152faad9d4a01b8578588490929babbb",
+    "active_research_ahead_by": 35,
+    "active_research_behind_by": 0,
+    "shared_state_conflicts": [],
+    "terminal_verdict": "CANONICAL_STATE_RECONCILED",
+    "mainnet_ready": false,
+    "mainnet_launch_authorized": false,
+    "note": "MR-09 closure remains non-canonical until the exact closure commit passes its verification gates and the Durable acceptance receipt is recorded."
   }
 }
