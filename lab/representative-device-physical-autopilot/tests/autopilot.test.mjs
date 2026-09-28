@@ -105,7 +105,7 @@ test('browser harness exposes explicit physical/rehearsal boundary and lifecycle
   const html=await readFile(join(root,'index.html'),'utf8');
   const browser=await readFile(join(root,'autopilot-browser.mjs'),'utf8');
   assert.match(html,/Physical mode uses the full frozen durations/);
-  assert.match(html,/five real hidden/);
+  assert.match(html,/five\s+<b>real<\/b>\s+hidden/);
   assert.match(browser,/PHYSICAL_EVIDENCE/);
   assert.match(browser,/document\.addEventListener\('visibilitychange'/);
   assert.doesNotMatch(browser,/dispatchEvent\(new Event\(['"]visibilitychange/);
