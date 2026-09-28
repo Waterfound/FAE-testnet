@@ -1,0 +1,177 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-28",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-representative-device-evidence-readiness-001",
+  "source_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "workstream": "FAE — Representative Device Evidence Readiness",
+  "portfolio_role": "SECONDARY",
+  "target_verdict": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "portfolio_constraints": {
+    "active": {
+      "name": "FAE Research — 180s Economic + Block-Time Validation",
+      "branch": "colony/fae-180s-economic-block-time-validation-001",
+      "preserved": true,
+      "touches_shared_registry_observed": false
+    },
+    "parallel_independent": {
+      "name": "FAE — Visual Language, Art Direction & Rebrand",
+      "branch": "colony/fae-visual-language-rebrand-001",
+      "preserved": true,
+      "touches_shared_registry_observed": false
+    },
+    "serialization_rule": "Parallelize independence. Serialize shared state."
+  },
+  "findings": [
+    "Representative-device readiness is software-only; the physical evidence gate remains external.",
+    "MTS-12 iPad evidence and ASIC/F2 evidence are complementary but semantically inadmissible as representative-device evidence.",
+    "Historical RTX/wattmeter results referenced by project context are not canonically admitted on current main and default to historical reference.",
+    "The current miner exposes useful raw counters/events, but displayed H/s cannot be the sole authoritative performance source.",
+    "A four-class portfolio maximizes structural diversity without turning this gate into a device census."
+  ],
+  "frozen_contract": "lab/representative-device-evidence-readiness/acceptance-contract.json",
+  "authority_envelope": {
+    "authority_owner": "Waterfound",
+    "may_autonomously": [
+      "inventory current evidence/tooling",
+      "freeze representative-device and coverage definitions",
+      "write schemas/collector/verifiers/tests/docs",
+      "run synthetic rehearsals",
+      "run adversarial false-PASS tests",
+      "open branch and pull request",
+      "produce readiness closure artifacts"
+    ],
+    "may_not": [
+      "fabricate physical measurements",
+      "label simulation as physical evidence",
+      "retrofit historical evidence to a later contract",
+      "weaken thresholds after results",
+      "change consensus or economics",
+      "select activation height",
+      "claim MAINNET_READY or MAINNET_AUTHORIZED",
+      "authorize new spending"
+    ]
+  },
+  "execution_graph": [
+    {
+      "id": "RDE-00",
+      "name": "Canonical state + physical evidence inventory",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-01",
+      "name": "Representative Device definition",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-02",
+      "name": "Device-class and coverage contract",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-03",
+      "name": "Physical measurement protocol",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-04",
+      "name": "Device/environment metadata schema",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-05",
+      "name": "Workload and normal-use coexistence protocol",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-06",
+      "name": "Performance/energy/thermal measurement schema",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-07",
+      "name": "Evidence bundle + integrity format",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "RDE-08",
+      "name": "Automated collector tooling",
+      "class": "SOFTWARE_ONLY",
+      "state": "ACTIVE"
+    },
+    {
+      "id": "RDE-09",
+      "name": "Deterministic verifier",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-10",
+      "name": "Adversarial false-PASS campaign",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-11",
+      "name": "Historical evidence classification and calibration fixtures",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-12",
+      "name": "Simulated clean-room rehearsal",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-13",
+      "name": "Operator execution documentation",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-14",
+      "name": "Cross-lab integration verification",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-15",
+      "name": "Readiness closure",
+      "class": "SOFTWARE_ONLY",
+      "state": "PENDING"
+    },
+    {
+      "id": "RDE-X1",
+      "name": "Physical representative-device runs",
+      "class": "EXTERNAL_EVIDENCE",
+      "state": "EXTERNAL_EVIDENCE"
+    },
+    {
+      "id": "RDE-X2",
+      "name": "Missing required device-class acquisition/access",
+      "class": "EXTERNAL_EVIDENCE",
+      "state": "EXTERNAL_EVIDENCE"
+    },
+    {
+      "id": "RDE-X3",
+      "name": "Final evidence admission",
+      "class": "EXTERNAL_EVIDENCE",
+      "state": "EXTERNAL_EVIDENCE"
+    }
+  ],
+  "terminal_external_frontiers": [
+    "RDE-X1",
+    "RDE-X2",
+    "RDE-X3"
+  ]
+}
