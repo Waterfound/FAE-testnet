@@ -111,4 +111,6 @@ test('browser harness exposes explicit physical/rehearsal boundary and lifecycle
   assert.doesNotMatch(browser,/dispatchEvent\(new Event\(['"]visibilitychange/);
   assert.match(browser,/rewardAddressLooksUsable/);
   assert.match(browser,/URLSearchParams\(location\.search\)/);
+  assert.match(browser,/autostartRequested/);
+  assert.match(browser,/autostart_requires_valid_FAE_reward_address/);
 });
