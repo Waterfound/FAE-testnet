@@ -10,15 +10,19 @@
     "IOR-00",
     "IOR-01",
     "IOR-02",
-    "IOR-03"
-  ],
-  "active_frontier": "IOR-04",
-  "admissible_next": [
+    "IOR-03",
     "IOR-04",
     "IOR-05",
     "IOR-06",
-    "IOR-07"
+    "IOR-07",
+    "IOR-08",
+    "IOR-09",
+    "IOR-10",
+    "IOR-11",
+    "IOR-12"
   ],
+  "active_frontier": null,
+  "admissible_next": [],
   "terminal_external_gate": "IOR-X",
   "readiness_target": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
   "external_evidence_obtained": false,
@@ -28,5 +32,13 @@
     "mainnet_ready": false,
     "mainnet_authorized": false,
     "new_spending_authorized": false
-  }
+  },
+  "terminal_state": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
+  "external_gate": {
+    "id": "IOR-X",
+    "state": "EXTERNAL_EVIDENCE",
+    "wake_condition": "An eligible real independent operator executes the frozen package and returns admissible evidence."
+  },
+  "last_verified_candidate": "e6a20ae4f95351216f4c06b9abaf379fd23139fb",
+  "last_verification_run": 36456762866
 }
