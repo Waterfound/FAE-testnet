@@ -1,0 +1,38 @@
+name: FAE 180s Independent Research Verification
+
+on:
+  push:
+    branches:
+      - colony/fae-180s-economic-block-time-validation-001
+    paths:
+      - "sovereign-forge/research/180s/**"
+      - "sovereign-forge/node/lab/verify-economic-block-time-180-research.mjs"
+      - ".github/workflows/fae-180s-independent-verification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-research-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Bind exact source
+        run: |
+          git rev-parse HEAD
+          test "$(git branch --show-current)" = "colony/fae-180s-economic-block-time-validation-001"
+      - name: Independently verify evidence ledger
+        run: |
+          node sovereign-forge/node/lab/verify-economic-block-time-180-research.mjs > /tmp/fae-180s-independent-verification.json
+          node -e "const r=require('/tmp/fae-180s-independent-verification.json'); if(!r.allPassed||r.researchConclusionDoesNotAuthorizeActivation!==true) process.exit(1); console.log(JSON.stringify({allPassed:r.allPassed,hardFailureConfirmed:r.hardFailureConfirmed,terminalVerdictIfF180_13RemainsMissing:r.terminalVerdictIfF180_13RemainsMissing},null,2));"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fae-180s-independent-verification-${{ github.sha }}
+          path: /tmp/fae-180s-independent-verification.json
+          if-no-files-found: error
+          retention-days: 90
