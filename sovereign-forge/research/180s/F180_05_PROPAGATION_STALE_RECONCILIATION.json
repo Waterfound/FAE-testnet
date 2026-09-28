@@ -1,0 +1,117 @@
+{
+  "schema": "fae-180s-propagation-stale-reconciliation/1",
+  "frontier": "F180-05",
+  "status": "SOFTWARE_RECONCILIATION_COMPLETE_EXTERNAL_CONFIDENCE_OPEN",
+  "authority": "research-only-no-consensus-authority",
+  "plan_revision": "9b2b097f146a9abaa2523806c31ad20e1d1aec86",
+  "frozen_gates": {
+    "propagation": {
+      "minimum_samples": 500,
+      "median_lt_s": 1,
+      "mean_lt_s": 2,
+      "p95_lt_s": 5,
+      "p99_required_when_available": true
+    },
+    "stale": {
+      "steady_wilson_upper95_lt": 0.01,
+      "stress_wilson_upper95_lt": 0.02
+    },
+    "zero_event_minimum_trials": {
+      "steady": 381,
+      "stress": 189
+    }
+  },
+  "observations": [
+    {
+      "id": "stability-v1-reported",
+      "target_seconds": 180,
+      "environment": "WAN stability soak V1 (reported historical case)",
+      "reported": {
+        "duration": "~4h13m45s",
+        "height": "~49",
+        "stales": 0,
+        "reorgs": 0,
+        "propagation_p95_s": 0.128,
+        "outcome": "FAIL",
+        "failure": "This operation was aborted"
+      },
+      "admission": "NOT_FINAL_PROTOCOL_EVIDENCE",
+      "reasons": [
+        "height is approximate, not an admitted exact binomial trial count",
+        "raw retained sample bundle not located in current repository search",
+        "run outcome is FAIL and cannot be partially promoted"
+      ],
+      "use": "directional sanity signal only"
+    },
+    {
+      "id": "stability-v2-reported",
+      "target_seconds": 180,
+      "environment": "WAN stability soak V2 (reported historical case)",
+      "reported": {
+        "duration": "~16h07m",
+        "height_a_c": "~189",
+        "stales": 0,
+        "reorgs": 0,
+        "propagation_p95_s": 0.128,
+        "outcome": "FAIL",
+        "frankfurt_divergence_s": 208,
+        "frozen_outage_gate_s": 180
+      },
+      "admission": "NOT_FINAL_PROTOCOL_EVIDENCE",
+      "reasons": [
+        "height is approximate, not an admitted exact binomial trial count",
+        "raw retained sample bundle not located in current repository search",
+        "run exceeded its frozen outage gate"
+      ],
+      "use": "direct historical failure case for F180-08; propagation/stale numbers remain directional"
+    },
+    {
+      "id": "v2-three-region-300",
+      "target_seconds": 300,
+      "environment": "Oregon/Frankfurt/Singapore Economic + Block-Time v2 pre-L3 WAN",
+      "reported": {
+        "propagation_samples": 500,
+        "p50_s": 0.1,
+        "mean_s": 0.111458,
+        "p95_s": 0.116,
+        "steady_stales": "0/250",
+        "stress_stales": "0/100",
+        "nominal_tps": 0.0666666667,
+        "payload_txs_per_block": 20
+      },
+      "admission": "ADMISSIBLE_FOR_300_NOT_DIRECT_FOR_180",
+      "use": "directional network reference; fixed 20-tx payload is not throughput-normalized against active 180s 20-tx/block ceiling"
+    },
+    {
+      "id": "v2-three-region-600",
+      "target_seconds": 600,
+      "environment": "Oregon/Frankfurt/Singapore Economic + Block-Time v2 pre-L3 WAN",
+      "reported": {
+        "propagation_samples": 500,
+        "p50_s": 0.111,
+        "mean_s": 0.12164,
+        "p95_s": 0.13805,
+        "nominal_tps": 0.0666666667,
+        "payload_txs_per_block": 40
+      },
+      "admission": "ADMISSIBLE_FOR_600_NOT_DIRECT_FOR_180",
+      "use": "directional network reference"
+    }
+  ],
+  "directional_calculations": {
+    "reported_180_p95_0_128s_first_order_race_probability": 0.0007108583315266204,
+    "v2_300_p95_0_116s_if_hypothetically_applied_to_180_first_order_race_probability": 0.0006442368347234773,
+    "warning": "These race probabilities are analytical transformations, not observed stale rates."
+  },
+  "statistical_findings": [
+    "The inherited 500-sample propagation admission can support latency-tail reporting but does not by itself provide enough block events for rare stale/reorg inference.",
+    "Zero observed stales is not a PASS without an exact admitted denominator and the Wilson confidence gate.",
+    "The historical V1/V2 approximate heights are not converted into exact trial counts.",
+    "P99 is not available from the reported V1/V2 summaries and therefore remains missing."
+  ],
+  "frontier_disposition": "WARN_INSUFFICIENT_DIRECT_180_NATURAL_STALE_AND_TAIL_EVIDENCE",
+  "hard_failure_found_here": false,
+  "external_dependency": "Fresh directly comparable 180s raw propagation/stale/fork evidence remains required at F180-13.",
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
