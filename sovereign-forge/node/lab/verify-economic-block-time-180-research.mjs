@@ -12,7 +12,8 @@ const FILES=[
   'F180_07_DECENTRALIZATION_RESULT.json',
   'F180_08_OUTAGE_RECOVERY_RESULT.json',
   'F180_09_EXTERNAL_EVIDENCE_LEDGER.json',
-  'F180_10_COMPARATIVE_SYNTHESIS.json'
+  'F180_10_COMPARATIVE_SYNTHESIS.json',
+  'F180_13_EXTERNAL_EVIDENCE_GATE.json'
 ];
 function sha256(data){return 'sha256:'+crypto.createHash('sha256').update(data).digest('hex');}
 function read(name){const raw=fs.readFileSync(`${ROOT}/${name}`);return {raw,json:JSON.parse(raw)};}
