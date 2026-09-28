@@ -7,7 +7,10 @@ B="fae-asic-lab-203842200752-20260922"
 AGFI="agfi-01ca0856fe3a85305"
 W="/opt/fae-f2-a3-r4-runtime"
 L="/var/log/fae-f2-a3-r4-runtime"
-REPO_COMMIT="fc5f476196a8b31e45c7f216b55401761525f932"
+RUNTIME_COMMIT="fc5f476196a8b31e45c7f216b55401761525f932"
+HARDWARE_COMMIT="a208b245da98052b60b9d47cd676f7c0a23e74a3"
+DEVELOPER_CL_SHA256="cb369bca24dbe0c17e015adf5668d2d4117c77d31896c3a3b1faedab09e2f7a5"
+AFI="afi-0bd37117433ff02d7"
 
 mkdir -p "$W" "$L"
 exec > >(tee -a "$L/run.log") 2>&1
@@ -39,13 +42,14 @@ trap finish EXIT
 
 echo BOOTSTRAP > "$L/stage.txt"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$L/started_utc.txt"
-printf 'AGFI=%s\nREPO_COMMIT=%s\n' "$AGFI" "$REPO_COMMIT" > "$L/candidate.txt"
+printf 'AFI=%s\nAGFI=%s\nHARDWARE_COMMIT=%s\nRUNTIME_COMMIT=%s\nDEVELOPER_CL_SHA256=%s\n' \
+  "$AFI" "$AGFI" "$HARDWARE_COMMIT" "$RUNTIME_COMMIT" "$DEVELOPER_CL_SHA256" > "$L/candidate.txt"
 syncall
 
 cd "$W"
 git clone --depth 50 --branch lab/asic-f2-timing-hardening-bc-001 https://github.com/Waterfound/FAE-testnet.git repo
 cd repo
-git checkout "$REPO_COMMIT"
+git checkout "$RUNTIME_COMMIT"
 git rev-parse HEAD > "$L/repo_head.txt"
 cp labs/asic-f2-pre-go/runtime/run_f2_a3_r4_duallane.c "$W/runner.c"
 sha256sum "$W/runner.c" > "$L/source_sha256.txt"
