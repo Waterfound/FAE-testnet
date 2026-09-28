@@ -1,0 +1,65 @@
+{
+  "schema": "build-colony.run.v1",
+  "run_id": "fae-asic-a3-r4-control-repair-001",
+  "status": "EXECUTING",
+  "owner_repo": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-asic-a3-r4-control-repair-001",
+  "baseline_revision": "a208b245da98052b60b9d47cd676f7c0a23e74a3",
+  "authority": {
+    "canonical_source": "github://Waterfound/General-Execution/commit/0a4aa5c62dc30f516881936b9a6d075d1d51adba/authority/fae-asic-a3-r4-control-plane-repair-authority-resume-001.json",
+    "reconciled_receipt": "github://Waterfound/General-Execution/commit/54e69377a92749293a0fe28b9e4bab6dce897578/authority/fae-asic-a3-r4-control-plane-repair-authority-reconcile-001.json",
+    "allowed": [
+      "smallest admissible control-plane liveness candidate repair",
+      "source validation",
+      "AWS HLx/Vivado static validation"
+    ],
+    "forbidden": [
+      "new AFI",
+      "new F2 runtime",
+      "benchmark",
+      "attacker sweep",
+      "sustained/HFB",
+      "consensus",
+      "economics",
+      "release",
+      "activation height",
+      "mainnet"
+    ]
+  },
+  "diagnosis": "github://Waterfound/General-Execution/blob/runtime/durable-asp-control/runtime/diagnostics/fae-asic-a3-r4-control-runtime-di-001.json",
+  "epistemic_rule": "First observable divergence is not root-cause proof.",
+  "candidate": {
+    "path": "labs/asic-f2-pre-go/hdk/integrate_fae_f2_2lane_200mhz_a3_r4_controlrepair.tcl",
+    "blob": "b9016b3e2d5edafdf43e54c208b4747d889c63ee",
+    "change": "Remove R4 post-CDC AXI4->AXI4-Lite protocol converters; make existing control clock converters AXI4-Lite end-to-end; preserve all other R4 topology.",
+    "frozen_hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "apertures": [
+      "0x0000",
+      "0x1000"
+    ],
+    "memory_map": [
+      "DDRA 0x1000000000",
+      "lane0 HBM0 0x0200000000",
+      "lane1 HBM1 0x0220000000"
+    ]
+  },
+  "source_validation": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_SOURCE_RESULT.json",
+  "provider_runner": {
+    "path": "labs/asic-f2-pre-go/runtime/run_f2_a3_r4_controlrepair_static.sh",
+    "blob": "b9baffb4bb0353ee0e4da01de2a5841b25f6d4d0",
+    "max_runtime": "1h",
+    "physical_implementation": false,
+    "afi_creation": false,
+    "f2_runtime": false
+  },
+  "acceptance": [
+    "validate_bd_design returns rc=0",
+    "FAE_A3_R4_CONTROL_REPAIR_VALIDATE_PASS marker present",
+    "BD 41-237 count = 0",
+    "BD 41-737 count = 0",
+    "0x0000 and 0x1000 apertures preserved",
+    "no fae_pc_ctrl cells",
+    "DP6 blob unchanged"
+  ],
+  "stop_after": "Provider static PASS or real static failure; never continue to physical/AFI/F2 under this authority."
+}
