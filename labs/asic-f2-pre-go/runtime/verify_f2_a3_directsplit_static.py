@@ -29,7 +29,13 @@ REQUIRED_SNIPPETS = [
     "fae_cc_mem11/M_AXI] [get_bd_intf_pins smartconnect_hbm/S02_AXI",
     "CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {200.000}",
     "CONFIG.PRIM_IN_FREQ {250.000}",
-    "CONFIG.PROTOCOL {AXI4LITE}",
+    "xilinx.com:ip:axi_protocol_converter:2.1",
+    "CONFIG.SI_PROTOCOL {AXI4}",
+    "CONFIG.MI_PROTOCOL {AXI4LITE}",
+    "fae_cc_ctrl0/M_AXI] [get_bd_intf_pins fae_pc_ctrl0/S_AXI",
+    "fae_pc_ctrl0/M_AXI] [get_bd_intf_pins fae_dp6_hls_0/s_axi_control",
+    "fae_cc_ctrl1/M_AXI] [get_bd_intf_pins fae_pc_ctrl1/S_AXI",
+    "fae_pc_ctrl1/M_AXI] [get_bd_intf_pins fae_dp6_hls_1/s_axi_control",
     "assign_bd_address -offset 0x00000000 -range 0x00001000",
     "assign_bd_address -offset 0x00001000 -range 0x00001000",
     "assign_bd_address -offset 0x1000000000 -range 0x1000000000",
@@ -46,6 +52,10 @@ FORBIDDEN_SNIPPETS = [
     "create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 fae_mem_merge",
     "connect_bd_intf_net [get_bd_intf_pins fae_mem_merge/M00_AXI]",
     "change DP6",
+    "set_property CONFIG.PROTOCOL {AXI4LITE} $p",
+    "set_property CONFIG.MAX_BURST_LENGTH {1} $p",
+    "[get_bd_intf_pins fae_cc_ctrl0/M_AXI] [get_bd_intf_pins fae_dp6_hls_0/s_axi_control]",
+    "[get_bd_intf_pins fae_cc_ctrl1/M_AXI] [get_bd_intf_pins fae_dp6_hls_1/s_axi_control]",
 ]
 
 
@@ -95,11 +105,17 @@ def main() -> int:
     )
 
     # Fail-closed static assertions embedded in TCL.
-    checks["control_cdc_axi4lite_explicit"] = (
-        "foreach n {ctrl0 ctrl1}" in text
-        and "foreach intf {S_AXI M_AXI}" in text
-        and "set_property CONFIG.PROTOCOL {AXI4LITE} $p" in text
-        and "set_property CONFIG.MAX_BURST_LENGTH {1} $p" in text
+    checks["control_protocol_conversion_explicit"] = (
+        text.count("xilinx.com:ip:axi_protocol_converter:2.1") == 1
+        and "foreach n {ctrl0 ctrl1}" in text
+        and "CONFIG.SI_PROTOCOL {AXI4}" in text
+        and "CONFIG.MI_PROTOCOL {AXI4LITE}" in text
+        and "fae_pc_ctrl0/S_AXI" in text
+        and "fae_pc_ctrl0/M_AXI" in text
+        and "fae_pc_ctrl1/S_AXI" in text
+        and "fae_pc_ctrl1/M_AXI" in text
+        and "A3_CTRL_PROTOCOL_CONVERTER_MISSING_" in text
+        and "A3_CTRL_PC_MI_NOT_AXI4LITE_" in text
     )
 
     checks["self_checks_present"] = all(
@@ -129,7 +145,7 @@ def main() -> int:
         and checks["control_offsets_preserved"]
         and checks["ddr_base_preserved"]
         and checks["hbm_split_present"]
-        and checks["control_cdc_axi4lite_explicit"]
+        and checks["control_protocol_conversion_explicit"]
         and checks["self_checks_present"]
     )
 
@@ -138,7 +154,7 @@ def main() -> int:
         "status": "PASS" if passed else "FAIL",
         "checks": checks,
         "next_gate": (
-            "Run the candidate through AWS HLx/Vivado validate_bd_design and capture interface/address/clock evidence. "
+            "Run the R4 protocol-converter candidate through AWS HLx/Vivado validate_bd_design and require zero BD 41-237 control metadata mismatches. "
             "Do not start a paid physical implementation until that static provider validation passes."
         ),
     }
