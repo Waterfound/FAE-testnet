@@ -30,7 +30,10 @@ const continuation = JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_
 assert.equal(continuation.authority.durable_consumed,true);
 assert.equal(continuation.authority.post_generation,2);
 assert.equal(continuation.frontiers.find(x=>x.id==="VL-07").state,"DONE");
-assert.equal(continuation.frontiers.find(x=>x.id==="VL-08").state,"READY");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-08").state,"DONE");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-13").state,"DONE");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-14").state,"CANDIDATE_PREPARING");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-15").state,"BLOCKED_BY_PUBLIC_REBRAND_AUTHORITY");
 
 const grammar=fs.readFileSync(path.join(root,"design/direction-d-visual-grammar.md"),"utf8");
 assert.match(grammar,/Orange Top/);
