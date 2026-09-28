@@ -111,10 +111,10 @@
     "MR-05": "PASS",
     "MR-06": "PASS",
     "MR-07": "PASS",
-    "MR-08": "PENDING_EXACT_FINAL_REVISION_VERIFICATION",
-    "MR-09": "PENDING_MR08"
+    "MR-08": "PASS",
+    "MR-09": "VERIFYING_CLOSURE_CANDIDATE"
   },
-  "verdict": "MR06_CROSSCHECK_PASS",
+  "verdict": "MR08_INDEPENDENT_VERIFICATION_PASS",
   "canonical_state_reconciled": false,
   "mainnet_ready": false,
   "durable_execution": {
@@ -143,12 +143,76 @@
         "event_id": "fae-mainnet-readiness-mr06-verified-001",
         "status": "committed",
         "checkpoint_digest": "sha256:3ce654db39f9475c38a125de85e4e82775e8d8412b7588a71d0b1b5aa85c466e"
+      },
+      {
+        "frontier": "MR-08",
+        "portfolio_id": "fae-mainnet-readiness-mr08",
+        "event_id": "fae-mainnet-readiness-mr08-verified-001",
+        "status": "committed",
+        "checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68"
       }
     ],
     "correction_rule": "Strictly dependent frontiers use isolated Durable portfolios; no passive wake is admitted before its evidence predicate is true.",
     "remaining": [
-      "MR-08",
       "MR-09"
     ]
+  },
+  "final_serialization_check": {
+    "checked_at": "2026-09-28T16:05:00Z",
+    "source_main_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+    "candidate_preclosure_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
+    "candidate_compare_to_main": {
+      "status": "ahead",
+      "behind_by": 0
+    },
+    "active_research_branch": "colony/fae-180s-economic-block-time-validation-001",
+    "active_research_head": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
+    "active_research_compare_to_main": {
+      "status": "ahead",
+      "ahead_by": 27,
+      "behind_by": 0
+    },
+    "research_touches_shared_registry": false,
+    "research_touches_readiness_state": false,
+    "shared_state_conflicts": []
+  },
+  "mr08_exact_verification": {
+    "target_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
+    "all_success": true,
+    "workflows": [
+      {
+        "name": "public-code-security-recurring-assurance",
+        "run_id": 36447719146,
+        "conclusion": "success"
+      },
+      {
+        "name": "Mainnet Readiness State",
+        "run_id": 36447719368,
+        "conclusion": "success"
+      },
+      {
+        "name": "cross-lab-integration-gate",
+        "run_id": 36447719018,
+        "conclusion": "success"
+      },
+      {
+        "name": "codeql-security",
+        "run_id": 36447718942,
+        "conclusion": "success"
+      },
+      {
+        "name": "verify-canonical-source",
+        "run_id": 36447719167,
+        "conclusion": "success"
+      }
+    ],
+    "durable": {
+      "portfolio_id": "fae-mainnet-readiness-mr08",
+      "event_id": "fae-mainnet-readiness-mr08-verified-001",
+      "status": "committed",
+      "post_generation": 1,
+      "checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68",
+      "human_required": false
+    }
   }
 }

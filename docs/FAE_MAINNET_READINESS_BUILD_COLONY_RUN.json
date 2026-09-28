@@ -267,7 +267,7 @@
       ],
       "shared_state": false,
       "initial_state": "PENDING",
-      "current_state": "ACTIVE"
+      "current_state": "DONE"
     },
     {
       "id": "MR-09",
@@ -277,7 +277,7 @@
       ],
       "shared_state": false,
       "initial_state": "PENDING",
-      "current_state": "PENDING_MR08"
+      "current_state": "ACTIVE"
     }
   ],
   "deterministic_gates": [
@@ -312,7 +312,7 @@
     ],
     "integration_rule": "Re-resolve main and compare the Research 180s branch before any shared-state update or merge."
   },
-  "current_frontier": "MR-08",
+  "current_frontier": "MR-09",
   "terminal_verdict": {
     "allowed_value": "CANONICAL_STATE_RECONCILED",
     "meaning": "Current documentation accurately represents known evidence-bound project state.",
@@ -358,6 +358,14 @@
         "status": "committed",
         "post_generation": 1,
         "checkpoint_digest": "sha256:3ce654db39f9475c38a125de85e4e82775e8d8412b7588a71d0b1b5aa85c466e"
+      },
+      {
+        "frontier": "MR-08",
+        "portfolio_id": "fae-mainnet-readiness-mr08",
+        "event_id": "fae-mainnet-readiness-mr08-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68"
       }
     ],
     "model_diagnosis": {
@@ -370,8 +378,14 @@
     },
     "concurrency_observation": "The General-Execution runtime interleaves FAE 180s Research events and readiness events under one serialized runtime branch; readiness does not displace or mutate the active Research portfolio.",
     "remaining_durable_frontiers": [
-      "MR-08",
       "MR-09"
     ]
+  },
+  "mr08_exact_verification": {
+    "target_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
+    "workflows_all_success": true,
+    "durable_checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68",
+    "final_serialization_research_head": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
+    "shared_state_conflicts": []
   }
 }
