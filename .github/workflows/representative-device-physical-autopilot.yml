@@ -52,14 +52,19 @@ jobs:
         run: |
           OUT="$RUNNER_TEMP/rpa-local-agent"
           ADDR="faet1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqw2770k"
-          node lab/representative-device-physical-autopilot/desktop-agent.mjs --open false --port 43114 --device-class thin_light_integrated --reward-address "$ADDR" --out "$OUT" > "$RUNNER_TEMP/rpa-agent.log" 2>&1 &
+          if node lab/representative-device-physical-autopilot/desktop-agent.mjs --open false --port 43115 --device-class thin_light_integrated --autostart-physical --out "$RUNNER_TEMP/rpa-invalid" > "$RUNNER_TEMP/rpa-invalid.log" 2>&1; then
+            echo 'autostart without reward address unexpectedly succeeded' >&2
+            exit 1
+          fi
+          grep -q 'autostart_requires_valid_FAE_reward_address' "$RUNNER_TEMP/rpa-invalid.log"
+          node lab/representative-device-physical-autopilot/desktop-agent.mjs --open false --port 43114 --device-class thin_light_integrated --reward-address "$ADDR" --autostart-rehearsal --out "$OUT" > "$RUNNER_TEMP/rpa-agent.log" 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:43114/_rde/profile > "$RUNNER_TEMP/rpa-profile.json"; then break; fi
             sleep 0.2
           done
-          node -e "const p=JSON.parse(require('fs').readFileSync(process.argv[1]));if(p.schema!=='FAE_RDE_LOCAL_AGENT_PROFILE_V1'||p.device_class!=='thin_light_integrated'||p.reward_address!==process.argv[2])process.exit(1)" "$RUNNER_TEMP/rpa-profile.json" "$ADDR"
+          node -e "const p=JSON.parse(require('fs').readFileSync(process.argv[1]));if(p.schema!=='FAE_RDE_LOCAL_AGENT_PROFILE_V1'||p.device_class!=='thin_light_integrated'||p.reward_address!==process.argv[2]||p.execution_mode!=='REHEARSAL_ONLY'||p.autostart!==true)process.exit(1)" "$RUNNER_TEMP/rpa-profile.json" "$ADDR"
           curl -fsS http://127.0.0.1:43114/ | grep -q 'FAE Physical Autopilot'
           curl -fsS http://127.0.0.1:43114/autopilot-browser.mjs | grep -q 'rewardAddressLooksUsable'
           kill "$PID"
