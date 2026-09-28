@@ -135,11 +135,12 @@ export async function runOperator({
   try{
     child=startNode({port,runtimeDir,peer:normalizedPeer});
     const first=await ready(base);
-    const firstAt=new Date().toISOString();
     const startupPeerIds=(first.diversity.authenticated_peers||[]).map(x=>x.identityId).filter(Boolean).sort();
     const startupHello=await signedHello(base,deriveChallenge(runChallenge,'startup'));
+    const startupPayload=startupHello.payload;
+    const firstAt=startupHello.issuedAt;
     const tips=[
-      {at:firstAt,phase:'startup',height:Number(first.status.height),tip_hash:first.status.tip_hash},
+      {at:firstAt,phase:'startup',height:Number(startupPayload.height),tip_hash:startupPayload.tip_hash},
     ];
     await delay(150);
     const secondStatus=await json(`${base}/status`);
@@ -149,7 +150,7 @@ export async function runOperator({
 
     const progressed=await waitUntil(async()=>{
       const status=await json(`${base}/status`);
-      if(Number(status.height)>Number(first.status.height))return status;
+      if(Number(status.height)>Number(startupPayload.height))return status;
       return null;
     },{timeoutMs:tipProgressTimeoutMs,intervalMs:250,label:'tip progression'});
     tips.push({at:new Date().toISOString(),phase:'progressed',height:Number(progressed.height),tip_hash:progressed.tip_hash});
@@ -161,8 +162,9 @@ export async function runOperator({
     const second=await ready(base);
     const restartPeerIds=(second.diversity.authenticated_peers||[]).map(x=>x.identityId).filter(Boolean).sort();
     const restartHello=await signedHello(base,deriveChallenge(runChallenge,'restart'));
-    tips.push({at:new Date().toISOString(),phase:'restart',height:Number(second.status.height),tip_hash:second.status.tip_hash});
-    const postRestart={node_identity:second.status.node_identity,height:Number(second.status.height),tip_hash:second.status.tip_hash};
+    const restartPayload=restartHello.payload;
+    tips.push({at:restartHello.issuedAt,phase:'restart',height:Number(restartPayload.height),tip_hash:restartPayload.tip_hash});
+    const postRestart={node_identity:restartHello.signer.id,height:Number(restartPayload.height),tip_hash:restartPayload.tip_hash};
     combinedLog+=`=== restart process ===\n${child.logs().stdout}\n=== stderr ===\n${child.logs().stderr}\n`;
     await stopNode(child);child=null;
 
@@ -185,8 +187,8 @@ export async function runOperator({
       bootstrap_started_at:startedAt,initial_sync_complete:true,initial_authenticated_peers:startupPeerIds.length
     };
     const network={
-      schema:'FAE_IOR_NETWORK_IDENTITY_V1',network:first.status.network,genesis_hash:first.status.genesis_hash,
-      node_identity:first.status.node_identity,protocol_version:first.status.protocol_version,
+      schema:'FAE_IOR_NETWORK_IDENTITY_V1',network:startupPayload.network,genesis_hash:startupPayload.genesis,
+      node_identity:startupHello.signer.id,protocol_version:startupPayload.protocol_version,
       signed_challenges:{startup:startupHello,restart:restartHello}
     };
     const peerEvidence={
