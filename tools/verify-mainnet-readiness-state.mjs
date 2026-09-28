@@ -191,9 +191,17 @@ if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
     fail("final reconciliation report is inconsistent with reconciled readiness state");
   }
 } else {
-  if (reconciliationReport.verdict !== "MR06_CROSSCHECK_PASS" ||
-      reconciliationReport.canonical_state_reconciled !== false) {
-    fail("candidate readiness state requires MR06_CROSSCHECK_PASS report");
+  if (reconciliationReport.canonical_state_reconciled !== false) {
+    fail("candidate readiness state cannot claim canonical reconciliation");
+  }
+  const mr08Passed = reconciliationReport.frontiers?.["MR-08"] === "PASS";
+  if (mr08Passed) {
+    if (reconciliationReport.frontiers?.["MR-09"] !== "VERIFYING_CLOSURE_CANDIDATE" ||
+        reconciliationReport.verdict !== "MR08_INDEPENDENT_VERIFICATION_PASS") {
+      fail("post-MR08 candidate requires MR08_INDEPENDENT_VERIFICATION_PASS with MR-09 closure candidate");
+    }
+  } else if (reconciliationReport.verdict !== "MR06_CROSSCHECK_PASS") {
+    fail("pre-MR08 candidate requires MR06_CROSSCHECK_PASS report");
   }
 }
 
