@@ -1,0 +1,172 @@
+{
+  "schema": "fae-180s-external-evidence-ledger/1",
+  "frontier": "F180-09",
+  "retrieved_at": "2026-09-28",
+  "status": "COMPLETE_DIRECTIONAL_EXTERNAL_REVIEW",
+  "authority": "research-only-no-consensus-authority",
+  "admission_rule": "External evidence is never imported as FAE measurement. Each item records population/environment, period, relevance, limitations and directness.",
+  "items": [
+    {
+      "id": "decker-wattenhofer-2013",
+      "source": "Christian Decker, Roger Wattenhofer — Information Propagation in the Bitcoin Network",
+      "url": "https://doi.org/10.1109/P2P.2013.6688704",
+      "source_type": "peer-reviewed measurement study",
+      "population_environment": "Bitcoin peer-to-peer network",
+      "period": "2013 publication; measurements reflect early Bitcoin network/protocol",
+      "finding_relevant_to_fae": "Empirically links propagation delay with blockchain forks and motivates measuring propagation tails rather than treating relay latency as incidental.",
+      "relevance": "propagation; stale/fork pressure; geography/network quality",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "Bitcoin-specific topology and relay implementation",
+        "historical network conditions",
+        "10-minute Bitcoin interval differs from FAE 180s",
+        "does not measure FAE"
+      ]
+    },
+    {
+      "id": "gervais-et-al-2016",
+      "source": "Gervais et al. — On the Security and Performance of Proof of Work Blockchains",
+      "url": "https://eprint.iacr.org/2016/555.pdf",
+      "source_type": "peer-reviewed quantitative framework",
+      "population_environment": "PoW blockchain models parameterized with network propagation, block size, interval, adversarial strategies and eclipse effects",
+      "period": "2016",
+      "finding_relevant_to_fae": "Supports joint treatment of consensus/network parameters: block interval, propagation, stale rate, throughput and adversarial strategy interact.",
+      "relevance": "comparative block-time methodology; stale/security; eclipse",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "model assumptions differ from FAE implementation",
+        "not calibrated to FAE nodes or miners"
+      ]
+    },
+    {
+      "id": "croman-et-al-2016",
+      "source": "Croman et al. — On Scaling Decentralized Blockchains",
+      "url": "https://www.initc3.org/files/Scaling2016.pdf",
+      "source_type": "peer-reviewed measurement/position paper",
+      "population_environment": "Bitcoin and decentralized-blockchain scaling constraints",
+      "period": "2016",
+      "finding_relevant_to_fae": "Warns that block-size/interval reparameterization is only part of throughput/latency scaling and must retain decentralization/network constraints.",
+      "relevance": "capacity; UX; decentralization; bandwidth",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "Bitcoin-era measurements",
+        "different relay stack, payload and node population"
+      ]
+    },
+    {
+      "id": "bip152",
+      "source": "BIP 152 — Compact Block Relay",
+      "url": "https://github.com/bitcoin/bips/blob/master/bip-0152.mediawiki",
+      "source_type": "primary protocol specification",
+      "population_environment": "Bitcoin P2P block relay",
+      "period": "assigned 2016; deployed Bitcoin mechanism",
+      "finding_relevant_to_fae": "Documents how reducing relay bandwidth can reduce propagation latency and consumer-grade bandwidth spikes; reinforces that block-time safety depends on relay design, not interval alone.",
+      "relevance": "propagation; home-node viability",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "FAE does not inherit BIP152 by analogy",
+        "Bitcoin mempool/relay protocol differs"
+      ]
+    },
+    {
+      "id": "rosenfeld-2011",
+      "source": "Meni Rosenfeld — Analysis of Bitcoin Pooled Mining Reward Systems",
+      "url": "https://arxiv.org/abs/1112.4980",
+      "source_type": "technical research paper",
+      "population_environment": "Bitcoin solo and pooled mining reward systems",
+      "period": "2011",
+      "finding_relevant_to_fae": "Formalizes mining reward variance and why pooling can reduce payout variance, directly motivating FAE's small-miner variance/pool-pressure frontier.",
+      "relevance": "payout variance; pooling incentive; small miners",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "Bitcoin reward/pool mechanisms differ",
+        "does not include FAE participation or hardware objectives"
+      ]
+    },
+    {
+      "id": "sapirshtein-sompolinsky-zohar-2015",
+      "source": "Sapirshtein, Sompolinsky, Zohar — Optimal Selfish Mining Strategies in Bitcoin",
+      "url": "https://arxiv.org/abs/1507.06183",
+      "source_type": "peer-reviewed/theoretical research",
+      "population_environment": "Bitcoin selfish-mining models including communication delay",
+      "period": "2015",
+      "finding_relevant_to_fae": "Shows communication delay can change miner incentives and adversarial profitability; supports treating low-latency advantage as a decentralization/security variable.",
+      "relevance": "latency advantage; miner concentration; fork competition",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "adversarial model differs from FAE",
+        "does not establish a FAE selfish-mining threshold"
+      ]
+    },
+    {
+      "id": "harding-2020",
+      "source": "Thomas M. Harding — Real-Time Block Rate Targeting",
+      "url": "https://doi.org/10.5195/ledger.2020.195",
+      "source_type": "peer-reviewed DAA research",
+      "population_environment": "PoW difficulty-adjustment design",
+      "period": "2020",
+      "finding_relevant_to_fae": "Treats DAA responsiveness, stability and timestamp rules as coupled design variables, supporting F180-03/F180-04 separation from simple average block-time checks.",
+      "relevance": "DAA; timestamp; block-rate stability",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "proposed algorithms are not the active FAE v4 DAA"
+      ]
+    },
+    {
+      "id": "ilie-et-al-2020",
+      "source": "Ilie et al. — Unstable Throughput: When the Difficulty Algorithm Breaks",
+      "url": "https://arxiv.org/abs/2006.03044",
+      "source_type": "empirical/modeling research",
+      "population_environment": "Bitcoin Cash DAA and coin-hopping simulations",
+      "period": "2020",
+      "finding_relevant_to_fae": "Documents how DAA feedback can produce cyclic block times and unstable transaction throughput under miner switching.",
+      "relevance": "DAA oscillation; miner arrival/departure; capacity",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "BCH DAA and mining market differ from FAE",
+        "no direct mapping of observed amplitudes"
+      ]
+    },
+    {
+      "id": "noda-okumura-hashimoto-2025",
+      "source": "Noda, Okumura, Hashimoto — An Economic Analysis of Difficulty Adjustment Algorithms in Proof-of-Work Blockchain Systems",
+      "url": "https://doi.org/10.1111/iere.70028",
+      "source_type": "peer-reviewed economic/DAA analysis",
+      "population_environment": "PoW DAA models, Bitcoin/BCH/ASERT analysis with endogenous hash-supply response",
+      "period": "first published 2025; journal issue 2026",
+      "finding_relevant_to_fae": "Shows DAA stability can depend on miner hash-supply response and compares slower epoch adjustment with newer approaches; supports explicit miner arrival/departure scenarios.",
+      "relevance": "DAA stability; economic miner response; oscillation",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "FAE live 20-block ±2-bit algorithm is distinct",
+        "economic elasticity estimates are not transferable to FAE"
+      ]
+    },
+    {
+      "id": "blockchain-stretching-squeezing-2022",
+      "source": "Blockchain Stretching & Squeezing: Manipulating Time for Your Best Interest",
+      "url": "https://doi.org/10.1145/3490486.3538250",
+      "source_type": "peer-reviewed adversarial/economic research",
+      "population_environment": "Bitcoin/Ethereum time and DAA manipulation models",
+      "period": "2022",
+      "finding_relevant_to_fae": "Establishes that miner-controlled timing can interact with DAA/block rate strategically; supports an explicit adversarial timestamp frontier rather than assuming timestamps are passive metadata.",
+      "relevance": "timestamp manipulation; DAA; adversarial miner incentives",
+      "comparability": "DIRECTIONAL_ONLY",
+      "limitations": [
+        "attacks/uses depend on Bitcoin/Ethereum semantics and applications",
+        "not a direct exploit claim against FAE"
+      ]
+    }
+  ],
+  "synthesis": [
+    "External literature supports the research architecture but supplies no direct FAE PASS.",
+    "Propagation delay is a security/decentralization variable, not merely a UX variable.",
+    "DAA stability must be tested under endogenous or switching hashrate, not only fixed hashrate.",
+    "Payout variance provides a rational pressure toward pooling, so reward frequency matters to FAE's household-hardware objective.",
+    "Timestamp rules and DAA must be evaluated jointly.",
+    "Network relay design can materially alter propagation; block interval alone does not determine stale pressure."
+  ],
+  "direct_fae_evidence_added": false,
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
