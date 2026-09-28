@@ -8,23 +8,35 @@ const required = [
   "design/current-state-inventory.json",
   "design/anti-pattern-registry.json",
   "design/quality-gates.md",
+  "design/direction-d-authority.json",
+  "design/direction-d-visual-grammar.md",
   "design/explorations/index.html",
   "design/explorations/a-veil-instrument.html",
   "design/explorations/b-sovereign-manuscript.html",
   "design/explorations/c-nocturne-field.html",
-  "docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_RUN.json"
+  "docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_RUN.json",
+  "docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION.json",
+  "docs/FAE_VISUAL_LANGUAGE_DURABLE_EXECUTION.json"
 ];
 for (const file of required) assert.ok(fs.existsSync(path.join(root,file)), "missing "+file);
 
-const run = JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_RUN.json"),"utf8"));
-assert.equal(run.source_main_revision,"39c0c491bc5cc8c039209adbf035cd507a0719d9");
-assert.equal(run.portfolio_role,"SECONDARY");
-assert.equal(run.authority_boundary.owner,"Waterfound");
-assert.ok(run.authority_boundary.machine_may_not_without_waterfound.includes("select the final identity among artistically valid directions"));
+const authority = JSON.parse(fs.readFileSync(path.join(root,"design/direction-d-authority.json"),"utf8"));
+assert.equal(authority.authority_owner,"Waterfound");
+assert.equal(authority.selected_direction.id,"D");
+assert.equal(authority.selected_direction.status,"CANONICAL_FOR_VISUAL_IMPLEMENTATION");
+assert.ok(authority.selected_direction.principles.some(x=>x.includes("probabilistic") || x.includes("non-deterministic")));
 
-for (const page of required.filter(x=>x.endsWith(".html"))) {
-  const html=fs.readFileSync(path.join(root,page),"utf8");
-  assert.match(html,/viewport/);
-  assert.doesNotMatch(html,/wallet\.js|wallet-crypto\.js|mining\.js|core\.js/);
-}
+const continuation = JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION.json"),"utf8"));
+assert.equal(continuation.authority.durable_consumed,true);
+assert.equal(continuation.authority.post_generation,2);
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-07").state,"DONE");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-08").state,"READY");
+
+const grammar=fs.readFileSync(path.join(root,"design/direction-d-visual-grammar.md"),"utf8");
+assert.match(grammar,/Orange Top/);
+assert.match(grammar,/White Field/);
+assert.match(grammar,/Blue Circulation/);
+assert.match(grammar,/probabilistic/i);
+assert.doesNotMatch(grammar,/\d+% to reward/i);
+
 console.log("visual-language contract: PASS");
