@@ -1,0 +1,56 @@
+{
+  "schema": "fae-180s-f180-08-result/1",
+  "frontier": "F180-08",
+  "status": "COMPLETE_WITH_WARN",
+  "authority": "research-only-no-consensus-authority",
+  "exact_source": {
+    "workflow_run_id": 36447679621,
+    "workflow_conclusion": "success",
+    "head_sha": "a656893a11a5d8d560663285323a04b0b8adf933",
+    "artifact_id": 10981390740,
+    "artifact_sha256": "sha256:34558bf3d6cee58f3fe8d4d5482db2698121122ac685b06a1002c9292c9e8286"
+  },
+  "findings": {
+    "historical_v2": {
+      "reported_divergence_seconds": 208,
+      "frozen_gate_seconds": 180,
+      "outcome": "FAIL",
+      "causality_to_180s": "NOT_ESTABLISHED"
+    },
+    "poisson_context_at_208s_180target": {
+      "expected_blocks": 1.1555555555555554,
+      "probability_at_least_one_block": 0.6851174464505452,
+      "probability_at_least_two_blocks": 0.32125316234895296
+    },
+    "same_208s_comparison": {
+      "seconds300": {
+        "expected_blocks": 0.6933333333333334,
+        "p_at_least_one": 0.5000930677240178
+      },
+      "seconds600": {
+        "expected_blocks": 0.3466666666666667,
+        "p_at_least_one": 0.29295903069483864
+      }
+    },
+    "recovery_lineage": [
+      "49270aabfd75ab36b7d1e63230303cd9c2b700d7",
+      "c402e75e71930812a3c94932595691eac0a283aa",
+      "66c7c1d30a11d2750bcb5635797a175ab33765b3",
+      "efacaf516b12c8ea24ca6e3632d414f97c02a93c"
+    ]
+  },
+  "frozen_gate_assessment": {
+    "historical_v2_run": "FAIL_PRESERVED",
+    "software_recovery_lineage": "PASS_DIRECTIONAL",
+    "fresh_180_wan_recovery": "MISSING",
+    "hard_failure_of_blocktime_itself_confirmed": false
+  },
+  "frontier_disposition": "WARN_FIXED_OUTAGE_IS_MORE_LIKELY_TO_CROSS_BLOCK_EVENTS_AT_180S_AND_FRESH_DIRECT_RECOVERY_EVIDENCE_IS_REQUIRED",
+  "limitations": [
+    "Historical V2 raw authoritative result bundle remains unlocated in current repository search.",
+    "Poisson isolation model does not simulate actual topology or chainwork distribution.",
+    "Stability Soak V3 remains separate."
+  ],
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
