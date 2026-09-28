@@ -60,3 +60,13 @@ assert.match(walletSurface,/Local signing/);
 assert.match(walletSurface,/Full TXID is visible/);
 assert.match(walletSurface,/id="backup"/);
 assert.match(walletSurface,/id="lastsendtx"/);
+
+const miningProduct=fs.readFileSync(path.join(root,"index.html"),"utf8");
+const miningRuntime=fs.readFileSync(path.join(root,"mining.js"),"utf8");
+assert.match(miningProduct,/Computation in motion, not a countdown\./);
+assert.match(miningProduct,/id="miningactivity"/);
+assert.match(miningProduct,/Block discovery is probabilistic\./);
+assert.match(miningRuntime,/function setMiningActivity/);
+assert.match(miningRuntime,/setMiningActivity\('active','Device contributing'\)/);
+assert.match(miningRuntime,/setMiningActivity\('idle'\)/);
+assert.doesNotMatch(miningProduct + miningRuntime,/\d+%\s+to\s+reward|almost there|reward in \d+/i);

@@ -40,6 +40,11 @@ p{margin:7px 0 12px}.hero-copy{font-size:18px;line-height:1.5;color:#4d5560;max-
 .trust-strip{display:grid;border-top:1px solid var(--line)}.trust-strip span{display:flex;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid var(--line)}.trust-strip b{font-size:12px}.trust-strip small{color:var(--muted);text-align:right}
 #panel-wallet .card{box-shadow:none}#panel-wallet .backup{border-left:4px solid #4e5967;background:#fbfbfc}#panel-wallet .backup h3{color:#242a31}
 #panel-wallet #lastsendtx{border-left:3px solid var(--blue)}#panel-wallet .transaction-details[open]{border-left:3px solid var(--blue)}
+.mining-activity{margin-top:12px;padding:13px 0 2px;border-top:1px solid var(--line)}
+.mining-activity-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}.mining-activity-head span{font-weight:780}.mining-activity-head strong{font:800 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.mining-activity-rail{height:7px;margin:9px 0 8px;background:#e2e8f2;border-radius:999px;overflow:hidden;position:relative}.mining-activity-fill{display:block;width:100%;height:100%;background:var(--blue);border-radius:inherit;transform:scaleX(.08);transform-origin:left center}
+.mining-activity[data-state="active"] .mining-activity-head strong{color:var(--blue-deep)}.mining-activity[data-state="active"] .mining-activity-fill{animation:miningActivityFill 4.8s cubic-bezier(.22,.72,.22,1) infinite}.mining-activity p{margin:0;color:var(--muted);font-size:11px}
+@keyframes miningActivityFill{0%{transform:scaleX(.06);opacity:.8}72%{transform:scaleX(.92);opacity:1}100%{transform:scaleX(1);opacity:.88}}
 
 .status{margin-top:10px;background:var(--surface-2);border-left:3px solid var(--blue);padding:10px 11px;border-radius:6px}
 .small{color:var(--muted);font-size:13px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
@@ -65,7 +70,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}.section-head button{flex:0 0 auto}.divider{border:0;border-top:1px solid var(--line);margin:17px 0}.passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}.footer-note{margin-top:22px;color:var(--muted);font-size:12px;text-align:center}
 @media(max-width:760px){.product-intro{grid-template-columns:1fr}.topper-head{align-items:flex-start}.brand-lockup span{display:none}.topper-status{max-width:66%}.ticker-track{animation-duration:28s}.fae-hero{grid-template-columns:1fr;gap:18px}.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:92px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
 @media(max-width:420px){main{padding-inline:12px}.card{padding:14px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.topper-head{padding-inline:12px}.ticker-track{gap:22px}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}.ticker-viewport{overflow-x:auto}.ticker-track{animation:none;padding-left:18px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}.ticker-viewport{overflow-x:auto}.ticker-track{animation:none;padding-left:18px}.mining-activity[data-state="active"] .mining-activity-fill{animation:none;transform:scaleX(.58)}}
 </style>
 </head>
 <body data-direction-d="true">
@@ -110,6 +115,18 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
   </nav>
 
   <section id="panel-mining" role="tabpanel" aria-labelledby="tab-mining" hidden>
+    <section class="product-intro mining-intro" aria-labelledby="mining-surface-title">
+      <div>
+        <div class="product-kicker">Mining / live participation</div>
+        <h2 id="mining-surface-title">Computation in motion, not a countdown.</h2>
+        <p>Your device performs real proof-of-work. Blue circulation shows that work is active; it never represents guaranteed progress toward a reward.</p>
+      </div>
+      <div class="trust-strip" aria-label="Mining semantics">
+        <span><b>Local work</b><small>Runs on this device</small></span>
+        <span><b>Probabilistic</b><small>No guaranteed completion</small></span>
+        <span><b>Direct reward</b><small>To the selected FAE address</small></span>
+      </div>
+    </section>
     <div class="panel-grid">
       <section class="card">
         <div class="section-head">
@@ -128,6 +145,11 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
           <button id="openwallet" class="ghost">Open Wallet</button>
         </div>
         <div id="mstate" class="status">Select a reward address in Wallet, or insert a public address below.</div>
+        <div id="miningactivity" class="mining-activity" data-state="idle" role="status" aria-live="polite">
+          <div class="mining-activity-head"><span>Proof-of-work activity</span><strong id="miningactivitylabel">Idle</strong></div>
+          <div class="mining-activity-rail" aria-hidden="true"><i class="mining-activity-fill"></i></div>
+          <p>Blue motion represents ongoing device work, not progress toward a guaranteed reward. Block discovery is probabilistic.</p>
+        </div>
 
         <hr class="divider">
         <h3>Mine to a paper or cold wallet</h3>
