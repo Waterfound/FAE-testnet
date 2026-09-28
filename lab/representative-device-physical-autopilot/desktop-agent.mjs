@@ -18,6 +18,11 @@ const args=Object.fromEntries(process.argv.slice(2).map((v,i,a)=>v.startsWith('-
 const port=Number(args.port||43113);
 const outRoot=resolve(args.out||'.rde-physical-evidence');
 const requestedClass=String(args['device-class']||'');
+const rewardAddress=typeof args['reward-address']==='string'?args['reward-address']:'';
+const autostartPhysical=args['autostart-physical']===true;
+const autostartRehearsal=args['autostart-rehearsal']===true;
+if(autostartPhysical&&autostartRehearsal)throw new Error('choose_one_autostart_mode');
+if((autostartPhysical||autostartRehearsal)&&!/^faet1[a-z0-9]{20,}$/.test(rewardAddress))throw new Error('autostart_requires_valid_FAE_reward_address');
 const validClasses=new Set(['mobile_tablet_arm','thin_light_integrated','consumer_discrete_gpu','compact_handheld_consumer']);
 
 async function command(cmd,argv=[]){
@@ -57,7 +62,9 @@ async function detectProfile(){
     soc_cpu,gpu:gpu||'not_detected',ram_gb,power_mode:'normal',charging_state:'unknown_declared',
     external_power:platform!=='linux'||!deviceClass?.includes('mobile'),cooling_configuration:'stock',
     background_task_policy:'ordinary_background_state',display_state:'on',
-    reward_address:typeof args['reward-address']==='string'?args['reward-address']:null
+    reward_address:rewardAddress||null,
+    execution_mode:autostartPhysical?'PHYSICAL_EVIDENCE':autostartRehearsal?'REHEARSAL_ONLY':null,
+    autostart:autostartPhysical||autostartRehearsal
   };
 }
 async function telemetry(){
