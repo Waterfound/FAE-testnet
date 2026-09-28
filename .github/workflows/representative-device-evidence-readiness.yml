@@ -1,0 +1,69 @@
+name: Representative Device Evidence Readiness
+
+on:
+  push:
+    branches:
+      - "colony/fae-representative-device-evidence-readiness-*"
+  pull_request:
+    paths:
+      - "lab/representative-device-evidence-readiness/**"
+      - "docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_*"
+      - ".github/workflows/representative-device-evidence-readiness.yml"
+      - "docs/FAE_CANONICAL_STATE.md"
+      - "docs/FAE_MAINNET_READINESS_STATE.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: representative-device-evidence-readiness-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: \${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax check RDE tooling
+        run: |
+          node --check lab/representative-device-evidence-readiness/lib.mjs
+          node --check lab/representative-device-evidence-readiness/collect-evidence.mjs
+          node --check lab/representative-device-evidence-readiness/verify-evidence.mjs
+          node --check lab/representative-device-evidence-readiness/verify-portfolio.mjs
+          node --check lab/representative-device-evidence-readiness/run-rehearsal.mjs
+          node --check lab/representative-device-evidence-readiness/tests/rde-readiness.test.mjs
+
+      - name: Parse frozen contracts and Durable state
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('lab/representative-device-evidence-readiness/acceptance-contract.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('lab/representative-device-evidence-readiness/evidence-inventory.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_BUILD_COLONY_RUN.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_DURABLE_STATE.json'))"
+
+      - name: Run adversarial false-PASS campaign
+        run: node --test lab/representative-device-evidence-readiness/tests/rde-readiness.test.mjs
+
+      - name: Run four-class clean-room rehearsal
+        run: |
+          rm -rf "$RUNNER_TEMP/fae-rde-rehearsal"
+          node lab/representative-device-evidence-readiness/run-rehearsal.mjs --out "$RUNNER_TEMP/fae-rde-rehearsal" | tee "$RUNNER_TEMP/fae-rde-rehearsal-result.json"
+
+      - name: Preserve canonical mainnet-readiness invariants
+        run: node tools/verify-mainnet-readiness-state.mjs
+
+      - name: Upload rehearsal evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-rde-readiness-rehearsal-\${{ github.run_id }}-\${{ github.run_attempt }}
+          path: |
+            \${{ runner.temp }}/fae-rde-rehearsal
+            \${{ runner.temp }}/fae-rde-rehearsal-result.json
+          retention-days: 7
