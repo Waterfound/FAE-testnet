@@ -1,0 +1,71 @@
+{
+  "schema": "fae-180s-f180-04-result/1",
+  "frontier": "F180-04",
+  "status": "COMPLETE_WITH_WARN",
+  "authority": "simulation-only-no-consensus-authority",
+  "exact_source": {
+    "harness_commit": "8cebd9f6a946556c9d70c6f58fd9fa1134337c82",
+    "workflow_run_id": 36446443840,
+    "workflow_conclusion": "success",
+    "artifact_id": 10979854016,
+    "artifact_sha256": "sha256:04fb17b5d8f4b7e82721ffcae63d5adc3147b888c5213a8988171b2381e86ddc",
+    "seeds": 256,
+    "blocks_per_seed": 3000,
+    "burn_blocks": 600
+  },
+  "active_timestamp_rule": {
+    "future_wall_seconds": 120,
+    "monotonic_non_decreasing": true,
+    "past_wall_relative_to_receiver": null
+  },
+  "findings": {
+    "constant_future_edge": {
+      "result": "NO_PERSISTENT_DIRECTIONAL_ADVANTAGE_OBSERVED_IN_THIS_MODEL",
+      "detail": "Across 10/25/50/75% attacker shares, median paired interval ratio remained 1.0 and attacker block share delta remained 0."
+    },
+    "freeze": {
+      "result": "SELF_HARMING_LIVENESS_PRESSURE",
+      "detail": "At 75% share, median interval rose to 212.99s and attacker blocks/day ratio fell to 0.9003 of paired honest; no relative-share gain was modeled."
+    },
+    "endpoint_ease": {
+      "result": "MEASURABLE_GLOBAL_CADENCE_SENSITIVITY_WITHOUT_RELATIVE_SHARE_GAIN",
+      "detail": {
+        "share_10pct": {
+          "median_interval_ratio": 0.9955926737313066,
+          "median_attacker_blocks_per_day_ratio": 1.0044268368961253
+        },
+        "share_25pct": {
+          "median_interval_ratio": 0.9871387337500512,
+          "median_attacker_blocks_per_day_ratio": 1.0130288366604425
+        },
+        "share_50pct": {
+          "median_interval_ratio": 0.9744944019031506,
+          "median_attacker_blocks_per_day_ratio": 1.026173160300866
+        },
+        "share_75pct": {
+          "median_interval_ratio": 0.9641887233738808,
+          "median_attacker_blocks_per_day_ratio": 1.0371413560803815
+        },
+        "attacker_block_share_delta_median": 0
+      },
+      "interpretation": "The strategy modestly increases total block cadence in the paired model, but does not increase the attacker's fraction of blocks. At high shares it largely moves the stochastic baseline closer to the intended 180s target rather than demonstrating a private relative advantage."
+    }
+  },
+  "frozen_gate_assessment": {
+    "valid_chain_admission_model": "PASS_WITHIN_SIMULATION",
+    "constant_future_edge_persistent_advantage": "PASS_NO_SIGNAL",
+    "timestamp_daa_sensitivity": "WARN_MEASURABLE",
+    "exploitable_relative_mining_advantage": "NOT_DEMONSTRATED",
+    "consensus_divergence": "NOT_TESTED_BY_THIS_SIMULATION",
+    "hard_failure_confirmed": false
+  },
+  "limitations": [
+    "Block ownership is exogenous; withholding, private-chain and strategic hash switching are not modeled.",
+    "Blocks/day is a reward-frequency proxy and not net profit after energy or opportunity costs.",
+    "This is not fresh multi-host clock evidence.",
+    "The candidate 90s arrival-clock rule is reference-only and remains unactivated."
+  ],
+  "frontier_disposition": "WARN_ACTIVE_120S_TIMESTAMP_RULE_IS_DAA_SENSITIVE_BUT_NO_RELATIVE_REWARD_ADVANTAGE_WAS_DEMONSTRATED",
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
