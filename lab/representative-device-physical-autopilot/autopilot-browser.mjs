@@ -29,6 +29,15 @@ function updateMetrics({label,attempts,rate,progress}={}){
   if(progress!==undefined)$('progress').style.width=Math.max(0,Math.min(100,progress))+'%';
   $('captures').textContent=String(state.captures.length);
 }
+function rewardAddressLooksUsable(){return /^faet1[a-z0-9]{20,}$/.test($('rewardAddress').value.trim())}
+function updateRunEligibility(){$('runFull').disabled=!state.lock||!rewardAddressLooksUsable()||state.stopped}
+function applyQueryPrefill(){
+  const q=new URLSearchParams(location.search),classes=new Set(['mobile_tablet_arm','thin_light_integrated','consumer_discrete_gpu','compact_handheld_consumer']);
+  const cls=q.get('deviceClass');if(cls&&classes.has(cls))$('deviceClass').value=cls;
+  const manufacturer=q.get('manufacturer');if(manufacturer)$('manufacturer').value=manufacturer.slice(0,120);
+  const model=q.get('model');if(model)$('model').value=model.slice(0,160);
+  const address=q.get('address');if(address&&/^faet1[a-z0-9]{20,}$/.test(address))$('rewardAddress').value=address;
+}
 function formProfile(){
   return{
     manufacturer:$('manufacturer').value.trim(),
@@ -63,6 +72,7 @@ async function loadLocalProfile(){
     if(p.manufacturer)$('manufacturer').value=p.manufacturer;
     if(p.model)$('model').value=p.model;
     if(p.device_class)$('deviceClass').value=p.device_class;
+    if(p.reward_address&&/^faet1[a-z0-9]{20,}$/.test(p.reward_address))$('rewardAddress').value=p.reward_address;
     $('profileState').textContent='Local agent detected · '+[p.manufacturer,p.model,p.os].filter(Boolean).join(' · ');
     $('profileState').className='status good';
   }catch{
@@ -86,14 +96,14 @@ async function lockSelection(){
     status:statusNow,harnessRevision:state.harnessRevision
   });
   for(const id of ['deviceClass','manufacturer','model'])$(id).disabled=true;
-  $('lock').disabled=true;$('unlock').disabled=false;$('runFull').disabled=false;
+  $('lock').disabled=true;$('unlock').disabled=false;updateRunEligibility();
   lockStatus('Locked before results · height '+statusNow.height+' · '+p.manufacturer+' '+p.model,'good');
 }
 function resetLock(){
   if(state.captures.length)throw new Error('cannot_unlock_after_capture');
   state.lock=null;
   for(const id of ['deviceClass','manufacturer','model'])$(id).disabled=false;
-  $('lock').disabled=false;$('unlock').disabled=true;$('runFull').disabled=true;
+  $('lock').disabled=false;$('unlock').disabled=true;updateRunEligibility();
   lockStatus('No selection lock yet.');
 }
 function newPowWorker(){
@@ -347,7 +357,7 @@ async function runCampaign(){
     if(!state.stopped&&REQUIRED_LIFECYCLE.has(state.lock.device_class))await runLifecycle();
     if(!state.stopped)status('Campaign complete on this device. Export/agent packaging is ready.','good');
   }catch(error){status('Campaign stopped/fail-closed: '+String(error.message||error),'bad')}
-  finally{stopWorker();$('stop').disabled=true;$('runFull').disabled=false;updateMetrics({label:'Idle',progress:0})}
+  finally{stopWorker();$('stop').disabled=true;state.stopped=false;updateRunEligibility();updateMetrics({label:'Idle',progress:0})}
 }
 function exportCaptures(){
   const payload={schema:'FAE_RDE_BROWSER_PORTFOLIO_V1',exported_at:currentIso(),contract_id:CONTRACT_ID,autopilot_protocol_id:AUTOPILOT_PROTOCOL_ID,captures:state.captures};
@@ -360,5 +370,8 @@ $('unlock').addEventListener('click',()=>{try{resetLock()}catch(e){lockStatus(St
 $('runFull').addEventListener('click',()=>runCampaign());
 $('stop').addEventListener('click',()=>{state.stopped=true;state.__lifecycleCleanup?.();stopWorker();status('Stopped by operator. Partial run is not admissible.','warn')});
 $('export').addEventListener('click',exportCaptures);
+$('rewardAddress').addEventListener('input',updateRunEligibility);
 window.addEventListener('beforeunload',()=>stopWorker());
+applyQueryPrefill();
 await loadLocalProfile();
+updateRunEligibility();
