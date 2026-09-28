@@ -1,0 +1,423 @@
+{
+  "schema": "FAE_180S_ECONOMIC_BLOCK_TIME_VALIDATION_BUILD_COLONY_PLAN_V1",
+  "run_id": "bc-fae-180s-ebtv-20260928-001",
+  "run_kind": "REAL_PLANNING_RUN",
+  "run_date": "2026-09-28",
+  "project": "FAE",
+  "repository": "Waterfound/FAE-testnet",
+  "source_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "branch": "colony/fae-180s-economic-block-time-validation-001",
+  "workstream": "FAE Research — 180s Economic + Block-Time Validation",
+  "objective": "Attempt to falsify whether the active 180-second public-testnet block interval remains technically defensible across network, DAA/timestamp, capacity/UX, mining-economics, decentralization and recovery evidence.",
+  "frozen_principles": [
+    "evidence-first",
+    "fail-closed",
+    "candidate != authority",
+    "research conclusion != activation authority",
+    "Waterfound authority, machine autonomy",
+    "Orient with Bitcoin; justify with FAE evidence"
+  ],
+  "build_colony_lineage": [
+    "github://Waterfound/FAE-testnet/commit/1668e03a161e3473776752db7bd921c4f946865f",
+    "github://Waterfound/FAE-testnet/commit/eb53002e10477409961405cd7acf561799eeaf4e",
+    "github://Waterfound/FAE-testnet/commit/745faec3c2ee3fd214199b60293f46e7b9d5a92b"
+  ],
+  "canonical_binding": {
+    "registry": "docs/FAE_CANONICAL_STATE.md",
+    "registry_blob_sha": "2423dde3d2c82b0aca109193f65745bbe648e54b",
+    "public_testnet": {
+      "network": "fairyelf-public-testnet-v4",
+      "target_seconds": 180,
+      "initial_subsidy_fae": 10,
+      "halving_era_blocks": 600000,
+      "max_supply_fae": 12000000
+    },
+    "research_incumbent": {
+      "target_seconds": 300,
+      "initial_subsidy_fae": 14,
+      "halving_era_blocks": 430000,
+      "hard_ceiling_fae": 12040000,
+      "coinbase_maturity_blocks": 200,
+      "status": "research-incumbent-not-authoritative"
+    },
+    "challengers": {
+      "seconds_600": "YELLOW",
+      "seconds_900": "CLOSED"
+    },
+    "consensus_change_authorized": false,
+    "activation_height_selected": false,
+    "mainnet_authorized": false
+  },
+  "authority": {
+    "ceiling": "RESEARCH_CANDIDATE_WRITE",
+    "allowed": [
+      "research documents",
+      "machine-readable evidence ledgers",
+      "deterministic/local tests",
+      "simulations explicitly labelled simulation",
+      "replays",
+      "read-only external-data research",
+      "test harnesses",
+      "non-consensus observability",
+      "branches and checkpoints",
+      "verification artifacts"
+    ],
+    "forbidden": [
+      "modify active consensus",
+      "activate block-time/economic parameters",
+      "select activation height",
+      "authorize mainnet",
+      "new unapproved spend",
+      "material destructive actions",
+      "reinterpret failed/partial evidence as PASS",
+      "promote research result to authority"
+    ]
+  },
+  "reopening_justification": {
+    "prior_v2_scope": "300/600/900 comparison",
+    "new_question": "direct validation of the actually active 180-second public-testnet parameter",
+    "anti_evidence_manufacture_rule": "The v2 pre-L3 ceiling remains binding for 300/600/900. New simulation is admissible only where it tests a 180-specific property, the live v4 DAA/timestamp behavior, or a newly explicit falsification hypothesis.",
+    "critical_method_gap": "The live 180s v4 DAA is a 20-block discrete retarget with ±2-bit clamp; the v2 DAA results are based on an anchored ASERT-style research proxy and are not direct evidence for the active 180s DAA."
+  },
+  "existing_evidence": [
+    {
+      "id": "E-V2-LAB",
+      "ref": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md",
+      "classification": "directional_for_180",
+      "proved": "block-time changes couple to monetary calendar, maturity, capacity, propagation/stale semantics, DAA observation density and mining-event frequency"
+    },
+    {
+      "id": "E-V2-L2",
+      "ref": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_L2_RESULTS.md",
+      "classification": "directional_for_180",
+      "proved": "300/600/900 ASERT-style proxy, propagation sensitivity, payout variance and confirmation normalization; not direct proof of 180s live DAA"
+    },
+    {
+      "id": "E-V2-EXT",
+      "ref": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md",
+      "classification": "methodology_reusable",
+      "proved": "precommitted propagation thresholds, Wilson stale bounds, comparable-throughput admission and fail-closed external evidence structure"
+    },
+    {
+      "id": "E-V2-CEILING",
+      "ref": "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md",
+      "classification": "directional_for_180",
+      "proved": "real three-region WAN propagation for 300/600/900 and rare-event limitations; forbids short/synthetic evidence manufacture"
+    },
+    {
+      "id": "E-DT-II",
+      "ref": "sovereign-forge/protocol/DIFFICULTY_TIMESTAMP_ARRIVAL_CLOCK.md",
+      "classification": "candidate_local_directional_for_active_180",
+      "proved": "arrival-clock hardening semantics and ±30s clock envelope for candidate path; not retroactive proof of public v4 120s timestamp behavior"
+    },
+    {
+      "id": "E-LIVE-CORE",
+      "ref": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+      "classification": "direct_active_implementation",
+      "proved": "TARGET_SECONDS=180, RETARGET_INTERVAL=20, discrete ±2-bit retarget, 120s live future timestamp wall, 20 tx/block ceiling and active economics"
+    },
+    {
+      "id": "E-SOAK-V1",
+      "ref": "historical-stability-soak-v1",
+      "classification": "direct_180_operational_failed_run",
+      "proved": "FAIL due harness abort; before abort no observed stales/reorgs and ~128ms P95; cannot be promoted to PASS"
+    },
+    {
+      "id": "E-SOAK-V2",
+      "ref": "historical-stability-soak-v2",
+      "classification": "direct_180_operational_failed_run",
+      "proved": "FAIL with ~208s Frankfurt isolation/recovery divergence exceeding frozen 180s outage bound; no observed stales/reorgs and ~128ms P95 do not erase failure"
+    },
+    {
+      "id": "E-SOAK-V3",
+      "ref": "docs/FAE_CANONICAL_STATE.md#stability-soak-v3-operational-state",
+      "classification": "future_separate_operational_gate",
+      "proved": "PREPARED_NOT_STARTED; must remain separate from this research and cannot be inferred PASS"
+    }
+  ],
+  "evidence_classes": {
+    "deterministic_local": "Exact arithmetic, active-core invariants, DAA state-machine tests, timestamp boundary tests, capacity/economic calculations.",
+    "simulation": "Seeded stochastic or adversarial models; must record seed/model/assumptions and never be described as observed network evidence.",
+    "replay": "Historical or synthetic chain/event replay through exact active algorithms; preserves provenance and source revision.",
+    "external_data": "Public primary data/papers/blockchain datasets with source, population, period, FAE relevance, limitations and comparability label.",
+    "wan_physical": "Multi-host, real-network or device evidence; external dependency and never substituted by simulation."
+  },
+  "gates": {
+    "evidence_admission": {
+      "PASS": "source/provenance, environment or population, period, metric definition, FAE relevance, limitations and direct-vs-directional comparability are all explicit",
+      "WARN": "usable directional evidence with one or more material comparability limits explicitly bounded",
+      "FAIL": "missing provenance, incompatible population/metric, hidden synthetic substitution, or unsupported direct-comparability claim"
+    },
+    "propagation": {
+      "inherited_absolute_thresholds": {
+        "median_lt_seconds": 1,
+        "mean_lt_seconds": 2,
+        "p95_lt_seconds": 5,
+        "minimum_samples": 500
+      },
+      "p99": "mandatory reporting when raw distribution permits; no fabricated hard threshold",
+      "PASS": "admissible comparable-throughput 180s evidence satisfies all inherited absolute thresholds and reports tails",
+      "WARN": "latency is below hard failure thresholds but evidence is undersampled, tails unavailable, or only directionally comparable",
+      "FAIL": "admissible directly comparable 180s evidence violates median/mean/P95 absolute thresholds"
+    },
+    "stale_fork": {
+      "steady_wilson_upper95_lt": 0.01,
+      "stress_wilson_upper95_lt": 0.02,
+      "zero_event_minimum_trials_for_thresholds": {
+        "steady": 381,
+        "stress": 189
+      },
+      "PASS": "natural/admissible sample meets Wilson upper bounds; zero observed events alone is not sufficient below the required sample size",
+      "WARN": "no material stale/reorg signal but confidence is insufficient or evidence is synthetic/serialized",
+      "FAIL": "admissible evidence shows a persistent material stale/fork/reorg regime or a confidence interval incompatible with the frozen bound"
+    },
+    "live_daa": {
+      "scenarios": [
+        "stable hashrate",
+        "0.1x",
+        "0.2x",
+        "0.5x",
+        "2x",
+        "5x",
+        "10x",
+        "arrival/departure cycles",
+        "low-hashrate floor approach",
+        "timestamp-coupled adversarial windows",
+        "outage then recovery"
+      ],
+      "implementation": "active v4 20-block retarget, expected span 19*180s, rounded log2 adjustment clamped to ±2 bits and bits bounds 12..28",
+      "PASS": "all deterministic invariants hold; seeded distributions converge after shocks without persistent limit-cycle, floor/ceiling lock or timestamp-induced directional easing advantage",
+      "WARN": "bounded oscillation/recovery tail exists without safety violation but materially worsens confirmation/mining experience or evidence remains model-sensitive",
+      "FAIL": "non-convergence after hashrate stabilizes, persistent pathological oscillation, floor/ceiling lock under in-envelope recovery, or reproducible timestamp strategy creates material directional difficulty advantage"
+    },
+    "timestamp": {
+      "active_rule": "public v4 +120s future wall and non-decreasing timestamps",
+      "candidate_reference": "Difficulty + Timestamp II 90s arrival wall with ±30s host skew envelope is directional only",
+      "PASS": "active-rule replay/adversarial tests preserve valid-chain admission, reject out-of-bound future timestamps and do not create exploitable DAA distortion; clock-health metric remains independent",
+      "WARN": "network safety holds but active 120s semantics leave measurable DAA sensitivity or operational clock-health uncertainty",
+      "FAIL": "in-envelope/admissible timestamp manipulation causes consensus divergence, durable invalid state, or material reproducible difficulty exploitation"
+    },
+    "capacity_ux": {
+      "PASS": "180s arithmetic and burst simulations show bounded mempool behavior within the stated workload envelope and confirmation metrics are reported in wall-clock terms",
+      "WARN": "capacity is adequate only under narrow load assumptions or queue/tail waiting grows materially",
+      "FAIL": "precommitted workload produces unbounded backlog or confirmation behavior incompatible with the stated user-journey envelope"
+    },
+    "mining_payout": {
+      "PASS": "solo event frequency/variance and normalized reward comparisons show no material centralization pressure within the tested miner-share envelope",
+      "WARN": "small miners experience material payout lumpiness/pool incentive but without a demonstrated protocol-safety failure",
+      "FAIL": "tested economics create a structural dependence on pooling/coordinator behavior inconsistent with general-purpose, non-custodial participation goals"
+    },
+    "decentralization": {
+      "PASS": "no tested latency/bandwidth/geography/miner-size sensitivity yields a material persistent advantage after normalizing for work",
+      "WARN": "directional advantage exists but magnitude or real-world representativeness remains unresolved",
+      "FAIL": "direct/admissible evidence shows a systematic material advantage for low-latency/datacenter/large-miner operation attributable to 180s timing"
+    },
+    "outage_recovery": {
+      "frozen_reference_seconds": 180,
+      "known_case_seconds": 208,
+      "known_case_status": "FAIL_FOR_THAT_RUN_NOT_AUTOMATIC_BLOCKTIME_FALSIFICATION",
+      "PASS": "fresh admissible recovery evidence satisfies its frozen bound with deterministic state convergence and no value/fork-choice corruption",
+      "WARN": "software replay recovers correctly but real multi-host evidence is absent or historical failures remain unresolved",
+      "FAIL": "fresh directly comparable run exceeds its frozen recovery bound or fails deterministic state convergence"
+    }
+  },
+  "frontiers": [
+    {
+      "id": "F180-00",
+      "name": "Canonical Boundary + Build Colony Freeze",
+      "type": "deterministic/local",
+      "depends_on": [],
+      "admissible_now": true,
+      "exit": "Source revision, authority fence, evidence taxonomy, terminal verdicts and execution graph frozen."
+    },
+    {
+      "id": "F180-01",
+      "name": "Existing Evidence Inventory + Comparability Matrix",
+      "type": "deterministic/local",
+      "depends_on": [
+        "F180-00"
+      ],
+      "admissible_now": true,
+      "exit": "Every existing artifact is classified direct/directional/non-comparable with proven claim and limitation."
+    },
+    {
+      "id": "F180-02",
+      "name": "180s Deterministic Economics, Capacity + UX Baseline",
+      "type": "deterministic/local",
+      "depends_on": [
+        "F180-01"
+      ],
+      "admissible_now": true,
+      "exit": "Active 10/600k/12m/20tx constants are analyzed without silently importing the 300s package; wall-clock UX/capacity metrics frozen."
+    },
+    {
+      "id": "F180-03",
+      "name": "Active-v4 180s DAA Shock + Oscillation Lab",
+      "type": "simulation+replay",
+      "depends_on": [
+        "F180-01"
+      ],
+      "admissible_now": true,
+      "exit": "Exact live DAA is exercised across precommitted shock/timestamp/low-hash scenarios with reproducible seeds and verdict."
+    },
+    {
+      "id": "F180-04",
+      "name": "180s Timestamp/DAA Coupling",
+      "type": "deterministic/local+simulation",
+      "depends_on": [
+        "F180-03"
+      ],
+      "admissible_now": true,
+      "exit": "120s active timestamp rule and candidate hardening lessons are separated; adversarial clock/timestamp effects quantified."
+    },
+    {
+      "id": "F180-05",
+      "name": "Propagation + Stale/Fork Evidence Reconciliation",
+      "type": "replay+statistical",
+      "depends_on": [
+        "F180-01"
+      ],
+      "admissible_now": true,
+      "exit": "V1/V2 and v2 WAN evidence are reclassified; P50/P95/P99/race ratios and Wilson confidence are reported without converting zero events into safety proof."
+    },
+    {
+      "id": "F180-06",
+      "name": "Mining Economics + Payout Variance",
+      "type": "deterministic/local+simulation",
+      "depends_on": [
+        "F180-02"
+      ],
+      "admissible_now": true,
+      "exit": "Miner-share event frequency, variance, solo waiting and pool-pressure are measured for 180/300/600 under actual and normalized issuance views."
+    },
+    {
+      "id": "F180-07",
+      "name": "Decentralization Sensitivity",
+      "type": "simulation+external-data",
+      "depends_on": [
+        "F180-05",
+        "F180-06"
+      ],
+      "admissible_now": true,
+      "exit": "Latency/bandwidth/geography/miner-size sensitivities are quantified with evidence limits explicit."
+    },
+    {
+      "id": "F180-08",
+      "name": "Outage/Partition/Recovery Replay",
+      "type": "replay+simulation",
+      "depends_on": [
+        "F180-03",
+        "F180-05"
+      ],
+      "admissible_now": true,
+      "exit": "208s V2 case and partition/eclipselike/peer-starvation/backlog cases are replayed or modeled; historical FAIL remains preserved."
+    },
+    {
+      "id": "F180-09",
+      "name": "External Public Evidence Review",
+      "type": "external-data",
+      "depends_on": [
+        "F180-01"
+      ],
+      "admissible_now": true,
+      "exit": "Primary/public research and datasets are admitted with population/period/relevance/limitations/directness metadata."
+    },
+    {
+      "id": "F180-10",
+      "name": "Comparative Synthesis 180/300/600",
+      "type": "deterministic synthesis",
+      "depends_on": [
+        "F180-02",
+        "F180-04",
+        "F180-05",
+        "F180-06",
+        "F180-07",
+        "F180-08",
+        "F180-09"
+      ],
+      "admissible_now": true,
+      "exit": "Trade-offs are synthesized without forcing a winner and without changing the v2 research incumbent by implication."
+    },
+    {
+      "id": "F180-11",
+      "name": "Independent Software Verification + Evidence Ledger",
+      "type": "verification",
+      "depends_on": [
+        "F180-10"
+      ],
+      "admissible_now": true,
+      "exit": "Exact-source harness/results are independently checked; failures and retries remain append-only."
+    },
+    {
+      "id": "F180-12",
+      "name": "Terminal Research Verdict",
+      "type": "serialized verdict",
+      "depends_on": [
+        "F180-11",
+        "F180-13"
+      ],
+      "admissible_now": false,
+      "exit": "Exactly one frozen terminal verdict is issued with research-only authority."
+    },
+    {
+      "id": "F180-13",
+      "name": "WAN/Physical/Natural-Event Evidence Gate",
+      "type": "wan/physical",
+      "depends_on": [
+        "F180-05",
+        "F180-08"
+      ],
+      "admissible_now": false,
+      "exit": "Fresh directly comparable external evidence is admitted or explicitly remains missing; Stability Soak V3 remains a separate gate."
+    }
+  ],
+  "parallelization_policy": {
+    "rule": "Parallelize independent evidence surfaces; serialize shared state, synthesis, verification and verdict.",
+    "parallel_after_F180_01": [
+      "F180-02",
+      "F180-03",
+      "F180-05",
+      "F180-09"
+    ],
+    "later_parallel": [
+      "F180-04",
+      "F180-06"
+    ],
+    "serialized": [
+      "F180-10",
+      "F180-11",
+      "F180-12"
+    ],
+    "external_wait": [
+      "F180-13"
+    ]
+  },
+  "terminal_verdicts": {
+    "SUPPORTED_WITHIN_CURRENT_EVIDENCE": "No frozen hard gate has materially failed and every evidence class declared required for the claim has sufficient admissible coverage. This does not authorize activation.",
+    "INSUFFICIENT_EVIDENCE": "No material falsifying result is established, but one or more required evidence classes remain statistically or operationally inadequate.",
+    "MATERIAL_RISK_FOUND": "At least one frozen hard gate has a reproducible material failure under direct/admissible 180s evidence or a software-only falsification survives verification."
+  },
+  "verdict_precedence": [
+    "MATERIAL_RISK_FOUND",
+    "INSUFFICIENT_EVIDENCE",
+    "SUPPORTED_WITHIN_CURRENT_EVIDENCE"
+  ],
+  "durable_execution": {
+    "target_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "runtime_source_revision": "a27a558d4ed0e28b925f0b424368a2f11e2f9b7",
+    "current_manifest_authority_created": false,
+    "portfolio_id": "fae-180s-economic-blocktime-validation",
+    "bootstrap_after_plan_commit": true,
+    "stop_conditions": [
+      "human authority required",
+      "new unapproved spend",
+      "material destructive action",
+      "consensus/economic activation",
+      "mainnet authority",
+      "external evidence unavailable at F180-13",
+      "terminal completion"
+    ]
+  },
+  "termination_condition": "The workstream ends only after software-admissible frontiers are exhausted, external evidence status is explicit, independent verification is complete, and F180-12 emits one frozen terminal research verdict. No verdict changes active consensus."
+}
