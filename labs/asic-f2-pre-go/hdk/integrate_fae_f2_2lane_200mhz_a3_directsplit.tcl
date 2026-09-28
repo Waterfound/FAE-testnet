@@ -43,6 +43,11 @@ set_property -dict [list CONFIG.CONST_WIDTH {1} CONFIG.CONST_VAL {0}] [get_bd_ce
 foreach n {ctrl0 ctrl1 mem00 mem01 mem10 mem11} {
   create_bd_cell -type ip -vlnv xilinx.com:ip:axi_clock_converter:2.1 fae_cc_$n
 }
+# HLS control ports are AXI4-Lite. Force the control CDCs to AXI4-Lite
+# so interface capability propagation does not advertise AXI4 burst lengths.
+foreach n {ctrl0 ctrl1} {
+  set_property -dict [list CONFIG.PROTOCOL {AXI4LITE}] [get_bd_cells fae_cc_$n]
+}
 
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_clk_200/clk_in1]
 connect_bd_net [get_bd_pins proc_sys_reset_a0/peripheral_aresetn] [get_bd_pins fae_clk_200/resetn]
