@@ -47,6 +47,10 @@ foreach n {ctrl0 ctrl1 mem00 mem01 mem10 mem11} {
 # so interface capability propagation does not advertise AXI4 burst lengths.
 foreach n {ctrl0 ctrl1} {
   set_property -dict [list CONFIG.PROTOCOL {AXI4LITE}] [get_bd_cells fae_cc_$n]
+  foreach p {S_AXI M_AXI} {
+    set intf [get_bd_intf_pins fae_cc_$n/$p]
+    set_property -dict [list CONFIG.PROTOCOL {AXI4LITE} CONFIG.MAX_BURST_LENGTH {1}] $intf
+  }
 }
 
 connect_bd_net [get_bd_pins f2_inst/clk_main_a0_out] [get_bd_pins fae_clk_200/clk_in1]
