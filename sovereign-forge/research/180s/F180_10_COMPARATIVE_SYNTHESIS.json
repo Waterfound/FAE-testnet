@@ -1,0 +1,125 @@
+{
+  "schema": "fae-180s-f180-10-comparative-synthesis/1",
+  "frontier": "F180-10",
+  "status": "COMPLETE",
+  "authority": "research-synthesis-only-no-consensus-authority",
+  "source_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "evidence_revisions": {
+    "F180_01": "472da503f49510cc317b3834ea90a26e4a1b28da",
+    "F180_02": "9276ccc67ee1fd9ae207ab9aca94fe582cb7dc33",
+    "F180_03": "89b0cb803c17f3cf6ffee45b8a7e25ea13e144d6",
+    "F180_04": "264942df6a18cdf34c32511012058c1710fa4ad0",
+    "F180_05": "ff9bf0e79b4820f3c31ea4c1beadacf29364e12b",
+    "F180_06": "9f0ad1b6622aa61514aa99fd4acfe52af6f0d1cd",
+    "F180_07": "aa14f147237e5057c9b71b35dcda258d6d83547f",
+    "F180_08": "7c6812fc9859181eedccf2966e44e20d8cb9751a",
+    "F180_09": "39d33a17764b4b57e27d741a81589334363e751c"
+  },
+  "comparison": {
+    "180": {
+      "authority_status": "ACTIVE_PUBLIC_TESTNET_PARAMETER",
+      "economics": "10 FAE/block, 600k era, 12m hard ceiling; scheduled integer-atom issuance 11,999,999.922 FAE",
+      "one_confirmation_poisson_model_s": {
+        "mean": 180,
+        "median": 124.76649250079015,
+        "p95": 539.2318092397184,
+        "p99": 828.9306334778564
+      },
+      "same_20tx_block_nominal_tps": 0.1111111111111111,
+      "payout_variance_relative_sigma_equal_issuance": 1,
+      "propagation": "historical reported P95 ~0.128s in failed V1/V2 runs; provenance/raw-bundle gap; not PASS",
+      "first_order_race_probability_at_5s_delay": 0.027395522883651657,
+      "relative_event_advantage_fast0_1_vs_slow5": 0.02759613208864442,
+      "probability_at_least_one_block_during_208s_isolation": 0.6851174464505452,
+      "daa": "direct active-v4 evidence: 20-block discrete integer-bit retarget; honest 0.1x–10x shocks converge, but quantization envelope 127.3–254.6s and stochastic mean drift/retarget noise produce WARN",
+      "timestamp": "active +120s rule is DAA-sensitive; no relative reward-share advantage demonstrated in paired model; WARN",
+      "small_miner": "best event frequency / lowest payout-count variance of compared targets; absolute lumpiness remains for very small shares"
+    },
+    "300": {
+      "authority_status": "GREEN_RESEARCH_INCUMBENT_NOT_ACTIVE",
+      "economics": "14 FAE/block, 430k era, 12.04m hard ceiling, 200-block maturity in candidate package",
+      "one_confirmation_poisson_model_s": {
+        "mean": 300,
+        "median": 207.94415416798358,
+        "p95": 898.7196820661973,
+        "p99": 1381.5510557964274
+      },
+      "same_20tx_block_nominal_tps": 0.06666666666666667,
+      "payout_variance_relative_sigma_equal_issuance": 1.2909944487358056,
+      "propagation": "v2 real three-region WAN: 500 samples, P50 0.100s, mean 0.111458s, P95 0.116s",
+      "first_order_race_probability_at_5s_delay": 0.01652854617838251,
+      "relative_event_advantage_fast0_1_vs_slow5": 0.016467451425763446,
+      "probability_at_least_one_block_during_208s_isolation": 0.5000930677240178,
+      "daa": "v2 ASERT-style research proxy showed lowest noise / fastest proxy recovery among 300/600/900, but this algorithm is not the active 180s DAA and is not activation authority",
+      "timestamp": "no active-mainnet authority; candidate hardening work is separate",
+      "small_miner": "lower reward-event frequency and higher variance than 180 at fixed share; less timing pressure for propagation/outage"
+    },
+    "600": {
+      "authority_status": "YELLOW_RESEARCH_CHALLENGER",
+      "economics": "28 FAE/block only when referring to the v2 calendar+supply-neutral branch; not a newly selected economic package",
+      "one_confirmation_poisson_model_s": {
+        "mean": 600,
+        "median": 415.88830833596717,
+        "p95": 1797.4393641323945,
+        "p99": 2763.102111592855
+      },
+      "same_20tx_block_nominal_tps": 0.03333333333333333,
+      "payout_variance_relative_sigma_equal_issuance": 1.8257418583505538,
+      "propagation": "v2 real three-region WAN: 500 samples, P50 0.111s, mean 0.12164s, P95 0.13805s",
+      "first_order_race_probability_at_5s_delay": 0.008298707361124036,
+      "relative_event_advantage_fast0_1_vs_slow5": 0.00820010485308087,
+      "probability_at_least_one_block_during_208s_isolation": 0.29295903069483864,
+      "daa": "v2 ASERT-style research proxy only; not direct evidence for an active 600s consensus implementation",
+      "timestamp": "not separately activated or validated as an active rule here",
+      "small_miner": "lowest reward-event frequency / highest payout-count variance of compared targets; least fixed-delay race/outage pressure"
+    }
+  },
+  "tradeoffs": [
+    {
+      "dimension": "confirmation and event frequency",
+      "direction": "180s shorter; 300s middle; 600s longer",
+      "interpretation": "180 improves expected user wait and solo reward-event frequency, but confirmation count is not normalized security."
+    },
+    {
+      "dimension": "same-block-size nominal capacity",
+      "direction": "180 > 300 > 600",
+      "interpretation": "Arithmetic capacity only; real throughput depends on block payload, relay, validation and demand."
+    },
+    {
+      "dimension": "small-miner payout variance",
+      "direction": "180 lower than 300 lower than 600 at equal expected issuance",
+      "interpretation": "Supports household/solo participation, but does not eliminate pool pressure at very small hash share."
+    },
+    {
+      "dimension": "latency sensitivity",
+      "direction": "180 higher than 300 higher than 600 for fixed absolute delay",
+      "interpretation": "Shorter timing increases first-order low-latency advantage; direct FAE revenue evidence remains missing."
+    },
+    {
+      "dimension": "fixed outage exposure",
+      "direction": "180 higher probability of competing blocks during a given outage",
+      "interpretation": "The 208s V2 failure is more consequential at 180s, but causality was not established."
+    },
+    {
+      "dimension": "active DAA evidence",
+      "direction": "180 has direct implementation-specific evidence; 300/600 v2 evidence uses a different research proxy",
+      "interpretation": "Cross-target DAA comparison is not apples-to-apples and must remain qualified."
+    },
+    {
+      "dimension": "natural stale/reorg confidence",
+      "direction": "insufficient across the required 180s claim",
+      "interpretation": "Zero observed events without adequate admitted denominators/tails is not safety proof."
+    }
+  ],
+  "synthesis_disposition": "NO_MATERIAL_RISK_PROVEN_BUT_180S_REMAINS_UNDER_EVIDENCED_FOR_MAINNET_GRADE_CLAIM",
+  "required_before_supported_verdict": [
+    "fresh directly comparable 180s WAN/physical evidence with raw provenance",
+    ">=500 admitted propagation samples with P50/mean/P95 and P99 when available",
+    "statistically sufficient natural stale/fork denominator meeting frozen Wilson gates",
+    "fresh recovery evidence against frozen outage/recovery criteria",
+    "independent verification of all software artifacts"
+  ],
+  "winner_selected": false,
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
