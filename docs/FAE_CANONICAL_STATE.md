@@ -1,7 +1,7 @@
 # FAE Canonical State
 
 Status: living context registry for FAE engineering work  
-Last reviewed: 2026-09-23  
+Last reviewed: 2026-09-28  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
@@ -11,6 +11,26 @@ This file is a small living registry for the current accepted FAE state. It is n
 Before making a consequential FAE engineering decision, read the current version of this file from `main` and then follow the referenced source artifacts. If an older conversation conflicts with this registry, do not rely on the stale conversation. If this registry conflicts with a referenced authoritative or frozen source artifact, the source artifact wins and this file should be corrected.
 
 Frozen historical evidence must remain frozen. Update this file only when an accepted parameter, candidate, gate, or authority state materially changes.
+
+## Canonical readiness orchestration
+
+Machine-readable readiness registry:
+
+- `docs/FAE_MAINNET_READINESS_STATE.json`
+- schema: `FAE_MAINNET_READINESS_STATE_V1`
+- generated from canonical `main` revision `48ba1df01075f7e6714d2e98d5ce8df827d1e5f2`
+- reconciliation workstream role: `SECONDARY`
+- authority: documentation/evidence state only; this registry does not create protocol or mainnet authority
+
+Current portfolio ordering at this reconciliation checkpoint:
+
+- `ACTIVE`: FAE Research — 180s Economic + Block-Time Validation
+- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation
+- rule: **Parallelize independence. Serialize shared state.**
+
+The 180s Research workstream is isolated on `colony/fae-180s-economic-block-time-validation-001`. At the MR-05 serialization check on 2026-09-28 it was strictly ahead of `main` and did not modify this registry. Any later integration must re-resolve both `main` and the Research branch before mutating shared canonical state.
+
+Readiness state names are frozen in the machine-readable registry. In particular, `HUMAN_GATE` means the *next admissible* advancement requires a physical, account-bound, or authority-bound Waterfound action. Mere incompleteness or machine-executable waiting is not a human gate.
 
 ## Current live public-testnet authority
 
@@ -96,7 +116,11 @@ Primary references:
 
 Current operational state:
 
-`PREPARED_NOT_STARTED`
+`SCHEDULED / PREPARED_NOT_STARTED`
+
+Operational checkpoint:
+
+`2026-10-01`
 
 Frozen V3 source checkpoint:
 
@@ -183,6 +207,10 @@ Accepted implementation state carried by canonical main after BE-02 integration:
 - BE-05 public gateway: prepared and tested to expose only GET/OPTIONS on the six verified `/explorer/*` resources; node submission/feed/state routes remain private;
 - BE-05 binding probe: prepared and tested for HTTPS, network identity, observed-tip coherence, CORS GET/OPTIONS policy, POST rejection and hidden submit routes;
 - BE-05 deployment/binding: **not performed and not authorized**; a persistent eligible host remains an external evidence gate.
+- BE-06 Oracle pre-create/host-creation envelope: admitted for the exact zero-cost-only request and explicitly authorized within that envelope;
+- Oracle persistent host: not yet established in accepted evidence;
+- current readiness classification: `HUMAN_GATE / EXTERNAL-INFRA BLOCKED`, because the next admissible Explorer advance requires the account-bound persistent-host creation step;
+- no paid fallback, Explorer LIVE claim, consensus authority, wallet authority, mining authority, or Stability Soak capacity transfer follows from BE-06.
 
 Primary references:
 
@@ -197,6 +225,122 @@ Primary references:
 - `explorer/build.mjs`
 - `lab/block-explorer/tests/be-04-deployment.test.mjs`
 - `lab/block-explorer/be04-public-prebind-evidence.json`\n- `lab/block-explorer/be05-provider-scan.json`\n- `lab/block-explorer/be05-node-deployment-v1.json`\n- `lab/block-explorer/be05-readonly-gateway.mjs`\n- `lab/block-explorer/be05-binding-probe.mjs`
+
+## Wallet Transaction UX
+
+Current state:
+
+`DONE / PUBLICATION_VERIFIED`
+
+Evidence:
+
+- `docs/wallet-transaction-ux/contract.json`
+- `docs/wallet-transaction-ux/wtx-07-publication-evidence.json`
+- publication-evidence merge checkpoint: `48ba1df01075f7e6714d2e98d5ce8df827d1e5f2`
+
+The publication receipt records successful canonical verification, cross-Lab verification, recurring security assurance, CodeQL, a READY production deployment, and exact served-file matching for the integrated Wallet Transaction UX. This closes the bounded TXID visibility/copyability + transaction-history discoverability workstream. It does not create Explorer, consensus, backend, key-material, or mainnet authority.
+
+## ASIC resistance / F2 external state
+
+The ASIC/F2 workstream is not integrated into current FAE `main`; its evidence remains Lab/Durable state and must not be represented as canonical protocol completion.
+
+Latest reconciled external state observed on 2026-09-28:
+
+- A3-R4 physical implementation: `PASS_PHYSICAL_TIMING_CLOSED` on Lab branch evidence;
+- an existing A3-R4 AFI, `afi-0bd37117433ff02d7`, was subsequently observed `available`;
+- General Execution contains a narrow Waterfound authority receipt admitting that already-existing AFI only while it remains bound to the verified A3-R4 source/Developer_CL identity;
+- that receipt explicitly does **not** authorize F2 runtime execution, benchmark, attacker sweep, sustained validation, release, consensus activation, or mainnet.
+
+Current readiness classification:
+
+`HUMAN_GATE`
+
+The next admissible F2 runtime action therefore requires a new exact authority grant. Do not create another AFI or infer completion from AFI availability.
+
+External references:
+
+- `Waterfound/FAE-testnet@d1d98251dc2c58d53a843d5f04c2fc8ff3af0d4d`
+- `Waterfound/General-Execution:authority/fae-asic-a3-r4-existing-afi-authority-resume-001.json`
+- `Waterfound/General-Execution:provider-inbox/fae-a3-r4-afi-available-001.json`
+
+## Mining Tip Sync / stale-work recovery
+
+The software and real-browser frontiers have advanced materially, but MTS-12 remains a physical-device gate.
+
+Current state:
+
+`HUMAN_GATE`
+
+The latest physical iPad evidence preserved on `main` records:
+
+- the real-tip convergence gate passed;
+- zero known-mismatch submissions, zero race-lost 409 responses, zero unclassified stale responses, and no manual restart in that run;
+- the background/foreground metric from that attempt was invalid for a runtime correctness verdict because it measured a Lab-issued request-completion path rather than the production miner foreground-event-to-request-start latency;
+- no miner defect was proven and no runtime write was authorized.
+
+A corrected physical iPad/Safari lifecycle run is still required before MTS-12 can become GREEN.
+
+Primary references:
+
+- `lab/mining-tip-sync/authority.json`
+- `lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json`
+- `lab/mining-tip-sync/evidence/mts-12-prep.json`
+
+## Security and post-quantum research
+
+Public-code security baseline:
+
+`CLOSED / BASELINE_READY_FOR_RECURRING_ASSURANCE`
+
+The bounded Public-Code Security Readiness project reached its PSR-19 closeout with zero open baseline blockers and recurring Project Assurance as the continuing mechanism. This is a security-baseline claim only and grants no release, consensus, economics, deployment, or mainnet authority.
+
+Primary references:
+
+- `docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json`
+- `docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json`
+
+Post-Quantum Signature Lab:
+
+`RESEARCH_ONLY / SOFTWARE_ONLY_POST_QUANTUM_RESEARCH_CEILING_REACHED`
+
+PQ-00 through PQ-11 are GREEN inside the frozen shadow-only authority boundary. PQ-12 physical-device evidence is optional for that software-only ceiling. No PQ parameter set is selected for active FAE and activation remains unauthorized.
+
+Primary references:
+
+- `lab/post-quantum-signatures/gate-status.json`
+- `lab/post-quantum-signatures/authority.json`
+
+## Sovereignty, recovery and release provenance
+
+Accepted software/evidence state includes:
+
+- Git-host independence recovery proof integrated at `a9ae1980206c8b0d73cd391c4a970b76b70336e0`;
+- GitLab sovereign backup-control tooling integrated at `51579c98073f1193da2c69f50cdfea0d26116fbb`;
+- PSR-13 reproducible release provenance integrated at `a0be46e22e5ecf3400922f9fa3f267c35bd46916`;
+- H2 release reproducibility: GREEN, packaging-only;
+- H2 mainnet rehearsal package: GREEN, rehearsal-only;
+- H2 independent release/mainnet verifier: GREEN, verification-only.
+
+These are capability/evidence completions, not proof that a particular external mirror is currently synchronized and not a production release freeze. Final production release identities remain unset under the production-freeze section above.
+
+## Mainnet-readiness unresolved evidence
+
+The machine-readable readiness registry preserves the distinction between completed software/evidence gates and unresolved external or authority gates.
+
+Still unresolved as mainnet evidence include:
+
+- physical HFB / work-per-watt / work-per-dollar evidence;
+- representative-device evidence;
+- Stability Soak V3 operational completion;
+- independent-operator evidence;
+- Explorer independent persistent-host binding;
+- ASIC/F2 runtime and downstream attacker/sustained evidence;
+- MTS-12 corrected physical-device evidence;
+- all final production-freeze values and explicit launch authority.
+
+Peer Isolation & Eclipse Resistance should **not** be grouped into this generic unresolved bucket: real-WAN Gate 3 was integrated as evidence at `946bfc8b0baae2a50f960a4ca63756c08fdef319`.
+
+Difficulty + Timestamp II should likewise be represented as completed Lab/candidate evidence at `e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510`, while the active-v4 180s DAA question remains separately owned by the active 180s Research workstream.
 
 ## Cross-Lab integration rule
 

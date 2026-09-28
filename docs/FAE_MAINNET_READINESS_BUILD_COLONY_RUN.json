@@ -1,0 +1,401 @@
+{
+  "schema": "FAE_MAINNET_READINESS_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-28",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-mainnet-readiness-reconciliation-001",
+  "source_main_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
+  "portfolio_role": "SECONDARY",
+  "active_workstream_preserved": {
+    "name": "FAE Research — 180s Economic + Block-Time Validation",
+    "branch": "colony/fae-180s-economic-block-time-validation-001",
+    "observed_head": "32ed4541692f97467500cf23bd2b9449640db774",
+    "compare_to_source_main": {
+      "status": "ahead",
+      "ahead_by": 1,
+      "behind_by": 0,
+      "changed_files": [
+        "docs/FAE_180S_ECONOMIC_BLOCK_TIME_VALIDATION_BUILD_COLONY_RUN.json"
+      ]
+    },
+    "shared_canonical_state_conflict_observed": false
+  },
+  "precedence": [
+    "authoritative_or_frozen_source_artifact",
+    "current_canonical_repository_state",
+    "docs/FAE_CANONICAL_STATE.md_living_registry",
+    "conversation_context"
+  ],
+  "frozen_authority_boundary": {
+    "authority_owner": "Waterfound",
+    "may_autonomously": [
+      "read repository and evidence",
+      "inventory and reconcile documentation",
+      "create machine-readable state",
+      "classify dependencies and wake conditions",
+      "create fail-closed deterministic verification",
+      "update living documentation on an isolated branch",
+      "advance software-only reconciliation frontiers"
+    ],
+    "may_not_without_new_authority": [
+      "declare MAINNET_READY",
+      "authorize mainnet",
+      "change active consensus",
+      "select activation height",
+      "promote an economic candidate",
+      "change supply, halving, subsidy, or block interval",
+      "convert Lab evidence into protocol authority",
+      "resolve a human gate for Waterfound",
+      "infer PASS from missing evidence",
+      "authorize new spending",
+      "rewrite frozen historical evidence"
+    ]
+  },
+  "inventory": {
+    "canonical_registry": {
+      "path": "docs/FAE_CANONICAL_STATE.md",
+      "blob_sha": "2423dde3d2c82b0aca109193f65745bbe648e54b",
+      "recorded_last_reviewed": "2026-09-23",
+      "stale_against_source_main": true
+    },
+    "confirmed_state_changes_or_closures": [
+      {
+        "id": "wallet_transaction_ux",
+        "observed": "PUBLICATION_VERIFIED",
+        "evidence": "docs/wallet-transaction-ux/wtx-07-publication-evidence.json"
+      },
+      {
+        "id": "post_quantum_signature_lab",
+        "observed": "SOFTWARE_ONLY_POST_QUANTUM_RESEARCH_CEILING_REACHED",
+        "evidence": "lab/post-quantum-signatures/gate-status.json"
+      },
+      {
+        "id": "public_code_security",
+        "observed": "BASELINE_READY_FOR_RECURRING_ASSURANCE__BOUNDED_PROJECT_CLOSED",
+        "evidence": "docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json"
+      },
+      {
+        "id": "repository_recovery",
+        "observed": "INTEGRATED_RECOVERY_AND_GITLAB_CONTROL_TOOLING",
+        "evidence": [
+          "commit:a9ae1980206c8b0d73cd391c4a970b76b70336e0",
+          "commit:51579c98073f1193da2c69f50cdfea0d26116fbb"
+        ]
+      },
+      {
+        "id": "release_provenance",
+        "observed": "REPRODUCIBLE_RELEASE_PROVENANCE_INTEGRATED",
+        "evidence": [
+          "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json",
+          "sovereign-forge/release/software-only-ceiling-freeze.json"
+        ]
+      },
+      {
+        "id": "peer_isolation_eclipse",
+        "observed": "REAL_WAN_GATE_3_INTEGRATED_EVIDENCE_ONLY",
+        "evidence": "commit:946bfc8b0baae2a50f960a4ca63756c08fdef319"
+      },
+      {
+        "id": "difficulty_timestamp",
+        "observed": "LAB_II_MEASURED_CLOCK_HEALTH_WAN_GATE_INTEGRATED",
+        "evidence": "commit:e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510"
+      }
+    ],
+    "waiting_or_external": [
+      {
+        "id": "stability_soak_v3",
+        "observed": "PREPARED_NOT_STARTED",
+        "wake_condition": "2026-10-01 preflight checkpoint",
+        "evidence": "sovereign-forge/release/stability-soak-v3-fallbacks.json"
+      },
+      {
+        "id": "block_explorer",
+        "observed": "BE-06 / READY_PUBLIC_PREBIND / UNBOUND / NOT_LIVE",
+        "dependency": "eligible persistent Independent Node host / Oracle account-bound VM creation",
+        "evidence": "lab/block-explorer/gate-status.json"
+      },
+      {
+        "id": "mining_tip_sync",
+        "observed": "MTS-12 physical evidence not yet valid for terminal runtime verdict",
+        "dependency": "corrected physical iPad Safari lifecycle run",
+        "evidence": "lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json"
+      },
+      {
+        "id": "independent_operator_evidence",
+        "observed": "unresolved",
+        "evidence": "sovereign-forge/release/software-only-ceiling-freeze.json"
+      },
+      {
+        "id": "representative_device_evidence",
+        "observed": "unresolved",
+        "evidence": "sovereign-forge/release/software-only-ceiling-freeze.json"
+      },
+      {
+        "id": "physical_hfb",
+        "observed": "unresolved as mainnet evidence",
+        "evidence": "sovereign-forge/release/software-only-ceiling-freeze.json"
+      }
+    ],
+    "asic_external_state": {
+      "canonical_main_contains_asic_lab_state": false,
+      "lab_branch": "lab/asic-a3-r4-physical-20260927",
+      "physical_timing_result": "PASS_PHYSICAL_TIMING_CLOSED",
+      "existing_afi": "afi-0bd37117433ff02d7",
+      "afi_observed_state": "available",
+      "existing_afi_admission_authority": "granted narrowly in General-Execution",
+      "current_authority_does_not_cover": [
+        "F2 runtime execution",
+        "benchmark",
+        "attacker sweep",
+        "sustained validation",
+        "release",
+        "consensus activation",
+        "mainnet"
+      ],
+      "disposition_for_readiness": "HUMAN_GATE",
+      "evidence": [
+        "Waterfound/FAE-testnet@d1d98251dc2c58d53a843d5f04c2fc8ff3af0d4d",
+        "Waterfound/General-Execution:authority/fae-asic-a3-r4-existing-afi-authority-resume-001.json",
+        "Waterfound/General-Execution:provider-inbox/fae-a3-r4-afi-available-001.json"
+      ]
+    }
+  },
+  "state_taxonomy": {
+    "enum": [
+      "DONE",
+      "ACTIVE",
+      "SECONDARY",
+      "CONDITION_WAIT",
+      "SCHEDULED",
+      "HUMAN_GATE",
+      "EXTERNAL_EVIDENCE",
+      "RESEARCH_ONLY",
+      "BLOCKED",
+      "UNRESOLVED",
+      "CLOSED"
+    ],
+    "human_gate_rule": "HUMAN_GATE is used only when the next admissible advancement requires physical, account-bound, or authority-bound action by Waterfound.",
+    "waiting_rule": "Machine-executable waiting work must not be classified HUMAN_GATE merely because it is incomplete.",
+    "frozen_historical_rule": "Historical FAIL/HOLD/WARN evidence is append-only and is never rewritten by later success."
+  },
+  "execution_graph": [
+    {
+      "id": "MR-00",
+      "name": "Current-main evidence inventory",
+      "depends_on": [],
+      "shared_state": false,
+      "initial_state": "DONE",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-01",
+      "name": "Registry drift analysis",
+      "depends_on": [
+        "MR-00"
+      ],
+      "shared_state": false,
+      "initial_state": "DONE",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-02",
+      "name": "State taxonomy freeze",
+      "depends_on": [
+        "MR-01"
+      ],
+      "shared_state": false,
+      "initial_state": "DONE",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-03",
+      "name": "Mainnet-critical gate graph",
+      "depends_on": [
+        "MR-02"
+      ],
+      "shared_state": false,
+      "initial_state": "DONE",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-04",
+      "name": "Machine-readable readiness ledger",
+      "depends_on": [
+        "MR-03"
+      ],
+      "shared_state": false,
+      "initial_state": "ACTIVE",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-05",
+      "name": "Canonical registry reconciliation",
+      "depends_on": [
+        "MR-04"
+      ],
+      "shared_state": true,
+      "initial_state": "BLOCKED_UNTIL_LEDGER_VERIFIED",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-06",
+      "name": "Cross-check against newest main",
+      "depends_on": [
+        "MR-05"
+      ],
+      "shared_state": true,
+      "initial_state": "PENDING",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-07",
+      "name": "Steward/Durable consumption contract",
+      "depends_on": [
+        "MR-04"
+      ],
+      "shared_state": false,
+      "initial_state": "PENDING",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-08",
+      "name": "Independent consistency verification",
+      "depends_on": [
+        "MR-06",
+        "MR-07"
+      ],
+      "shared_state": false,
+      "initial_state": "PENDING",
+      "current_state": "DONE"
+    },
+    {
+      "id": "MR-09",
+      "name": "Closure report",
+      "depends_on": [
+        "MR-08"
+      ],
+      "shared_state": false,
+      "initial_state": "PENDING",
+      "current_state": "DONE"
+    }
+  ],
+  "deterministic_gates": [
+    "schema and taxonomy exactness",
+    "unique gate_id values",
+    "all dependency_refs resolve",
+    "HUMAN_GATE iff current next admissible action is Waterfound-bound",
+    "human_action_required implies HUMAN_GATE",
+    "DONE/CLOSED states carry evidence",
+    "active public-testnet authority remains 180s/10 FAE/600000/12000000",
+    "future 300s/14/430000 candidate remains RESEARCH_ONLY",
+    "activation height remains unset",
+    "mainnet authorization remains false",
+    "historical FAIL evidence is not rewritten",
+    "cross-Lab status hierarchy remains distinct",
+    "registry source revision is rechecked immediately before integration"
+  ],
+  "concurrency": {
+    "policy": "Parallelize independence. Serialize shared state.",
+    "isolated_work_allowed": [
+      "MR-00",
+      "MR-01",
+      "MR-02",
+      "MR-03",
+      "MR-04",
+      "MR-07",
+      "MR-08 preparation"
+    ],
+    "serialized_surfaces": [
+      "docs/FAE_CANONICAL_STATE.md",
+      "docs/FAE_MAINNET_READINESS_STATE.json integration revision"
+    ],
+    "integration_rule": "Re-resolve main and compare the Research 180s branch before any shared-state update or merge."
+  },
+  "current_frontier": "CLOSED",
+  "terminal_verdict": {
+    "allowed_value": "CANONICAL_STATE_RECONCILED",
+    "meaning": "Current documentation accurately represents known evidence-bound project state.",
+    "explicitly_not_equivalent_to": "MAINNET_READY"
+  },
+  "durable_execution": {
+    "runtime_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "persistent_runtime_source_revision": "a27a558d4ed0e28d96c3fec408212353d0077060",
+    "authority_created": false,
+    "initial_bootstrap": {
+      "event_id": "fae-mainnet-readiness-reconciliation-bootstrap-002",
+      "status": "bootstrapped",
+      "state_digest": "sha256:07f0ddda65521679252ae018f247ad92f046a2431b5d5b1948fa8002852bdba4"
+    },
+    "valid_checkpoints": [
+      {
+        "frontier": "MR-04",
+        "event_id": "fae-mainnet-readiness-mr04-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:6b3a2228fc5ed37d502dfdab9927c0d6819928e0f45687b38459e3298f2a4b8b"
+      },
+      {
+        "frontier": "MR-07",
+        "event_id": "fae-mainnet-readiness-mr07-verified-001",
+        "status": "committed",
+        "post_generation": 2,
+        "checkpoint_digest": "sha256:168c7de8f3cec0d3756373909e6011695ecd02912015dce5468049c8db4fa1f4"
+      },
+      {
+        "frontier": "MR-05",
+        "portfolio_id": "fae-mainnet-readiness-mr05",
+        "event_id": "fae-mainnet-readiness-mr05-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:d7d229aebcabf6d02ca85ed56543c0162e952b7e1697670f1b48d48a99537f97"
+      },
+      {
+        "frontier": "MR-06",
+        "portfolio_id": "fae-mainnet-readiness-mr06",
+        "event_id": "fae-mainnet-readiness-mr06-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:3ce654db39f9475c38a125de85e4e82775e8d8412b7588a71d0b1b5aa85c466e"
+      },
+      {
+        "frontier": "MR-08",
+        "portfolio_id": "fae-mainnet-readiness-mr08",
+        "event_id": "fae-mainnet-readiness-mr08-verified-001",
+        "status": "committed",
+        "post_generation": 1,
+        "checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68"
+      }
+    ],
+    "model_diagnosis": {
+      "event_id": "fae-mainnet-readiness-dependent-chain-di-001",
+      "status": "committed",
+      "terminal_state": "di_required",
+      "checkpoint_digest": "sha256:15980ac89117058ea86f66f876cb74124c6e24e1720add7c79c62bcf3206e915",
+      "issue": "A strict dependent MR chain cannot safely use rotating Active–Secondary–Passive wake semantics when the replacement Secondary wake condition depends on work that has not yet completed.",
+      "correction": "Preserve the diagnosis as historical evidence and execute dependent frontiers as isolated Durable portfolios with no premature passive wake admission."
+    },
+    "concurrency_observation": "The General-Execution runtime interleaves FAE 180s Research events and readiness events under one serialized runtime branch; readiness does not displace or mutate the active Research portfolio.",
+    "remaining_durable_frontiers": []
+  },
+  "mr08_exact_verification": {
+    "target_revision": "dca0593edfcc6ede37ad2af58b13ba8a7f7b0d59",
+    "workflows_all_success": true,
+    "durable_checkpoint_digest": "sha256:4cb4ce574169d645c730f6f421c590925ef76f24bf0fa702e5081cdb38c1ce68",
+    "final_serialization_research_head": "1ea9754a029dbecdefeb04a0e943dd761dd2b74c",
+    "shared_state_conflicts": []
+  },
+  "closure_candidate": {
+    "preclosure_revision": "d9126d15e07823ebb8e3530b63f6ec3a147f1d02",
+    "source_main_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+    "active_research_head": "109d86a9152faad9d4a01b8578588490929babbb",
+    "active_research_ahead_by": 35,
+    "active_research_behind_by": 0,
+    "shared_state_conflicts": [],
+    "terminal_verdict": "CANONICAL_STATE_RECONCILED",
+    "mainnet_ready": false,
+    "mainnet_launch_authorized": false,
+    "note": "MR-09 closure remains non-canonical until the exact closure commit passes its verification gates and the Durable acceptance receipt is recorded."
+  }
+}
