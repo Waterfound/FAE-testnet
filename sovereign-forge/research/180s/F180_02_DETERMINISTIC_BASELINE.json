@@ -1,0 +1,68 @@
+{
+  "schema": "fae-180s-deterministic-baseline/1",
+  "frontier": "F180-02",
+  "status": "COMPLETE_DETERMINISTIC_BASELINE",
+  "authority": "research-only-no-consensus-authority",
+  "source_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
+  "active_core": {
+    "path": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+    "blob_sha": "2cf4e8a12f1cfcec7d2f14d8b742b814c09bbd5f"
+  },
+  "constants": {
+    "target_seconds": 180,
+    "initial_subsidy_fae": 10,
+    "halving_era_blocks": 600000,
+    "max_supply_ceiling_fae": 12000000,
+    "retarget_interval_blocks": 20,
+    "max_txs_per_block": 20,
+    "future_timestamp_wall_seconds": 120,
+    "difficulty_bits": {
+      "start": 18,
+      "min": 12,
+      "max": 28,
+      "max_delta_per_retarget": 2
+    }
+  },
+  "deterministic_results": {
+    "blocks_per_day": 480,
+    "blocks_per_365_25_day_year": 175320,
+    "first_era_calendar_days": 1250,
+    "first_era_calendar_years": 3.4223134839151266,
+    "first_era_issuance_fae": 6000000,
+    "first_year_issuance_fae_at_target": 1753200,
+    "first_day_issuance_fae_at_target": 4800,
+    "nominal_tx_ceiling_tps_at_20_tx_per_block": 0.1111111111111111,
+    "nominal_tx_ceiling_per_day_at_target": 9600,
+    "exact_scheduled_issuance_under_integer_atom_halvings_fae": 11999999.922,
+    "ceiling_minus_scheduled_issuance_fae": 0.078
+  },
+  "confirmation_model": {
+    "model": "Poisson block arrivals at exactly 180s mean; model-only, not observed network evidence",
+    "one_confirmation_wait_seconds": {
+      "mean": 180,
+      "median": 124.76649250079015,
+      "p95": 539.2318092397184,
+      "p99": 828.9306334778564
+    },
+    "six_confirmation_time_seconds": {
+      "mean": 1080,
+      "median": 1020.6290139681727,
+      "p95": 1892.3462835734763,
+      "p99": 2359.527057498227
+    },
+    "warning": "Confirmation count is not normalized security; compare cumulative work/time and observed reorg conditions."
+  },
+  "coinbase_maturity_observation": {
+    "active_v4_core": "No coinbase-maturity check was found in spendableOutputs/applyConfirmedTx in the inspected active v4 core.",
+    "research_300_candidate": "200-block maturity is a separate research-candidate property.",
+    "rule": "Do not silently import the 300s maturity into active 180s analysis."
+  },
+  "interpretation": [
+    "The 12,000,000 FAE value is a hard ceiling; integer-atom halving truncation schedules 11,999,999.922 FAE absent another rule.",
+    "A 180s target increases nominal 20-tx/block capacity relative to 300s with the same block transaction ceiling, but this arithmetic is not a measured throughput result.",
+    "Poisson confirmation tails are model outputs; real DAA, propagation, mining participation and outages can widen or distort them.",
+    "No deterministic result authorizes a consensus or economic change."
+  ],
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
