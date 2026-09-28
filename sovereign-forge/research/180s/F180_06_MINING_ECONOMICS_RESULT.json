@@ -1,0 +1,58 @@
+{
+  "schema": "fae-180s-f180-06-result/1",
+  "frontier": "F180-06",
+  "status": "COMPLETE_WITH_WARN",
+  "authority": "research-only-no-consensus-authority",
+  "exact_source": {
+    "workflow_run_id": 36447679621,
+    "workflow_conclusion": "success",
+    "head_sha": "a656893a11a5d8d560663285323a04b0b8adf933",
+    "artifact_id": 10981390740,
+    "artifact_sha256": "sha256:34558bf3d6cee58f3fe8d4d5482db2698121122ac685b06a1002c9292c9e8286"
+  },
+  "findings": {
+    "active_180_initial_network_issuance_fae_per_day": 4800,
+    "research_300_initial_network_issuance_fae_per_day": 4032,
+    "tiny_miner_share_0_0001": {
+      "active180": {
+        "mean_solo_wait_days": 20.833333333333332,
+        "p95_solo_wait_days": 62.411089032374804,
+        "expected_blocks_30d": 1.44,
+        "probability_zero_blocks_30d": 0.23692775868212176,
+        "payout_cv_30d": 0.8333333333333334
+      },
+      "research300": {
+        "mean_solo_wait_days": 34.72222222222222,
+        "p95_solo_wait_days": 104.01848172062466,
+        "expected_blocks_30d": 0.864,
+        "probability_zero_blocks_30d": 0.4214728147759176,
+        "payout_cv_30d": 1.075828707279838
+      },
+      "v2_reference600": {
+        "mean_solo_wait_days": 69.44444444444444,
+        "p95_solo_wait_days": 208.03696344124933,
+        "expected_blocks_30d": 0.432,
+        "probability_zero_blocks_30d": 0.6492093766851474,
+        "payout_cv_30d": 1.5214515486254614
+      }
+    },
+    "equal_expected_issuance_variance_ratio_vs_180": {
+      "seconds300": 1.2909944487358056,
+      "seconds600": 1.8257418583505538
+    }
+  },
+  "frozen_gate_assessment": {
+    "small_miner_reward_frequency": "PASS_RELATIVE_TO_LONGER_TARGETS",
+    "small_miner_absolute_lumpiness": "WARN_AT_VERY_SMALL_HASH_SHARE",
+    "pool_pressure": "WARN_PROXY_NOT_OBSERVED",
+    "hard_failure_confirmed": false
+  },
+  "frontier_disposition": "WARN_SMALL_MINER_LUMPINESS_REMAINS_BUT_180S_REDUCES_IT_RELATIVE_TO_300_600",
+  "limitations": [
+    "Poisson arrivals and constant hash share are model assumptions.",
+    "Pool fees, energy costs, miner switching and observed pool adoption are not modeled.",
+    "600s economics are explicitly the v2 28-FAE calendar/supply-neutral reference, not a newly selected package."
+  ],
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
