@@ -230,15 +230,17 @@
     {
       "gate_id": "representative_device_evidence",
       "area": "Mining / decentralization",
-      "description": "Representative-device evidence remains unresolved in the H2 external-evidence freeze.",
+      "description": "Representative Device Evidence Readiness is complete and the frozen four-class evidence package is ready; the real representative-device physical evidence itself remains external and unresolved.",
       "state": "EXTERNAL_EVIDENCE",
       "authority_class": "EXTERNAL_EVIDENCE",
       "evidence_refs": [
-        "sovereign-forge/release/software-only-ceiling-freeze.json"
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "lab/representative-device-evidence-readiness/acceptance-contract.json",
+        "docs/FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_CLOSURE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Define and admit representative-device evidence under an explicit evidence contract.",
-      "wake_condition": "Representative-device evidence becomes available.",
+      "next_action": "Preselect eligible real devices under the frozen coverage contract, execute the physical workload protocol, collect provenance-bound bundles, and admit them only after deterministic portfolio verification.",
+      "wake_condition": "A complete provenance-bound PHYSICAL_EVIDENCE portfolio exists for all required device classes under FAE-RDE-ACCEPTANCE-V1-20260928.",
       "human_action_required": false,
       "mainnet_critical": true,
       "can_auto_advance": false
