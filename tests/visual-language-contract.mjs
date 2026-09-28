@@ -52,3 +52,11 @@ assert.match(product,/id="reward"/);
 assert.match(product,/id="difficulty"/);
 assert.match(product,/Proof of work, in your hands\./);
 assert.doesNotMatch(product,/class="card metrics-card"/);
+
+const walletSurface=fs.readFileSync(path.join(root,"index.html"),"utf8");
+assert.match(walletSurface,/A wallet you hold, not an account you borrow\./);
+assert.match(walletSurface,/Local keys/);
+assert.match(walletSurface,/Local signing/);
+assert.match(walletSurface,/Full TXID is visible/);
+assert.match(walletSurface,/id="backup"/);
+assert.match(walletSurface,/id="lastsendtx"/);

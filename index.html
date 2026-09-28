@@ -34,6 +34,13 @@ p{margin:7px 0 12px}.hero-copy{font-size:18px;line-height:1.5;color:#4d5560;max-
 .network-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px rgba(255,255,255,.34);animation:networkPulse 1.8s ease-out infinite}
 @keyframes networkPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.8)}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px rgba(20,27,35,.025)}
+.product-intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:28px;align-items:end;padding:8px 0 22px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.product-intro h2{font-size:clamp(24px,4vw,36px);line-height:1.08;letter-spacing:-.035em;margin:7px 0 10px;max-width:690px}
+.product-intro p{color:#525c68;max-width:680px}.product-kicker{font:800 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-deep)}
+.trust-strip{display:grid;border-top:1px solid var(--line)}.trust-strip span{display:flex;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid var(--line)}.trust-strip b{font-size:12px}.trust-strip small{color:var(--muted);text-align:right}
+#panel-wallet .card{box-shadow:none}#panel-wallet .backup{border-left:4px solid #4e5967;background:#fbfbfc}#panel-wallet .backup h3{color:#242a31}
+#panel-wallet #lastsendtx{border-left:3px solid var(--blue)}#panel-wallet .transaction-details[open]{border-left:3px solid var(--blue)}
+
 .status{margin-top:10px;background:var(--surface-2);border-left:3px solid var(--blue);padding:10px 11px;border-radius:6px}
 .small{color:var(--muted);font-size:13px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
 .balance{font-size:clamp(29px,6vw,40px);font-weight:850;letter-spacing:-.045em;margin:4px 0}.ok{color:var(--success)}.bad{color:var(--danger)}.warn{color:var(--warning)}.hidden,[hidden]{display:none!important}
@@ -56,7 +63,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
 .transaction-list,.block-list{display:grid;gap:7px;margin-top:10px}.transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:#fff;border:1px solid var(--line);border-radius:8px}
 .transaction-row.transaction-details{display:block}.transaction-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer;list-style:none}.transaction-summary::-webkit-details-marker{display:none}.transaction-summary::marker{content:""}.transaction-details[open]{border-color:#9aa5b3}.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:10px}.transaction-detail-field{display:grid;gap:5px;min-width:0}.transaction-detail-value{white-space:pre-wrap;overflow-wrap:anywhere}.txid-full{display:block;width:100%;min-height:58px;resize:vertical;overflow-wrap:anywhere;color:var(--text);font-size:12px}.transaction-copy{justify-self:start}.transaction-copy-feedback{min-height:1.2em}.txid-result{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}.txid-result textarea{min-height:64px;margin-top:5px}.transaction-title{font-weight:760}.transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}.right{text-align:right}.empty{color:var(--muted);padding:12px 2px}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}.section-head button{flex:0 0 auto}.divider{border:0;border-top:1px solid var(--line);margin:17px 0}.passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}.footer-note{margin-top:22px;color:var(--muted);font-size:12px;text-align:center}
-@media(max-width:760px){.topper-head{align-items:flex-start}.brand-lockup span{display:none}.topper-status{max-width:66%}.ticker-track{animation-duration:28s}.fae-hero{grid-template-columns:1fr;gap:18px}.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:92px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
+@media(max-width:760px){.product-intro{grid-template-columns:1fr}.topper-head{align-items:flex-start}.brand-lockup span{display:none}.topper-status{max-width:66%}.ticker-track{animation-duration:28s}.fae-hero{grid-template-columns:1fr;gap:18px}.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:92px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
 @media(max-width:420px){main{padding-inline:12px}.card{padding:14px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.topper-head{padding-inline:12px}.ticker-track{gap:22px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}.ticker-viewport{overflow-x:auto}.ticker-track{animation:none;padding-left:18px}}
 </style>
@@ -151,6 +158,18 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
   </section>
 
   <section id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
+    <section class="product-intro wallet-intro" aria-labelledby="wallet-surface-title">
+      <div>
+        <div class="product-kicker">Wallet / local ownership</div>
+        <h2 id="wallet-surface-title">A wallet you hold, not an account you borrow.</h2>
+        <p>Keys and signing remain on this device. The interface keeps recovery, sending and transaction traceability explicit.</p>
+      </div>
+      <div class="trust-strip" aria-label="Wallet trust properties">
+        <span><b>Local keys</b><small>No custodian</small></span>
+        <span><b>Local signing</b><small>Private material stays here</small></span>
+        <span><b>Traceable</b><small>Full TXID is visible</small></span>
+      </div>
+    </section>
     <div class="stack">
       <section class="card">
         <h2>Wallet actions</h2>
