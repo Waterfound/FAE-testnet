@@ -87,7 +87,7 @@ export async function verifyEvidenceBundle(bundleDir,expectations={}){
 
   if(source?.schema!=='FAE_IOR_SOURCE_PROVENANCE_V1')errors.push('unsupported_schema:source-provenance');
   if(!HEX40.test(String(source?.source_revision||'')))errors.push('source_revision_invalid');
-  if(!SHA256.test(String(source?.source_tree||'')))errors.push('source_tree_invalid');
+  if(!HEX40.test(String(source?.source_tree||'')))errors.push('source_tree_invalid');
   if(source?.worktree_clean_at_start!==true)errors.push('source_worktree_not_clean_at_start');
   if(!source?.repository)errors.push('source_repository_missing');
 
@@ -103,17 +103,19 @@ export async function verifyEvidenceBundle(bundleDir,expectations={}){
   if(network?.network!==contract.target_network.network)errors.push('wrong_network');
   if(network?.genesis_hash!==contract.target_network.genesis_hash)errors.push('wrong_genesis');
   if(!SHA256.test(String(network?.node_identity||'')))errors.push('node_identity_invalid');
-  const signed=network?.signed_challenges||{};
+  const signed=network?.signed_challenges||{},signedPayloads={};
   for(const phase of ['startup','restart']){
     const envelope=signed[phase];
     if(!envelope){errors.push(`signed_challenge_missing:${phase}`);continue}
     try{
       const payload=verifyEnvelope(envelope,{kind:'peer-hello',expectedSignerId:network.node_identity,maxAgeMs:Number.MAX_SAFE_INTEGER,allowFutureMs:300000});
+      signedPayloads[phase]=payload;
       const expected=deriveChallenge(run.run_challenge,phase);
       if(payload.challenge!==expected)errors.push(`signed_challenge_mismatch:${phase}`);
       if(payload.network!==contract.target_network.network)errors.push(`signed_wrong_network:${phase}`);
       if(payload.genesis!==contract.target_network.genesis_hash)errors.push(`signed_wrong_genesis:${phase}`);
       if(Number(payload.protocol_version)<contract.target_network.minimum_p2p_protocol_version)errors.push(`signed_protocol_too_old:${phase}`);
+      if(!Number.isSafeInteger(Number(payload.height))||!SHA256.test(String(payload.tip_hash||'')))errors.push(`signed_tip_invalid:${phase}`);
     }catch(error){errors.push(`signed_challenge_invalid:${phase}:${error.message}`)}
   }
 
@@ -145,6 +147,9 @@ export async function verifyEvidenceBundle(bundleDir,expectations={}){
       lastAt=at;lastHeight=height;
     }
     if(obs.length&&Number(obs.at(-1)?.height)<=Number(obs[0]?.height))errors.push('missing_tip_progression');
+    const startupObs=obs.find(row=>row.phase==='startup'),restartObs=obs.find(row=>row.phase==='restart');
+    if(startupObs&&signedPayloads.startup&&(Number(startupObs.height)!==Number(signedPayloads.startup.height)||startupObs.tip_hash!==signedPayloads.startup.tip_hash))errors.push('signed_tip_mismatch:startup');
+    if(restartObs&&signedPayloads.restart&&(Number(restartObs.height)!==Number(signedPayloads.restart.height)||restartObs.tip_hash!==signedPayloads.restart.tip_hash))errors.push('signed_tip_mismatch:restart');
   }
 
   if(restart?.schema!=='FAE_IOR_RESTART_RECOVERY_V1')errors.push('unsupported_schema:restart-recovery');
@@ -155,6 +160,7 @@ export async function verifyEvidenceBundle(bundleDir,expectations={}){
   if(restart?.manual_state_surgery!==false)errors.push('manual_state_surgery_forbidden');
   if(restart?.pre_restart?.node_identity!==restart?.post_restart?.node_identity)errors.push('restart_identity_values_differ');
   if(Number(restart?.post_restart?.height)<Number(restart?.pre_restart?.height))errors.push('restart_height_regressed');
+  if(signedPayloads.restart&&(Number(restart?.post_restart?.height)!==Number(signedPayloads.restart.height)||restart?.post_restart?.tip_hash!==signedPayloads.restart.tip_hash))errors.push('signed_restart_state_mismatch');
 
   const start=time(run?.started_at,'run.started_at',errors),end=time(run?.ended_at,'run.ended_at',errors);
   if(Number.isFinite(start)&&Number.isFinite(end)&&(end<=start||end-start>24*60*60*1000))errors.push('impossible_run_time_window');
