@@ -1,0 +1,33 @@
+name: Visual Language Lab
+on:
+  push:
+    paths:
+      - 'design/**'
+      - 'docs/FAE_VISUAL_LANGUAGE_**'
+      - 'tests/visual-language-contract.mjs'
+      - '.github/workflows/visual-language-lab.yml'
+  pull_request:
+    paths:
+      - 'design/**'
+      - 'docs/FAE_VISUAL_LANGUAGE_**'
+      - 'tests/visual-language-contract.mjs'
+      - '.github/workflows/visual-language-lab.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/visual-language-contract.mjs
+      - name: Ensure exploration commit does not alter protected runtime surfaces
+        shell: bash
+        run: |
+          git diff --name-only HEAD^ HEAD | tee changed.txt || true
+          if grep -E '^(core\.js|wallet\.js|wallet-crypto\.js|wallet-transactions\.js|mining\.js|network-status\.js|explorer/|supabase/|sovereign-forge/node/authoritative/)' changed.txt; then
+            echo "Visual exploration touched a protected runtime surface."
+            exit 1
+          fi

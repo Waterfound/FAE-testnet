@@ -1,0 +1,76 @@
+{
+  "schema": "FAE_VISUAL_CURRENT_STATE_INVENTORY_V1",
+  "source_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "observed_surfaces": {
+    "public_testnet": {
+      "source": "index.html",
+      "traits": [
+        "dark-only",
+        "system-ui body",
+        "ui-monospace data",
+        "forest-green surfaces",
+        "mint accent",
+        "rounded card segmentation",
+        "sticky Wallet/Mining tabs"
+      ],
+      "strengths": [
+        "clear functional grouping",
+        "strong local-first/security copy",
+        "responsive grid rules",
+        "prefers-reduced-motion handling",
+        "technical data legibility"
+      ],
+      "identity_gaps": [
+        "limited typographic voice",
+        "visual grammar depends on color more than form",
+        "moderate-to-high card dependence",
+        "little mythic/computational tension",
+        "few distinctive compositional motifs"
+      ]
+    },
+    "wallet": {
+      "strengths": [
+        "large balance hierarchy",
+        "local signing/ownership clarity",
+        "transaction discoverability"
+      ],
+      "design_risks": [
+        "critical/security actions should never become decorative",
+        "seed/recovery surfaces require exceptionally high contrast and restraint"
+      ]
+    },
+    "mining": {
+      "strengths": [
+        "clear participation model",
+        "separate cold-wallet path",
+        "network activity visible"
+      ],
+      "design_risks": [
+        "avoid casino/reward aesthetics",
+        "progress motion must communicate computation rather than gambling"
+      ]
+    },
+    "explorer": {
+      "source_root": "explorer/",
+      "status": "separate read-only application boundary",
+      "requirement": "must inherit identity while prioritizing neutral data observation and legibility"
+    }
+  },
+  "browser_baseline": {
+    "run": "https://agent.tinyfish.ai/runs/bf3e4b3e-314c-49ce-85bd-31bdb0706cf0",
+    "screenshots": 2,
+    "provisional_accessibility_checks_to_verify": [
+      "secondary text contrast",
+      "focus visibility in real keyboard traversal",
+      "explicit label associations",
+      "status meaning beyond color"
+    ]
+  },
+  "technical_constraints": [
+    "public surface is currently static HTML/JS without a framework requirement",
+    "brand exploration must not alter consensus/network identity",
+    "prototype assets should remain dependency-light",
+    "reduced-motion behavior is mandatory",
+    "Wallet and Mining must preserve security and task clarity over decorative expression"
+  ]
+}

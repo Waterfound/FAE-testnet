@@ -1,0 +1,214 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-28",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-visual-language-rebrand-001",
+  "source_main_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "workstream": "FAE — Visual Language, Art Direction & Rebrand",
+  "portfolio_role": "SECONDARY",
+  "active_workstream_preserved": {
+    "name": "FAE Research — 180s Economic + Block-Time Validation",
+    "branch": "colony/fae-180s-economic-block-time-validation-001",
+    "observation": "diverged from current main; visual work does not modify its research paths"
+  },
+  "concurrent_secondary_observed": {
+    "name": "FAE — Independent Operator Readiness",
+    "branch": "colony/fae-independent-operator-readiness-001",
+    "observation": "ahead of main and modifies canonical shared state; visual branch must not mutate shared canonical registries before serialized integration"
+  },
+  "authority_boundary": {
+    "owner": "Waterfound",
+    "machine_may": [
+      "inventory current visual surfaces",
+      "capture read-only visual baselines",
+      "create divergent art-direction prototypes",
+      "define provisional visual grammar hypotheses",
+      "define quality gates and anti-patterns",
+      "implement non-production exploration surfaces",
+      "run deterministic and browser QA",
+      "prepare previews and evidence",
+      "continue autonomously after a direction is selected"
+    ],
+    "machine_may_not_without_waterfound": [
+      "select the final identity among artistically valid directions",
+      "freeze the final logo or symbol",
+      "authorize a public rebrand",
+      "change protocol/network identifiers",
+      "change address formats, cryptographic constants, consensus or economics"
+    ]
+  },
+  "baseline": {
+    "production_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+    "production_project": "fairyelf-fae-testnet",
+    "production_state": "READY",
+    "public_alias": "https://fairyelf-fae-testnet.vercel.app",
+    "browser_audit_run": "https://agent.tinyfish.ai/runs/bf3e4b3e-314c-49ce-85bd-31bdb0706cf0",
+    "screenshots_captured": 2,
+    "surfaces": [
+      "Wallet",
+      "Mining"
+    ],
+    "observed_character": "functional dark green dashboard with system-ui, rounded cards, mint accents and moderate density",
+    "primary_gap": "cohesive but insufficiently distinctive visual language; identity depends heavily on green palette and product name"
+  },
+  "concurrency": {
+    "policy": "Parallelize independence. Serialize shared state.",
+    "isolated_paths": [
+      "design/**",
+      "docs/FAE_VISUAL_LANGUAGE_*",
+      ".github/workflows/visual-language-lab.yml",
+      "tests/visual-language-contract.mjs"
+    ],
+    "serialized_paths": [
+      "docs/FAE_CANONICAL_STATE.md",
+      "docs/FAE_MAINNET_READINESS_STATE.json",
+      "index.html",
+      "wallet.js",
+      "mining.js",
+      "explorer/**"
+    ],
+    "rule": "No production surface mutation until direction selection and reconciliation against newest main."
+  },
+  "execution_graph": [
+    {
+      "id": "VL-00",
+      "name": "Current-main surface inventory",
+      "state": "DONE",
+      "depends_on": []
+    },
+    {
+      "id": "VL-01",
+      "name": "Production baseline capture",
+      "state": "DONE",
+      "depends_on": [
+        "VL-00"
+      ]
+    },
+    {
+      "id": "VL-02",
+      "name": "Reusable-primitives vs FAE-specific architecture split",
+      "state": "DONE",
+      "depends_on": [
+        "VL-00"
+      ]
+    },
+    {
+      "id": "VL-03",
+      "name": "Brand/protocol authority boundary",
+      "state": "DONE",
+      "depends_on": [
+        "VL-00"
+      ]
+    },
+    {
+      "id": "VL-04",
+      "name": "Anti-pattern registry and visual quality gates",
+      "state": "DONE",
+      "depends_on": [
+        "VL-01",
+        "VL-02"
+      ]
+    },
+    {
+      "id": "VL-05",
+      "name": "Three divergent art-direction prototypes",
+      "state": "ACTIVE",
+      "depends_on": [
+        "VL-04"
+      ]
+    },
+    {
+      "id": "VL-06",
+      "name": "Waterfound art-direction selection",
+      "state": "BLOCKED_BY_VL05",
+      "depends_on": [
+        "VL-05"
+      ],
+      "authority": "Waterfound"
+    },
+    {
+      "id": "VL-07",
+      "name": "Freeze brand thesis and visual grammar",
+      "state": "BLOCKED_BY_VL06",
+      "depends_on": [
+        "VL-06"
+      ]
+    },
+    {
+      "id": "VL-08",
+      "name": "Homepage vertical slice",
+      "state": "BLOCKED_BY_VL07",
+      "depends_on": [
+        "VL-07"
+      ]
+    },
+    {
+      "id": "VL-09",
+      "name": "Wallet vertical slice",
+      "state": "BLOCKED_BY_VL07",
+      "depends_on": [
+        "VL-07"
+      ]
+    },
+    {
+      "id": "VL-10",
+      "name": "Mining vertical slice",
+      "state": "BLOCKED_BY_VL07",
+      "depends_on": [
+        "VL-07"
+      ]
+    },
+    {
+      "id": "VL-11",
+      "name": "Explorer specialization",
+      "state": "BLOCKED_BY_VL07",
+      "depends_on": [
+        "VL-07"
+      ]
+    },
+    {
+      "id": "VL-12",
+      "name": "Responsive/browser/accessibility QA",
+      "state": "BLOCKED",
+      "depends_on": [
+        "VL-08",
+        "VL-09",
+        "VL-10",
+        "VL-11"
+      ]
+    },
+    {
+      "id": "VL-13",
+      "name": "Reference gallery and system extraction",
+      "state": "BLOCKED",
+      "depends_on": [
+        "VL-12"
+      ]
+    },
+    {
+      "id": "VL-14",
+      "name": "Canonical integration candidate",
+      "state": "BLOCKED",
+      "depends_on": [
+        "VL-13"
+      ]
+    },
+    {
+      "id": "VL-15",
+      "name": "Public testnet/site deployment",
+      "state": "BLOCKED",
+      "depends_on": [
+        "VL-14"
+      ]
+    }
+  ],
+  "terminal_before_human_gate": "ART_DIRECTION_OPTIONS_READY_FOR_SELECTION",
+  "explicit_non_goals": [
+    "production redesign before direction selection",
+    "consensus or economics changes",
+    "network identity changes",
+    "automatic final brand selection",
+    "premature extraction into a separate Visual-System repository"
+  ]
+}

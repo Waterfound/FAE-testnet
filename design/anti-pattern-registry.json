@@ -1,0 +1,65 @@
+{
+  "schema": "FAE_VISUAL_ANTI_PATTERN_REGISTRY_V1",
+  "prohibited_or_suspect": [
+    {
+      "id": "AP-01",
+      "pattern": "generic Web3 landing page",
+      "reason": "erases FAE specificity"
+    },
+    {
+      "id": "AP-02",
+      "pattern": "neon crypto casino",
+      "reason": "conflicts with fair participation and engineering seriousness"
+    },
+    {
+      "id": "AP-03",
+      "pattern": "cards everywhere",
+      "reason": "turns composition into generic dashboard segmentation"
+    },
+    {
+      "id": "AP-04",
+      "pattern": "decorative glassmorphism",
+      "reason": "adds depth without semantic purpose"
+    },
+    {
+      "id": "AP-05",
+      "pattern": "random glowing gradients",
+      "reason": "substitutes effects for visual grammar"
+    },
+    {
+      "id": "AP-06",
+      "pattern": "stock or generic AI fantasy fairy imagery",
+      "reason": "makes mythic language childish or synthetic"
+    },
+    {
+      "id": "AP-07",
+      "pattern": "fake technical diagrams",
+      "reason": "undermines engineering credibility"
+    },
+    {
+      "id": "AP-08",
+      "pattern": "oversized meaningless typography",
+      "reason": "sacrifices information hierarchy"
+    },
+    {
+      "id": "AP-09",
+      "pattern": "motion without state or narrative purpose",
+      "reason": "costs clarity, battery and accessibility"
+    },
+    {
+      "id": "AP-10",
+      "pattern": "security-critical actions hidden by aesthetics",
+      "reason": "Wallet safety dominates decoration"
+    },
+    {
+      "id": "AP-11",
+      "pattern": "identity that disappears when logo is removed",
+      "reason": "fails recognizable-language test"
+    },
+    {
+      "id": "AP-12",
+      "pattern": "identical art direction for Wallet, Mining and Explorer",
+      "reason": "coherence should not erase product-specific roles"
+    }
+  ]
+}

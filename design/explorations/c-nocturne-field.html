@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FAE Direction C — Nocturne Field</title>
+<style>
+:root{color-scheme:dark;--night:#090912;--ink:#ececf4;--muted:#9194a8;--violet:#aaa6ff;--moss:#9fc9ad;--line:#2b2c3a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 10%,#17172b 0,transparent 28%),var(--night);color:var(--ink);font:15px/1.45 ui-sans-serif,system-ui,sans-serif}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.4;background:repeating-radial-gradient(circle at 100% 0,transparent 0 39px,rgba(170,166,255,.06) 40px 41px)}
+main{max-width:1200px;margin:auto;padding:24px 22px 90px;position:relative}nav{display:flex;justify-content:space-between;align-items:center;font:11px ui-monospace,monospace;letter-spacing:.12em;color:var(--muted)}nav b{color:var(--ink);font-size:15px}
+.hero{min-height:520px;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:52px;border-bottom:1px solid var(--line)}.hero small{font:11px ui-monospace,monospace;color:var(--violet);letter-spacing:.16em}
+h1{font-weight:500;font-size:clamp(54px,10vw,124px);letter-spacing:-.07em;line-height:.82;margin:18px 0 26px;max-width:980px}.hero p{font-size:18px;color:#b6b7c5;max-width:580px}
+.field{display:grid;grid-template-columns:220px 1fr;gap:38px;padding:38px 0;border-bottom:1px solid var(--line)}.label{font:11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+.orbit{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}.metric{min-height:130px;display:flex;flex-direction:column;justify-content:space-between;border-left:1px solid var(--line);padding-left:14px}.metric b{font-size:30px;font-weight:500}.metric span{color:var(--muted)}
+.surface{display:grid;grid-template-columns:1.2fr .8fr;gap:50px}.balance{font-size:70px;letter-spacing:-.06em;margin:10px 0}.address{font:12px ui-monospace,monospace;color:var(--moss)}
+.action{display:inline-flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--violet);padding:10px 0}.pulse{width:8px;height:8px;border-radius:50%;background:var(--moss);box-shadow:0 0 18px var(--moss)}
+.workline{margin-top:30px;height:1px;background:var(--line);position:relative}.workline:after{content:"";position:absolute;left:0;top:-1px;width:48%;height:2px;background:linear-gradient(90deg,var(--violet),var(--moss))}
+@media(max-width:760px){.hero{min-height:440px}.field{grid-template-columns:1fr}.orbit{grid-template-columns:1fr 1fr}.surface{grid-template-columns:1fr}.balance{font-size:52px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><main>
+<nav><b>FAE</b><span>PUBLIC TESTNET · ONLINE</span></nav>
+<section class="hero"><small>GENERAL-PURPOSE PROOF OF WORK / LOCAL OWNERSHIP</small><h1>Quiet infrastructure<br>for independent machines.</h1><p>A spatial interface: fewer containers, more relationships. State is organized by distance, rhythm and thin signals rather than stacks of cards.</p></section>
+<section class="field"><div class="label">Network field</div><div class="orbit"><div class="metric"><span>blocks</span><b>496</b></div><div class="metric"><span>supply</span><b>4,960</b></div><div class="metric"><span>reward</span><b>10</b></div><div class="metric"><span>difficulty</span><b>17.42</b></div></div></section>
+<section class="field"><div class="label">Wallet</div><div class="surface"><div><span class="label">owned here</span><div class="balance">0 FAE</div><div class="address">faet1q7…r9m2</div></div><div><p>Your signing keys remain on this device. Network history remains independently inspectable.</p><a class="action" href="#"><span class="pulse"></span> Prepare a transfer</a></div></div></section>
+<section class="field"><div class="label">Mining</div><div class="surface"><div><span class="label">local contribution</span><h2>Idle / ready</h2><div class="workline"></div></div><div><p>Work is shown as continuity and contribution, not a reward meter.</p><a class="action" href="#"><span class="pulse"></span> Begin local work</a></div></div></section>
+</main></body></html>
