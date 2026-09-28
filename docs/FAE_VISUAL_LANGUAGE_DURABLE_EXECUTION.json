@@ -1,7 +1,7 @@
 {
   "schema": "FAE_VISUAL_LANGUAGE_DURABLE_EXECUTION_V1",
-  "recorded_at": "2026-09-28T17:48:40Z",
-  "visual_candidate_revision": "ddd8be8b85949074a7af9bc22606f03ced7a3506",
+  "recorded_at": "2026-09-28T21:03:00Z",
+  "visual_candidate_revision": "dd9150ecb364811ffeac1d75c364fa01fc93bdbe",
   "runtime_repository": "Waterfound/General-Execution",
   "runtime_branch": "runtime/durable-asp-control",
   "persistent_runtime_source": "a27a558d4ed0e28d96c3fec408212353d0077060",
@@ -31,22 +31,19 @@
       "VL-02",
       "VL-03",
       "VL-04",
-      "VL-05"
-    ],
-    "stopped_at": "VL-06",
-    "stop_reason": "Final art-direction selection is explicitly reserved to Waterfound.",
-    "next_machine_frontiers": [
+      "VL-05",
+      "VL-06",
       "VL-07",
       "VL-08",
       "VL-09",
       "VL-10",
       "VL-11",
       "VL-12",
-      "VL-13",
-      "VL-14",
-      "VL-15"
+      "VL-13"
     ],
-    "next_machine_frontiers_status": "NOT_ADMISSIBLE_UNTIL_VL-06_AUTHORITY"
+    "current": "VL-14_CANONICAL_INTEGRATION_CANDIDATE",
+    "next": "VL-15_PUBLIC_TESTNET_SITE_DEPLOYMENT",
+    "next_status": "REQUIRES_PUBLIC_REBRAND_AUTHORITY_BEFORE_MAIN_MERGE_OR_PRODUCTION_DEPLOY"
   },
   "safety": {
     "branch_merged": false,
@@ -56,5 +53,54 @@
     "logo_or_symbol_frozen": false,
     "public_rebrand_authorized": false,
     "authority_created_by_runtime": false
-  }
+  },
+  "direction_d_resume": {
+    "authority_event": "fae-visual-language-direction-d-authority-001",
+    "authority_consumed_commit": "bb2eb435ca8db59835ef8de0153fcc0e73da31e0",
+    "generation_after_authority": 2
+  },
+  "direction_d_transitions": [
+    {
+      "frontier": "VL-07",
+      "event": "fae-visual-language-vl07-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 3
+    },
+    {
+      "frontier": "VL-08",
+      "event": "fae-visual-language-vl08-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 4
+    },
+    {
+      "frontier": "VL-09",
+      "event": "fae-visual-language-vl09-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 5
+    },
+    {
+      "frontier": "VL-10",
+      "event": "fae-visual-language-vl10-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 6
+    },
+    {
+      "frontier": "VL-11",
+      "event": "fae-visual-language-vl11-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 7
+    },
+    {
+      "frontier": "VL-12",
+      "event": "fae-visual-language-vl12-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 8
+    },
+    {
+      "frontier": "VL-13",
+      "event": "fae-visual-language-vl13-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 9
+    }
+  ]
 }

@@ -3,7 +3,7 @@
   "run_kind": "REAL_BUILD_COLONY_CONTINUATION",
   "run_date": "2026-09-28",
   "source_visual_revision": "18833d3f4d013e9077d4f0b18a42a86018376056",
-  "reconciled_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "reconciled_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
   "authority": {
     "event": "fae-visual-language-direction-d-authority-001",
     "durable_consumed": true,
@@ -32,47 +32,47 @@
       "id": "VL-07R",
       "name": "Reconcile visual branch against newest main",
       "state": "DONE",
-      "main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69"
+      "main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503"
     },
     {
       "id": "VL-08",
       "name": "Homepage vertical slice",
-      "state": "READY"
+      "state": "DONE"
     },
     {
       "id": "VL-09",
       "name": "Wallet vertical slice",
-      "state": "BLOCKED_BY_VL08_VERIFICATION"
+      "state": "DONE"
     },
     {
       "id": "VL-10",
       "name": "Mining vertical slice",
-      "state": "BLOCKED_BY_VL09_VERIFICATION"
+      "state": "DONE"
     },
     {
       "id": "VL-11",
       "name": "Explorer specialization",
-      "state": "CONDITIONAL_AFTER_PRODUCT_LANGUAGE_PROVEN"
+      "state": "DONE"
     },
     {
       "id": "VL-12",
       "name": "Responsive/browser/accessibility QA",
-      "state": "BLOCKED_BY_IMPLEMENTATION"
+      "state": "DONE"
     },
     {
       "id": "VL-13",
       "name": "Reference gallery/system extraction",
-      "state": "BLOCKED_BY_QA"
+      "state": "DONE"
     },
     {
       "id": "VL-14",
       "name": "Canonical integration candidate",
-      "state": "BLOCKED_BY_QA"
+      "state": "CANDIDATE_PREPARING"
     },
     {
       "id": "VL-15",
       "name": "Public testnet/site deployment",
-      "state": "BLOCKED_BY_INTEGRATION"
+      "state": "BLOCKED_BY_PUBLIC_REBRAND_AUTHORITY"
     }
   ],
   "acceptance_boundary": {
@@ -81,5 +81,21 @@
     "consensus": "OUT_OF_SCOPE",
     "economics": "OUT_OF_SCOPE",
     "protocol_identity": "OUT_OF_SCOPE"
+  },
+  "latest_execution": {
+    "visual_basis_revision": "dd9150ecb364811ffeac1d75c364fa01fc93bdbe",
+    "durable_generation": 9,
+    "durable_state_digest": "sha256:8f76ceb02b4b71a6249b64672bdb829eafc3ffdf43b96caa4b2e264ff9ae5f48",
+    "verified_frontiers": [
+      "VL-07",
+      "VL-08",
+      "VL-09",
+      "VL-10",
+      "VL-11",
+      "VL-12",
+      "VL-13"
+    ],
+    "next_frontier": "VL-14",
+    "production_unchanged": true
   }
 }
