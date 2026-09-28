@@ -1,0 +1,38 @@
+{
+  "schema": "fae.asic.f2.a3_r4.external_afi_discovery.v1",
+  "recorded_date": "2026-09-28",
+  "discovery": {
+    "fpga_image_id": "afi-0bd37117433ff02d7",
+    "fpga_image_global_id": "agfi-01ca0856fe3a85305",
+    "name": "fae-a3-r4-2lane-directsplit-200mhz",
+    "state_at_discovery": "pending",
+    "create_time_utc": "2026-09-28T13:34:15Z",
+    "owner_id": "203842200752",
+    "public": false
+  },
+  "bound_candidate": {
+    "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-CTRL-PC-R4",
+    "git_commit": "a208b245da98052b60b9d47cd676f7c0a23e74a3",
+    "developer_cl_sha256": "cb369bca24dbe0c17e015adf5668d2d4117c77d31896c3a3b1faedab09e2f7a5",
+    "developer_cl_size_bytes": 271228416,
+    "developer_cl_s3": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0f5e077d00bdaee79/f2-a3-r4-physical/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_28-013804.Developer_CL.tar",
+    "timing_gate": {
+      "wns_ns": 0.024954,
+      "tns_ns": 0,
+      "whs_ns": 0.009525,
+      "ths_ns": 0,
+      "constraints_met": true
+    }
+  },
+  "authority_reconciliation": {
+    "durable_portfolio": "fae-asic-a3-warning-clean-revalidation-v2",
+    "durable_generation": 14,
+    "durable_requested_action": "authority://fae-asic/a3/r4-create-afi",
+    "matching_authority_receipt_found": false,
+    "action_taken_on_afi": false,
+    "runtime_launch_performed": false
+  },
+  "verdict": "EXTERNAL_AFI_EXISTS_BUT_NOT_YET_AUTHORITY_ADMITTED",
+  "disposition": "DO_NOT_USE_UNTIL_HUMAN_AUTHORITY_RECONCILIATION",
+  "note": "The AFI metadata exactly matches the A3 R4 candidate commit and Developer_CL SHA-256, but its creation provenance is not represented by a Human Authority Bridge receipt in General-Execution. Read-only observation is permitted; loading/running the AFI remains blocked."
+}
