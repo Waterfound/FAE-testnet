@@ -1,0 +1,154 @@
+{
+  "schema": "fae-180s-f180-03-result/1",
+  "frontier": "F180-03",
+  "status": "COMPLETE_WITH_WARN",
+  "authority": "simulation-and-replay-only-no-consensus-authority",
+  "exact_source": {
+    "harness_commit": "b9b04326a3e71aa5080d580a6c850d12cceb9240",
+    "workflow_run_id": 36445566934,
+    "workflow_conclusion": "success",
+    "artifact_id": 10980262179,
+    "artifact_name": "fae-180s-daa-study-b9b04326a3e71aa5080d580a6c850d12cceb9240",
+    "artifact_sha256": "sha256:7ea7928981d66e5adfa6d7a6d1dd1c1d6258bbf16113fd4972065140cb78c9bc",
+    "exact_nextDifficulty_import": true
+  },
+  "deterministic_shock_results": [
+    {
+      "hash_factor": 0.1,
+      "final_bits": 15,
+      "stable_tail_mean_interval_s": 225,
+      "retargets_to_final": 2
+    },
+    {
+      "hash_factor": 0.2,
+      "final_bits": 16,
+      "stable_tail_mean_interval_s": 225,
+      "retargets_to_final": 1
+    },
+    {
+      "hash_factor": 0.5,
+      "final_bits": 17,
+      "stable_tail_mean_interval_s": 180,
+      "retargets_to_final": 1
+    },
+    {
+      "hash_factor": 2,
+      "final_bits": 19,
+      "stable_tail_mean_interval_s": 180,
+      "retargets_to_final": 1
+    },
+    {
+      "hash_factor": 5,
+      "final_bits": 20,
+      "stable_tail_mean_interval_s": 144,
+      "retargets_to_final": 1
+    },
+    {
+      "hash_factor": 10,
+      "final_bits": 21,
+      "stable_tail_mean_interval_s": 144,
+      "retargets_to_final": 2
+    }
+  ],
+  "stochastic_256_seed_results": {
+    "factor_1": {
+      "seed_mean_interval_s": {
+        "p05": 183.32315579262203,
+        "median": 191.56837832369342,
+        "p95": 200.35025589036536
+      },
+      "retarget_bit_changes_after_burn": {
+        "median": 20,
+        "p95": 28
+      },
+      "final_bits_counts": {
+        "17": 19,
+        "18": 212,
+        "19": 25
+      }
+    },
+    "factor_0_1": {
+      "seed_mean_interval_s": {
+        "p05": 190.95307110571136,
+        "median": 198.52618820088156,
+        "p95": 206.7471437811185
+      },
+      "retarget_bit_changes_after_burn": {
+        "median": 33,
+        "p95": 40
+      }
+    },
+    "factor_5": {
+      "seed_mean_interval_s": {
+        "p05": 183.05003968839725,
+        "median": 191.51780582040777,
+        "p95": 198.73753286347142
+      },
+      "retarget_bit_changes_after_burn": {
+        "median": 35,
+        "p95": 42
+      }
+    }
+  },
+  "exact_integer_bit_quantization": {
+    "stationary_relative_interval_envelope": [
+      0.7071067811865475,
+      1.4142135623730951
+    ],
+    "seconds_at_180": [
+      127.27922061357854,
+      254.55844122715712
+    ],
+    "observed_deterministic_examples": "225s at 0.1x/0.2x and 144s at 5x/10x after convergence",
+    "interpretation": "Because active difficulty is integer leading-zero bits, the equilibrium work target changes only in powers of two. A converged integer difficulty need not imply a 180s stationary mean."
+  },
+  "timestamp_edge_cases": {
+    "honest": {
+      "final_bits": 18,
+      "mean_interval_s": 180
+    },
+    "constant_future_edge_plus_120s": {
+      "final_bits": 18,
+      "mean_interval_s": 180
+    },
+    "full_control_freeze": {
+      "final_bits": 28,
+      "mean_interval_s": 112635,
+      "classification": "adversarial self-stall edge case; requires separate F180-04 exploitability analysis"
+    },
+    "alternating_full_control_freeze_catchup": {
+      "final_bits": 20,
+      "mean_interval_s": 450,
+      "classification": "pathological oscillation edge case; requires separate F180-04 exploitability analysis"
+    },
+    "partial_freeze_50pct": {
+      "median_mean_interval_s": 195.74891979835232,
+      "p95_mean_interval_s": 208.5227560585699
+    },
+    "partial_freeze_75pct": {
+      "median_mean_interval_s": 211.0934749823933,
+      "p95_mean_interval_s": 235.09628187908731
+    },
+    "partial_future_75pct": {
+      "median_mean_interval_s": 191.93518074301025,
+      "p95_mean_interval_s": 203.6226528550711
+    }
+  },
+  "frozen_gate_assessment": {
+    "deterministic_shock_convergence": "PASS",
+    "floor_ceiling_lock_under_honest_shock_envelope": "PASS",
+    "stationary_target_precision": "WARN",
+    "stochastic_retarg_noise": "WARN",
+    "timestamp_directional_exploit": "DEFER_TO_F180-04",
+    "hard_failure_confirmed": false
+  },
+  "frontier_disposition": "WARN_DAA_QUANTIZATION_AND_TIMESTAMP_SENSITIVITY",
+  "rationale": [
+    "All frozen 0.1x–10x honest deterministic shocks converge in one or two retargets and avoid bounds.",
+    "The active integer-bit representation is intrinsically coarse: even after convergence, non-power-of-two hash levels can settle materially away from 180s.",
+    "At stable 1x hash, the seeded stochastic model produced a median per-seed mean interval around 191.57s rather than 180s, with repeated retarget bit changes.",
+    "Extreme timestamp-control cases can stall or oscillate the DAA, but F180-03 does not classify them as exploitable advantage because dominant miners can self-harm or withhold; F180-04 must test directional advantage separately."
+  ],
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
