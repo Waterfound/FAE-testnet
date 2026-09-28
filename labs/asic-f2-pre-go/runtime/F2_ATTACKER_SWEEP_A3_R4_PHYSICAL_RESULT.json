@@ -1,0 +1,57 @@
+{
+  "schema": "fae.asic.f2.a3_r4.physical_result.v1",
+  "recorded_date": "2026-09-28",
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-CTRL-PC-R4",
+  "source_revision": "a208b245da98052b60b9d47cd676f7c0a23e74a3",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-0f5e077d00bdaee79",
+    "instance_type": "r7i.4xlarge",
+    "max_runtime_tag": "8h",
+    "spend_cap_tag_usd": "20",
+    "final_state": "terminated"
+  },
+  "authority_boundary": {
+    "physical_build_authorized": true,
+    "afi_creation_authorized": false,
+    "release_authorized": false,
+    "consensus_activation_authorized": false,
+    "mainnet_action_authorized": false
+  },
+  "implementation": {
+    "stage": "A3_R4_PHYSICAL_PASS",
+    "vivado_rc": 0,
+    "wrapper_exit_code": 0,
+    "status": "route_design Complete!",
+    "progress": "100%",
+    "wns_ns": 0.024954,
+    "tns_ns": 0,
+    "whs_ns": 0.009525,
+    "ths_ns": 0,
+    "timing_closed": true,
+    "source_blobs_verified": true,
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "developer_cl": {
+    "produced": true,
+    "sha256": "cb369bca24dbe0c17e015adf5668d2d4117c77d31896c3a3b1faedab09e2f7a5",
+    "s3_object": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0f5e077d00bdaee79/f2-a3-r4-physical/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_28-013804.Developer_CL.tar"
+  },
+  "evidence": {
+    "prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0f5e077d00bdaee79/f2-a3-r4-physical/",
+    "route_status": "artifacts/example_projects/cl_ipi_cdma_test.runs/impl_1/cl_top_route_status.rpt",
+    "timing_summary": "artifacts/example_projects/cl_ipi_cdma_test.runs/impl_1/cl_top_timing_summary_routed.rpt",
+    "clock_utilization": "artifacts/example_projects/cl_ipi_cdma_test.runs/impl_1/cl_top_clock_utilization_routed.rpt",
+    "finished_utc": "2026-09-28T03:52:08Z"
+  },
+  "afi_creation": {
+    "performed": false,
+    "cloudtrail_create_fpga_image_events_in_build_window": 0,
+    "note": "CloudTrail shows only older CreateFpgaImage events on 2026-09-26; none were created by this A3 R4 physical build."
+  },
+  "verdict": "PASS_PHYSICAL_TIMING_CLOSED",
+  "disposition": "STOP_BEFORE_AFI_CREATION",
+  "next_action": "A separate human authority gate is required before creating an AFI from the A3 R4 Developer_CL.",
+  "boundary": "This result proves physical implementation and routed timing closure for the A3 R4 Developer_CL candidate. It does not prove AFI eligibility, runtime parity, benchmark throughput, attacker sweep, sustained validation, HFB economics, release readiness, or mainnet readiness."
+}
