@@ -82,3 +82,30 @@ assert.doesNotMatch(explorerHtml,/class="metrics-grid"/);
 assert.match(explorerCss,/--orange:#f47a20/);
 assert.match(explorerCss,/--blue:#1769ff/);
 assert.match(explorerCss,/color-scheme:light/);
+
+function luminance(hex){
+  const rgb=hex.replace('#','').match(/.{2}/g).map(x=>parseInt(x,16)/255).map(c=>c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4);
+  return 0.2126*rgb[0]+0.7152*rgb[1]+0.0722*rgb[2];
+}
+function contrast(a,b){
+  const x=luminance(a),y=luminance(b),hi=Math.max(x,y),lo=Math.min(x,y);
+  return (hi+0.05)/(lo+0.05);
+}
+assert.ok(contrast('#17191d','#ffffff')>=7,'primary text must meet enhanced contrast on white');
+assert.ok(contrast('#68707b','#ffffff')>=4.5,'muted body text must meet AA contrast on white');
+assert.ok(contrast('#1769ff','#ffffff')>=4.5,'blue active color must meet AA contrast on white');
+assert.ok(contrast('#1a130d','#f47a20')>=4.5,'orange topper foreground must meet AA contrast');
+
+assert.match(product,/:focus-visible/);
+assert.match(product,/@media\(prefers-reduced-motion:reduce\)/);
+assert.match(product,/role="status" aria-live="polite"/);
+assert.match(product,/@media\(max-width:760px\)/);
+assert.match(product,/@media\(max-width:420px\)/);
+
+assert.match(explorerCss,/:focus-visible/);
+assert.match(explorerCss,/@media\(prefers-reduced-motion:reduce\)/);
+assert.match(explorerCss,/@media\(max-width:640px\)/);
+assert.match(explorerHtml,/role="status" aria-live="polite"/);
+assert.match(explorerHtml,/Read-only/);
+assert.match(explorerHtml,/Validated-node boundary/);
+console.log('Direction D cross-product accessibility contract: PASS');
