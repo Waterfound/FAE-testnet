@@ -1,0 +1,47 @@
+{
+  "schema": "fae-180s-f180-07-result/1",
+  "frontier": "F180-07",
+  "status": "COMPLETE_WITH_WARN",
+  "authority": "research-only-no-consensus-authority",
+  "exact_source": {
+    "workflow_run_id": 36447679621,
+    "workflow_conclusion": "success",
+    "head_sha": "a656893a11a5d8d560663285323a04b0b8adf933",
+    "artifact_id": 10981390740,
+    "artifact_sha256": "sha256:34558bf3d6cee58f3fe8d4d5482db2698121122ac685b06a1002c9292c9e8286"
+  },
+  "findings": {
+    "first_order_race_probability_180": {
+      "delay_0_128s": 0.0007108583315266204,
+      "delay_1s": 0.005540151995103271,
+      "delay_5s": 0.027395522883651657,
+      "delay_10s": 0.05404053109323459
+    },
+    "relative_accepted_event_advantage_fast_0_1s_vs_slow_at_180": {
+      "slow_0_5s": 0.0022246931880307574,
+      "slow_1s": 0.00501252085940096,
+      "slow_2s": 0.010611461966690161,
+      "slow_5s": 0.02759613208864442,
+      "slow_10s": 0.056540614675494316
+    },
+    "comparative_slow5_advantage": {
+      "seconds180": 0.02759613208864442,
+      "seconds300": 0.016467451425763446,
+      "seconds600": 0.00820010485308087
+    }
+  },
+  "frozen_gate_assessment": {
+    "subsecond_home_node_pressure": "LOW_IN_FIRST_ORDER_MODEL",
+    "multi_second_tail_pressure": "WARN_DIRECTIONAL",
+    "direct_real_world_datacenter_advantage": "NOT_DEMONSTRATED",
+    "hard_failure_confirmed": false
+  },
+  "frontier_disposition": "WARN_180S_AMPLIFIES_LATENCY_ADVANTAGE_DIRECTIONALLY_BUT_DIRECT_FAE_REVENUE_EVIDENCE_IS_MISSING",
+  "limitations": [
+    "First-order Poisson race model only.",
+    "Does not include relay topology, miner connectivity, block construction or real accepted-revenue observations.",
+    "A directional sensitivity result cannot satisfy the frozen FAIL gate requiring direct/admissible systematic advantage."
+  ],
+  "selectionAuthorized": false,
+  "activationAuthorized": false
+}
