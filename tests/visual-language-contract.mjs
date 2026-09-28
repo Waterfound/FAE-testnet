@@ -41,3 +41,14 @@ assert.match(grammar,/must not display .*% to reward.*ETA to success/i);
 assert.match(grammar,/Prohibited language:/);
 
 console.log("visual-language contract: PASS");
+
+const product=fs.readFileSync(path.join(root,"index.html"),"utf8");
+assert.match(product,/data-direction-d="true"/);
+assert.match(product,/class="fae-topper"/);
+assert.match(product,/class="ticker-viewport"/);
+assert.match(product,/id="height"/);
+assert.match(product,/id="issued"/);
+assert.match(product,/id="reward"/);
+assert.match(product,/id="difficulty"/);
+assert.match(product,/Proof of work, in your hands\./);
+assert.doesNotMatch(product,/class="card metrics-card"/);
