@@ -157,6 +157,46 @@ if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
   fail("unsupported reconciliation_status");
 }
 
+const reconciliationReport = readJson("docs/FAE_MAINNET_READINESS_RECONCILIATION_REPORT.json");
+if (reconciliationReport.schema !== "FAE_MAINNET_READINESS_RECONCILIATION_REPORT_V1") {
+  fail("unsupported reconciliation report schema");
+}
+if (reconciliationReport.source_main?.revision !== state.generated_from_revision) {
+  fail("reconciliation report source main does not match readiness source revision");
+}
+if (reconciliationReport.crosscheck_candidate?.compare_to_main?.behind_by !== 0) {
+  fail("reconciliation candidate was behind source main at MR-06 cross-check");
+}
+if (reconciliationReport.active_research_serialization_check?.touches_shared_registry !== false ||
+    reconciliationReport.active_research_serialization_check?.touches_mainnet_readiness_state !== false ||
+    (reconciliationReport.active_research_serialization_check?.shared_state_conflicts ?? []).length !== 0) {
+  fail("active Research 180s shared-state serialization check is not clean");
+}
+if (reconciliationReport.exact_candidate_verification?.all_success !== true) {
+  fail("MR-06 exact candidate verification did not record all-success");
+}
+for (const [name, value] of Object.entries(reconciliationReport.authority_checks ?? {})) {
+  if (value !== false) fail(`reconciliation authority boundary changed: ${name}`);
+}
+for (const id of ["MR-00","MR-01","MR-02","MR-03","MR-04","MR-05","MR-06","MR-07"]) {
+  if (reconciliationReport.frontiers?.[id] !== "PASS") fail(`${id} is not PASS in reconciliation report`);
+}
+if (reconciliationReport.mainnet_ready !== false) fail("reconciliation report must not claim MAINNET_READY");
+
+if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
+  if (reconciliationReport.frontiers?.["MR-08"] !== "PASS" ||
+      reconciliationReport.frontiers?.["MR-09"] !== "PASS" ||
+      reconciliationReport.verdict !== "CANONICAL_STATE_RECONCILED" ||
+      reconciliationReport.canonical_state_reconciled !== true) {
+    fail("final reconciliation report is inconsistent with reconciled readiness state");
+  }
+} else {
+  if (reconciliationReport.verdict !== "MR06_CROSSCHECK_PASS" ||
+      reconciliationReport.canonical_state_reconciled !== false) {
+    fail("candidate readiness state requires MR06_CROSSCHECK_PASS report");
+  }
+}
+
 if (!process.exitCode) {
   console.log("MAINNET_READINESS_STATE_VERIFIED");
   console.log(`gates=${gates.size}`);
