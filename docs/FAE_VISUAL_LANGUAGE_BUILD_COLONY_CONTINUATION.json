@@ -52,22 +52,23 @@
     {
       "id": "VL-11",
       "name": "Explorer specialization",
-      "state": "DONE"
+      "state": "BLOCKED_BY_BLOCK_EXPLORER_SOURCE_AUTHORITY",
+      "note": "Earlier VL-11 visual evidence is exploratory only and is not admitted for integration because Block Explorer authority keeps explorer_application_write_authorized=false and source_writes_frozen=true."
     },
     {
       "id": "VL-12",
       "name": "Responsive/browser/accessibility QA",
-      "state": "DONE"
+      "state": "DONE_FOR_ADMITTED_SURFACES"
     },
     {
       "id": "VL-13",
       "name": "Reference gallery/system extraction",
-      "state": "DONE"
+      "state": "DONE_FOR_ADMITTED_SURFACES"
     },
     {
       "id": "VL-14",
       "name": "Canonical integration candidate",
-      "state": "CANDIDATE_PREPARING"
+      "state": "CANDIDATE_PREPARING_AUTHORITY_CORRECTED"
     },
     {
       "id": "VL-15",
@@ -83,19 +84,31 @@
     "protocol_identity": "OUT_OF_SCOPE"
   },
   "latest_execution": {
-    "visual_basis_revision": "dd9150ecb364811ffeac1d75c364fa01fc93bdbe",
+    "visual_basis_revision": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
     "durable_generation": 9,
     "durable_state_digest": "sha256:8f76ceb02b4b71a6249b64672bdb829eafc3ffdf43b96caa4b2e264ff9ae5f48",
-    "verified_frontiers": [
+    "admitted_verified_frontiers": [
       "VL-07",
       "VL-08",
       "VL-09",
       "VL-10",
-      "VL-11",
       "VL-12",
       "VL-13"
     ],
+    "superseded_or_gated_frontiers": [
+      "VL-11"
+    ],
     "next_frontier": "VL-14",
     "production_unchanged": true
+  },
+  "authority_conflict_correction": {
+    "discovered_at": "2026-09-28T21:06:21Z",
+    "source": "lab/block-explorer/authority.json",
+    "finding": "Block Explorer source writes are frozen: explorer_application_write_authorized=false and be05_authority.source_writes_frozen=true.",
+    "disposition": "FAIL_CLOSED",
+    "explorer_candidate": "EXPLORATORY_NOT_ADMITTED",
+    "explorer_files_reverted_to_main": true,
+    "prior_vl11_durable_evidence": "SUPERSEDED_FOR_INTEGRATION",
+    "required_future_authority": "Explicit Block Explorer source-write authority compatible with the visual workstream."
   }
 }

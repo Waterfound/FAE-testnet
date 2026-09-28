@@ -39,3 +39,8 @@ After Homepage, Wallet, Mining and Explorer QA, the proven cross-product primiti
 - `docs/FAE_VISUAL_LANGUAGE_VL12_QA.md`
 
 They remain inside FAE until another real product demonstrates reusable value.
+
+
+## Explorer authority correction
+
+The Direction D Explorer prototype is **not part of the current integration candidate**. Block Explorer authority currently freezes Explorer source writes. Explorer files have been restored to `main`; the prior visual prototype remains evidence-only until a compatible source-write authority is explicitly granted.

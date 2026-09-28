@@ -74,18 +74,6 @@ assert.match(miningRuntime,/setMiningActivity\('active','Device contributing'\)/
 assert.match(miningRuntime,/setMiningActivity\('idle'\)/);
 assert.doesNotMatch(miningProduct + miningRuntime,/\d+%\s+to\s+reward|almost there|reward in \d+/i);
 
-const explorerHtml=fs.readFileSync(path.join(root,"explorer/index.html"),"utf8");
-const explorerCss=fs.readFileSync(path.join(root,"explorer/styles.css"),"utf8");
-assert.match(explorerHtml,/class="explorer-ticker"/);
-assert.match(explorerHtml,/id="metric-height"/);
-assert.match(explorerHtml,/id="metric-supply"/);
-assert.match(explorerHtml,/id="metric-target"/);
-assert.match(explorerHtml,/id="metric-mempool"/);
-assert.doesNotMatch(explorerHtml,/class="metrics-grid"/);
-assert.match(explorerCss,/--orange:#f47a20/);
-assert.match(explorerCss,/--blue:#1769ff/);
-assert.match(explorerCss,/color-scheme:light/);
-
 function luminance(hex){
   const rgb=hex.replace('#','').match(/.{2}/g).map(x=>parseInt(x,16)/255).map(c=>c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4);
   return 0.2126*rgb[0]+0.7152*rgb[1]+0.0722*rgb[2];
@@ -105,16 +93,17 @@ assert.match(product,/role="status" aria-live="polite"/);
 assert.match(product,/@media\(max-width:760px\)/);
 assert.match(product,/@media\(max-width:420px\)/);
 
-assert.match(explorerCss,/:focus-visible/);
-assert.match(explorerCss,/@media\(prefers-reduced-motion:reduce\)/);
-assert.match(explorerCss,/@media\(max-width:640px\)/);
-assert.match(explorerHtml,/role="status" aria-live="polite"/);
-assert.match(explorerHtml,/Read-only/);
-assert.match(explorerHtml,/Validated-node boundary/);
 console.log('Direction D cross-product accessibility contract: PASS');
 
 const primitives=JSON.parse(fs.readFileSync(path.join(root,"design/proven-primitives.json"),"utf8"));
-assert.equal(primitives.status,"PROVEN_IN_REAL_SURFACES");
+assert.equal(primitives.status,"PROVEN_IN_ADMITTED_REAL_SURFACES");
 assert.equal(primitives.extraction_decision,"KEEP_IN_FAE_REPOSITORY_FOR_NOW");
 assert.ok(primitives.fae_specific_do_not_extract.includes("orange topper as FAE identity signature"));
 assert.ok(fs.existsSync(path.join(root,"design/reference-gallery.md")));
+
+const integrationCandidate=JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_INTEGRATION_CANDIDATE.json"),"utf8"));
+assert.deepEqual(integrationCandidate.changed_product_surfaces,["index.html","mining.js"]);
+assert.equal(integrationCandidate.verified_frontiers.VL11,"NOT_ADMITTED — Block Explorer source writes frozen");
+assert.equal(continuation.frontiers.find(x=>x.id==="VL-11").state,"BLOCKED_BY_BLOCK_EXPLORER_SOURCE_AUTHORITY");
+assert.deepEqual(primitives.source_surfaces,["Homepage","Wallet","Mining"]);
+assert.ok(primitives.exploratory_not_admitted_surfaces.includes("Explorer"));

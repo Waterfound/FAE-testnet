@@ -1,19 +1,18 @@
 {
   "schema": "FAE_VISUAL_LANGUAGE_INTEGRATION_CANDIDATE_V1",
-  "state": "VL14_CANDIDATE_PREPARED",
+  "state": "VL14_CANDIDATE_PREPARED_AUTHORITY_CORRECTED",
   "direction": "D — Orange Top / White Field / Blue Circulation",
-  "candidate_basis_revision": "dd9150ecb364811ffeac1d75c364fa01fc93bdbe",
+  "candidate_basis_revision": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
   "reconciled_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
   "behind_main": 0,
   "changed_product_surfaces": [
     "index.html",
-    "mining.js",
-    "explorer/index.html",
-    "explorer/styles.css"
+    "mining.js"
   ],
   "protected_unchanged_surfaces": [
     "core.js",
     "wallet-crypto.js",
+    "explorer/**",
     "sovereign-forge/node/authoritative/**",
     "sovereign-forge/protocol/**",
     "supabase/**"
@@ -23,24 +22,29 @@
     "VL08": "homepage PASS",
     "VL09": "wallet PASS",
     "VL10": "mining PASS",
-    "VL11": "explorer PASS",
-    "VL12": "cross-product QA PASS",
-    "VL13": "reference gallery / proven primitives PASS"
+    "VL11": "NOT_ADMITTED — Block Explorer source writes frozen",
+    "VL12": "QA PASS for admitted Homepage/Wallet/Mining subset",
+    "VL13": "reference gallery / proven primitives PASS for admitted subset"
   },
   "evidence": {
     "public_visual_qa": "https://fae-direction-d-vl08-qa-ii0d80.v2.appdeploy.ai/",
     "homepage_ci": 36479427272,
     "wallet_ci": 36480774355,
     "mining_ci": 36481663906,
-    "explorer_ci": 36482104280,
     "cross_product_ci": 36482881105,
-    "reference_gallery_ci": 36483120330
+    "reference_gallery_ci": 36483120330,
+    "explorer_exploration_only": {
+      "ci": 36482104280,
+      "qa": "https://agent.tinyfish.ai/runs/28f68afb-e3aa-4237-a0f7-a68a2862ffa0",
+      "admission": "SUPERSEDED_FOR_INTEGRATION_DUE_SOURCE_AUTHORITY_FREEZE"
+    }
   },
   "authority_boundary": {
     "merge_to_main": "NOT_AUTHORIZED_BY_THIS_PACKAGE",
     "public_rebrand": "WATERFOUND_AUTHORITY_REQUIRED",
     "production_deployment": "WATERFOUND_AUTHORITY_REQUIRED",
-    "final_logo_symbol": "WATERFOUND_AUTHORITY_REQUIRED"
+    "final_logo_symbol": "WATERFOUND_AUTHORITY_REQUIRED",
+    "explorer_visual_specialization": "BLOCK_EXPLORER_SOURCE_WRITE_AUTHORITY_REQUIRED"
   },
-  "integration_policy": "Open a draft PR after reconciled combined verification. Do not merge because main is production-bound and the public rebrand remains reserved to Waterfound."
+  "integration_policy": "Integrate only Homepage/Wallet/Mining Direction D candidate after green checks and explicit public-rebrand authority. Explorer remains unchanged from main until its own frozen source-write authority is explicitly reopened."
 }

@@ -1,10 +1,12 @@
 {
-  "schema": "FAE_PROVEN_VISUAL_PRIMITIVES_V1",
-  "status": "PROVEN_IN_REAL_SURFACES",
+  "schema": "FAE_PROVEN_VISUAL_PRIMITIVES_V2",
+  "status": "PROVEN_IN_ADMITTED_REAL_SURFACES",
   "source_surfaces": [
     "Homepage",
     "Wallet",
-    "Mining",
+    "Mining"
+  ],
+  "exploratory_not_admitted_surfaces": [
     "Explorer"
   ],
   "extraction_policy": "Generalize proven patterns, not imagined reuse.",
@@ -39,14 +41,15 @@
       "focus-visible is mandatory",
       "status combines text/ARIA with color",
       "body/muted/action/topper contrast is contract-tested",
-      "mobile security and authority-boundary language must stay readable"
+      "mobile security language must stay readable"
     ],
     "qa_method": [
       "source-bound DOM/semantic contract",
       "CI contract",
       "build-ready preview",
       "isolated browser visual QA",
-      "explicit uncertainty ledger when browser observations conflict with deterministic source evidence"
+      "explicit uncertainty ledger when browser observations conflict with deterministic source evidence",
+      "authority conflicts fail closed even after successful visual QA"
     ]
   },
   "fae_specific_do_not_extract": [
