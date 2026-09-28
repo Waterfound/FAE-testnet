@@ -1,0 +1,30 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.source_validation.v1",
+  "status": "PASS",
+  "baseline_revision": "a208b245da98052b60b9d47cd676f7c0a23e74a3",
+  "candidate_branch": "colony/fae-asic-a3-r4-control-repair-001",
+  "candidate_blob": "b9016b3e2d5edafdf43e54c208b4747d889c63ee",
+  "frozen_hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+  "checks": {
+    "frozen_hls_preserved": true,
+    "control_apertures_preserved": true,
+    "memory_map_preserved": true,
+    "protocol_converters_removed": true,
+    "ctrl_cdc_axi4lite": true,
+    "direct_ctrl_paths": true,
+    "old_r4_had_post_cdc_converters": true,
+    "no_afi_runtime_actions": true
+  },
+  "authority": {
+    "repair_only": true,
+    "static_validation_only": true,
+    "new_afi": false,
+    "new_f2": false,
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "mainnet": false
+  },
+  "epistemic_boundary": "Candidate repair only. Removal of the first observable divergence mechanism is not root-cause proof.",
+  "next_gate": "AWS HLx/Vivado validate_bd_design with provider evidence; no implementation/AFI/F2."
+}
