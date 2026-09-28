@@ -36,7 +36,7 @@ jobs:
         run: |
           node sovereign-forge/node/lab/economic-block-time-180-daa-validation.mjs 256 > /tmp/fae-180s-daa-study.json
           node sovereign-forge/node/lab/economic-block-time-180-timestamp-daa-coupling.mjs 256 > /tmp/fae-180s-timestamp-study.json
-          node -e "for(const p of ['/tmp/fae-180s-daa-study.json','/tmp/fae-180s-timestamp-study.json']){const r=require(p);if(r.activationAuthorized!==false||r.selectionAuthorized!==false)process.exit(1);console.log(JSON.stringify({schema:r.schema},null,2));}"
+          node -e "for(const p of ['/tmp/fae-180s-daa-study.json','/tmp/fae-180s-timestamp-study.json','/tmp/fae-180s-mining-economics.json','/tmp/fae-180s-decentralization.json','/tmp/fae-180s-outage-recovery.json']){const r=require(p);if(r.activationAuthorized!==false||r.selectionAuthorized!==false)process.exit(1);console.log(JSON.stringify({schema:r.schema},null,2));}"
       - uses: actions/upload-artifact@v4
         with:
           name: fae-180s-validation-${{ github.sha }}
