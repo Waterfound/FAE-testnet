@@ -1,0 +1,49 @@
+{
+  "schema": "fae.asic.f2.a3_r4.duallane_runtime_result.v1",
+  "recorded_date": "2026-09-28",
+  "candidate": "C6-2LANE-LOCAL200-DIRECTSPLIT-CTRL-PC-R4",
+  "physical_gate": {
+    "status": "PASS",
+    "wns_ns": 0.024954,
+    "tns_ns": 0,
+    "whs_ns": 0.009525,
+    "ths_ns": 0,
+    "developer_cl_sha256": "cb369bca24dbe0c17e015adf5668d2d4117c77d31896c3a3b1faedab09e2f7a5"
+  },
+  "afi": {
+    "afi": "afi-0bd37117433ff02d7",
+    "agfi": "agfi-01ca0856fe3a85305",
+    "state_observed": "available",
+    "shell_version": "0x10212415"
+  },
+  "runtime": {
+    "instance_id": "i-0b622272546426171",
+    "instance_type": "f2.6xlarge",
+    "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/runtime/i-0b622272546426171/f2-a3-r4-duallane/",
+    "final_stage": "A3_R4_DUALLANE_RUNTIME_FAIL_CLOSED",
+    "runtime_rc": 223,
+    "runner_internal_rc": -801,
+    "ddr_hbm_calibration": "PASS",
+    "lane0_pre_start_ap_idle": false,
+    "first_nonce": 1200,
+    "ocl_slave_timeout_count": 1,
+    "ocl_slave_timeout_addr": "0x12",
+    "dma_pcis_timeout_count": 0,
+    "sda_slave_timeout_count": 0,
+    "pcim_protocol_error_count": 0
+  },
+  "diagnosis": {
+    "classification": "CONTROL_PLANE_RUNTIME_FAILURE",
+    "physical_timing_invalidated": false,
+    "datapath_physical_candidate_invalidated": false,
+    "parity_proven": false,
+    "benchmark_admissible": false,
+    "root_cause_hypothesis": "R4 control topology modeled the shell-side control path as AXI4, but AWS F2 AppPF BAR0/OCL is AXI4-Lite. The runtime timeout is consistent with a protocol/topology mismatch on the OCL control path. R5 adds explicit AXI4-Lite->AXI4 conversion before the full-AXI CDC and preserves AXI4->AXI4-Lite conversion at the HLS side.",
+    "rerun_same_candidate_allowed": false
+  },
+  "next_candidate": "A3-R5-OCL-LITE",
+  "authority": {
+    "release": false,
+    "mainnet": false
+  }
+}
