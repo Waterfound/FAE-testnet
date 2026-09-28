@@ -56,7 +56,8 @@ async function detectProfile(){
     device_class:deviceClass||requestedClass,os:platform,os_version:osVersion,isa_family:arch,
     soc_cpu,gpu:gpu||'not_detected',ram_gb,power_mode:'normal',charging_state:'unknown_declared',
     external_power:platform!=='linux'||!deviceClass?.includes('mobile'),cooling_configuration:'stock',
-    background_task_policy:'ordinary_background_state',display_state:'on'
+    background_task_policy:'ordinary_background_state',display_state:'on',
+    reward_address:typeof args['reward-address']==='string'?args['reward-address']:null
   };
 }
 async function telemetry(){
