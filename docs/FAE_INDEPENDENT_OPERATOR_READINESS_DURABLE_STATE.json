@@ -1,0 +1,32 @@
+{
+  "schema": "FAE_INDEPENDENT_OPERATOR_READINESS_DURABLE_STATE_V1",
+  "workstream": "FAE — Independent Operator Readiness",
+  "branch": "colony/fae-independent-operator-readiness-001",
+  "source_main_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "portfolio_role": "SECONDARY",
+  "active_research_preserved": true,
+  "shared_state_serialization_required": true,
+  "completed_frontiers": [
+    "IOR-00",
+    "IOR-01",
+    "IOR-02",
+    "IOR-03"
+  ],
+  "active_frontier": "IOR-04",
+  "admissible_next": [
+    "IOR-04",
+    "IOR-05",
+    "IOR-06",
+    "IOR-07"
+  ],
+  "terminal_external_gate": "IOR-X",
+  "readiness_target": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
+  "external_evidence_obtained": false,
+  "authority_flags": {
+    "consensus_changed": false,
+    "economics_changed": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}
