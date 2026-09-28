@@ -116,5 +116,39 @@
   },
   "verdict": "MR06_CROSSCHECK_PASS",
   "canonical_state_reconciled": false,
-  "mainnet_ready": false
+  "mainnet_ready": false,
+  "durable_execution": {
+    "runtime_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "authority_created": false,
+    "original_rotating_portfolio": {
+      "bootstrap_event": "fae-mainnet-readiness-reconciliation-bootstrap-002",
+      "mr04_checkpoint": "sha256:6b3a2228fc5ed37d502dfdab9927c0d6819928e0f45687b38459e3298f2a4b8b",
+      "mr07_checkpoint": "sha256:168c7de8f3cec0d3756373909e6011695ecd02912015dce5468049c8db4fa1f4",
+      "diagnosis_event": "fae-mainnet-readiness-dependent-chain-di-001",
+      "diagnosis_checkpoint": "sha256:15980ac89117058ea86f66f876cb74124c6e24e1720add7c79c62bcf3206e915",
+      "disposition": "SUPERSEDED_FOR_DEPENDENT_FRONTIERS_AFTER_FAIL_CLOSED_DIAGNOSIS"
+    },
+    "corrected_dependent_frontiers": [
+      {
+        "frontier": "MR-05",
+        "portfolio_id": "fae-mainnet-readiness-mr05",
+        "event_id": "fae-mainnet-readiness-mr05-verified-001",
+        "status": "committed",
+        "checkpoint_digest": "sha256:d7d229aebcabf6d02ca85ed56543c0162e952b7e1697670f1b48d48a99537f97"
+      },
+      {
+        "frontier": "MR-06",
+        "portfolio_id": "fae-mainnet-readiness-mr06",
+        "event_id": "fae-mainnet-readiness-mr06-verified-001",
+        "status": "committed",
+        "checkpoint_digest": "sha256:3ce654db39f9475c38a125de85e4e82775e8d8412b7588a71d0b1b5aa85c466e"
+      }
+    ],
+    "correction_rule": "Strictly dependent frontiers use isolated Durable portfolios; no passive wake is admitted before its evidence predicate is true.",
+    "remaining": [
+      "MR-08",
+      "MR-09"
+    ]
+  }
 }
