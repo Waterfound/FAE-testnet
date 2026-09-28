@@ -425,15 +425,17 @@
     {
       "gate_id": "independent_operator_evidence",
       "area": "Network / sovereignty",
-      "description": "Independent-operator evidence remains unresolved in the H2 external-evidence freeze.",
+      "description": "Independent Operator Readiness is complete and the frozen evidence package is ready; the real independent-operator evidence itself remains external and unresolved.",
       "state": "EXTERNAL_EVIDENCE",
       "authority_class": "EXTERNAL_EVIDENCE",
       "evidence_refs": [
-        "sovereign-forge/release/software-only-ceiling-freeze.json"
+        "sovereign-forge/release/software-only-ceiling-freeze.json",
+        "lab/independent-operator-readiness/acceptance-contract.json",
+        "docs/FAE_INDEPENDENT_OPERATOR_READINESS_CLOSURE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Collect provenance-bound independent-operator evidence under a frozen acceptance contract.",
-      "wake_condition": "Independent operator evidence becomes available.",
+      "next_action": "Have an eligible real independent operator execute the frozen IOR package using operator-controlled resources and return the provenance-bound evidence bundle.",
+      "wake_condition": "Admissible EXTERNAL_OPERATOR_RUN evidence from an eligible independent operator becomes available.",
       "human_action_required": false,
       "mainnet_critical": true,
       "can_auto_advance": false

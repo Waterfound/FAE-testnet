@@ -1,0 +1,86 @@
+{
+  "schema": "FAE_INDEPENDENT_OPERATOR_READINESS_CLOSURE_V1",
+  "workstream": "FAE — Independent Operator Readiness",
+  "portfolio_role": "SECONDARY",
+  "closure_date": "2026-09-28",
+  "source_main_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "verified_candidate_revision": "e6a20ae4f95351216f4c06b9abaf379fd23139fb",
+  "verdict": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
+  "readiness_complete": true,
+  "independent_operator_evidence_obtained": false,
+  "external_operator_evidence_verdict": "NOT_OBTAINED",
+  "frontiers": {
+    "IOR-00": "PASS",
+    "IOR-01": "PASS",
+    "IOR-02": "PASS",
+    "IOR-03": "PASS",
+    "IOR-04": "PASS",
+    "IOR-05": "PASS",
+    "IOR-06": "PASS",
+    "IOR-07": "PASS",
+    "IOR-08": "PASS",
+    "IOR-09": "PASS",
+    "IOR-10": "PASS",
+    "IOR-11": "PASS",
+    "IOR-12": "PASS",
+    "IOR-X": "EXTERNAL_EVIDENCE"
+  },
+  "frozen_acceptance_contract": "lab/independent-operator-readiness/acceptance-contract.json",
+  "execution_package": [
+    "lab/independent-operator-readiness/README.md",
+    "lab/independent-operator-readiness/run-operator.mjs",
+    "lab/independent-operator-readiness/verify-evidence.mjs",
+    "lab/independent-operator-readiness/run-clean-room-rehearsal.mjs",
+    "lab/independent-operator-readiness/tests/ior-readiness.test.mjs",
+    ".github/workflows/independent-operator-readiness.yml"
+  ],
+  "verification": {
+    "workflow_run_id": 36456762866,
+    "job_id": 109044952079,
+    "conclusion": "success",
+    "clean_room_rehearsal": "PASS",
+    "clean_room_evidence_class": "READINESS_REHEARSAL_ONLY",
+    "adversarial_false_pass_campaign": "PASS",
+    "hardened_independent_node_recovery": "PASS",
+    "canonical_readiness_invariants": "PASS",
+    "artifact": {
+      "id": 10985514373,
+      "name": "fae-ior-readiness-rehearsal-36456762866-1",
+      "digest": "sha256:5a21307b4240f28387a2557f7c7743d52adee35afb333b71ffdd95a4143f44ab"
+    }
+  },
+  "serialization_check": {
+    "checked_on": "2026-09-28",
+    "current_main_at_check": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+    "ior_compare_to_main": {
+      "status": "ahead",
+      "ahead_by": 12,
+      "behind_by": 0
+    },
+    "active_research": {
+      "branch": "colony/fae-180s-economic-block-time-validation-001",
+      "status": "diverged",
+      "ahead_by": 35,
+      "behind_by": 15,
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "shared_state_conflict_observed": false
+  },
+  "residual_external_gate": {
+    "id": "IOR-X",
+    "state": "EXTERNAL_EVIDENCE",
+    "required_for": "INDEPENDENT_OPERATOR_EVIDENCE_PASS",
+    "wake_condition": "An eligible real independent operator performs the frozen procedure using operator-controlled resources and returns the provenance-bound bundle.",
+    "may_not_be_satisfied_by": "READINESS_REHEARSAL_ONLY"
+  },
+  "authority": {
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "activation_height_selected": false,
+    "production_bootstrap_selected": false,
+    "new_spending_authorized": false
+  }
+}

@@ -1,0 +1,218 @@
+{
+  "schema": "FAE_INDEPENDENT_OPERATOR_READINESS_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-28",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-independent-operator-readiness-001",
+  "source_main_revision": "39c0c491bc5cc8c039209adbf035cd507a0719d9",
+  "workstream": "FAE — Independent Operator Readiness",
+  "portfolio_role": "SECONDARY",
+  "target_verdict": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
+  "active_workstream_preserved": {
+    "name": "FAE Research — 180s Economic + Block-Time Validation",
+    "branch": "colony/fae-180s-economic-block-time-validation-001",
+    "comparison_to_source_main": {
+      "status": "diverged",
+      "ahead_by": 35,
+      "behind_by": 15,
+      "merge_base": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2"
+    },
+    "observed_shared_registry_changes": false,
+    "serialization_rule": "Parallelize independence. Serialize shared state."
+  },
+  "canonical_inputs": [
+    "docs/FAE_CANONICAL_STATE.md",
+    "docs/FAE_MAINNET_READINESS_STATE.json",
+    "sovereign-forge/release/software-only-ceiling-freeze.json"
+  ],
+  "precedence": [
+    "authoritative_or_frozen_source_artifact",
+    "current_canonical_repository_state",
+    "docs/FAE_CANONICAL_STATE.md",
+    "docs/FAE_MAINNET_READINESS_STATE.json_within_authority_scope",
+    "conversation_context"
+  ],
+  "inventory": {
+    "independent_node_runtime": [
+      "sovereign-forge/node/fae-node.mjs",
+      "sovereign-forge/node/fae-node-v6-candidate.mjs",
+      "sovereign-forge/node/authoritative/fae-v4-peer-node.mjs",
+      "sovereign-forge/node/authoritative/node-state-recovery.mjs",
+      "sovereign-forge/node/authoritative/node-identity.mjs"
+    ],
+    "existing_validation": [
+      "sovereign-forge/tests/smoke-independent-node.mjs",
+      "sovereign-forge/tests/independent-node-v11-hardening.mjs",
+      "sovereign-forge/tests/independent-node-v11-process-recovery.mjs",
+      ".github/workflows/independent-node-v11.yml"
+    ],
+    "provenance_and_recovery": [
+      "scripts/psr13-release-provenance.mjs",
+      "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json",
+      "tools/repository-recovery/",
+      "sovereign-forge/scripts/build-reproducible-release.mjs"
+    ],
+    "historical_operator_neutral_surrogate": [
+      "sovereign-forge/protocol/FULL_TARGET_SHADOW_OPERATOR_NEUTRALITY.md",
+      "sovereign-forge/evidence/OPERATOR_NEUTRAL_REPRODUCIBILITY_CANONICAL.md"
+    ]
+  },
+  "findings": [
+    {
+      "id": "IOR-FINDING-001",
+      "result": "The hardened P2P v6 candidate already provides signed node identity, authenticated peers, independently validated sync, durable state recovery and restart behavior; readiness should reuse it rather than create a second node implementation."
+    },
+    {
+      "id": "IOR-FINDING-002",
+      "result": "The historical operator-neutral surrogate explicitly does not prove a second independent human and is inadmissible as IOR-X evidence."
+    },
+    {
+      "id": "IOR-FINDING-003",
+      "result": "No final production bootstrap nodes are frozen. The readiness contract therefore accepts an explicit run-specific eligible peer endpoint without selecting production bootstrap values."
+    },
+    {
+      "id": "IOR-FINDING-004",
+      "result": "Final independent-operator eligibility and provenance cannot be manufactured by this workstream; only the evidence package and deterministic admissibility verifier are software-only."
+    }
+  ],
+  "independent_operator_definition_frozen_in": "lab/independent-operator-readiness/acceptance-contract.json",
+  "authority_envelope": {
+    "authority_owner": "Waterfound",
+    "may_autonomously": [
+      "inventory current node/bootstrap/provenance tooling",
+      "create clean-room tooling and documentation",
+      "create evidence collectors and deterministic verifier",
+      "execute isolated local clean-room rehearsals",
+      "execute adversarial false-PASS tests",
+      "open branch and pull request",
+      "produce readiness closure artifacts"
+    ],
+    "may_not": [
+      "claim our rehearsal is an independent human run",
+      "fabricate provenance",
+      "promote readiness to independent-operator evidence PASS",
+      "declare MAINNET_READY or MAINNET_AUTHORIZED",
+      "change consensus or economics",
+      "choose activation height",
+      "authorize new spending",
+      "weaken acceptance criteria to obtain PASS"
+    ]
+  },
+  "execution_graph": [
+    {
+      "id": "IOR-00",
+      "name": "Current evidence and Independent Node inventory",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-01",
+      "name": "Independent Operator definition and authority boundary",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-02",
+      "name": "Clean-room bootstrap contract",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-03",
+      "name": "Source and release provenance integration",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-04",
+      "name": "Network identity / peer / tip verification tooling",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-05",
+      "name": "Restart and recovery evidence protocol",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-06",
+      "name": "Machine-readable evidence bundle schema",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-07",
+      "name": "Deterministic evidence verifier",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-08",
+      "name": "Adversarial false-PASS campaign",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-09",
+      "name": "Clean-room simulated rehearsal",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-10",
+      "name": "Operator documentation and execution package",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-11",
+      "name": "Independent verification / cross-Lab checks",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-12",
+      "name": "Readiness closure",
+      "class": "SOFTWARE_ONLY",
+      "state": "PASS"
+    },
+    {
+      "id": "IOR-X",
+      "name": "Real Independent Operator Run",
+      "class": "EXTERNAL_EVIDENCE",
+      "state": "EXTERNAL_EVIDENCE"
+    }
+  ],
+  "terminal_external_gate": {
+    "id": "IOR-X",
+    "excluded_from_readiness_closure": true,
+    "required_for": "INDEPENDENT_OPERATOR_EVIDENCE_PASS"
+  },
+  "verification": {
+    "candidate_revision": "e6a20ae4f95351216f4c06b9abaf379fd23139fb",
+    "workflow": "Independent Operator Readiness",
+    "workflow_run_id": 36456762866,
+    "job_id": 109044952079,
+    "result": "SUCCESS",
+    "passed": [
+      "syntax_and_contract_parsing",
+      "adversarial_false_PASS_campaign",
+      "independent_node_v1_1_hardening",
+      "independent_node_real_process_recovery",
+      "canonical_mainnet_readiness_invariants",
+      "clean_room_real_process_rehearsal",
+      "rehearsal_evidence_upload"
+    ],
+    "rehearsal_evidence_class": "READINESS_REHEARSAL_ONLY",
+    "rehearsal_external_evidence": false,
+    "artifact": {
+      "id": 10985514373,
+      "name": "fae-ior-readiness-rehearsal-36456762866-1",
+      "digest": "sha256:5a21307b4240f28387a2557f7c7743d52adee35afb333b71ffdd95a4143f44ab",
+      "expires_at": "2026-10-05T17:15:22Z"
+    }
+  },
+  "readiness_closure": "INDEPENDENT_OPERATOR_EVIDENCE_PACKAGE_READY",
+  "independent_operator_evidence_obtained": false
+}
