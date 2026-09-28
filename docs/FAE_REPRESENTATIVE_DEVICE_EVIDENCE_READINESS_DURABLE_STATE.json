@@ -1,0 +1,45 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_EVIDENCE_READINESS_DURABLE_STATE_V1",
+  "workstream": "FAE — Representative Device Evidence Readiness",
+  "branch": "colony/fae-representative-device-evidence-readiness-001",
+  "source_main_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+  "portfolio_role": "SECONDARY",
+  "active_research_preserved": true,
+  "visual_language_parallel_independent_preserved": true,
+  "shared_state_serialization_required": true,
+  "completed_frontiers": [
+    "RDE-00",
+    "RDE-01",
+    "RDE-02",
+    "RDE-03",
+    "RDE-04",
+    "RDE-05",
+    "RDE-06",
+    "RDE-07"
+  ],
+  "active_frontier": "RDE-08",
+  "admissible_next": [
+    "RDE-08",
+    "RDE-09",
+    "RDE-10",
+    "RDE-11",
+    "RDE-12",
+    "RDE-13",
+    "RDE-14",
+    "RDE-15"
+  ],
+  "terminal_external_gates": [
+    "RDE-X1",
+    "RDE-X2",
+    "RDE-X3"
+  ],
+  "readiness_target": "REPRESENTATIVE_DEVICE_EVIDENCE_PACKAGE_READY",
+  "physical_evidence_obtained": false,
+  "authority_flags": {
+    "consensus_changed": false,
+    "economics_changed": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}
