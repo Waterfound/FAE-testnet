@@ -114,8 +114,8 @@ if grep -q 'BD 41-737' "$LOG/vivado.log"; then
 fi
 
 test -s "$WORK/project/fae-evidence/a3_address_map.txt"
-grep -q 'OFFSET=0x00000000' "$WORK/project/fae-evidence/a3_address_map.txt"
-grep -q 'OFFSET=0x00001000' "$WORK/project/fae-evidence/a3_address_map.txt"
+grep -Eq '/f2_inst/M_AXI_OCL/SEG_fae_dp6_hls_0_Reg \| OFFSET=0x0*0([[:space:]]|$|\|)' "$WORK/project/fae-evidence/a3_address_map.txt"
+grep -Eq '/f2_inst/M_AXI_OCL/SEG_fae_dp6_hls_1_Reg \| OFFSET=0x0*1000([[:space:]]|$|\|)' "$WORK/project/fae-evidence/a3_address_map.txt"
 grep -q 'fae_ctrl_split' "$WORK/project/fae-evidence/a3_interfaces.txt"
 if grep -q 'fae_cc_ctrl' "$WORK/project/fae-evidence/a3_cells.txt"; then
   echo A3_R4_CONTROL_REPAIR_R3_STATIC_FAIL_CTRL_CDC_PRESENT > "$LOG/stage.txt"; sync_all; exit 43
