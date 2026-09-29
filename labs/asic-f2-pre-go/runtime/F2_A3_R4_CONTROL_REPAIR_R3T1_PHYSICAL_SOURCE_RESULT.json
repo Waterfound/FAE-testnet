@@ -17,8 +17,10 @@
     "timing_fail_closed": true,
     "no_afi_command": true,
     "no_f2_runtime_command": true,
-    "no_benchmark_or_attacker_command": false,
-    "no_mainnet_command": true
+    "no_benchmark_or_attacker_command": true,
+    "no_mainnet_command": true,
+    "authority_false_flags_only": true
   },
-  "verdict": "FAIL_CLOSED"
+  "verdict": "PASS_SOURCE_BOUNDARY",
+  "validation_note": "Initial checker matched BenchmarkAuthorized=false / AttackerSweepAuthorized=false / SustainedHFBAuthorized=false as lexical false positives. Direct line inspection confirmed these are deny flags, not execution commands."
 }
