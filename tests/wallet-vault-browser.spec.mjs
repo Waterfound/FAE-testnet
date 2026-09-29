@@ -34,6 +34,7 @@ async function completeNewWallet(page){
   await page.locator('#action-create').click();
   await page.locator('#createwallet').click();
   await expect(page.locator('#wallet-connected-state')).toBeHidden();
+  await expect(page.locator('#newseedwords')).not.toHaveValue('');
   const phrase=await page.locator('#newseedwords').inputValue();
   expect(phrase.trim().split(/\s+/)).toHaveLength(24);
   expect(await page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(0);
@@ -88,6 +89,7 @@ test('unconfirmed creation, wrong confirmation, multi-wallet and mining switch f
 
   await page.locator('#action-create').click();
   await page.locator('#createwallet').click();
+  await expect(page.locator('#newseedwords')).not.toHaveValue('');
   const phrase=await page.locator('#newseedwords').inputValue();
   expect(await page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(0);
 
@@ -97,6 +99,7 @@ test('unconfirmed creation, wrong confirmation, multi-wallet and mining switch f
 
   await page.locator('#action-create').click();
   await page.locator('#createwallet').click();
+  await expect(page.locator('#newseedwords')).not.toHaveValue('');
   const canonical=await page.locator('#newseedwords').inputValue();
   const wrong=await page.evaluate(()=>FAEWalletCrypto.mnemonicFromEntropy(crypto.getRandomValues(new Uint8Array(32))));
   await page.locator('#readyconfirm').click();
@@ -107,6 +110,7 @@ test('unconfirmed creation, wrong confirmation, multi-wallet and mining switch f
 
   await page.locator('#confirmseed').fill(canonical);
   await page.locator('#confirmwallet').click();
+  await expect(page.locator('#recoverystate')).toContainText('BACKUP_CONFIRMED');
   const firstId=await page.evaluate(()=>FAEWalletVault.readState().then(state=>state.activeWalletId));
   const firstAddress=await page.locator('#addr').inputValue();
 
@@ -118,6 +122,7 @@ test('unconfirmed creation, wrong confirmation, multi-wallet and mining switch f
   await expect(page.locator('#recoverypreview-wrap')).toBeVisible();
   await expect(page.locator('#recoverypassphrase')).toHaveValue('');
   await page.locator('#admitrecovery').click();
+  await expect.poll(()=>page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(2);
 
   const wallets=await page.evaluate(()=>FAEWalletVault.listWallets());
   expect(wallets).toHaveLength(2);
@@ -144,7 +149,7 @@ test('unconfirmed creation, wrong confirmation, multi-wallet and mining switch f
   await page.locator('#removewallet').click();
   await expect(page.locator('#remove-panel')).toBeVisible();
   await page.locator('#confirmremove').click();
-  expect(await page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(1);
+  await expect.poll(()=>page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(1);
   expect((await page.evaluate(()=>FAEWalletVault.listWallets()))[0].walletId).toBe(secondId);
 
   await context.close();
@@ -174,7 +179,7 @@ test('legacy V3 migration commits and verifies vault before deleting plaintext J
   await page.evaluate(record=>localStorage.setItem('fae-public-v4-keyring-v3',JSON.stringify(record)),legacy.record);
   await page.reload({waitUntil:'domcontentloaded'});
 
-  expect(await page.evaluate(()=>localStorage.getItem('fae-public-v4-keyring-v3'))).toBeNull();
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('fae-public-v4-keyring-v3'))).toBeNull();
   expect(await page.evaluate(()=>localStorage.getItem('fae-public-v4-wallet'))).toBeNull();
   expect(await page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(1);
   const migrated=await page.evaluate(()=>FAEWalletVault.migrationStatus());
