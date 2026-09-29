@@ -70,6 +70,7 @@ for(const [browserName,launcher] of [['Chromium',chromium],['WebKit',webkit]]){
       await installNetwork(context);
       page=context.pages()[0]||await context.newPage();
       await page.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
+      await page.locator('#tab-wallet').click();
       await expect(page.locator('#wallet-connected-state')).toBeVisible();
       await expect(page.locator('#addr')).toHaveValue(address);
       expect(await page.evaluate(()=>FAEWalletVault.listWallets().then(items=>items.length))).toBe(1);
@@ -189,7 +190,7 @@ test('legacy V3 migration commits and verifies vault before deleting plaintext J
   await context.close();
 });
 
-test('authenticated vault tamper and wrong wrapping key never create a substitute Wallet',async({browser})=>{
+test('authenticated vault payload tamper never creates a substitute Wallet',async({browser})=>{
   const context=await browser.newContext({viewport:{width:1024,height:900}});
   await installNetwork(context);
   const page=await context.newPage();
