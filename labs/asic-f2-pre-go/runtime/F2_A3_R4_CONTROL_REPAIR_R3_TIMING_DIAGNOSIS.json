@@ -1,0 +1,88 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r3.timing_diagnosis.v1",
+  "observed_physical": {
+    "provider_instance": "i-02d25f0ae0583a844",
+    "source_commit": "b6f16a50182aa482a9ea457578843992c974120f",
+    "final_timing": {
+      "wns_ns": -0.842799,
+      "tns_ns": -1542.238647,
+      "whs_ns": 0.006822,
+      "ths_ns": 0
+    },
+    "routing": {
+      "routable_nets": 646203,
+      "fully_routed_nets": 646203,
+      "routing_errors": 0,
+      "unrouted_nets": 0
+    },
+    "critical_warnings": [
+      "Route 35-39: design did not meet timing",
+      "Timing 38-282: design failed timing requirements"
+    ],
+    "developer_cl_sha256": "5fe3b2aaddf0edd4d7d44e033ed3b5379c09719cec9dde15588b0010994e24fe",
+    "developer_cl_admissible_for_afi": false
+  },
+  "path_evidence": {
+    "worst_local_path": {
+      "slack_ns": -0.843,
+      "clock": "clk_out1_cl_fae_clk_200_0",
+      "period_ns": 5,
+      "domain": "fae_dp6_hls_1",
+      "data_path_delay_ns": 5.625,
+      "route_fraction_pct": 84.941,
+      "source_contains": "fae_dp6_hls_1/.../fill_reg_687_reg[3]_replica/C",
+      "destination_contains": "fae_dp6_hls_1/.../S_t_1_3_reg_171_reg[0]/CE"
+    },
+    "additional_local_paths": [
+      {
+        "slack_ns": -0.812,
+        "domain": "fae_dp6_hls_1",
+        "route_fraction_pct": 83.598
+      },
+      {
+        "slack_ns": -0.809,
+        "domain": "fae_dp6_hls_1",
+        "route_fraction_pct": 82.236
+      },
+      {
+        "slack_ns": -0.797,
+        "domain": "fae_dp6_hls_1",
+        "route_fraction_pct": 63.38
+      },
+      {
+        "slack_ns": -0.792,
+        "domain": "fae_dp6_hls_1",
+        "route_fraction_pct": 92.615
+      }
+    ],
+    "shell_ddr_paths_observed": {
+      "clock": "mmcm_clkout0",
+      "representative_slack_ns": -0.499,
+      "representative_route_fraction_pct": 95.226
+    }
+  },
+  "comparative_evidence": {
+    "prior_r4_same_dp6_local_clock_mhz": 200,
+    "prior_r4_final_wns_ns": 0.024954,
+    "interpretation": "R3 failure is correlated with changed placement/routing pressure after the control-topology change. This does not prove a unique root cause in SmartConnect."
+  },
+  "bounded_refinement": {
+    "name": "R3-T1-LOCAL166P667",
+    "change": "Only requested local clock frequency changes from 200.000 MHz to 166.667 MHz; R3 topology, DP6 blob, memory map and control apertures remain unchanged.",
+    "rationale": "Worst observed local DP6 path exceeded the 5.000 ns period by ~0.843 ns. A 166.667 MHz target gives a nominal 6.000 ns period, adding ~1.000 ns local timing budget without semantic/address changes.",
+    "caveat": "This does not guarantee physical closure because shell/DDR timing and placement sensitivity remain; only a separately authorized future physical implementation can prove timing."
+  },
+  "epistemic_boundary": "Observed timing paths and congestion are evidence of the failure surface, not proof of a unique root cause.",
+  "authority": {
+    "source": "github://Waterfound/General-Execution/commit/ec8a7150279aba24a7733aa3350d6e4dbdedc590/authority/fae-asic-a3-r4-control-repair-r3-timing-refinement-authority-resume-001.json",
+    "physical_build": false,
+    "new_afi": false,
+    "new_f2": false,
+    "benchmark": false,
+    "attacker_sweep": false,
+    "sustained_hfb": false,
+    "consensus_economics": false,
+    "release": false,
+    "mainnet": false
+  }
+}
