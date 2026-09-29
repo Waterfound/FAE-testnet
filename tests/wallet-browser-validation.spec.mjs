@@ -93,7 +93,7 @@ for(const profile of profiles){
     await expect(page.locator('#wallet-connected-state')).toBeHidden();
     await expect(page.locator('#newseedwords')).not.toHaveValue('');
     const recoveryWords=await page.locator('#newseedwords').inputValue();
-    expect(recoveryWords.trim().split(/\\s+/)).toHaveLength(24);
+    expect(recoveryWords.trim().split(/\s+/)).toHaveLength(24);
     await activate(page.locator('#readyconfirm'),profile.hasTouch);
     await page.locator('#confirmseed').fill(recoveryWords);
     await activate(page.locator('#confirmwallet'),profile.hasTouch);
