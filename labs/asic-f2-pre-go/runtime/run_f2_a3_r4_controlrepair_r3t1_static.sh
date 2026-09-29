@@ -104,31 +104,9 @@ if [ "$VRC" -ne 0 ]; then
   sync_all
   exit "$VRC"
 fi
-grep -q '^FAE_A3_R4_CONTROL_REPAIR_R3T1_VALIDATE_PASS
 
-if grep -q 'BD 41-237' "$LOG/vivado.log"; then
-  echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_FAIL_BD_41_237 > "$LOG/stage.txt"; sync_all; exit 41
-fi
-if grep -q 'BD 41-737' "$LOG/vivado.log"; then
-  echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_FAIL_BD_41_737 > "$LOG/stage.txt"; sync_all; exit 42
-fi
-
-test -s "$WORK/project/fae-evidence/a3_address_map.txt"
-grep -Eq '/f2_inst/M_AXI_OCL/SEG_fae_dp6_hls_0_Reg \| OFFSET=0x0*0([[:space:]]|$|\|)' "$WORK/project/fae-evidence/a3_address_map.txt"
-grep -Eq '/f2_inst/M_AXI_OCL/SEG_fae_dp6_hls_1_Reg \| OFFSET=0x0*1000([[:space:]]|$|\|)' "$WORK/project/fae-evidence/a3_address_map.txt"
-grep -q 'fae_ctrl_split' "$WORK/project/fae-evidence/a3_interfaces.txt"
-if grep -q 'fae_cc_ctrl' "$WORK/project/fae-evidence/a3_cells.txt"; then
-  echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_FAIL_CTRL_CDC_PRESENT > "$LOG/stage.txt"; sync_all; exit 43
-fi
-if grep -q 'fae_pc_ctrl' "$WORK/project/fae-evidence/a3_cells.txt"; then
-  echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_FAIL_PROTOCOL_CONVERTER_PRESENT > "$LOG/stage.txt"; sync_all; exit 44
-fi
-
-echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_PASS > "$LOG/stage.txt"
-sync_all
-exit 0
- "$LOG/vivado.log"
-grep -q '^A3_R4_CONTROL_REPAIR_R3T1_LOCAL_CLOCK_MHZ=166.667' "$LOG/vivado.log"
+grep -q '^FAE_A3_R4_CONTROL_REPAIR_R3T1_VALIDATE_PASS$' "$LOG/vivado.log"
+grep -q '^A3_R4_CONTROL_REPAIR_R3T1_LOCAL_CLOCK_MHZ=166.667$' "$LOG/vivado.log"
 
 if grep -q 'BD 41-237' "$LOG/vivado.log"; then
   echo A3_R4_CONTROL_REPAIR_R3T1_STATIC_FAIL_BD_41_237 > "$LOG/stage.txt"; sync_all; exit 41
