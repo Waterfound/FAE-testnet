@@ -1,0 +1,84 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r3t1.provider_static.v1",
+  "run": "R3-T1",
+  "candidate": "R3-T1-LOCAL166P667",
+  "candidate_blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-01388ffc8fb1771ff",
+    "instance_type": "r7i.xlarge",
+    "final_state": "terminated"
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-01388ffc8fb1771ff/a3-r4-controlrepair-r3t1-static/",
+  "raw_execution": {
+    "pinned_repo_commit": "e8f790e5328b51dc67a360a1326e45979c09dccc",
+    "vivado_rc": 0,
+    "wrapper_exit_code": 2,
+    "final_stage_file": "VIVADO_STATIC_RUNNING",
+    "finished_utc": "2026-09-29T18:22:05Z"
+  },
+  "provider_validation": {
+    "topology_marker": "FAE_A3_R4_CONTROL_REPAIR_R3T1_VALIDATE_PASS",
+    "local_clock_marker": "A3_R4_CONTROL_REPAIR_R3T1_LOCAL_CLOCK_MHZ=166.667",
+    "requested_local_clock_mhz": 166.667,
+    "bd_41_237_count": 0,
+    "bd_41_737_count": 0,
+    "lane0_control": {
+      "protocol": "AXI4LITE",
+      "max_burst_length": 1
+    },
+    "lane1_control": {
+      "protocol": "AXI4LITE",
+      "max_burst_length": 1
+    },
+    "control_apertures": [
+      {
+        "lane": 0,
+        "offset_numeric": "0x0000",
+        "provider_serialized": "0x0000000",
+        "range": "0x0001000"
+      },
+      {
+        "lane": 1,
+        "offset_numeric": "0x1000",
+        "provider_serialized": "0x0001000",
+        "range": "0x0001000"
+      }
+    ],
+    "memory_map": {
+      "ddra": "0x1000000000",
+      "lane0_hbm0": "0x0200000000",
+      "lane1_hbm1": "0x0220000000"
+    },
+    "memory_map_preserved": true,
+    "control_external_clock_converters_present": false,
+    "control_protocol_converters_present": false,
+    "smartconnect_control_cdc": true,
+    "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d"
+  },
+  "wrapper_false_negative": {
+    "present": true,
+    "reason": "The generated post-Vivado shell acceptance section was textually corrupted around the PASS-marker grep, causing bash exit 2 after Vivado had already returned rc=0 and emitted all required acceptance evidence.",
+    "affects_candidate_verdict": false,
+    "provider_rerun_required": false,
+    "corrected_runner_commit": "bae77e4174d50a7a0716c070c90f3cd97ff86159"
+  },
+  "verdict": "PASS_PROVIDER_STATIC",
+  "epistemic_boundary": "Static validation proves the R3-T1 topology and 166.667 MHz clock request are internally admissible at Vivado BD level. It does not prove physical timing closure, original runtime root cause, AFI eligibility, F2 liveness/parity, benchmark performance, attacker sweep, sustained/HFB, or mainnet readiness.",
+  "disposition": "STOP_AT_NEXT_AUTHORITY_GATE",
+  "next_frontier": "One physical implementation build of R3-T1 only, timing fail-closed, requires new explicit authority.",
+  "authority_observed": {
+    "physical_build": false,
+    "new_afi": false,
+    "new_f2": false,
+    "benchmark": false,
+    "attacker_sweep": false,
+    "sustained_hfb": false,
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "activation_height": false,
+    "mainnet": false
+  }
+}
