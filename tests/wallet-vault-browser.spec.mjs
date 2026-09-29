@@ -241,3 +241,49 @@ test('authenticated vault tamper and wrong wrapping key never create a substitut
 
   await context.close();
 });
+
+
+test('missing wrapping key regenerates a different key and existing Wallet fails closed',async({browser})=>{
+  const context=await browser.newContext({viewport:{width:1024,height:900}});
+  await installNetwork(context);
+  const page=await context.newPage();
+  const originalAddress=await completeNewWallet(page);
+  const walletId=await page.evaluate(()=>FAEWalletVault.readState().then(state=>state.activeWalletId));
+
+  await page.evaluate(async()=>{
+    const db=await new Promise((resolve,reject)=>{
+      const request=indexedDB.open(FAEWalletVault.DB_NAME,FAEWalletVault.DB_VERSION);
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>reject(request.error);
+    });
+    const tx=db.transaction('keys','readwrite');
+    tx.objectStore('keys').delete('wrapping-key-v1');
+    await new Promise((resolve,reject)=>{
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error);
+    });
+    db.close();
+  });
+
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('#wallet-connected-state')).toBeHidden();
+  await expect(page.locator('#wstate')).toContainText(/storage|Wallet/i);
+
+  const records=await page.evaluate(()=>FAEWalletVault.listWallets());
+  expect(records).toHaveLength(1);
+  expect(records[0].walletId).toBe(walletId);
+  expect(records[0].addresses[0].address).toBe(originalAddress);
+
+  const outcome=await page.evaluate(async id=>{
+    try{
+      await FAEWalletVault.loadAccount(id);
+      return 'unexpected-success';
+    }catch(error){
+      return error.code||error.message;
+    }
+  },walletId);
+  expect(outcome).toBe('CORRUPTED_VAULT');
+
+  await context.close();
+});
