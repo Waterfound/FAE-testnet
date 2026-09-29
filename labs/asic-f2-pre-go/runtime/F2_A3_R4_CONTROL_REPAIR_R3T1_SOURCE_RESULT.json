@@ -1,0 +1,19 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r3t1.source_validation.v1",
+  "candidate": "R3-T1-LOCAL166P667",
+  "candidate_blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+  "baseline_r3_blob": "83394e46048147a30ddda7f2f572d6f6d52e6017",
+  "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+  "checks": {
+    "exact_expected_minimal_transform": true,
+    "frozen_dp6_preserved": true,
+    "local_clock_166p667": true,
+    "smartconnect_internal_cdc_preserved": true,
+    "memory_map_preserved": true,
+    "apertures_preserved": true,
+    "no_external_control_cdc": true,
+    "no_control_protocol_converter": true,
+    "no_physical_afi_f2_actions": true
+  },
+  "verdict": "PASS_SOURCE_STATIC"
+}
