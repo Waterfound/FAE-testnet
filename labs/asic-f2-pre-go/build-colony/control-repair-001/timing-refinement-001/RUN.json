@@ -1,0 +1,72 @@
+{
+  "schema": "build-colony.run.v1",
+  "run_id": "fae-asic-a3-r4-r3-timing-refinement-001",
+  "status": "READY_FOR_PROVIDER_STATIC",
+  "owner_repo": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-asic-a3-r4-control-repair-001",
+  "head": "cbfc9cdd0f04844c63ff4afceb8ab10aa871af7a",
+  "authority": {
+    "receipt": "github://Waterfound/General-Execution/commit/ec8a7150279aba24a7733aa3350d6e4dbdedc590/authority/fae-asic-a3-r4-control-repair-r3-timing-refinement-authority-resume-001.json",
+    "durable_generation": 11,
+    "allowed": [
+      "timing diagnosis",
+      "bounded refinement",
+      "source validation",
+      "AWS HLx/Vivado static validation"
+    ],
+    "forbidden": [
+      "physical implementation",
+      "AFI",
+      "F2 runtime",
+      "benchmark",
+      "attacker sweep",
+      "sustained/HFB",
+      "consensus/economics",
+      "release",
+      "activation height",
+      "mainnet"
+    ]
+  },
+  "evidence": {
+    "physical_fail_result": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3_PHYSICAL_PROVIDER_RESULT.json",
+    "timing_diagnosis": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3_TIMING_DIAGNOSIS.json"
+  },
+  "candidate": {
+    "name": "R3-T1-LOCAL166P667",
+    "integration": "labs/asic-f2-pre-go/hdk/integrate_fae_f2_2lane_166p667mhz_a3_r4_controlrepair_r3t1.tcl",
+    "blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+    "change": "R3 topology unchanged; local requested clock only changes 200.000 -> 166.667 MHz.",
+    "source_validation": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_SOURCE_RESULT.json",
+    "source_verdict": "PASS_SOURCE_STATIC",
+    "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "control_apertures": [
+      "0x0000",
+      "0x1000"
+    ],
+    "memory_map": [
+      "DDRA 0x1000000000",
+      "lane0 HBM0 0x0200000000",
+      "lane1 HBM1 0x0220000000"
+    ]
+  },
+  "provider_static": {
+    "runner": "labs/asic-f2-pre-go/runtime/run_f2_a3_r4_controlrepair_r3t1_static.sh",
+    "max_runtime": "1h",
+    "physical_build": false,
+    "afi_creation": false,
+    "f2_runtime": false,
+    "acceptance": [
+      "Vivado validate_bd_design rc=0",
+      "FAE_A3_R4_CONTROL_REPAIR_R3T1_VALIDATE_PASS",
+      "A3_R4_CONTROL_REPAIR_R3T1_LOCAL_CLOCK_MHZ=166.667",
+      "BD 41-237 = 0",
+      "BD 41-737 = 0",
+      "DP6 blob unchanged",
+      "memory map unchanged",
+      "control apertures 0x0000 and 0x1000 preserved",
+      "no external control CDC/protocol converter"
+    ]
+  },
+  "epistemic_boundary": "T1 is a timing-margin candidate. Static PASS cannot prove physical timing closure or root cause.",
+  "stop_after": "Provider static PASS/FAIL. Any future physical build requires a new explicit authority gate."
+}
