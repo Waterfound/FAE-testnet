@@ -1,0 +1,75 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r3.provider_static.v1",
+  "run": "R3",
+  "candidate": "A3-R4-CTRL-SMARTCONNECT-CDC-R3",
+  "candidate_blob": "83394e46048147a30ddda7f2f572d6f6d52e6017",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-04978ee222eb2661d",
+    "instance_type": "r7i.xlarge",
+    "final_state": "terminated"
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-04978ee222eb2661d/a3-r4-controlrepair-r3-static/",
+  "raw_execution": {
+    "pinned_repo_commit": "b4341b99394df9998507a06a2f0d043c7f5ef998",
+    "vivado_rc": 0,
+    "wrapper_exit_code": 1,
+    "final_stage_file": "VIVADO_STATIC_RUNNING",
+    "finished_utc": "2026-09-29T05:02:20Z"
+  },
+  "provider_validation": {
+    "topology_marker": "FAE_A3_R4_CONTROL_REPAIR_R3_VALIDATE_PASS",
+    "bd_41_237_count": 0,
+    "bd_41_737_count": 0,
+    "lane0_control": {
+      "protocol": "AXI4LITE",
+      "max_burst_length": 1
+    },
+    "lane1_control": {
+      "protocol": "AXI4LITE",
+      "max_burst_length": 1
+    },
+    "control_apertures": [
+      {
+        "lane": 0,
+        "offset_numeric": "0x0000",
+        "provider_serialized": "0x0000000",
+        "range": "0x0001000"
+      },
+      {
+        "lane": 1,
+        "offset_numeric": "0x1000",
+        "provider_serialized": "0x0001000",
+        "range": "0x0001000"
+      }
+    ],
+    "memory_map_preserved": true,
+    "control_external_clock_converters_present": false,
+    "control_protocol_converters_present": false,
+    "smartconnect_control_cdc": true,
+    "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d"
+  },
+  "wrapper_false_negative": {
+    "present": true,
+    "reason": "Post-Vivado shell acceptance grepped fixed-width textual offsets 0x00000000 and 0x00001000, while Vivado evidence serialized equivalent numeric offsets as 0x0000000 and 0x0001000. set -e exited before writing the PASS stage.",
+    "affects_candidate_verdict": false,
+    "requires_provider_rerun": false
+  },
+  "verdict": "PASS_PROVIDER_STATIC",
+  "epistemic_boundary": "Static validation proves the R3 topology is internally admissible at Vivado BD level. It does not prove that the original R4 runtime failure root cause has been identified, nor physical timing closure, AFI eligibility, F2 runtime liveness, parity/correctness, throughput, benchmark, attacker sweep, sustained/HFB, or mainnet readiness.",
+  "disposition": "STOP_AT_NEXT_AUTHORITY_GATE",
+  "next_frontier": "One physical implementation build of the statically validated R3 candidate, fail-closed on timing, requires new explicit authority.",
+  "authority_observed": {
+    "physical_build": false,
+    "new_afi": false,
+    "new_f2": false,
+    "benchmark": false,
+    "attacker_sweep": false,
+    "sustained_hfb": false,
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "mainnet": false
+  }
+}
