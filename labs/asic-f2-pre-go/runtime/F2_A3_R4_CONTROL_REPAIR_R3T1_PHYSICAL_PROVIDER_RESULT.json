@@ -1,0 +1,124 @@
+{
+  "schema_version": "fae.asic.a3_r4.control_repair_r3t1.physical_provider_result.v1",
+  "observed_at": "2026-09-29T21:15:36Z",
+  "candidate": "R3-T1-LOCAL166P667",
+  "disposition": "PHYSICAL_PASS_TIMING_CLOSED",
+  "source": {
+    "repository": "Waterfound/FAE-testnet",
+    "branch": "colony/fae-asic-a3-r4-control-repair-001",
+    "revision": "40787876f1e32e4f955cd3b47b93585d954a399f",
+    "hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "integrate_blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+    "implement_blob": "d1ad3e0aa5d70cba72f83c1ff1abe57de8422511",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "provider": {
+    "ec2_instance_id": "i-048be4270db25bf9b",
+    "instance_type": "r7i.4xlarge",
+    "region": "us-east-1",
+    "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-048be4270db25bf9b/f2-a3-r4-controlrepair-r3t1-physical/",
+    "started_utc": "2026-09-29T18:43:59Z",
+    "finished_utc": "2026-09-29T21:15:36Z",
+    "final_instance_state": "terminated",
+    "vivado_rc": 0,
+    "process_exit_code": 0
+  },
+  "authority": {
+    "physical_build_authorized": true,
+    "afi_creation_authorized": false,
+    "f2_runtime_authorized": false,
+    "benchmark_authorized": false,
+    "attacker_sweep_authorized": false,
+    "sustained_hfb_authorized": false,
+    "consensus_economics_authorized": false,
+    "release_authorized": false,
+    "activation_height_authorized": false,
+    "mainnet_authorized": false,
+    "fail_closed_timing": true
+  },
+  "physical_configuration": {
+    "global_impl_strategy": "Vivado Implementation Defaults",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "shell_clk_main_a0_mhz": 250,
+    "local_compute_clk_mhz": 166.667,
+    "control_path": "SMARTCONNECT_INTERNAL_CDC_250_TO_166P667_AXI4LITE",
+    "memory_path": "DIRECTSPLIT_DDR_HBM0_HBM1",
+    "control_apertures": [
+      "0x0000",
+      "0x1000"
+    ]
+  },
+  "preservation": {
+    "dp6_semantics_preserved": true,
+    "dp6_evidence": "HLS blob exactly matches frozen ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "memory_map_preserved": true,
+    "memory_map": {
+      "ddra": "0x1000000000",
+      "lane0_hbm0": "0x0200000000",
+      "lane1_hbm1": "0x0220000000"
+    },
+    "control_apertures_preserved": true,
+    "control_aperture_lane0": "0x0000",
+    "control_aperture_lane1": "0x1000"
+  },
+  "implementation": {
+    "status": "route_design Complete!",
+    "progress": "100%",
+    "wns_ns": 0.023269,
+    "tns_ns": 0,
+    "whs_ns": 0.009551,
+    "ths_ns": 0,
+    "timing_gate_pass": true,
+    "route_timing_marker": "[Route 35-61] The design met the timing requirement.",
+    "router_completion_marker": "[Route 35-16] Router Completed Successfully",
+    "routing": {
+      "logical_nets": 1122058,
+      "routable_nets": 645509,
+      "fully_routed_nets": 645509,
+      "fixed_routing_nets": 11576,
+      "routing_errors": 0,
+      "failed_nets": 0,
+      "unrouted_nets": 0,
+      "partially_routed_nets": 0,
+      "node_overlaps_final": 0,
+      "router_completed_successfully": true
+    },
+    "errors": [],
+    "critical_warning_summary": {
+      "total_reported_by_vivado": 21,
+      "timing_failure_warnings": 0,
+      "categories_observed": [
+        "Abstract-shell/MMCM module XDC lookup warnings (Designutils 20-1280)",
+        "HBM generated XDC site-name warning (Common 17-69)",
+        "GT-terminal IOSTANDARD warnings from AWS shell constraints (Vivado 12-1815)"
+      ],
+      "interpretation": "Warnings were present, but route_design completed successfully, final DRC reported 0 Errors, and all four timing invariants passed. They do not convert this run into a timing failure."
+    }
+  },
+  "developer_cl": {
+    "produced": true,
+    "s3_key": "evidence/i-048be4270db25bf9b/f2-a3-r4-controlrepair-r3t1-physical/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_29-184842.Developer_CL.tar",
+    "sha256": "4167c0b44a3e4d25687ca1f2326021053f762f764082fb90c85286c084ecd0c8",
+    "size_bytes": 269813248,
+    "physical_timing_admissible": true,
+    "afi_creation_authorized": false
+  },
+  "epistemic_boundary": {
+    "root_cause_proven": false,
+    "robust_asic_premise_proven": false,
+    "statement": "R3-T1 proves physical routing and timing closure for this FPGA implementation at requested local 166.667 MHz. It does not prove the economically central claim that a competent specialized implementation cannot obtain enough advantage over commodity hardware to undermine FAE participation goals."
+  },
+  "prohibited_followups": [
+    "create AFI",
+    "run F2",
+    "benchmark",
+    "attacker sweep",
+    "sustained/HFB",
+    "change consensus/economics",
+    "release",
+    "activation height",
+    "mainnet"
+  ],
+  "next_program_disposition": "HOLD_PENDING_ROBUST_PREMISE"
+}
