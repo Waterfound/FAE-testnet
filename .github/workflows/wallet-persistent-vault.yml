@@ -1,0 +1,103 @@
+name: Wallet Persistent Vault candidate
+
+on:
+  push:
+    branches:
+      - build-colony/wallet-persistent-vault-20260928
+    paths:
+      - wallet-vault.js
+      - wallet.js
+      - index.html
+      - tests/client-smoke.mjs
+      - tests/wallet-vault-contract.mjs
+      - tests/wallet-vault-browser.spec.mjs
+      - tests/wallet-browser-validation.spec.mjs
+      - docs/wallet-persistent-vault/**
+      - .github/workflows/wallet-persistent-vault.yml
+  pull_request:
+    paths:
+      - wallet-vault.js
+      - wallet.js
+      - index.html
+      - tests/client-smoke.mjs
+      - tests/wallet-vault-contract.mjs
+      - tests/wallet-vault-browser.spec.mjs
+      - tests/wallet-browser-validation.spec.mjs
+      - docs/wallet-persistent-vault/**
+      - .github/workflows/wallet-persistent-vault.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify frozen protocol manifests
+        run: |
+          sha256sum -c FAE_FORGE_MAIN.sha256
+          (cd supabase && sha256sum -c SOURCE_MANIFEST.sha256)
+      - name: Parse browser sources
+        run: |
+          node --check core.js
+          node --check wallet-crypto.js
+          node --check wallet-vault.js
+          node --check wallet.js
+          node --check wallet-transactions.js
+          node --check mining.js
+          node --check network-status.js
+      - name: Wallet persistent-vault contract
+        run: node tests/wallet-vault-contract.mjs
+      - name: Wallet crypto compatibility
+        run: node tests/crypto-compat.mjs
+      - name: Wallet transaction contract
+        run: node tests/wallet-transactions-contract.mjs
+      - name: Wallet transaction acceptance
+        run: node tests/wallet-transactions-acceptance.mjs
+      - name: Wallet history lifecycle
+        run: node tests/wallet-history-lifecycle.mjs
+      - name: Client smoke
+        run: node tests/client-smoke.mjs
+      - name: Independent node compatibility
+        run: |
+          npm ci --prefix sovereign-forge/node
+          npm run --prefix sovereign-forge/node check
+          node sovereign-forge/tests/smoke-independent-node.mjs
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser harness
+        run: |
+          printf '{"private":true}\n' > package.json
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps chromium webkit
+      - name: Start local static client
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/wv-http.log 2>&1 &
+          echo $! >/tmp/wv-http.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/wv-http.log
+          exit 1
+      - name: Run Wallet Transaction UX and vault browser journeys
+        run: |
+          npx playwright test \
+            tests/wallet-browser-validation.spec.mjs \
+            tests/wallet-vault-browser.spec.mjs \
+            --reporter=line --workers=1
