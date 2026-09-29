@@ -55,14 +55,14 @@ for(const [browserName,launcher] of [['Chromium',chromium],['WebKit',webkit]]){
       await installNetwork(context);
       let page=context.pages()[0]||await context.newPage();
       const address=await completeNewWallet(page);
-      const atRest=await page.evaluate(()=>({
+      const atRest=await page.evaluate(async()=>({
         keyring:localStorage.getItem('fae-public-v4-keyring-v3'),
         single:localStorage.getItem('fae-public-v4-wallet'),
-        wallets:FAEWalletVault.listWallets().then(items=>items.length)
+        wallets:(await FAEWalletVault.listWallets()).length
       }));
       expect(atRest.keyring).toBeNull();
       expect(atRest.single).toBeNull();
-      expect(await atRest.wallets).toBe(1);
+      expect(atRest.wallets).toBe(1);
       await context.close();
       context=null;
 
