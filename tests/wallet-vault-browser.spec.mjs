@@ -216,7 +216,7 @@ test('authenticated vault tamper and wrong wrapping key never create a substitut
   });
 
   await page.reload({waitUntil:'domcontentloaded'});
-  await expect(page.locator('#recoverystate')).toContainText(/storage|Wallet|migration/i);
+  await expect(page.locator('#wstate')).toContainText(/storage|Wallet|migration/i);
   await expect(page.locator('#wallet-connected-state')).toBeHidden();
   expect(await page.locator('#addr').inputValue()).not.toBe(originalAddress);
 
@@ -224,7 +224,15 @@ test('authenticated vault tamper and wrong wrapping key never create a substitut
   // not fabricate or reinterpret replacement identity in this profile.
   const publicRecords=await page.evaluate(()=>FAEWalletVault.listWallets());
   expect(publicRecords).toHaveLength(1);
-  await expect(page.evaluate(()=>FAEWalletVault.loadAccount(publicRecords[0].walletId))).rejects.toThrow();
+  const corruption=await page.evaluate(async walletId=>{
+    try{
+      await FAEWalletVault.loadAccount(walletId);
+      return 'unexpected-success';
+    }catch(error){
+      return error.code||error.message;
+    }
+  },publicRecords[0].walletId);
+  expect(corruption).toBe('CORRUPTED_VAULT');
 
   await context.close();
 });
