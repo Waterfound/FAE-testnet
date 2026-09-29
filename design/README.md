@@ -44,3 +44,25 @@ They remain inside FAE until another real product demonstrates reusable value.
 ## Explorer authority correction
 
 The Direction D Explorer prototype is **not part of the current integration candidate**. Block Explorer authority currently freezes Explorer source writes. Explorer files have been restored to `main`; the prior visual prototype remains evidence-only until a compatible source-write authority is explicitly granted.
+
+## Direction D+ — current authoritative approval candidate
+
+The latest visual candidate is **D+**, derived from Direction D and preserving the already-authoritative structure. It is **not yet the final canonical visual direction** until Waterfound explicitly approves it.
+
+Approval Studio:
+- https://fae-direction-d-approval-studio-txbjsu.v2.appdeploy.ai/
+
+Key refinements:
+- 100% product / 0% sales opening experience;
+- thin orange topper with a single status chip (Connecting… → Testnet online / Mainnet online);
+- no separate Public testnet chip below the topper and no Test coins button;
+- ticker uses Block Height while preserving the earlier compact information typography;
+- compact Wallet/Mining controls at the upper-right in the white zone;
+- Mining Overview uses non-redundant operational telemetry;
+- Devices bars are small, thin, rectangular, centered, spaced apart, and intentionally surrounded by generous whitespace;
+- current works/s stays inside the blue fill; estimated max works/s stays fixed on the right edge of the track;
+- blue intensity and fast internal motion communicate live current performance relative to each device's own estimated ceiling;
+- Mobile Preview remains at the bottom;
+- GitHub and GitBook entry points remain at the bottom.
+
+This D+ branch exists only for approval and must not supersede the verified integration candidate or public-rebrand authority gate until Waterfound approves it.
