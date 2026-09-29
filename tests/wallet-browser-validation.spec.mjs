@@ -91,6 +91,7 @@ for(const profile of profiles){
     await activate(page.locator('#action-create'),profile.hasTouch);
     await activate(page.locator('#createwallet'),profile.hasTouch);
     await expect(page.locator('#wallet-connected-state')).toBeHidden();
+    await expect(page.locator('#newseedwords')).not.toHaveValue('');
     const recoveryWords=await page.locator('#newseedwords').inputValue();
     expect(recoveryWords.trim().split(/\\s+/)).toHaveLength(24);
     await activate(page.locator('#readyconfirm'),profile.hasTouch);
