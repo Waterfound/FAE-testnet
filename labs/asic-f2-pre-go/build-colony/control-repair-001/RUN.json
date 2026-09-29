@@ -1,7 +1,7 @@
 {
   "schema": "build-colony.run.v1",
   "run_id": "fae-asic-a3-r4-control-repair-001",
-  "status": "EXECUTING",
+  "status": "STATIC_VALIDATION_COMPLETE_AWAITING_AUTHORITY",
   "owner_repo": "Waterfound/FAE-testnet",
   "branch": "colony/fae-asic-a3-r4-control-repair-001",
   "baseline_revision": "a208b245da98052b60b9d47cd676f7c0a23e74a3",
@@ -61,5 +61,35 @@
     "no fae_pc_ctrl cells",
     "DP6 blob unchanged"
   ],
-  "stop_after": "Provider static PASS or real static failure; never continue to physical/AFI/F2 under this authority."
+  "stop_after": "Provider static PASS or real static failure; never continue to physical/AFI/F2 under this authority.",
+  "selected_candidate": {
+    "name": "A3-R4-CTRL-SMARTCONNECT-CDC-R3",
+    "candidate_blob": "83394e46048147a30ddda7f2f572d6f6d52e6017",
+    "provider_result": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3_PROVIDER_RESULT.json",
+    "verdict": "PASS_PROVIDER_STATIC",
+    "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-04978ee222eb2661d/a3-r4-controlrepair-r3-static/"
+  },
+  "rejected_candidates": [
+    {
+      "name": "R1-CTRL-CDC-AXILITE-PARTIAL-CONFIG",
+      "reason": "BD 41-237 x2; BD 41-737 x8"
+    },
+    {
+      "name": "R2-CTRL-CDC-FULL-AXILITE-CONFIG",
+      "reason": "BD 41-237 x2; generic converter still advertised burst 256"
+    }
+  ],
+  "static_validation": {
+    "vivado_rc": 0,
+    "bd_41_237": 0,
+    "bd_41_737": 0,
+    "control_endpoints": "AXI4LITE/MAX_BURST_LENGTH=1",
+    "apertures": [
+      "0x0000",
+      "0x1000"
+    ],
+    "dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "wrapper_postcheck_false_negative": "corrected without provider rerun; raw provider evidence independently satisfied acceptance"
+  },
+  "next_gate": "Human authority for one physical implementation build of the selected R3 candidate only; no AFI/F2/runtime."
 }
