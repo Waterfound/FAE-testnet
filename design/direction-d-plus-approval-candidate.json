@@ -1,0 +1,72 @@
+{
+  "schema": "FAE_DIRECTION_D_PLUS_APPROVAL_CANDIDATE_V1",
+  "state": "AUTHORITATIVE_APPROVAL_CANDIDATE",
+  "authority_owner": "Waterfound",
+  "recorded_at": "2026-09-28T22:20:00-03:00",
+  "base_direction": "D — Orange Top / White Field / Blue Circulation",
+  "candidate_name": "D+",
+  "approval_studio": "https://fae-direction-d-approval-studio-txbjsu.v2.appdeploy.ai/",
+  "final_authority_status": "PENDING_WATERFOUND_EXPLICIT_APPROVAL",
+  "preserve_authoritative_prior_state": true,
+  "refinements": {
+    "product_orientation": "100% product / 0% sales; opening view is immediately usable rather than a marketing landing page",
+    "title": "FAE Web Interface; Mobile Preview remains in the bottom section",
+    "topper": {
+      "orange_band": "thin",
+      "status": "single status chip in orange topper",
+      "states": [
+        "Connecting…",
+        "Testnet online",
+        "Mainnet online"
+      ],
+      "remove_test_coins_button": true,
+      "remove_public_testnet_chip_below_topper": true
+    },
+    "ticker": {
+      "label_change": "Block → Block Height",
+      "typography": "preserve the earlier compact ticker font and sizing",
+      "content": "Block Height / Supply / Reward / Difficulty; avoid redundant large metric cards"
+    },
+    "mode_controls": {
+      "placement": "small Wallet and Mining buttons at upper-right in the white zone below the ticker",
+      "semantics": "focused separated modes; Wallet shows wallet content, Mining shows mining content"
+    },
+    "footer": [
+      "GitHub icon button",
+      "GitBook icon button"
+    ],
+    "mining_overview": {
+      "purpose": "useful mining telemetry that does not duplicate ticker data",
+      "examples": [
+        "Active devices",
+        "Accepted works (24h)",
+        "Efficiency",
+        "Average work rate",
+        "Uptime",
+        "Your contribution"
+      ]
+    },
+    "devices": {
+      "icons": "preserve the earlier simpler device icon family",
+      "bars": {
+        "geometry": "small thin rectangular battery-like bars, centered inside the Devices box",
+        "size": "approximately 20% smaller/thinner than the previous authoritative candidate",
+        "spacing": "larger vertical separation and generous blank internal whitespace for visual cleanliness",
+        "current_value": "current works/s inside the blue fill",
+        "max_value": "estimated maximum works/s fixed at the right side inside the track",
+        "intensity": "strong electric blue near estimated maximum; progressively lighter blue below capacity",
+        "motion": "fast live internal motion proportional to work execution; bar fill dynamically falls/rises with actual works",
+        "semantics": "performance relative to each device's own estimated focused-mining ceiling, never deterministic progress to reward"
+      }
+    },
+    "mobile": "show focused Wallet and Mining smartphone previews in the bottom section"
+  },
+  "non_authority_effects": [
+    "does not authorize public rebrand deployment",
+    "does not authorize merge to main",
+    "does not authorize Explorer source writes",
+    "does not alter mining runtime/logic",
+    "does not alter consensus/economics/protocol identity",
+    "does not finalize logo or symbol"
+  ]
+}
