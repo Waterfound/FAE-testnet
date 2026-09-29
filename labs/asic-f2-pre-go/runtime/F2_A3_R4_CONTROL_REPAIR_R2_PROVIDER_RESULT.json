@@ -1,0 +1,46 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r2.provider_static.v1",
+  "run": "R2",
+  "status": "FAIL_CLOSED",
+  "candidate": "A3-R4-CTRL-AXILITE-CDC-R2",
+  "source_commit": "80f9a9d4a73df999bc6e814a8f8e829c16d61f91",
+  "candidate_blob": "ba6c94d7b7394a4338dee86106aa3e86abf0e7b9",
+  "provider": {
+    "cloud": "AWS",
+    "region": "us-east-1",
+    "instance_id": "i-0fc52775084c67e0e",
+    "instance_type": "r7i.xlarge",
+    "final_state": "shutting-down"
+  },
+  "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-0fc52775084c67e0e/a3-r4-controlrepair-r2-static/",
+  "validation": {
+    "stage": "A3_R4_CONTROL_REPAIR_R2_STATIC_FAIL_CLOSED",
+    "exit_code": 1,
+    "vivado_rc": 1,
+    "bd_41_237": 2,
+    "bd_41_737": 0,
+    "finished_utc": "2026-09-29T04:52:08Z"
+  },
+  "proven": [
+    "The R2 control CDC interface reports PROTOCOL=AXI4LITE.",
+    "Pin-level read-only override warnings BD 41-737 are eliminated.",
+    "The generic axi_clock_converter still reports MAX_BURST_LENGTH=256 on the AXI4-Lite control interface in this BD, causing two BD 41-237 mismatches against HLS control burst length 1.",
+    "R2 is not statically admissible."
+  ],
+  "not_proven": [
+    "Original A3-R4 F2 runtime root cause.",
+    "Runtime liveness of a revised candidate.",
+    "Any parity/correctness result."
+  ],
+  "disposition": "REFINE_WITHIN_EXISTING_REPAIR_AUTHORITY",
+  "next_candidate": "Remove external control axi_clock_converter cells and use multi-clock fae_ctrl_split SmartConnect to cross 250->200 MHz while preserving AXI4-Lite endpoints and all existing addresses/memory topology.",
+  "authority": {
+    "new_afi": false,
+    "new_f2": false,
+    "physical_build": false,
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "mainnet": false
+  }
+}
