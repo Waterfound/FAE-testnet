@@ -1,0 +1,39 @@
+{
+  "schema_version": "fae.dp6.robust_premise_review.disposition.v1",
+  "decision_id": "FAE_DP6_ROBUST_PREMISE_REVIEW",
+  "classification": "STRONG_HEURISTIC_ONLY",
+  "program_disposition": "HOLD",
+  "effective_after_provider_result": "R3-T1-LOCAL166P667 PHYSICAL_PASS_TIMING_CLOSED",
+  "rationale_boundary": [
+    "DP6 now has real implementation, parity history, memory-hard/data-dependent structure, FPGA implementability evidence, and an R3-T1 physical timing-closed build.",
+    "The economically central ASIC-resistance proposition remains unproven: current evidence does not establish that a competent specialized implementation cannot gain enough advantage over commodity hardware to compromise FAE participation goals.",
+    "Therefore additional expensive physical ASIC/FPGA validation is not automatically admissible merely because R3-T1 closed timing."
+  ],
+  "hold_scope": {
+    "physical_builds": true,
+    "afi_creation": true,
+    "f2_runtime": true,
+    "benchmark": true,
+    "attacker_sweep": true,
+    "sustained_hfb": true,
+    "consensus_economics_changes": true,
+    "release": true,
+    "activation_height": true,
+    "mainnet": true
+  },
+  "permitted_without_new_authority": [
+    "read-only evidence reconstruction",
+    "analytical modeling",
+    "source review",
+    "documentation of existing evidence",
+    "future cheap analytical premise tests that do not consume new physical/provider authority"
+  ],
+  "resume_condition": "Resume expensive physical validation only after a later evidence-based review strengthens or otherwise changes the robust-premise disposition and the required authority is explicitly granted.",
+  "evidence_refs": [
+    "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_PHYSICAL_PROVIDER_RESULT.json",
+    "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3_TIMING_DIAGNOSIS.json",
+    "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_PROVIDER_RESULT.json"
+  ],
+  "epistemic_rule": "First observable divergence is not root-cause proof. Physical timing closure is not economic ASIC-resistance proof.",
+  "operator_directive": "Transition this workstream explicitly to HOLD according to FAE_DP6_ROBUST_PREMISE_REVIEW = STRONG_HEURISTIC_ONLY; do not initiate any new AWS execution."
+}
