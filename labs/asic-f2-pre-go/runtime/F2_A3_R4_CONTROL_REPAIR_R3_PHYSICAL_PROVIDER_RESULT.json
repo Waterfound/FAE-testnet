@@ -1,0 +1,110 @@
+{
+  "schema_version": "fae.asic.a3_r4.control_repair_r3.physical_provider_result.v1",
+  "observed_at": "2026-09-29T11:21:25Z",
+  "candidate": "A3-R4-CTRL-SMARTCONNECT-CDC-R3",
+  "disposition": "PHYSICAL_FAIL_CLOSED_TIMING",
+  "source": {
+    "repository": "Waterfound/FAE-testnet",
+    "branch": "colony/fae-asic-a3-r4-control-repair-001",
+    "revision": "b6f16a50182aa482a9ea457578843992c974120f",
+    "hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "integrate_blob": "83394e46048147a30ddda7f2f572d6f6d52e6017",
+    "implement_blob": "bdd96a2cbfdbf3b9be3bca4f617f841b905adb09",
+    "hls_ip_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
+  },
+  "provider": {
+    "ec2_instance_id": "i-02d25f0ae0583a844",
+    "instance_type": "r7i.4xlarge",
+    "region": "us-east-1",
+    "evidence_prefix": "s3://fae-asic-lab-203842200752-20260922/evidence/i-02d25f0ae0583a844/f2-a3-r4-controlrepair-r3-physical/",
+    "vivado_rc": 1,
+    "process_exit_code": 1,
+    "finished_utc": "2026-09-29T11:21:25Z"
+  },
+  "authority": {
+    "physical_build_authorized": true,
+    "afi_creation_authorized": false,
+    "f2_runtime_authorized": false,
+    "benchmark_authorized": false,
+    "attacker_sweep_authorized": false,
+    "sustained_hfb_authorized": false,
+    "consensus_economics_authorized": false,
+    "release_authorized": false,
+    "activation_height_authorized": false,
+    "mainnet_authorized": false,
+    "fail_closed_timing": true
+  },
+  "physical_configuration": {
+    "global_impl_strategy": "Vivado Implementation Defaults",
+    "opt_design": "Explore",
+    "place_design": "Explore",
+    "shell_clk_main_a0_mhz": 250,
+    "local_compute_clk_mhz": 200,
+    "control_path": "SMARTCONNECT_INTERNAL_CDC_250_TO_200_AXI4LITE",
+    "memory_path": "DIRECTSPLIT_DDR_HBM0_HBM1",
+    "control_apertures": [
+      "0x0000",
+      "0x1000"
+    ]
+  },
+  "preservation": {
+    "dp6_semantics_preserved": true,
+    "dp6_evidence": "HLS blob matches frozen ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "memory_map_preserved": true,
+    "memory_map": {
+      "ddra": "0x1000000000",
+      "lane0_hbm0": "0x0200000000",
+      "lane1_hbm1": "0x0220000000"
+    },
+    "control_apertures_preserved": true,
+    "control_aperture_lane0": "0x0000",
+    "control_aperture_lane1": "0x1000"
+  },
+  "implementation": {
+    "status": "route_design Complete, Failed Timing!",
+    "progress": "100%",
+    "wns_ns": -0.842799,
+    "tns_ns": -1542.238647,
+    "whs_ns": 0.006822,
+    "ths_ns": 0,
+    "timing_gate_pass": false,
+    "routing": {
+      "logical_nets": 1122528,
+      "routable_nets": 646203,
+      "fully_routed_nets": 646203,
+      "routing_errors": 0,
+      "unrouted_nets": 0,
+      "router_completed_successfully": true
+    },
+    "relevant_critical_warnings": [
+      "[Route 35-39] The design did not meet timing requirements.",
+      "[Timing 38-282] The design failed to meet the timing requirements."
+    ],
+    "relevant_noncritical_observation": "[Route 35-443] CLB routing congestion detected during routing; final routing completed with zero errors.",
+    "implementation_errors": []
+  },
+  "developer_cl": {
+    "produced": true,
+    "s3_key": "evidence/i-02d25f0ae0583a844/f2-a3-r4-controlrepair-r3-physical/artifacts/example_projects/cl_ipi_cdma_test.runs/faas_1/build/checkpoints/to_aws/2026_09_29-070434.Developer_CL.tar",
+    "sha256": "5fe3b2aaddf0edd4d7d44e033ed3b5379c09719cec9dde15588b0010994e24fe",
+    "size_bytes": 272192000,
+    "admissible_for_afi": false,
+    "inadmissibility_reason": "Final routed timing failed the required invariant WNS>=0, TNS=0, WHS>=0, THS=0."
+  },
+  "epistemic_boundary": {
+    "root_cause_proven": false,
+    "statement": "R3 proves that the candidate can be fully routed but fails the physical timing gate. This does not prove a unique root cause for the earlier A3-R4 runtime liveness failure or for the R3 timing failure."
+  },
+  "prohibited_followups_under_current_authority": [
+    "create AFI",
+    "run F2",
+    "benchmark",
+    "attacker sweep",
+    "sustained/HFB",
+    "change consensus/economics",
+    "release",
+    "activation height",
+    "mainnet"
+  ],
+  "next_state": "HUMAN_AUTHORITY_GATE_REQUIRED_BEFORE_ANY_FURTHER_PHYSICAL_REFINEMENT_OR_RUNTIME"
+}
