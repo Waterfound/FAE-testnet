@@ -155,3 +155,36 @@ Before integration:
 - large metric balloons replacing the ticker;
 - animation without state meaning;
 - critical wallet actions visually subordinated to branding.
+
+## D+ approval refinements — pending final authority
+
+These refinements are authoritative for the current approval candidate, while final canonical promotion remains pending Waterfound approval.
+
+### Product-first entry
+
+The opening screen is the product itself. No marketing hero or sales-oriented landing state precedes Wallet/Mining interaction.
+
+### Topper and ticker
+
+- orange topper remains thin;
+- it contains the sole network-status chip;
+- states: Connecting…, Testnet online, and on mainnet Mainnet online;
+- remove the separate Public testnet chip below the topper;
+- remove Test coins from the topper;
+- ticker label is Block Height, preserving the prior compact font/sizing.
+
+### Focused product modes
+
+Small Wallet and Mining buttons sit at the upper-right of the white product zone. Wallet mode shows only wallet-focused panels; Mining mode shows only mining-focused panels.
+
+### Multi-device mining telemetry
+
+The Devices card is deliberately spacious. Device icons remain left-aligned, while the performance bars are small, thin, rectangular and centered with generous blank space.
+
+For each device:
+- current executed works/s appears inside the blue fill;
+- estimated focused-mining ceiling works/s remains fixed at the right edge of the track;
+- fill length tracks current output relative to that device's own estimated ceiling;
+- blue becomes stronger/electric near high utilization and lighter as output falls;
+- internal motion remains fast and visibly alive while works execute, slowing/settling when output falls;
+- none of this communicates progress toward a guaranteed reward.
