@@ -1,0 +1,43 @@
+{
+  "schema": "build-colony.result.v1",
+  "run_id": "fae-asic-a3-r4-r3-timing-refinement-001",
+  "status": "STATIC_VALIDATION_COMPLETE_AWAITING_AUTHORITY",
+  "selected_candidate": {
+    "name": "R3-T1-LOCAL166P667",
+    "candidate_blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+    "requested_local_clock_mhz": 166.667
+  },
+  "diagnosis": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3_TIMING_DIAGNOSIS.json",
+  "source_validation": {
+    "result": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_SOURCE_RESULT.json",
+    "verdict": "PASS_SOURCE_STATIC"
+  },
+  "provider_validation": {
+    "result": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_PROVIDER_RESULT.json",
+    "result_blob": "23196e1a2c2894e9d53c21837cb26cd2fd051155",
+    "provider_instance": "i-01388ffc8fb1771ff",
+    "verdict": "PASS_PROVIDER_STATIC",
+    "vivado_rc": 0,
+    "bd_41_237": 0,
+    "bd_41_737": 0,
+    "wrapper_false_negative": true,
+    "provider_rerun_required": false
+  },
+  "invariants": {
+    "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "memory_map_preserved": true,
+    "control_apertures": [
+      "0x0000",
+      "0x1000"
+    ],
+    "smartconnect_r3_topology_preserved": true
+  },
+  "epistemic_boundary": "Static PASS does not prove physical timing closure or the original runtime root cause.",
+  "authority_consumed": "Timing diagnosis/refinement + source/static validation only.",
+  "authority_remaining": "No physical build, AFI, F2, benchmark, attacker sweep, sustained/HFB, consensus/economics, release, activation-height, or mainnet authority.",
+  "next_gate": {
+    "action_ref": "authority://fae-asic/a3/r4/control-repair-r3t1-physical-implementation",
+    "frontier": "One physical implementation build of R3-T1 at requested local 166.667 MHz, timing fail-closed.",
+    "reason": "Physical implementation is expressly outside the current timing-refinement authority."
+  }
+}
