@@ -1,0 +1,16 @@
+{
+  "schema": "fae.asic.a3_r4.control_repair.r2.source_validation.v1",
+  "status": "PASS",
+  "candidate_blob": "ba6c94d7b7394a4338dee86106aa3e86abf0e7b9",
+  "frozen_hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+  "checks": {
+    "frozen_hls_preserved": true,
+    "apertures_preserved": true,
+    "memory_map_preserved": true,
+    "no_protocol_converter": true,
+    "full_axilite_cdc_config": true,
+    "post_validate_readonly_assertions": true,
+    "no_afi_f2_actions": true
+  },
+  "epistemic_boundary": "R2 tests a narrower control-path construction. Even a static PASS would not prove the original F2 runtime root cause or runtime correctness."
+}
