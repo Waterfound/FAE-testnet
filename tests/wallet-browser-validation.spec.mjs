@@ -90,6 +90,13 @@ for(const profile of profiles){
 
     await activate(page.locator('#action-create'),profile.hasTouch);
     await activate(page.locator('#createwallet'),profile.hasTouch);
+    await expect(page.locator('#wallet-connected-state')).toBeHidden();
+    const recoveryWords=await page.locator('#newseedwords').inputValue();
+    expect(recoveryWords.trim().split(/\\s+/)).toHaveLength(24);
+    await activate(page.locator('#readyconfirm'),profile.hasTouch);
+    await page.locator('#confirmseed').fill(recoveryWords);
+    await activate(page.locator('#confirmwallet'),profile.hasTouch);
+    await expect(page.locator('#wallet-connected-state')).toBeVisible();
     await expect(page.locator('#addr')).toHaveValue(/^faet1/);
     await expect(page.locator('#historystate')).toHaveAttribute('data-state','ready_recent');
     await expect(page.locator('#txhist details')).toHaveCount(1);
