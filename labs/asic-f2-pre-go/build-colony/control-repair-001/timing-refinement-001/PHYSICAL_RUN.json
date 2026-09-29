@@ -1,0 +1,53 @@
+{
+  "schema": "build-colony.run.v1",
+  "run_id": "fae-asic-a3-r4-r3t1-physical-001",
+  "status": "AUTHORIZED_READY_FOR_ONE_PHYSICAL_BUILD",
+  "owner_repo": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-asic-a3-r4-control-repair-001",
+  "head": "b9b21a3a46c095630c313a21f98fa1977108ab97",
+  "authority": {
+    "receipt": "github://Waterfound/General-Execution/commit/bcac6427321c1f13391ec88313ad5648da7816c5/authority/fae-asic-a3-r4-control-repair-r3t1-physical-authority-resume-002.json",
+    "durable_generation": 13,
+    "allowed": [
+      "exactly one physical implementation build of R3-T1 at requested local 166.667 MHz"
+    ],
+    "forbidden": [
+      "AFI creation",
+      "F2 runtime",
+      "benchmark",
+      "attacker sweep",
+      "sustained/HFB",
+      "consensus/economics",
+      "release",
+      "activation height",
+      "mainnet"
+    ]
+  },
+  "candidate": {
+    "name": "R3-T1-LOCAL166P667",
+    "integrate_blob": "1018e63b0b9f6cf4437cce71a91ba2ddfa234a2b",
+    "implement_blob": "d1ad3e0aa5d70cba72f83c1ff1abe57de8422511",
+    "runner_blob": "c4696b274237e7f81548ca34442b9bfab6c078c9",
+    "frozen_dp6_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "requested_local_clock_mhz": 166.667,
+    "control_apertures": [
+      "0x0000",
+      "0x1000"
+    ],
+    "memory_map": [
+      "DDRA 0x1000000000",
+      "lane0 HBM0 0x0200000000",
+      "lane1 HBM1 0x0220000000"
+    ]
+  },
+  "source_validation": {
+    "result": "labs/asic-f2-pre-go/runtime/F2_A3_R4_CONTROL_REPAIR_R3T1_PHYSICAL_SOURCE_RESULT.json",
+    "verdict": "PASS_SOURCE_BOUNDARY"
+  },
+  "acceptance": {
+    "timing_invariant": "WNS>=0,TNS=0,WHS>=0,THS=0",
+    "fail_closed": true,
+    "developer_cl_admissible_only_if_timing_pass": true
+  },
+  "stop_after": "Physical build PASS or physical/timing FAIL. No AFI/F2/runtime under this authority."
+}
