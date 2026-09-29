@@ -1,0 +1,170 @@
+{
+  "schema": "fae.dp6.rp_b2.specialized_ppa_envelope.v1",
+  "date": "2026-09-29",
+  "authority": "evidence-only analytical; no AWS/physical/AFI/F2/implementation change",
+  "inherited_rp_b1_commit": "0cdfeaf054d5386117b71069d26b5b12db330471",
+  "source_constants": {
+    "context_bytes": 268435456,
+    "argon_blocks": 262144,
+    "argon_fill_blocks": 262142,
+    "blamka_per_fill": 512,
+    "argon_blamka_per_work": 134216704,
+    "rw5_programs": 8,
+    "rw5_steps_per_program": 131072,
+    "rw5_steps_per_work": 1048576,
+    "rw5_mandatory_reads_per_work": 1048576,
+    "rw5_mandatory_writes_per_work": 1048576,
+    "rw5_logical_bytes_per_work": 16777216,
+    "full_memory_logical_traffic_low_bytes": 553648128,
+    "full_memory_logical_traffic_high_bytes": 822083584,
+    "rw5_common_mulh64_per_work": 1048576,
+    "rw5_common_mulh64_source_32x32_multiplies_per_work": 4194304,
+    "minimum_source_32x32_multiply_like_count_excluding_constant_and_opcode_specific": 138411008
+  },
+  "formulas": {
+    "contexts_per_work_per_second": "C/Q >= S_rw5 * L_eff",
+    "memory_capacity_per_work_per_second": "M_total/Q >= M_context * S_rw5 * L_eff",
+    "dependent_reads_per_second": "R_read >= Q * S_rw5",
+    "dependent_writes_per_second": "R_write >= Q * S_rw5",
+    "effective_bandwidth_requirement": "B_eff >= Q * D_work",
+    "installed_memory_capex_per_throughput": "K_mem/Q >= k_mem_per_byte * M_context * S_rw5 * L_eff",
+    "energy_per_work_parametric": "E_work >= E_argon_memory + S_rw5*(e_rw5_read+e_rw5_write) + N_mul32*e_mul32 + other_compute_energy",
+    "specialist_lcvw": "LCVW_s = annualized_fixed_cost/(Y*u*Q) + electricity_price*E_work/3.6e6 + variable_opex_per_work"
+  },
+  "latency_sensitivity": [
+    {
+      "L_eff_ns": 25,
+      "contexts_per_work_s": 0.0262144,
+      "memory_MiB_per_work_s": 6.7108864
+    },
+    {
+      "L_eff_ns": 50,
+      "contexts_per_work_s": 0.0524288,
+      "memory_MiB_per_work_s": 13.4217728
+    },
+    {
+      "L_eff_ns": 75,
+      "contexts_per_work_s": 0.0786432,
+      "memory_MiB_per_work_s": 20.1326592
+    },
+    {
+      "L_eff_ns": 100,
+      "contexts_per_work_s": 0.1048576,
+      "memory_MiB_per_work_s": 26.8435456
+    },
+    {
+      "L_eff_ns": 150,
+      "contexts_per_work_s": 0.1572864,
+      "memory_MiB_per_work_s": 40.2653184
+    },
+    {
+      "L_eff_ns": 200,
+      "contexts_per_work_s": 0.2097152,
+      "memory_MiB_per_work_s": 53.6870912
+    }
+  ],
+  "memory_technology_anchors": [
+    {
+      "name": "AWS F2 HBM",
+      "capacity": "16 GiB",
+      "bandwidth": "up to 460 GiB/s",
+      "raw_256MiB_contexts": 64,
+      "q_latency_ceiling_50ns": 1220.703125,
+      "q_latency_ceiling_100ns": 610.3515625,
+      "q_latency_ceiling_150ns": 406.9010417,
+      "q_bandwidth_ceiling_low_to_high_traffic": "~601-892 work/s",
+      "role": "historical/experimental architecture anchor, not ASIC cost proxy"
+    },
+    {
+      "name": "Micron HBM3E",
+      "capacity": "24GB/36GB",
+      "bandwidth": ">1.2 TB/s per placement",
+      "raw_256MiB_contexts_24GB": 89.4069672,
+      "raw_256MiB_contexts_36GB": 134.1104507,
+      "role": "commercial specialized-memory plausibility anchor"
+    },
+    {
+      "name": "Micron HBM4 12H",
+      "capacity": "36GB",
+      "bandwidth": ">2.8 TB/s per stack",
+      "raw_256MiB_contexts": 134.1104507,
+      "q_latency_ceiling_50ns": 2557.953849,
+      "q_latency_ceiling_100ns": 1278.976924,
+      "q_latency_ceiling_150ns": 852.651283,
+      "q_bandwidth_ceiling_low_to_high_traffic": "~3406-5057 work/s",
+      "role": "2026 attacker-favorable commercial-memory anchor; actual DP6 random latency/efficiency unknown"
+    },
+    {
+      "name": "Micron GDDR7 384-bit system",
+      "capacity_note": "24Gb devices can compose multi-chip systems; capacity implementation-dependent",
+      "bandwidth": ">1.5 TB/s system at 384-bit/32Gbps anchor",
+      "q_bandwidth_ceiling_low_to_high_traffic": "~1825-2709 work/s",
+      "role": "lower-packaging-complexity alternative sensitivity anchor; DP6 random-access efficiency unknown"
+    }
+  ],
+  "compute_rate_floor": [
+    {
+      "Q_work_s": 1,
+      "argon_blamka_Gop_s": 0.134216704,
+      "rw5_steps_Gstep_s": 0.001048576,
+      "min_source_32x32_mult_like_Gop_s": 0.138411008
+    },
+    {
+      "Q_work_s": 10,
+      "argon_blamka_Gop_s": 1.34216704,
+      "rw5_steps_Gstep_s": 0.01048576,
+      "min_source_32x32_mult_like_Gop_s": 1.38411008
+    },
+    {
+      "Q_work_s": 100,
+      "argon_blamka_Gop_s": 13.4216704,
+      "rw5_steps_Gstep_s": 0.1048576,
+      "min_source_32x32_mult_like_Gop_s": 13.8411008
+    },
+    {
+      "Q_work_s": 1000,
+      "argon_blamka_Gop_s": 134.216704,
+      "rw5_steps_Gstep_s": 1.048576,
+      "min_source_32x32_mult_like_Gop_s": 138.411008
+    }
+  ],
+  "current_fpga_anchor": {
+    "hls_estimated_resources": {
+      "bram18k": 13,
+      "dsp": 59,
+      "ff": 167160,
+      "lut": 310980,
+      "uram": 0,
+      "estimated_fmax_mhz": 315.81
+    },
+    "r3t1": {
+      "local_compute_mhz": 166.667,
+      "wns_ns": 0.023269,
+      "tns_ns": 0,
+      "whs_ns": 0.009551,
+      "ths_ns": 0,
+      "routing_errors": 0,
+      "disposition": "PHYSICAL_PASS_TIMING_CLOSED"
+    },
+    "interpretation": "implementation feasibility/calibration only; explicitly not ASIC PPA lower bound"
+  },
+  "bounded_conclusions": {
+    "full_memory_capacity_throughput_product": "PROVEN_BY_SOURCE_MODEL conditional on L_eff and full-memory strategy",
+    "aggregate_low_throughput_from_seriality_alone": "FALSIFIED",
+    "high_bandwidth_memory_availability_to_custom_asic": "STRONGLY_SUPPORTED",
+    "fixed_function_blamka_feasibility": "STRONGLY_SUPPORTED by prior art, not a DP6 full-miner result",
+    "absolute_asic_area_floor_mm2": "UNKNOWN",
+    "absolute_asic_power_floor_W": "UNKNOWN",
+    "absolute_specialist_energy_floor_J_per_work": "UNKNOWN",
+    "absolute_specialist_financial_floor_currency_per_work": "UNKNOWN",
+    "dp6_specialized_economic_resistance": "PLAUSIBLE_NOT_DEMONSTRATED"
+  },
+  "terminal_classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+  "next_frontier": {
+    "id": "RP-B3",
+    "name": "Technology-Calibrated Specialized PPA Evidence Gate",
+    "authority_status": "REQUIRES_NEW_AUTHORITY",
+    "reason": "meaningful closure now needs technology-calibrated RTL/gate-level PPA or equivalent independent specialized-hardware evidence; source-only analysis cannot assign defensible area/energy/cost coefficients"
+  },
+  "asic_lab_disposition": "HOLD"
+}
