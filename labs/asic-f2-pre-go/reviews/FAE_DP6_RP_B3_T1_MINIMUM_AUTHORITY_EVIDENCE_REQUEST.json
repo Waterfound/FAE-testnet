@@ -1,0 +1,37 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.authority_evidence_request.v1",
+  "date": "2026-09-29",
+  "frontier": "RP-B3-T1 — Frozen-DP6 Named-Library Standard-Cell PPA Calibration",
+  "classification": "GENUINE_TOOL_LIBRARY_OR_EXTERNAL_EVIDENCE_GATE",
+  "purpose": "Replace remaining full-DP6 ASIC PPA UNKNOWN coefficients with a reproducible technology-calibrated research artifact.",
+  "minimum_required_inputs": [
+    "Frozen DP6 RTL/netlist mechanically derived from existing frozen semantics and parity-bound to canonical vectors, or explicit authority to generate that research RTL/netlist without changing DP6.",
+    "Exactly one named legally accessible standard-cell library/PDK with timing/power characterization and explicit process/voltage/corner.",
+    "Exactly one synthesis + STA + power flow capable of consuming the frozen RTL/netlist and named library.",
+    "Exactly one named memory-interface/controller/PHY/package model with provenance sufficient to state area/power/latency/bandwidth; procurement cost may remain UNKNOWN if not evidenced."
+  ],
+  "fail_closed_conditions": [
+    "RTL/netlist cannot be proven parity-equivalent to frozen DP6.",
+    "Library/PDK license or provenance is unclear.",
+    "PPA flow cannot bind timing and power to an explicit technology/corner.",
+    "Memory/package values require invented prices or undocumented scaling.",
+    "Any implementation change would alter consensus semantics."
+  ],
+  "explicitly_not_requested": [
+    "AWS execution",
+    "FPGA physical build",
+    "AFI creation",
+    "F2 runtime",
+    "physical benchmark",
+    "physical attacker sweep",
+    "sustained/HFB",
+    "DP6 change",
+    "DP7 or alternative consensus algorithm",
+    "consensus/economics change",
+    "release",
+    "activation height",
+    "testnet/mainnet activation"
+  ],
+  "asic_lab_disposition": "HOLD",
+  "aws_information_gain_now": "INSUFFICIENT_TO_REOPEN"
+}
