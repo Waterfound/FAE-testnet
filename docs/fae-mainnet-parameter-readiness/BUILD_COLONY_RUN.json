@@ -52,114 +52,67 @@
     {
       "id": "MPR-00",
       "name": "Execution admission and immutable source freeze",
-      "dependencies": [],
       "state": "PASS"
     },
     {
       "id": "MPR-01",
       "name": "Executable active-testnet truth inventory",
-      "dependencies": [
-        "MPR-00"
-      ],
-      "state": "ACTIVE"
+      "state": "PASS"
     },
     {
       "id": "MPR-02",
       "name": "Exact issuance and atomic-unit arithmetic",
-      "dependencies": [
-        "MPR-00"
-      ],
-      "state": "SECONDARY"
+      "state": "PASS"
     },
     {
       "id": "MPR-03",
-      "name": "Block-time evidence reconciliation: 180/300/600/900 and tested alternatives",
-      "dependencies": [
-        "MPR-01"
-      ],
-      "state": "ADMISSIBLE"
+      "name": "Block-time evidence reconciliation",
+      "state": "COMPLETE_WITH_INSUFFICIENT_SELECTION_EVIDENCE"
     },
     {
       "id": "MPR-04",
       "name": "Coinbase maturity and settlement semantics",
-      "dependencies": [
-        "MPR-01",
-        "MPR-03"
-      ],
-      "state": "QUEUED"
+      "state": "COMPLETE_UNRESOLVED_POLICY"
     },
     {
       "id": "MPR-05",
       "name": "DAA, low-hashrate, propagation, stale and reorg coupling",
-      "dependencies": [
-        "MPR-03"
-      ],
-      "state": "QUEUED"
+      "state": "COMPLETE_WITH_EXTERNAL_EVIDENCE_BOUNDARY"
     },
     {
       "id": "MPR-06",
       "name": "Fees, miner participation and long-run security-budget ranges",
-      "dependencies": [
-        "MPR-01",
-        "MPR-02",
-        "MPR-03"
-      ],
-      "state": "QUEUED"
+      "state": "COMPLETE_WITH_EXTERNAL_EVIDENCE_BOUNDARY"
     },
     {
       "id": "MPR-07",
       "name": "Fair-launch, genesis and issuance-integrity constraints",
-      "dependencies": [
-        "MPR-01"
-      ],
-      "state": "ADMISSIBLE"
+      "state": "PASS_WITH_CONCRETE_PRODUCTION_VALUES_UNSET"
     },
     {
       "id": "MPR-08",
       "name": "DP6/ASIC, HFB and representative-device dependency consumption",
-      "dependencies": [
-        "MPR-00"
-      ],
-      "state": "ADMISSIBLE"
+      "state": "CONDITION_WAIT_EXTERNAL_WORKSTREAM"
     },
     {
       "id": "MPR-09",
       "name": "Stability Soak and network-evidence dependency consumption",
-      "dependencies": [
-        "MPR-00"
-      ],
-      "state": "ADMISSIBLE"
+      "state": "CONDITION_WAIT_EXTERNAL_WORKSTREAM"
     },
     {
       "id": "MPR-10",
       "name": "Parameter dependency graph and unnecessary-coupling analysis",
-      "dependencies": [
-        "MPR-02",
-        "MPR-03",
-        "MPR-04",
-        "MPR-05",
-        "MPR-06",
-        "MPR-07",
-        "MPR-08",
-        "MPR-09"
-      ],
-      "state": "QUEUED"
+      "state": "PASS"
     },
     {
       "id": "MPR-11",
       "name": "Independent Project Assurance challenge",
-      "dependencies": [
-        "MPR-10"
-      ],
-      "state": "QUEUED"
+      "state": "PASS_WITH_BLOCKING_FINDINGS"
     },
     {
       "id": "MPR-12",
       "name": "Freeze-readiness verdict and exact non-executing freeze contract",
-      "dependencies": [
-        "MPR-11"
-      ],
-      "state": "QUEUED"
+      "state": "COMPLETE_WITH_BLOCKERS"
     }
   ],
   "integration_policy": "Evidence artifacts may be written only under docs/fae-mainnet-parameter-readiness on this branch. No executable consensus/economics files may be modified.",
@@ -168,5 +121,21 @@
     "PARAMETERS_ACTIVATED",
     "CONSENSUS_CHANGED",
     "ECONOMICS_CHANGED"
-  ]
+  ],
+  "result": {
+    "verdict": "PARAMETER_SET_NOT_READY_TO_FREEZE",
+    "internal_admissible_work_exhausted": true,
+    "remaining_work_types": [
+      "external evidence",
+      "other-workstream terminal evidence",
+      "future explicit parameter-selection authority"
+    ],
+    "parameter_selection_authorized": false,
+    "activation_authorized": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "branch_isolation_verified": true,
+    "non_readiness_files_changed": 0
+  },
+  "terminal_state": "READINESS_RECONCILED_WITH_EXTERNAL_GATES"
 }
