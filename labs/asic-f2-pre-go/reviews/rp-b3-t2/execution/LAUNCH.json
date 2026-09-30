@@ -1,0 +1,19 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.launch.v1",
+  "logical_attempt": 2,
+  "previous_run_id": 36740379443,
+  "repair_commit": "f96315469e6d775d653383f2908166c82b258dd8",
+  "repair_scope": "Escape Make variable and Tcl/SDC variable references in generated harness only.",
+  "behavioral_rtl_edit": false,
+  "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "equivalence": "PASS_EQUIVALENCE",
+  "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+  "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+  "variants": [
+    "full",
+    "argon",
+    "rw5"
+  ],
+  "asic_lab": "HOLD",
+  "paid_provider": false
+}
