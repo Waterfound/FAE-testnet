@@ -1,0 +1,19 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_FINAL_APPROVAL_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "gate_id": "authority://fae-visual-language/mining-authored-reference-final",
+  "decision": "APPROVED",
+  "authority": "Waterfound",
+  "approved_reference": "FAE Mining Authored Reference",
+  "approved_stage": "PASS 3 — FINISH",
+  "approved_branch": "design/fae-mining-authored-reference-001",
+  "approved_candidate_commit_before_receipt": "82af546d8e108333bf01d4d80110c7080eeb3983",
+  "effect": {
+    "MAR-07": "PASS",
+    "MAR-08": "AUTHORIZED_TO_ACTIVATE_CII_GRAMMAR_EXTRACTION"
+  },
+  "propagation_authority": false,
+  "production_authority": false,
+  "main_merge_authority": false,
+  "cii_scope": "Extract and formalize the successful Mining reference grammar only; do not propagate it to product surfaces in this step."
+}
