@@ -103,11 +103,21 @@ A self-referential no-launch workflow guard was corrected at:
 
 `ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d`
 
-A side-effect-free exact-source run request was then persisted at:
+Exact-source preflight execution is now positively evidenced on:
+
+`ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d`
+
+GitHub Actions run:
+
+`36657167384`
+
+Job `preflight` completed **successfully**. Its steps passed exact revision binding, syntax/config validation, analyzer and terminal-classification regressions, prestart/provider fail-closed gates, SIGKILL recovery, 1,152-block scale recovery, node/controller/observer smoke, atomic-state replacement binding and the side-effect-free assertion. The scale recovery reached height 1,163 in 2,618 ms, well inside the frozen 180 s bound. This run is preflight evidence only; it does not start the real soak.
+
+A later evidence-only run-request marker was persisted at:
 
 `3e830756d73491eddbaecc5dc0be23822431d8fb`
 
-No GitHub Actions workflow run was observable for either revision at the time of this checkpoint. This is **not** a PASS. Historical GREEN evidence remains valid as historical evidence only.
+It does not supersede or alter the tested scientific harness.
 
 ## Exact Plan A launch admission procedure
 
