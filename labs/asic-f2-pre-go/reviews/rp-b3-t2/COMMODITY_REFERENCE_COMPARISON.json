@@ -1,0 +1,42 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.commodity_reference_comparison.v1",
+  "date": "2026-09-30",
+  "commodity_reference_only": {
+    "browser": {
+      "work_s": 3.079401,
+      "whole_system_w": 73.2,
+      "derived_J_work": 23.770862968031086,
+      "role": "provisional same-device comparator; not canonical Representative Device evidence"
+    },
+    "rtx2070_maxq": {
+      "work_s": 2.4899874136675875,
+      "whole_system_w": 104.51093961035976,
+      "derived_J_work": 41.97248925250078,
+      "role": "historical physical reference; not canonical four-class commodity vector"
+    }
+  },
+  "specialist_component_sensitivities": {
+    "hbm4_modeled_memory_component_J_work": [
+      0.011738226150604799,
+      0.0174294873145344
+    ],
+    "hbm2_memory_component_J_work": [
+      0.01758386454528,
+      0.02610937462784
+    ],
+    "gddr7_device_energy_anchor_J_work": [
+      0.019931332608,
+      0.029595009024
+    ],
+    "boundary": "Memory-component values are not whole-miner energy and must not be divided into commodity whole-system values to claim specialized advantage."
+  },
+  "throughput_sensitivity": {
+    "hbm_36gb_contexts": 134.1104507,
+    "latency_only_Q_at_108ns_work_s": 1184.237892539413,
+    "browser_reference_work_s": 3.079401,
+    "boundary": "The latency-only ceiling ignores compute, bandwidth, random-access efficiency under load, power and economics; it is not achieved throughput."
+  },
+  "conclusion": "Existing evidence is directionally adverse to assuming commodity energy/throughput parity, but insufficient for a valid specialist-vs-commodity economic ratio.",
+  "representative_device_dependency": "UNCHANGED_AND_NOT_EXECUTED_HERE",
+  "asic_lab": "HOLD"
+}
