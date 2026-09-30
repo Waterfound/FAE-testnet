@@ -38,5 +38,7 @@ assert.ok(html.includes('id="new-wallet-confirmation"'));
 assert.ok(html.includes('id="walletlist"'));
 assert.ok(html.includes('id="remove-panel"'));
 assert.ok(html.includes('src="/wallet-vault.js"'));
+assert.ok(html.includes('src="/wallet-signing-intent.js"'));
+assert.ok(wallet.includes('FAEWalletSigningIntent.create'),'send path must freeze a reviewed signing intent');
 
 console.log('Wallet persistent-vault contract and storage-boundary checks passed.');
