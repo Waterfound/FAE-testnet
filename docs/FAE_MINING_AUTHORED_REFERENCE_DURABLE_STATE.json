@@ -19,6 +19,14 @@
     "browser_qa": "PASS_13_OF_13",
     "browser_qa_run_id": "414ed4dc-96bc-4ed5-ae22-0ea79e87f545"
   },
+  "review_surface": {
+    "draft_pr": 268,
+    "base": "design/fae-direction-d-plus-approval",
+    "head": "design/fae-mining-authored-reference-001",
+    "visual_language_ci": "SUCCESS",
+    "cross_lab_integration_gate": "EXPECTED_GENERIC_GATE_MISMATCH__NOT_A_DESIGN_DEFECT",
+    "merge_readiness_claimed": false
+  },
   "terminal_condition": "HUMAN_GATE_AT_MAR_05_OR_TECHNICAL_FAIL_CLOSED_OR_CLOSURE",
   "human_gate": {
     "required": true,
@@ -36,6 +44,7 @@
   "evidence_refs": [
     "docs/FAE_MINING_AUTHORED_REFERENCE_BUILD_COLONY_RUN.json",
     "docs/FAE_MINING_AUTHORED_REFERENCE_PASS1_EVIDENCE.json",
+    "docs/FAE_MINING_AUTHORED_REFERENCE_CI_RECONCILIATION.json",
     "design/mining-authored-reference/composition-pass-1.html"
   ],
   "state": "HUMAN_GATE"
