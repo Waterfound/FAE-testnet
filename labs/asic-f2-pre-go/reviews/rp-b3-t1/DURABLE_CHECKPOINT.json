@@ -1,27 +1,69 @@
 {
-  "schema": "fae.dp6.rp_b3_t1.durable_checkpoint.v1",
+  "schema": "fae.dp6.rp_b3_t1.durable_checkpoint.v2",
   "run_id": "fae-dp6-rp-b3-t1-asap7-001",
-  "checkpoint_id": "rp-b3-t1-equivalence-pass-ppa-ready-001",
-  "checkpoint": "PASS_EQUIVALENCE__ASAP7_PPA_READY",
+  "checkpoint_id": "rp-b3-t1-attempt2-slang-dispatched-001",
+  "checkpoint": "ATTEMPT_2_SLANG_DISPATCHED__AWAITING_EXECUTION_SLOT",
   "authority_binding": "NON_PRODUCTION_ASIC_PPA_RESEARCH_ONLY",
-  "current_frontier": "ASAP7_PROVENANCE_AND_PPA_EXECUTION",
-  "admissible_next": [
-    "pin ORFS a12d46907510891a2e3d3310abdd19975d28db0e",
-    "record official openroad/orfs image digest and tool versions",
-    "run ASAP7 synthesis/STA and bounded placement/routing",
-    "materialize PPA evidence",
-    "terminal review"
+  "recovered_from": {
+    "failed_run_id": 36654718186,
+    "failed_frontend": "default Yosys read_verilog",
+    "first_divergence": "fae_dp6_hls_gmem0_m_axi.v:1260 procedural for-loop second expression not constant",
+    "interpretation": "frontend incompatibility only; not DP6 semantic or ASIC synthesis impossibility"
+  },
+  "workflow_recovery": {
+    "corrupted_checkpoint_sha": "833c7c20f9aff255c8db8e11deaebb0695535eca",
+    "repaired_workflow_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
+    "slang_binding_sha": "1be683b465a061f0e666af8695d8b6604e615022",
+    "lineage_artifact": "labs/asic-f2-pre-go/reviews/rp-b3-t1/ATTEMPT_2_RECOVERY.json"
+  },
+  "physical_invocations": [
+    {
+      "github_run_id": 36655645920,
+      "head_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
+      "status_at_checkpoint": "in_progress",
+      "admissibility": "NOT_ADMISSIBLE_AS_ATTEMPT_2_SLANG",
+      "reason": "executor revision did not bind SYNTH_HDL_FRONTEND=slang"
+    },
+    {
+      "github_run_id": 36656132054,
+      "head_sha": "1be683b465a061f0e666af8695d8b6604e615022",
+      "status_at_checkpoint": "pending",
+      "admissibility": "SOLE_ADMISSIBLE_ATTEMPT_2_SLANG_RESULT",
+      "required_provenance": {
+        "logical_attempt": 2,
+        "recovery_of_failed_run_id": 36654718186,
+        "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+        "synth_hdl_frontend": "slang",
+        "expected_c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+        "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+        "platform": "ASAP7"
+      }
+    }
   ],
-  "stop_conditions": [
-    "parity/equivalence failure",
-    "ASAP7 provenance cannot be pinned",
-    "RTL requires behavioral changes",
-    "timing/power cannot be tied to explicit ASAP7 corner",
-    "paid/provider authority becomes necessary",
-    "proprietary PDK/library becomes necessary",
-    "economic result would require invented price"
+  "current_frontier": "ATTEMPT_2_SLANG_EXECUTION_AND_EVIDENCE_ADMISSION",
+  "acceptance_order": [
+    "C6 identity PASS",
+    "tool/library provenance PASS",
+    "slang accepts unchanged C6 RTL",
+    "synthesis matrix",
+    "place/route calibration only if synthesis admissible",
+    "separable RW5/Argon/BlaMka views when valid",
+    "terminal PPA artifact"
   ],
-  "invariant": "conversation interruption != development interruption",
+  "fail_closed_rules": [
+    "do not admit run 36655645920 as attempt 2 slang evidence",
+    "do not infer slang admission from queue/execution time",
+    "do not alter C6 RTL behavior",
+    "do not reopen ASIC Lab",
+    "do not use AWS FPGA/AFI/F2/physical benchmark"
+  ],
+  "local_execution_probe": "current chat container lacks network and ORFS/Yosys/OpenROAD, so no equivalent local execution domain was available without weakening provenance",
   "asic_lab_disposition": "HOLD",
-  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
+  "invariant": [
+    "Evidence before status.",
+    "Memory suggests. Evidence decides.",
+    "First observable divergence != root-cause proof.",
+    "conversation interruption != development interruption"
+  ]
 }
