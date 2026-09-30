@@ -1,81 +1,106 @@
 {
-  "schema": "fae.dp6.rp_b3_t1.build_colony_run.v1",
+  "schema": "fae.dp6.rp_b3_t1.build_colony_run.v2",
   "run_id": "fae-dp6-rp-b3-t1-asap7-001",
-  "authority_ref": "labs/asic-f2-pre-go/reviews/rp-b3-t1/RUN.json",
+  "authority_ref": "FAE_DP6_ROBUST_PREMISE_REVIEW analytical/non-production authority",
   "principle": "Parallelize independence. Serialize shared state.",
+  "reconstructed_state": {
+    "rp_b1": "CLOSED",
+    "rp_b2": "CLOSED",
+    "rp_b3": "ANALYTICAL_CLOSURE",
+    "rp_b3_t1": "ACTIVE",
+    "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+    "asic_lab": "HOLD",
+    "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+  },
+  "evidence_binding": {
+    "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "platform": "ASAP7 predictive research",
+    "frontend": "slang"
+  },
+  "execution_chain": [
+    {
+      "run_id": 36654718186,
+      "status": "FAIL_CLOSED",
+      "first_divergence": "default Yosys frontend procedural-for incompatibility"
+    },
+    {
+      "run_id": 36655645920,
+      "status": "FAILURE_NOT_ADMISSIBLE_AS_SLANG",
+      "finding": "cell mapping reached; OpenSTA SDC remove_from_collection incompatibility; persistence failure after artifact upload"
+    },
+    {
+      "run_id": 36656132054,
+      "status": "IN_PROGRESS",
+      "role": "admissible slang frontend attempt"
+    },
+    {
+      "run_id": 36657989186,
+      "status": "PENDING_SERIALIZED",
+      "role": "OpenSTA-native SDC bounded repair; unchanged C6 RTL"
+    }
+  ],
   "domains": [
     {
-      "id": "reconstruct-export",
-      "status": "CLOSED",
-      "gate": "SHA256_MATCH"
+      "id": "export-reconstruction",
+      "status": "CLOSED"
     },
     {
-      "id": "equivalence",
-      "status": "CLOSED",
-      "depends_on": [
-        "reconstruct-export"
-      ],
-      "gate": "PASS_EQUIVALENCE"
+      "id": "semantic-equivalence",
+      "status": "CLOSED"
     },
     {
-      "id": "asap7-provenance",
-      "status": "READY",
-      "depends_on": [
-        "equivalence"
-      ]
+      "id": "slang-frontend-admission",
+      "status": "IN_PROGRESS",
+      "run_id": 36656132054
+    },
+    {
+      "id": "opensta-sdc-compatibility",
+      "status": "MATERIALIZED_PENDING",
+      "run_id": 36657989186
     },
     {
       "id": "full-dp6-ppa",
-      "status": "READY",
-      "depends_on": [
-        "asap7-provenance"
-      ]
+      "status": "BLOCKED_BY_EXECUTION_CHAIN"
     },
     {
       "id": "rw5-ppa",
-      "status": "READY",
-      "depends_on": [
-        "asap7-provenance"
-      ]
+      "status": "BLOCKED_BY_EXECUTION_CHAIN"
     },
     {
       "id": "argon-ppa",
-      "status": "READY",
-      "depends_on": [
-        "asap7-provenance"
-      ]
+      "status": "BLOCKED_BY_EXECUTION_CHAIN"
     },
     {
-      "id": "evidence-reconciliation",
-      "status": "BLOCKED_BY_DEPENDENCIES",
-      "depends_on": [
-        "full-dp6-ppa",
-        "rw5-ppa",
-        "argon-ppa"
-      ]
+      "id": "ppa-reconciliation",
+      "status": "BLOCKED_BY_DEPENDENCIES"
     },
     {
-      "id": "terminal-disposition",
-      "status": "BLOCKED_BY_DEPENDENCIES",
-      "depends_on": [
-        "evidence-reconciliation"
-      ]
+      "id": "robust-premise-disposition",
+      "status": "BLOCKED_BY_DEPENDENCIES"
     }
   ],
+  "durable_execution": {
+    "auto_continue": true,
+    "stop_conditions": [
+      "technical closure",
+      "genuine external/tool/library gate",
+      "semantic-equivalence failure",
+      "genuine human/authority gate"
+    ]
+  },
   "forbidden": [
-    "AWS FPGA execution",
-    "new FPGA physical build",
-    "AFI creation",
+    "AWS FPGA",
+    "physical FPGA build",
+    "AFI",
     "F2 runtime",
-    "FPGA benchmark",
+    "physical benchmark",
     "physical attacker sweep",
     "sustained/HFB",
     "DP6 semantic change",
-    "DP7",
     "consensus/economics change",
     "release",
     "activation",
     "mainnet"
-  ],
-  "asic_lab_disposition": "HOLD"
+  ]
 }
