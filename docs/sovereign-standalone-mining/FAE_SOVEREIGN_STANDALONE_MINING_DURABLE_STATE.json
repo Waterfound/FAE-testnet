@@ -1,84 +1,110 @@
 {
   "schema": "FAE_SOVEREIGN_STANDALONE_MINING_DURABLE_STATE_V1",
-  "updated_at": "2026-09-30T17:30:00Z",
+  "updated_at": "2026-09-30T17:43:00Z",
   "repository": "Waterfound/FAE-testnet",
   "branch": "build-colony/fae-sovereign-standalone-mining-001",
-  "source_revision": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
-  "build_colony_run_commit": "95c91e09168c12e26c600b7293606352b6119d09",
+  "planning_revision": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+  "executable_candidate_revision": "305e4ff670649b6c86dafc2bde7d3a74a63c0172",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "general_execution_revision": "ff510496136c0c35fa377f6962750f1fdfb84b8e",
   "mode": "DURABLE_EXECUTION",
-  "status": "EXECUTION_IN_PROGRESS",
-  "checkpoint": "BUILD_COLONY_PLAN_MATERIALIZED",
+  "status": "DONE_TECHNICAL",
+  "checkpoint": "TERMINAL_RECONCILIATION_COMPLETE",
   "frontier": {
     "SSM-00-boundary-and-source-freeze": {
-      "state": "GREEN",
-      "evidence": [
-        "Build Colony run manifest",
-        "Element 58 planning revision",
-        "canonical verifier protected-source boundary"
-      ]
+      "state": "GREEN"
     },
     "SSM-01-consensus-facing-semantics-baseline": {
-      "state": "GREEN",
-      "evidence": [
-        "mining.js direct path",
-        "fae-node.mjs template/submission validation",
-        "smoke-independent-node.mjs"
-      ]
+      "state": "GREEN"
     },
     "SSM-02-canonical-standalone-mining-core": {
-      "state": "READY"
+      "state": "GREEN",
+      "evidence": [
+        "standalone/mining-core.mjs",
+        "canonical verify run 36752867795 attempt 2"
+      ]
     },
     "SSM-03-cli-headless-product": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-02"
+      "state": "GREEN",
+      "evidence": [
+        "standalone/fae-miner.mjs",
+        "standalone/package.json"
+      ]
     },
     "SSM-04-secret-free-config-and-authored-operational-states": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-03"
+      "state": "GREEN",
+      "evidence": [
+        "standalone-miner-behavior.test.mjs",
+        "standalone-miner-process-restart.test.mjs"
+      ]
     },
     "SSM-05-independent-node-integration": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-03"
+      "state": "GREEN",
+      "evidence": [
+        "standalone-miner-independent-node.test.mjs",
+        "verify step 26 success"
+      ]
     },
     "SSM-06-stale-reconnect-restart-shutdown": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-05"
+      "state": "GREEN"
     },
     "SSM-07-browser-standalone-parity-vectors": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-02/SSM-03"
+      "state": "GREEN",
+      "evidence": [
+        "standalone-mining-core.test.mjs",
+        "Forge snapshot verification success"
+      ]
     },
     "SSM-08-security-no-secret-audit": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-04/SSM-07"
+      "state": "GREEN",
+      "evidence": [
+        "security review",
+        "CodeQL 36752868064 success",
+        "recurring assurance 36752868047 success"
+      ]
     },
     "SSM-09-canonical-verification-integration": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-05/SSM-06/SSM-07/SSM-08"
+      "state": "GREEN",
+      "evidence": [
+        "verify-canonical-source 36752867795 attempt 2 success"
+      ]
     },
     "SSM-10-independent-operator-documentation": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-09"
+      "state": "GREEN",
+      "evidence": [
+        "standalone/README.md"
+      ]
     },
     "SSM-11-terminal-reconciliation": {
-      "state": "BLOCKED_BY_DEPENDENCY",
-      "dependency": "SSM-10"
+      "state": "GREEN",
+      "evidence": [
+        "terminal report",
+        "evidence manifest"
+      ]
     }
   },
-  "next_action": "Implement SSM-02 and continue every newly reachable software frontier without requesting additional authority.",
+  "transient_verifier_event": {
+    "run_id": 36752867795,
+    "attempt_1": "partition recovery UND_ERR_SOCKET after standalone gates passed",
+    "attempt_2": "complete canonical verifier success",
+    "disposition": "PRESERVED_AS_TRANSIENT_RUNTIME_EVIDENCE"
+  },
+  "terminal_verdict": "SOVEREIGN_STANDALONE_MINING_READY",
+  "next_action": "No further technical work is required inside Element 58 authority. Canonical main integration requires separate merge authority; release/deployment/mainnet remain outside this workstream.",
   "authority_consumed": [
-    "repository write on isolated candidate branch"
+    "isolated candidate branch writes",
+    "draft pull request",
+    "software-only verification"
   ],
   "authority_not_consumed": [
     "consensus",
     "economics",
+    "mining algorithm",
+    "wallet cryptography",
     "release",
     "deployment",
     "mainnet",
     "paid infrastructure",
     "main merge"
-  ],
-  "terminal_verdict": null
+  ]
 }
