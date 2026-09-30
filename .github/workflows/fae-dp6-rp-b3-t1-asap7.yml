@@ -1,0 +1,253 @@
+name: FAE DP6 RP-B3-T1 ASAP7 PPA
+
+on:
+  push:
+    branches:
+      - evidence/fae-dp6-rp-b3-t1-20260929
+    paths:
+      - labs/asic-f2-pre-go/reviews/rp-b3-t1/RUN_TRIGGER.json
+
+permissions:
+  contents: read
+
+jobs:
+  rp-b3-t1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      ORFS_COMMIT: a12d46907510891a2e3d3310abdd19975d28db0e
+      EXPECTED_C6_SHA256: c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33
+      DESIGN_NICKNAME: fae_dp6_rp_b3_t1
+    steps:
+      - name: Checkout evidence branch
+        uses: actions/checkout@v4
+
+      - name: Reconstruct exact parity-bound C6 export
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p work/c6_extract work/evidence
+          : > work/c6_export.zip
+          for f in labs/asic-f2-pre-go/reviews/rp-b3-t1/input/c6_export.part*.b64; do
+            base64 -d "$f" >> work/c6_export.zip
+          done
+          ACTUAL="$(sha256sum work/c6_export.zip | awk '{print $1}')"
+          SIZE="$(stat -c %s work/c6_export.zip)"
+          printf 'expected_sha256=%s\nactual_sha256=%s\nsize_bytes=%s\n' "$EXPECTED_C6_SHA256" "$ACTUAL" "$SIZE" | tee work/evidence/c6_export_identity.txt
+          test "$ACTUAL" = "$EXPECTED_C6_SHA256"
+          unzip -q work/c6_export.zip -d work/c6_extract
+          find work/c6_extract -type f | sort > work/evidence/c6_export_filelist.txt
+          find work/c6_extract -type f \( -name '*.v' -o -name '*.sv' -o -name '*.vh' -o -name '*.dat' -o -name '*.mem' \) -print | sort > work/evidence/c6_rtl_support_files.txt
+          grep -hE '^[[:space:]]*module[[:space:]]+[A-Za-z_][A-Za-z0-9_$]*' $(find work/c6_extract -type f \( -name '*.v' -o -name '*.sv' \) -print) 2>/dev/null | sed -E 's/^[[:space:]]*module[[:space:]]+([^ #(;]+).*/\1/' | sort -u > work/evidence/c6_modules.txt || true
+          grep -E '^(fae_dp6_hls|rw5|argon2d_fixed|blamka)$' work/evidence/c6_modules.txt | tee work/evidence/key_modules.txt || true
+          grep -qx 'fae_dp6_hls' work/evidence/c6_modules.txt
+
+      - name: Pin ORFS and ASAP7 research platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts.git work/orfs
+          git -C work/orfs checkout "$ORFS_COMMIT"
+          git -C work/orfs submodule update --init --recursive --depth 1
+          git -C work/orfs rev-parse HEAD | tee work/evidence/orfs_commit.txt
+          test "$(git -C work/orfs rev-parse HEAD)" = "$ORFS_COMMIT"
+          cp work/orfs/flow/platforms/asap7/config.mk work/evidence/asap7_platform_config.mk
+          grep -E '^(export (PLATFORM|PROCESS|LIB_MODEL|BC_TEMPERATURE|TC_TEMPERATURE|WC_TEMPERATURE|BC_VOLTAGE|TC_VOLTAGE|WC_VOLTAGE)|export LIB_MODEL)' work/orfs/flow/platforms/asap7/config.mk | tee work/evidence/asap7_corner_excerpt.txt || true
+          find work/orfs/flow/platforms/asap7/lib -maxdepth 2 -type f -printf '%P\n' | sort > work/evidence/asap7_library_filelist.txt
+
+      - name: Pull official ORFS container and record tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker pull openroad/orfs:latest
+          docker image inspect --format='{{index .RepoDigests 0}}' openroad/orfs:latest | tee work/evidence/orfs_image_digest.txt
+          docker run --rm openroad/orfs:latest bash -lc 'source /OpenROAD-flow-scripts/env.sh >/dev/null 2>&1; echo "YOSYS=$(yosys -V)"; echo "OPENROAD=$(openroad -version)"; echo "OPENSTA=$(sta -version 2>/dev/null || true)"' | tee work/evidence/tool_versions.txt
+
+      - name: Stage exact generated RTL into ASAP7 design
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="work/orfs/flow/designs/src/$DESIGN_NICKNAME"
+          CFG="work/orfs/flow/designs/asap7/$DESIGN_NICKNAME"
+          mkdir -p "$SRC" "$CFG"
+          HDL_DIR="$(find work/c6_extract -type d -path '*/hdl/verilog' | head -n1 || true)"
+          if [ -z "$HDL_DIR" ]; then
+            echo "No hdl/verilog directory in parity-bound C6 export" >&2
+            exit 31
+          fi
+          cp -a "$HDL_DIR"/. "$SRC"/
+          find "$SRC" -maxdepth 1 -type f -printf '%f\n' | sort | tee work/evidence/staged_rtl_files.txt
+          cat > "$CFG/config.mk" <<'EOF'
+          export PLATFORM = asap7
+          export DESIGN_NAME = fae_dp6_hls
+          export DESIGN_NICKNAME = fae_dp6_rp_b3_t1
+          export VERILOG_FILES = $(sort $(wildcard $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/*.v))
+          export SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.sdc
+          export CORE_UTILIZATION = 40
+          export CORE_ASPECT_RATIO = 1
+          export CORE_MARGIN = 2
+          export PLACE_DENSITY = 0.60
+          export TNS_END_PERCENT = 100
+          export GENERATE_ARTIFACTS_ON_FAILURE = 1
+          EOF
+          cat > "$CFG/constraint.sdc" <<'EOF'
+          set clk_name core_clock
+          set clk_port_name ap_clk
+          if {[info exists ::env(CLOCK_PERIOD)]} {
+            set clk_period $::env(CLOCK_PERIOD)
+          } else {
+            set clk_period 2.0
+          }
+          set clk_io_pct 0.10
+          set clk_port [get_ports $clk_port_name]
+          create_clock -name $clk_name -period $clk_period $clk_port
+          set non_clock_inputs [all_inputs -no_clocks]
+          set_input_delay [expr $clk_period * $clk_io_pct] -clock $clk_name $non_clock_inputs
+          set_output_delay [expr $clk_period * $clk_io_pct] -clock $clk_name [all_outputs]
+          EOF
+          cp "$CFG/config.mk" work/evidence/full_config.mk
+          cp "$CFG/constraint.sdc" work/evidence/full_constraint.sdc
+
+      - name: ASAP7 synthesis timing sensitivity
+        shell: bash
+        run: |
+          set -uo pipefail
+          CFG="designs/asap7/$DESIGN_NICKNAME/config.mk"
+          : > work/evidence/synthesis_matrix.tsv
+          printf 'clock_period_ns\trc\n' >> work/evidence/synthesis_matrix.tsv
+          for P in 1.0 2.0 4.0; do
+            V="clk_${P/ns/}"; V="${V//./p}"
+            echo "=== SYNTH CLOCK ${P} ns ==="
+            docker run --rm \
+              -v "$PWD/work/orfs/flow:/OpenROAD-flow-scripts/flow" \
+              openroad/orfs:latest bash -lc \
+              "source /OpenROAD-flow-scripts/env.sh >/dev/null 2>&1; cd /OpenROAD-flow-scripts/flow; make DESIGN_CONFIG=$CFG FLOW_VARIANT=$V CLOCK_PERIOD=$P clean_all synth" \
+              2>&1 | tee "work/evidence/synth_${V}.log"
+            RC=${PIPESTATUS[0]}
+            printf '%s\t%s\n' "$P" "$RC" >> work/evidence/synthesis_matrix.tsv
+          done
+          if ! awk 'NR>1 && $2==0 {ok=1} END{exit ok?0:1}' work/evidence/synthesis_matrix.tsv; then
+            echo "All ASAP7 synthesis variants failed" >&2
+            exit 41
+          fi
+
+      - name: Full place-route calibration at 2 ns with 4 ns fallback
+        shell: bash
+        run: |
+          set -uo pipefail
+          CFG="designs/asap7/$DESIGN_NICKNAME/config.mk"
+          : > work/evidence/full_flow_matrix.tsv
+          printf 'clock_period_ns\trc\n' >> work/evidence/full_flow_matrix.tsv
+          FULL_OK=0
+          for P in 2.0 4.0; do
+            V="full_${P/ns/}"; V="${V//./p}"
+            echo "=== FULL FLOW CLOCK ${P} ns ==="
+            docker run --rm \
+              -v "$PWD/work/orfs/flow:/OpenROAD-flow-scripts/flow" \
+              openroad/orfs:latest bash -lc \
+              "source /OpenROAD-flow-scripts/env.sh >/dev/null 2>&1; cd /OpenROAD-flow-scripts/flow; make DESIGN_CONFIG=$CFG FLOW_VARIANT=$V CLOCK_PERIOD=$P clean_all; make DESIGN_CONFIG=$CFG FLOW_VARIANT=$V CLOCK_PERIOD=$P" \
+              2>&1 | tee "work/evidence/flow_${V}.log"
+            RC=${PIPESTATUS[0]}
+            printf '%s\t%s\n' "$P" "$RC" >> work/evidence/full_flow_matrix.tsv
+            if [ "$RC" -eq 0 ]; then
+              FULL_OK=1
+              break
+            fi
+          done
+          echo "full_flow_any_pass=$FULL_OK" | tee work/evidence/full_flow_status.txt
+          exit 0
+
+      - name: Separate Argon and RW5 synthesis views
+        shell: bash
+        run: |
+          set -uo pipefail
+          SRCROOT="work/orfs/flow/designs/src/$DESIGN_NICKNAME"
+          for MOD in argon2d_fixed rw5 blamka; do
+            if ! grep -qx "$MOD" work/evidence/c6_modules.txt; then
+              echo "$MOD module not separable in exported RTL" | tee "work/evidence/${MOD}_separation.txt"
+              continue
+            fi
+            NICK="fae_dp6_${MOD}"
+            CFGDIR="work/orfs/flow/designs/asap7/$NICK"
+            mkdir -p "$CFGDIR"
+            cat > "$CFGDIR/config.mk" <<EOF
+          export PLATFORM = asap7
+          export DESIGN_NAME = $MOD
+          export DESIGN_NICKNAME = $DESIGN_NICKNAME
+          export VERILOG_FILES = $(sort $(wildcard $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/*.v))
+          export SDC_FILE = $(DESIGN_HOME)/asap7/$NICK/constraint.sdc
+          export CORE_UTILIZATION = 40
+          export PLACE_DENSITY = 0.60
+          export GENERATE_ARTIFACTS_ON_FAILURE = 1
+          EOF
+            cat > "$CFGDIR/constraint.sdc" <<'EOF'
+          set clk_name core_clock
+          set clk_port_name ap_clk
+          set clk_period 2.0
+          set clk_port [get_ports $clk_port_name]
+          create_clock -name $clk_name -period $clk_period $clk_port
+          set non_clock_inputs [all_inputs -no_clocks]
+          set_input_delay 0.2 -clock $clk_name $non_clock_inputs
+          set_output_delay 0.2 -clock $clk_name [all_outputs]
+          EOF
+            docker run --rm \
+              -v "$PWD/work/orfs/flow:/OpenROAD-flow-scripts/flow" \
+              openroad/orfs:latest bash -lc \
+              "source /OpenROAD-flow-scripts/env.sh >/dev/null 2>&1; cd /OpenROAD-flow-scripts/flow; make DESIGN_CONFIG=designs/asap7/$NICK/config.mk FLOW_VARIANT=rp_b3_t1_sep_$MOD clean_all synth" \
+              2>&1 | tee "work/evidence/separate_${MOD}.log"
+            RC=${PIPESTATUS[0]}
+            echo "module=$MOD rc=$RC" | tee "work/evidence/${MOD}_separation.txt"
+          done
+          exit 0
+
+      - name: Collect ORFS metrics and PPA reports
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          mkdir -p work/evidence/orfs_reports work/evidence/orfs_results
+          find work/orfs/flow/reports/asap7 -type f 2>/dev/null | sort > work/evidence/orfs_report_filelist.txt
+          find work/orfs/flow/results/asap7 -type f 2>/dev/null | sort > work/evidence/orfs_result_filelist.txt
+          find work/orfs/flow/reports/asap7 -type f \( -name '*.rpt' -o -name '*.json' -o -name '*.log' \) -size -20M -exec cp --parents '{}' work/evidence/orfs_reports/ \; 2>/dev/null || true
+          find work/orfs/flow/results/asap7 -type f \( -name '*.v' -o -name '*.sdc' -o -name '*.json' \) -size -20M -exec cp --parents '{}' work/evidence/orfs_results/ \; 2>/dev/null || true
+          grep -R -E -i 'design area|worst slack|wns|tns|report_power|Total[[:space:]].*Power|clock period|critical path delay|utilization' work/orfs/flow/reports/asap7 2>/dev/null | tail -n 5000 > work/evidence/ppa_key_lines.txt || true
+          du -sh work/evidence || true
+
+      - name: Emit run summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '# RP-B3-T1 ASAP7 run'
+            echo
+            echo '## C6 identity'
+            cat work/evidence/c6_export_identity.txt 2>/dev/null || true
+            echo
+            echo '## ORFS image'
+            cat work/evidence/orfs_image_digest.txt 2>/dev/null || true
+            echo
+            echo '## Tool versions'
+            cat work/evidence/tool_versions.txt 2>/dev/null || true
+            echo
+            echo '## Key modules'
+            cat work/evidence/key_modules.txt 2>/dev/null || true
+            echo
+            echo '## Synthesis matrix'
+            cat work/evidence/synthesis_matrix.tsv 2>/dev/null || true
+            echo
+            echo '## Full-flow matrix'
+            cat work/evidence/full_flow_matrix.tsv 2>/dev/null || true
+            echo
+            echo '## Separable modules'
+            cat work/evidence/*_separation.txt 2>/dev/null || true
+          } | tee work/evidence/RUN_SUMMARY.md
+          cat work/evidence/RUN_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload RP-B3-T1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-dp6-rp-b3-t1-asap7-evidence
+          path: work/evidence
+          if-no-files-found: error
+          retention-days: 30
