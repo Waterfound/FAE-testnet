@@ -1,0 +1,161 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_SECURITY_BUDGET_MODEL_V1",
+  "units": "FAE/day unless otherwise stated",
+  "active_v4_180": {
+    "miner_fee_credit": "NO in canonical accept_block_v2",
+    "subsidy_trajectory_first_12_eras": [
+      {
+        "era": 0,
+        "reward_fae_per_block": "10",
+        "subsidy_fae_per_day": "4800"
+      },
+      {
+        "era": 1,
+        "reward_fae_per_block": "5",
+        "subsidy_fae_per_day": "2400"
+      },
+      {
+        "era": 2,
+        "reward_fae_per_block": "2.5",
+        "subsidy_fae_per_day": "1200"
+      },
+      {
+        "era": 3,
+        "reward_fae_per_block": "1.25",
+        "subsidy_fae_per_day": "600"
+      },
+      {
+        "era": 4,
+        "reward_fae_per_block": "0.625",
+        "subsidy_fae_per_day": "300"
+      },
+      {
+        "era": 5,
+        "reward_fae_per_block": "0.3125",
+        "subsidy_fae_per_day": "150"
+      },
+      {
+        "era": 6,
+        "reward_fae_per_block": "0.15625",
+        "subsidy_fae_per_day": "75"
+      },
+      {
+        "era": 7,
+        "reward_fae_per_block": "0.078125",
+        "subsidy_fae_per_day": "37.5"
+      },
+      {
+        "era": 8,
+        "reward_fae_per_block": "0.0390625",
+        "subsidy_fae_per_day": "18.75"
+      },
+      {
+        "era": 9,
+        "reward_fae_per_block": "0.01953125",
+        "subsidy_fae_per_day": "9.375"
+      },
+      {
+        "era": 10,
+        "reward_fae_per_block": "0.00976562",
+        "subsidy_fae_per_day": "4.6874976"
+      },
+      {
+        "era": 11,
+        "reward_fae_per_block": "0.00488281",
+        "subsidy_fae_per_day": "2.3437488"
+      }
+    ],
+    "interpretation": "Miner gross protocol revenue is subsidy-only in the inspected active path; absent another mechanism it decays toward zero."
+  },
+  "research_300": {
+    "miner_fee_credit": "YES; candidate coinbase equals subsidy + committed transaction fees",
+    "subsidy_trajectory_first_12_eras": [
+      {
+        "era": 0,
+        "reward_fae_per_block": "14",
+        "subsidy_fae_per_day": "4032"
+      },
+      {
+        "era": 1,
+        "reward_fae_per_block": "7",
+        "subsidy_fae_per_day": "2016"
+      },
+      {
+        "era": 2,
+        "reward_fae_per_block": "3.5",
+        "subsidy_fae_per_day": "1008"
+      },
+      {
+        "era": 3,
+        "reward_fae_per_block": "1.75",
+        "subsidy_fae_per_day": "504"
+      },
+      {
+        "era": 4,
+        "reward_fae_per_block": "0.875",
+        "subsidy_fae_per_day": "252"
+      },
+      {
+        "era": 5,
+        "reward_fae_per_block": "0.4375",
+        "subsidy_fae_per_day": "126"
+      },
+      {
+        "era": 6,
+        "reward_fae_per_block": "0.21875",
+        "subsidy_fae_per_day": "63"
+      },
+      {
+        "era": 7,
+        "reward_fae_per_block": "0.109375",
+        "subsidy_fae_per_day": "31.5"
+      },
+      {
+        "era": 8,
+        "reward_fae_per_block": "0.0546875",
+        "subsidy_fae_per_day": "15.75"
+      },
+      {
+        "era": 9,
+        "reward_fae_per_block": "0.02734375",
+        "subsidy_fae_per_day": "7.875"
+      },
+      {
+        "era": 10,
+        "reward_fae_per_block": "0.01367187",
+        "subsidy_fae_per_day": "3.93749856"
+      },
+      {
+        "era": 11,
+        "reward_fae_per_block": "0.00683593",
+        "subsidy_fae_per_day": "1.96874784"
+      }
+    ],
+    "interpretation": "Fee revenue can supplement declining subsidy, but future fee demand is not evidenced and must not be assumed."
+  },
+  "algebra": {
+    "candidate_miner_protocol_revenue_fae_per_day": "S(t) + F(t)",
+    "fiat_gross_revenue_per_day": "P_FAE(t) * [S(t) + F(t)]",
+    "warning": "Neither expression identifies attack cost or decentralization. Hardware cost curves, specialist advantage, network hashrate response, utilization and operator concentration matter."
+  },
+  "evidence_bound_ranges": {
+    "fee_revenue": "UNKNOWN_NONNEGATIVE; no mainnet demand distribution is admitted",
+    "fae_market_value": "UNKNOWN; no price assumption admitted",
+    "specialized_advantage": "UNBOUNDED_ENOUGH_TO_REMAIN_HEURISTIC under current DP6 disposition",
+    "representative_device_cost_efficiency": "UNRESOLVED_PHYSICAL_EVIDENCE",
+    "physical_hfb_economics": "UNRESOLVED"
+  },
+  "comparison": {
+    "epoch0_active180_subsidy_fae_per_day": "4800",
+    "epoch0_research300_subsidy_fae_per_day": "4032",
+    "difference": "research-300 starts 16% lower subsidy/time but halves on a longer ~4.09y calendar versus ~3.42y for active-v4",
+    "implication": "Reward/halving cannot be evaluated independently from the intended security-budget calendar."
+  },
+  "verdict": "PARAMETER_DEPENDS_ON_EXTERNAL_GATE",
+  "minimum_to_freeze": [
+    "Select fee destination/conservation semantics.",
+    "Define a conservative security-budget policy in coin/time without assuming market price.",
+    "Admit DP6 specialist-bound and representative-device/HFB evidence sufficient to translate protocol revenue into plausible participation/attack-cost ranges.",
+    "Stress the policy under low-fee and low-participation scenarios."
+  ]
+}
