@@ -1,0 +1,136 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_EVIDENCE_MATRIX_V1",
+  "source_main_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "active_testnet_authority": {
+    "classification": "ACTIVE_TESTNET_AUTHORITY",
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_reward_fae": "10",
+    "halving_era_blocks": 600000,
+    "hard_cap_fae": "12000000",
+    "exact_terminal_scheduled_issuance_fae": "11999999.922",
+    "coinbase_maturity_blocks": null,
+    "coinbase_maturity_enforced": false,
+    "retarget": {
+      "interval_blocks": 20,
+      "adjustment": "rounded log2 expected/actual, clamped -2..+2 bits",
+      "difficulty_bits_min": 12,
+      "difficulty_bits_max": 28
+    },
+    "max_tx_per_block": 20,
+    "active_fee_semantics": "Transaction fee is input minus output. Active accept_block_v2 pays the miner subsidy only; the residual fee is not added to active-v4 coinbase.",
+    "refs": [
+      "sovereign-forge/supabase/functions/fae-public-testnet-v4/index.ts",
+      "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+      "sovereign-forge/supabase/migrations/20260903_fae_v4_canonical.sql"
+    ]
+  },
+  "research_300_candidate": {
+    "classifications": [
+      "RESEARCH_CANDIDATE",
+      "PREFERRED_RESEARCH_INCUMBENT",
+      "EVIDENCE_SUPPORTED_SOFTWARE_SEMANTICS",
+      "NOT_AUTHORIZED"
+    ],
+    "branch": "economic-block-time-v2-300-l3",
+    "observed_branch_head": "864c00f8dd49d16f1d03cc81b49f6766b849e37f",
+    "network": "fairyelf-public-testnet-v5-candidate-300s",
+    "target_seconds": 300,
+    "initial_reward_fae": "14",
+    "halving_era_blocks": 430000,
+    "theoretical_cap_fae": "12040000",
+    "exact_terminal_issuance_fae": "12039999.9484",
+    "shortfall_fae": "0.0516",
+    "coinbase_maturity_blocks": 200,
+    "daa": "anchored-ASERT-style full target, 6h half-life",
+    "fee_semantics": "Candidate core commits fees and pays subsidy + fees through coinbase outputs.",
+    "activation_authorized": false,
+    "public_consensus_changed": false,
+    "refs": [
+      "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_300_L3_RESULTS.md",
+      "sovereign-forge/node/candidate/economic-v2-300.mjs",
+      "sovereign-forge/node/candidate/coinbase-maturity-v2-300.mjs"
+    ]
+  },
+  "block_time_research": {
+    "180": {
+      "status": "ACTIVE_TESTNET_AUTHORITY_BUT_MAINNET_GRADE_UNDER_EVIDENCED",
+      "dedicated_research_branch": "colony/fae-180s-economic-block-time-validation-001",
+      "observed_branch_head": "109d86a9152faad9d4a01b8578588490929babbb",
+      "terminal_verdict": "INSUFFICIENT_EVIDENCE",
+      "material_risk_proven": false,
+      "required_evidence_missing": [
+        "fresh directly comparable 180s WAN/physical raw evidence with provenance",
+        ">=500 admitted 180s propagation samples with tails",
+        "natural stale/fork/reorg denominator sufficient for frozen confidence gates",
+        "fresh partition/recovery evidence against a precommitted bound",
+        "authoritative raw provenance for historical V1/V2 or fresh superseding evidence"
+      ]
+    },
+    "300": {
+      "status": "PREFERRED_RESEARCH_INCUMBENT_NOT_ACTIVE",
+      "strengths": [
+        "candidate semantics integrated and tested",
+        "lowest DAA-noise proxy among 300/600/900 research",
+        "real three-region WAN research evidence"
+      ],
+      "limitation": "The later 180s falsification run did not authorize treating insufficient 180s evidence as a 300s win."
+    },
+    "600": {
+      "status": "RESEARCH_CHALLENGER_NOT_SELECTED",
+      "strengths": [
+        "measured normalized race-pressure advantage vs 300 research baseline",
+        "calendar/supply-neutral transform and 16h40m maturity rescaling are simple"
+      ],
+      "costs": [
+        "half DAA observation density vs 300 at 6h half-life",
+        "~sqrt(2) payout sigma vs 300 at equal expected issuance"
+      ]
+    },
+    "900": {
+      "status": "PARAMETER_NOT_JUSTIFIED_CURRENT_BRANCH",
+      "reason": "Failed predefined >=25% propagation-improvement gate and retains highest DAA-noise/payout-variance plus maturity/calendar complexity."
+    }
+  },
+  "fair_launch": {
+    "policy_constraints": [
+      "no premine",
+      "no VC allocation",
+      "no insider allocation",
+      "no treasury mint",
+      "no hidden administrative issuance"
+    ],
+    "active_v4_static_findings": [
+      "Public v4 edge function exposes no mint/admin issuance endpoint.",
+      "Canonical migration materializes subsidy UTXO only through block acceptance; no preallocation insert was found in the canonical v4 schema path."
+    ],
+    "candidate_genesis_finding": "300s candidate begins fresh with height 0 and zero issuance, inherits no v4 balances, and isolates network/signing domains.",
+    "concrete_mainnet_genesis": "UNRESOLVED_NOT_AUTHORIZED"
+  },
+  "external_dependencies": {
+    "dp6": {
+      "status": "HEURISTIC_ONLY_EXTERNAL_WORKSTREAM",
+      "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+      "asic_lab": "HOLD",
+      "current_observation": "RP-B3-T1 workflow run 36656132054 completed with overall failure after the PPA execution step succeeded and evidence artifact 11073562201 was uploaded; persistence step failed. No terminal admitted DP6 premise upgrade is inferred.",
+      "implication": "Specialized-hardware economic advantage remains unbounded enough to block robust commodity-participation/security-budget claims."
+    },
+    "representative_device": {
+      "status": "EXTERNAL_EVIDENCE",
+      "readiness_complete": true,
+      "physical_evidence_obtained": false,
+      "final_portfolio_admitted": false
+    },
+    "physical_hfb_economics": {
+      "status": "EXTERNAL_EVIDENCE",
+      "implication": "work-per-watt/work-per-dollar mainnet evidence unresolved"
+    },
+    "stability_soak_v3": {
+      "status": "CONDITION_WAIT",
+      "run_started": false,
+      "preflight": "PASS_NON_SOAK",
+      "next_checkpoint": "2026-10-01",
+      "implication": "No V3 terminal stability evidence exists yet."
+    }
+  }
+}
