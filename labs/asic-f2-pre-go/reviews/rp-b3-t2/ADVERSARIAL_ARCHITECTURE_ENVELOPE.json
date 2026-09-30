@@ -1,0 +1,69 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.adversarial_architecture_envelope.v1",
+  "date": "2026-09-30",
+  "evidence_inputs": [
+    "RP-B2 source-derived capacity/latency/bandwidth model",
+    "RP-B3 technology-calibrated memory/PHY coefficient ledger",
+    "RP-B3-T1 ASAP7 mapping evidence",
+    "RP-B3-T2 run 36657989186 completed-stage timing evidence",
+    "frozen C6 HLS source"
+  ],
+  "c6_microarchitecture_boundary": {
+    "finding": "The frozen C6 HLS source has INLINE/BIND_STORAGE/interface directives but no explicit HLS PIPELINE or UNROLL directives on the dominant Argon fill or RW5 step loops.",
+    "implication": "C6 PPA is a real correctness/portability implementation point, not a competent-specialist optimum and not an ASIC lower bound.",
+    "status": "PROVEN_BY_SOURCE"
+  },
+  "calibrated_logic_points": {
+    "full_asap7_mapped_mm2": 0.0795977,
+    "full_post_synth_repair_mm2": 0.091105,
+    "full_post_cts_mm2": 0.100498,
+    "argon_post_synth_repair_mm2": 0.048648,
+    "rw5_post_synth_repair_mm2": 0.010498,
+    "partial_global_route_2ns_approx_period_ns": 5.133894,
+    "partial_global_route_2ns_approx_frequency_mhz": 194.7839203536341,
+    "timing_boundary": "Approximate only; derived from 2ns requested clock plus partial-global-route setup deficit. Not final report_clock_min_period or signoff."
+  },
+  "hbm4_36gb_context_model": {
+    "raw_256MiB_contexts": 134.1104507,
+    "modeled_latency_anchor_ns": 74.1885,
+    "latency_only_q_ceiling_work_s": 1723.9557666519283,
+    "vendor_bandwidth_ceiling_work_s": "~3406-5057 from RP-B2; not achieved DP6 throughput",
+    "modeled_component_energy_J_work": "~0.0117-0.0174 before random-access/controller/extra-RW5 overhead"
+  },
+  "replicated_logic_area_sensitivity_mm2": {
+    "one_full_c6_engine_per_context": 13.477832074448601,
+    "one_full_c6_engine_per_2_contexts": 6.738916037224301,
+    "one_full_c6_engine_per_4_contexts": 3.3694580186121503,
+    "one_full_c6_engine_per_8_contexts": 1.6847290093060752,
+    "one_full_c6_engine_per_16_contexts": 0.8423645046530376,
+    "one_full_c6_engine_per_32_contexts": 0.4211822523265188,
+    "one_full_c6_engine_per_64_contexts": 0.2105911261632594,
+    "one_full_c6_engine_per_128_contexts": 0.1052955630816297,
+    "rw5_standalone_engine_per_context_post_synth": 1.4078915114486001,
+    "argon_standalone_engine_per_context_post_synth": 6.524205205653599
+  },
+  "area_interpretation": {
+    "prior_7nm_256MiB_sram_bitcell_only_mm2": 57.982058496,
+    "sram_bitcell_area_over_full_c6_post_cts_logic": 576.947386972875,
+    "conclusion": "For an external-memory attacker, logic replication is not presently supported as the dominant area/capex burden. Full-state on-die SRAM remains area-expensive."
+  },
+  "strongest_plausible_attacker": {
+    "memory": "HBM4/HBM3E or GDDR7 full-state external memory",
+    "contexts": "many resident 256MiB contexts",
+    "compute": "fewer shared or selectively replicated Argon/BlaMka and microcoded/fixed-function RW5 engines",
+    "optimization": "lower-voltage/lower-frequency where J/work improves; no requirement to maximize clock",
+    "cache": "small SRAM hot structures only; not full state unless area economics justify",
+    "exact_optimum": "UNKNOWN"
+  },
+  "proposition_effect_before_power": "WEAKENED_RELATIVE_TO_LOGIC_AREA_DEFENSE_BUT_STILL_INCONCLUSIVE",
+  "unresolved": [
+    "optimized-attacker cycles/work",
+    "technology-calibrated optimized-attacker power",
+    "achieved DP6 random dependent HBM/GDDR service efficiency",
+    "memory PHY/package absolute cost",
+    "specialist capex and utilization",
+    "specialist LCVW"
+  ],
+  "asic_lab": "HOLD",
+  "aws_reopen": "NO"
+}
