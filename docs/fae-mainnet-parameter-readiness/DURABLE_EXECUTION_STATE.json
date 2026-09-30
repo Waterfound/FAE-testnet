@@ -1,0 +1,82 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_DURABLE_STATE_V1",
+  "portfolio_id": "fae-mainnet-parameter-readiness-001",
+  "generation": 0,
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-mainnet-parameter-readiness-001",
+  "source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "launch_receipt_id": "gelr-f861324e9a34ac1473ef7c37",
+  "launch_receipt_digest": "sha256:34d8c846d1a2d02f0f3002f056e28912a5e75d6b5b8e4abc18bde58d5e541587",
+  "authority_ref": "user-order://2026-09-29/fae-mainnet-consensus-economic-parameter-readiness",
+  "authority_created": false,
+  "active": {
+    "frontier": "MPR-01",
+    "state": "in_progress",
+    "next_action": "Reconstruct executable active-testnet consensus/economics directly from canonical code and migrations."
+  },
+  "secondary": {
+    "frontier": "MPR-02",
+    "state": "admissible",
+    "next_action": "Compute exact integer-atom issuance for active and research schedules."
+  },
+  "passive": [
+    {
+      "frontier": "MPR-03",
+      "state": "admissible",
+      "wake_condition": "MPR-01 evidence inventory available"
+    },
+    {
+      "frontier": "MPR-04",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-01 and MPR-03 complete"
+    },
+    {
+      "frontier": "MPR-05",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-03 complete"
+    },
+    {
+      "frontier": "MPR-06",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-01/MPR-02/MPR-03 complete; external dependency evidence consumed fail-closed"
+    },
+    {
+      "frontier": "MPR-07",
+      "state": "admissible",
+      "wake_condition": "none"
+    },
+    {
+      "frontier": "MPR-08",
+      "state": "admissible",
+      "wake_condition": "consume existing external workstream evidence only; do not resume physical DP6/HFB work"
+    },
+    {
+      "frontier": "MPR-09",
+      "state": "admissible",
+      "wake_condition": "consume existing Stability/network evidence only; do not launch soak from this frontier"
+    },
+    {
+      "frontier": "MPR-10",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-02 through MPR-09 reach terminal evidence-bound states"
+    },
+    {
+      "frontier": "MPR-11",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-10 complete"
+    },
+    {
+      "frontier": "MPR-12",
+      "state": "dependency_wait",
+      "wake_condition": "MPR-11 complete"
+    }
+  ],
+  "stop_conditions": [
+    "genuine HUMAN_GATE requiring new Waterfound authority",
+    "external evidence gate that cannot be produced under current authority",
+    "fail-closed technical contradiction that prevents further evidence-bound work",
+    "frontier closure"
+  ],
+  "continuation_rule": "Continue autonomously across every admitted frontier. Do not ask for 'prossiga' while evidence-bound work remains admissible. Preserve external workstreams as dependencies rather than duplicating or resuming them.",
+  "terminal_state": "RUNNING"
+}
