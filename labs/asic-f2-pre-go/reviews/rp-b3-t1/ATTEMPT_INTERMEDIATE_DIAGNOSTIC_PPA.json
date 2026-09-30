@@ -1,0 +1,73 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.intermediate_mapping_diagnostic.v1",
+  "recorded_at": "2026-09-29T23:00:00-03:00",
+  "source_run": {
+    "github_run_id": 36655645920,
+    "head_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
+    "artifact_id": 11072088837,
+    "artifact_sha256": "fda4c37d0906d7cef2cd097bcbdb8d899ce76ec7bce808bd875e13799b2d82d0"
+  },
+  "admissibility": "DIAGNOSTIC_ONLY_NOT_TERMINAL_RP_B3_T1",
+  "reason": "This executor revision did not bind SYNTH_HDL_FRONTEND=slang. It is preserved only as evidence that unchanged C6 generated RTL reached ASAP7 cell mapping and to localize the next divergence.",
+  "immutable_inputs": {
+    "c6_export_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "integrity": "PASS",
+    "equivalence_contract": "PASS_EQUIVALENCE",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+    "asap7_content_sha256": "c95da2f5625ecd64bf13810a63474ab5fbfea19ddf701d88d985521080bdc426",
+    "container_digest": "openroad/orfs@sha256:9eed01a3dc8030f423af6a3601c172459a4ddf8f76913db5e25febe3e7435d7a",
+    "yosys": "0.68+post"
+  },
+  "mapping_points": {
+    "full_2ns_label": {
+      "requested_period_ns": 2,
+      "mapped_cells_reported": 589290,
+      "exported_odb_instances": 565842,
+      "standard_cell_area_um2": 79597.7,
+      "standard_cell_area_mm2": 0.0795977,
+      "synthesis_cpu_elapsed": "~405 s before SDC read failure",
+      "timing_valid": false
+    },
+    "full_1ns_label": {
+      "requested_period_ns": 1,
+      "mapped_cells_reported": 589290,
+      "exported_odb_instances": 565842,
+      "standard_cell_area_um2": 79597.7,
+      "standard_cell_area_mm2": 0.0795977,
+      "synthesis_cpu_elapsed": "~431 s before SDC read failure",
+      "timing_valid": false
+    },
+    "argon_2ns_label": {
+      "requested_period_ns": 2,
+      "mapped_cells_reported": 309700,
+      "exported_odb_instances": 301864,
+      "standard_cell_area_um2": 42277,
+      "standard_cell_area_mm2": 0.042277,
+      "synthesis_cpu_elapsed": "~259 s before SDC read failure",
+      "timing_valid": false
+    },
+    "rw5_2ns_label": {
+      "requested_period_ns": 2,
+      "mapped_cells_reported": 78221,
+      "exported_odb_instances": 69164,
+      "standard_cell_area_um2": 9316.05,
+      "standard_cell_area_mm2": 0.00931605,
+      "synthesis_cpu_elapsed": "~41 s before SDC read failure",
+      "timing_valid": false
+    }
+  },
+  "first_observable_divergence": {
+    "stage": "OpenSTA SDC read after cell mapping/ODB export",
+    "error": "constraint.sdc line 5: invalid command name remove_from_collection",
+    "interpretation": "constraint-language compatibility failure; not semantic-equivalence failure and not evidence of ASIC infeasibility"
+  },
+  "epistemic_boundary": [
+    "No valid STA timing result exists from this run because SDC admission failed.",
+    "No power estimate is admitted from this run.",
+    "The mapping area is a diagnostic ASAP7 implementation point, not a lower bound and not final RP-B3-T1 PPA.",
+    "Final admission requires a source revision with explicit slang frontend binding and a valid explicit ASAP7 SDC/corner."
+  ],
+  "asic_lab_disposition": "HOLD",
+  "aws_fpga_used": false
+}
