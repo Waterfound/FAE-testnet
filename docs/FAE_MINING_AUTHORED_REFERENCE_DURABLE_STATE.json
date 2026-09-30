@@ -1,0 +1,58 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_DURABLE_STATE_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "authority_owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "design/fae-mining-authored-reference-001",
+  "source_revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+  "current_frontier": "MAR-08_CII_PRESERVATION",
+  "completed_frontiers": ["MAR-00","MAR-01","MAR-02","MAR-03","MAR-04","MAR-05","MAR-06","MAR-07"],
+  "final_reference": {
+    "state": "APPROVED",
+    "approval_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_FINAL_APPROVAL.json",
+    "reference_artifact": "design/mining-authored-reference/composition-pass-1.html",
+    "studio_url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/"
+  },
+  "cii_frontier": {
+    "run_id": "cii-fae-mining-authorship-grammar-001",
+    "repository": "Waterfound/Continuous-Improvement-Intelligence-CII",
+    "branch": "cii/fae-mining-authorship-grammar-001",
+    "head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
+    "draft_pr": 21,
+    "state": "EXTRACTION_MATERIALIZED__EXTERNAL_CI_GATE",
+    "artifacts": [
+      "runs/fae-mining-authorship-grammar-001/cii-run-receipt.json",
+      "runs/fae-mining-authorship-grammar-001/fae-authorship-grammar.json",
+      "runs/fae-mining-authorship-grammar-001/RESULTS.md",
+      "runs/fae-mining-authorship-grammar-001/preservation-handoff.json",
+      "runs/fae-mining-authorship-grammar-001/ci-reconciliation.json"
+    ],
+    "learned": [
+      "FAE spatial grammar",
+      "FAE motion grammar",
+      "FAE semantic color grammar",
+      "FAE typography hierarchy",
+      "FAE state behavior",
+      "FAE quiet/active contrast",
+      "FAE iconography principles",
+      "FAE interaction timing",
+      "FAE anti-patterns",
+      "FAE authorship invariants"
+    ],
+    "automatic_propagation": false,
+    "production_effect": "NONE"
+  },
+  "external_gate": {
+    "id": "external://github-actions/cii-verify/36666625750",
+    "workflow": "Verify CII",
+    "attempts": 2,
+    "classification": "NO_RUNNER_OR_STEPS_MATERIALIZED",
+    "code_failure_proven": false,
+    "test_failure_proven": false,
+    "human_action_required_now": false,
+    "resolution_condition": "A later Verify CII run actually materializes workflow steps and completes."
+  },
+  "next_frontier_after_gate": "System preservation/canonical admission of the extracted grammar; target-surface propagation remains separately gated.",
+  "terminal_condition": "EXTERNAL_GATE_OR_CLOSURE",
+  "state": "EXTERNAL_GATE"
+}

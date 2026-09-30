@@ -1,0 +1,20 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_PASS2_CI_RECONCILIATION_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "implementation_commit": "0192b7f695c2f339b059a2cd6f02c2a119be5f78",
+  "checks": {
+    "visual_language_lab": {"run_id":36664370266,"conclusion":"SUCCESS","relevance":"DIRECT"},
+    "verify_canonical_source": {"run_id":36664370211,"conclusion":"SUCCESS","relevance":"DIRECT"},
+    "codeql_security": {"run_id":36664370197,"conclusion":"SUCCESS","relevance":"SECURITY"},
+    "public_code_security_recurring_assurance": {"run_id":36664370236,"conclusion":"SUCCESS","relevance":"SECURITY"},
+    "cross_lab_integration_gate": {
+      "run_id":36664370303,
+      "conclusion":"FAILURE",
+      "classification":"EXPECTED_GENERIC_INTEGRATION_GATE_MISMATCH",
+      "design_or_life_defect_proven":false,
+      "reason":"The candidate remains an isolated art-direction branch derived from the authoritative Direction D+ approval branch rather than latest canonical main.",
+      "merge_readiness_claimed":false
+    }
+  },
+  "disposition":"PASS_FOR_WATERFOUND_LIFE_REVIEW"
+}
