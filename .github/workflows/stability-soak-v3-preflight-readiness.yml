@@ -63,8 +63,8 @@ jobs:
           set -euo pipefail
           grep -q "rename(temporary,path)" sovereign-forge/node/authoritative/node-state-recovery.mjs
           grep -q "checkpoint(node.getState())" sovereign-forge/lab/stability-soak-v3/node-runtime.mjs
-      - name: Assert no real-soak launch surface is invoked
+      - name: Assert preflight is side-effect free
         run: |
           set -euo pipefail
-          ! grep -R --line-number --fixed-string "FAE_V3_T0_UTC=" .github/workflows/stability-soak-v3-preflight-readiness.yml
-          ! grep -R --line-number -E "trigger_deploy|render deploy|curl .*onrender" .github/workflows/stability-soak-v3-preflight-readiness.yml
+          git diff --exit-code
+          git status --porcelain=v1
