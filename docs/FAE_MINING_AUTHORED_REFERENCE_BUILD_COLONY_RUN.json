@@ -9,7 +9,10 @@
   "workstream": "FAE — Visual Language & Art Direction System / Mining Authored Reference",
   "mission": "Materialize Mining as the first authored FAE reference surface without propagating or consuming production authority.",
   "execution_order": "Art direction creates -> Waterfound selects -> CII learns -> System preserves",
-  "cii": {"authorized": false, "state": "DEFERRED_UNTIL_REFERENCE_APPROVAL"},
+  "cii": {
+    "authorized": false,
+    "state": "DEFERRED_UNTIL_REFERENCE_APPROVAL"
+  },
   "authority_boundary": {
     "may": [
       "reconstruct authoritative Direction D+ lineage",
@@ -29,15 +32,51 @@
     ]
   },
   "frontiers": [
-    {"id":"MAR-00","name":"Authority and lineage reconstruction","state":"PASS"},
-    {"id":"MAR-01","name":"Anti-generic design constraints and composition thesis","state":"PASS"},
-    {"id":"MAR-02","name":"PASS 1 — Mining composition reference implementation","state":"PASS"},
-    {"id":"MAR-03","name":"Static/source validation","state":"PASS"},
-    {"id":"MAR-04","name":"Isolated Studio deployment and browser verification","state":"PASS"},
-    {"id":"MAR-05","name":"FAE Recognition Test / Waterfound composition review","state":"HUMAN_GATE"},
-    {"id":"MAR-06","name":"PASS 2 — LIFE","state":"BLOCKED_BY_MAR_05"},
-    {"id":"MAR-07","name":"PASS 3 — FINISH","state":"BLOCKED_BY_MAR_06"},
-    {"id":"MAR-08","name":"CII grammar extraction","state":"BLOCKED_BY_REFERENCE_APPROVAL"}
+    {
+      "id": "MAR-00",
+      "name": "Authority and lineage reconstruction",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-01",
+      "name": "Anti-generic design constraints and composition thesis",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-02",
+      "name": "PASS 1 — Mining composition reference implementation",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-03",
+      "name": "Static/source validation",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-04",
+      "name": "Isolated Studio deployment and browser verification",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-05",
+      "name": "FAE Recognition Test / Waterfound composition review",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-06",
+      "name": "PASS 2 — LIFE",
+      "state": "PASS"
+    },
+    {
+      "id": "MAR-07",
+      "name": "PASS 3 — FINISH",
+      "state": "HUMAN_GATE"
+    },
+    {
+      "id": "MAR-08",
+      "name": "CII grammar extraction",
+      "state": "BLOCKED_UNTIL_FINAL_MINING_REFERENCE_APPROVAL"
+    }
   ],
   "composition_thesis": {
     "concept": "living computation instrument",
@@ -71,7 +110,13 @@
     "visual_language_ci_run_id": 36662851504,
     "visual_language_ci": "SUCCESS",
     "draft_pr": 268,
-    "review_blockers": "NONE"
+    "review_blockers": "NONE",
+    "pass2_life_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS2_LIFE_EVIDENCE.json",
+    "pass2_ci_reconciliation": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS2_CI_RECONCILIATION.json",
+    "pass3_finish_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS3_FINISH_EVIDENCE.json",
+    "final_browser_qa_run_id": "e771bcec-e794-49e6-b9c4-9010788a14b5",
+    "final_browser_qa": "PASS",
+    "final_reference_review_blockers": "NONE"
   },
   "serialization_rule": "Parallelize independence. Serialize shared state.",
   "status": "HUMAN_GATE"
