@@ -1,0 +1,52 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT_V1",
+  "frozen_on": "2026-09-29",
+  "authority": "harness_evidence_contract_only_no_consensus_economics_release_or_mainnet",
+  "minimum_continuous_duration_hours": 96,
+  "phase_hours": [
+    24,
+    24,
+    24,
+    24
+  ],
+  "recovery_bound_seconds": 180,
+  "expected_chain_progression": {
+    "target_block_interval_seconds": 300,
+    "nominal_blocks_over_96h": 1152,
+    "pass_gate": "chain must progress; statistical stale gate and continuous liveness/coverage remain authoritative rather than an artificial exact block-count quota"
+  },
+  "node_liveness": {
+    "dual_monitor_roles_required": true,
+    "max_combined_monitor_coverage_gap_seconds": 30,
+    "recovery_under_seconds": 180,
+    "fail_events_allowed": 0
+  },
+  "stale": {
+    "observed_rate_max_exclusive": 0.01,
+    "wilson_one_sided_95_upper_max_exclusive": 0.01
+  },
+  "reorg": {
+    "accounting_required": true,
+    "semantics": "Every observed reorg must be retained and admitted in final evidence. This contract does not invent a zero-reorg PASS threshold absent from the V2 frozen PASS criteria."
+  },
+  "latency": {
+    "propagation_p95_ms_max_exclusive": 5000,
+    "evidence_samples_required": true
+  },
+  "evidence": {
+    "timestamps_complete": true,
+    "final_chain_valid": true,
+    "frozen_harness_revision_required": true,
+    "four_phases_with_controller_and_observer_coverage": true,
+    "malformed_or_missing_required_metrics": "EVIDENCE_INCOMPLETE"
+  },
+  "terminal_classifications": {
+    "PASS": "Only a complete >=96h run with every frozen scientific and evidence gate true.",
+    "FAIL": "Complete, evidence-sufficient run that falsifies one or more scientific/liveness gates.",
+    "INCONCLUSIVE": "Interrupted or otherwise non-terminal run without evidence proving provider or harness causality.",
+    "PROVIDER_FAILURE": "Provider causality must be positively proven; absence of evidence is insufficient.",
+    "HARNESS_FAILURE": "Harness/control-plane causality must be positively proven; absence of evidence is insufficient.",
+    "EVIDENCE_INCOMPLETE": "Required evidence is missing, malformed, coverage-incomplete, revision-drifted, or non-admissible."
+  },
+  "partial_execution_may_pass": false
+}
