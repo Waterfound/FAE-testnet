@@ -1,0 +1,89 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_MODELING_V1",
+  "source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "atom_unit": {
+    "atoms_per_fae": "100000000",
+    "status": "EVIDENCE_SUPPORTED"
+  },
+  "method": {
+    "subsidy": "initial_subsidy_atoms >> era_index until zero",
+    "terminal_issuance": "sum(era_blocks * integer_subsidy_atoms[era])",
+    "no_terminal_top_up_assumed": true,
+    "note": "Theoretical geometric cap and exact integer-atom terminal issuance are distinct quantities."
+  },
+  "schedules": {
+    "active_v4_180": {
+      "target_seconds": 180,
+      "initial_reward_fae": "10",
+      "halving_era_blocks": 600000,
+      "theoretical_cap_fae": "12000000",
+      "exact_terminal_issuance_atoms": "1199999992200000",
+      "exact_terminal_issuance_fae": "11999999.922",
+      "shortfall_atoms": "7800000",
+      "shortfall_fae": "0.078",
+      "nonzero_reward_eras": 30,
+      "initial_issuance_fae_per_day": "4800",
+      "halving_calendar_days": "1250",
+      "halving_calendar_years_365": "3.424657534246575"
+    },
+    "research_300": {
+      "target_seconds": 300,
+      "initial_reward_fae": "14",
+      "halving_era_blocks": 430000,
+      "theoretical_cap_fae": "12040000",
+      "exact_terminal_issuance_atoms": "1203999994840000",
+      "exact_terminal_issuance_fae": "12039999.9484",
+      "shortfall_atoms": "5160000",
+      "shortfall_fae": "0.0516",
+      "nonzero_reward_eras": 31,
+      "initial_issuance_fae_per_day": "4032",
+      "halving_calendar_days": "1493.0555555555556",
+      "halving_calendar_years_365": "4.090563166"
+    },
+    "research_600_calendar_supply_neutral_transform": {
+      "executable_candidate": false,
+      "target_seconds": 600,
+      "initial_reward_fae": "28",
+      "halving_era_blocks": 215000,
+      "geometric_cap_fae": "12040000",
+      "modeled_integer_terminal_issuance_atoms": "1203999997420000",
+      "modeled_integer_terminal_issuance_fae": "12039999.9742",
+      "modeled_shortfall_atoms": "2580000",
+      "modeled_shortfall_fae": "0.0258",
+      "initial_issuance_fae_per_day": "4032",
+      "maturity_blocks_for_16h40m": 100
+    },
+    "research_900_exact_geometric_pair": {
+      "executable_candidate": false,
+      "target_seconds": 900,
+      "initial_reward_fae": "41.9921875",
+      "halving_era_blocks": 143360,
+      "geometric_cap_fae": "12040000",
+      "modeled_integer_terminal_issuance_atoms": "1203999996989440",
+      "modeled_integer_terminal_issuance_fae": "12039999.9698944",
+      "modeled_shortfall_atoms": "3010560",
+      "modeled_shortfall_fae": "0.0301056",
+      "initial_issuance_fae_per_day": "4031.25",
+      "maturity_blocks_nearest_16h40m": 67,
+      "maturity_wall_clock": "16h45m"
+    }
+  },
+  "maturity_200_blocks_wall_clock": {
+    "180s": "10h",
+    "300s": "16h40m",
+    "600s": "33h20m",
+    "900s": "50h"
+  },
+  "security_budget_boundary": {
+    "observation": "Subsidy budget is mechanically modelable in FAE/time, but fiat attack cost and durable commodity-miner participation are not identifiable from subsidy alone.",
+    "missing_variables": [
+      "FAE market value/demand",
+      "fee demand and fee destination",
+      "network hashrate supply response",
+      "specialized-hardware cost/work advantage",
+      "commodity-device work/J and work/$",
+      "operator participation/utilization"
+    ],
+    "conclusion": "Do not convert nominal subsidy into attack-cost confidence."
+  }
+}
