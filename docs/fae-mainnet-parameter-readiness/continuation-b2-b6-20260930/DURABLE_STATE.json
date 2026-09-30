@@ -1,27 +1,37 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_DURABLE_STATE_V1",
   "continuation_id": "fae-mpr-b2-b6-20260930-001",
-  "generation": 1,
+  "generation": 2,
   "source_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
   "active": {
-    "frontier": "B6-00",
-    "state": "running",
-    "objective": "Close analytical/policy-readiness for coinbase maturity and launch initial-target calibration contract without selecting values."
+    "frontier": "B2_B6_CONTINUATION",
+    "state": "complete",
+    "objective": "All currently admissible B2 and B6 analytical work closed."
   },
   "secondary": {
-    "frontier": "B6-01",
+    "frontier": "parent_mainnet_parameter_readiness",
     "state": "ready"
   },
   "passive": [
     {
-      "frontier": "B2",
-      "state": "closed",
-      "wake_condition": "Reopen only if executable fee semantics or explicit Waterfound fee policy changes."
+      "frontier": "B2_policy_selection",
+      "state": "human_policy_gate",
+      "wake_condition": "Waterfound explicitly selects fee destination semantics and any alpha."
     },
     {
-      "frontier": "B6-external-calibration",
+      "frontier": "B2_security_adequacy",
       "state": "external_wait",
-      "wake_condition": "Selected block-time/DAA + provenance-bound launch hashrate/network evidence becomes available."
+      "wake_condition": "DP6/HFB/RDE and later economic evidence support numeric security adequacy assessment."
+    },
+    {
+      "frontier": "B6_settlement_policy",
+      "state": "human_policy_gate",
+      "wake_condition": "Waterfound selects W/D/hybrid after relevant B1/B5 evidence is available."
+    },
+    {
+      "frontier": "B6_launch_calibration",
+      "state": "external_wait",
+      "wake_condition": "Selected target/DAA plus provenance-bound launch work-rate evidence exists."
     }
   ],
   "stop_conditions": [
@@ -37,5 +47,14 @@
     "B2_terminal_artifact": "docs/fae-mainnet-parameter-readiness/continuation-b2-b6-20260930/B2_CLOSURE.json",
     "B2_terminal_classification": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
     "B6_promotion_admitted": true
-  }
+  },
+  "execution_state": "CONDITION_WAIT",
+  "terminal": {
+    "B2": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
+    "B6_maturity": "ANALYTICAL_MODEL_CLOSED__SETTLEMENT_POLICY_SELECTION_REQUIRED",
+    "B6_launch_target": "CALIBRATION_CONTRACT_CLOSED__EXTERNAL_HASHRATE_EVIDENCE_REQUIRED"
+  },
+  "internal_work_remaining": false,
+  "human_required_now": false,
+  "note": "No further work is admissible inside this continuation without either an explicit Waterfound policy choice or new external evidence. No background execution is claimed."
 }
