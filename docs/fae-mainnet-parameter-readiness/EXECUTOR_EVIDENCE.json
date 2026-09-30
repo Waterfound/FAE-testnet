@@ -1,0 +1,16 @@
+{
+  "schema_version": "fae.executor-evidence.v1",
+  "observed_at": "2026-09-29T23:11:00-03:00",
+  "executor": "chatgpt-github-connector",
+  "repository": "Waterfound/FAE-testnet",
+  "permissions": {
+    "admin": true,
+    "maintain": true,
+    "pull": true,
+    "push": true,
+    "triage": true
+  },
+  "default_branch": "main",
+  "source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "evidence_origin": "GitHub connector repository metadata"
+}
