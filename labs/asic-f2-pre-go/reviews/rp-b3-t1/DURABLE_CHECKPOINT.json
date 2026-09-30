@@ -1,0 +1,27 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.durable_checkpoint.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "checkpoint_id": "rp-b3-t1-equivalence-pass-ppa-ready-001",
+  "checkpoint": "PASS_EQUIVALENCE__ASAP7_PPA_READY",
+  "authority_binding": "NON_PRODUCTION_ASIC_PPA_RESEARCH_ONLY",
+  "current_frontier": "ASAP7_PROVENANCE_AND_PPA_EXECUTION",
+  "admissible_next": [
+    "pin ORFS a12d46907510891a2e3d3310abdd19975d28db0e",
+    "record official openroad/orfs image digest and tool versions",
+    "run ASAP7 synthesis/STA and bounded placement/routing",
+    "materialize PPA evidence",
+    "terminal review"
+  ],
+  "stop_conditions": [
+    "parity/equivalence failure",
+    "ASAP7 provenance cannot be pinned",
+    "RTL requires behavioral changes",
+    "timing/power cannot be tied to explicit ASAP7 corner",
+    "paid/provider authority becomes necessary",
+    "proprietary PDK/library becomes necessary",
+    "economic result would require invented price"
+  ],
+  "invariant": "conversation interruption != development interruption",
+  "asic_lab_disposition": "HOLD",
+  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+}
