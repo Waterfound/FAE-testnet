@@ -1,0 +1,81 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.build_colony_run.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "authority_ref": "labs/asic-f2-pre-go/reviews/rp-b3-t1/RUN.json",
+  "principle": "Parallelize independence. Serialize shared state.",
+  "domains": [
+    {
+      "id": "reconstruct-export",
+      "status": "CLOSED",
+      "gate": "SHA256_MATCH"
+    },
+    {
+      "id": "equivalence",
+      "status": "CLOSED",
+      "depends_on": [
+        "reconstruct-export"
+      ],
+      "gate": "PASS_EQUIVALENCE"
+    },
+    {
+      "id": "asap7-provenance",
+      "status": "READY",
+      "depends_on": [
+        "equivalence"
+      ]
+    },
+    {
+      "id": "full-dp6-ppa",
+      "status": "READY",
+      "depends_on": [
+        "asap7-provenance"
+      ]
+    },
+    {
+      "id": "rw5-ppa",
+      "status": "READY",
+      "depends_on": [
+        "asap7-provenance"
+      ]
+    },
+    {
+      "id": "argon-ppa",
+      "status": "READY",
+      "depends_on": [
+        "asap7-provenance"
+      ]
+    },
+    {
+      "id": "evidence-reconciliation",
+      "status": "BLOCKED_BY_DEPENDENCIES",
+      "depends_on": [
+        "full-dp6-ppa",
+        "rw5-ppa",
+        "argon-ppa"
+      ]
+    },
+    {
+      "id": "terminal-disposition",
+      "status": "BLOCKED_BY_DEPENDENCIES",
+      "depends_on": [
+        "evidence-reconciliation"
+      ]
+    }
+  ],
+  "forbidden": [
+    "AWS FPGA execution",
+    "new FPGA physical build",
+    "AFI creation",
+    "F2 runtime",
+    "FPGA benchmark",
+    "physical attacker sweep",
+    "sustained/HFB",
+    "DP6 semantic change",
+    "DP7",
+    "consensus/economics change",
+    "release",
+    "activation",
+    "mainnet"
+  ],
+  "asic_lab_disposition": "HOLD"
+}
