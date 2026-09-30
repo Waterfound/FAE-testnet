@@ -28,7 +28,7 @@ Evidence is sufficient for the mechanical/policy constraints: 100,000,000 atoms 
 
 1. Block-time selection evidence remains insufficient.
 2. Mainnet fee destination and long-run security-budget assumptions are unresolved.
-3. DP6 remains STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE; ASIC Lab stays HOLD.
+3. DP6 is STRONG_HEURISTIC__LOGIC_PPA_BOUND_CLOSED__MEMORY_ECONOMIC_BOUND_OPEN, with economic proposition WEAKENED_NOT_FALSIFIED / STILL_INCONCLUSIVE; ASIC Lab stays HOLD, NEW_AWS_INFORMATION_GAIN remains INSUFFICIENT_TO_REOPEN, and RP-B3-T3 is the GENUINE_EXTERNAL_EVIDENCE_GATE.
 4. Representative-device physical evidence and physical HFB economics are not admitted.
 5. Stability Soak V3 has not started; its preflight is prepared for the 2026-10-01 zero-cost checkpoint.
 6. Coinbase maturity policy and real launch initial-difficulty calibration remain unresolved.
