@@ -1,0 +1,70 @@
+name: stability-soak-v3-preflight-readiness
+
+on:
+  push:
+    branches:
+      - 'preflight/stability-soak-v3-launch-readiness-20260929'
+    paths:
+      - 'sovereign-forge/lab/stability-soak-v3/**'
+      - 'sovereign-forge/tests/stability-soak-v3-*.mjs'
+      - 'sovereign-forge/release/FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT.json'
+      - '.github/workflows/stability-soak-v3-preflight-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Bind exact revision
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git status --porcelain=v1
+      - name: Syntax and configuration validation
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/node-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/monitor-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/fallback-observer-core.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/cloudflare-observer-worker.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/render-free-capacity-proof.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-readiness-regression.test.mjs
+          node -e "const fs=require('fs'); JSON.parse(fs.readFileSync('sovereign-forge/release/FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT.json','utf8'));"
+      - name: Frozen analyzer and failure classification regressions
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-readiness-regression.test.mjs
+      - name: Prestart and provider fail-closed gates
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-render-capacity.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
+      - name: Crash restart checkpoint and scale recovery
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+      - name: Node controller observer harness smoke
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-embedded-controller.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-fallback-observer.test.mjs
+      - name: Verify authoritative recovery uses atomic replace
+        run: |
+          set -euo pipefail
+          grep -q "rename(temporary,path)" sovereign-forge/node/authoritative/node-state-recovery.mjs
+          grep -q "checkpoint(node.getState())" sovereign-forge/lab/stability-soak-v3/node-runtime.mjs
+      - name: Assert no real-soak launch surface is invoked
+        run: |
+          set -euo pipefail
+          ! grep -R --line-number --fixed-string "FAE_V3_T0_UTC=" .github/workflows/stability-soak-v3-preflight-readiness.yml
+          ! grep -R --line-number -E "trigger_deploy|render deploy|curl .*onrender" .github/workflows/stability-soak-v3-preflight-readiness.yml
