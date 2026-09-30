@@ -1,0 +1,39 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_PASS2_LIFE_EVIDENCE_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "stage": "PASS 2 — LIFE",
+  "candidate_branch": "design/fae-mining-authored-reference-001",
+  "studio": {
+    "url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "app_id": "fae-mining-authored-reference-composition-p18jsf",
+    "status": "READY",
+    "frontend_errors": 0,
+    "network_errors": 0
+  },
+  "interactive_browser_qa": {
+    "run_id": "e81e1a2f-3bab-41f9-b2b1-9a2f808d6129",
+    "result": "PASS",
+    "blockers_for_waterfound_review": "NONE",
+    "verified": [
+      "active state renders 2.49 W/s and 3 / 3 devices",
+      "blue computation activity is present only while active",
+      "accepted-work events are brief green semantic responses",
+      "pause changes control to Resume mining",
+      "pause changes local rate to 0.00 W/s",
+      "pause changes Active devices to 2 / 3",
+      "local iPhone becomes Paused/local mining and its bar collapses",
+      "computation field becomes visibly quiet without layout reflow",
+      "resume restores 2.49 W/s, 3 / 3, focused-capacity local device and live work activity",
+      "no confetti, bounce, glow, gradients, reward ETA, percent-to-reward, almost-there or fake completion",
+      "mobile remains coherent",
+      "no fatal errors, overlap, clipping or broken controls"
+    ]
+  },
+  "semantic_boundary": {
+    "studio_work_events": "DETERMINISTIC_SYNTHETIC_PREVIEW_ONLY",
+    "production_binding": "NOT_IMPLEMENTED_IN_THIS_FRONTIER",
+    "reward_progress_claim": false
+  },
+  "composition": "PRESERVED_FROM_WATERFOUND_APPROVED_PASS1",
+  "state": "PASS_FOR_WATERFOUND_LIFE_REVIEW"
+}
