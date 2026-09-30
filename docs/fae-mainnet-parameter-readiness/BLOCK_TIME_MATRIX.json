@@ -1,0 +1,121 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_BLOCK_TIME_MATRIX_V1",
+  "source_note": "Evidence roles are preserved; no row selects a mainnet winner.",
+  "rows": [
+    {
+      "seconds": 180,
+      "authority_status": "ACTIVE_TESTNET_AUTHORITY",
+      "mainnet_selection_status": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "evidence_quality": "DIRECT_ACTIVE_IMPLEMENTATION + SOFTWARE_RESEARCH; DIRECT_MAINNET_GRADE_NETWORK_EVIDENCE_INSUFFICIENT",
+      "ux": {
+        "mean_one_block_s": 180,
+        "relative_confirmation_wait": "shortest of compared set",
+        "same_20tx_nominal_tps": 0.1111111111
+      },
+      "stale_reorg": {
+        "direction": "highest fixed-delay race and fixed-outage exposure of 180/300/600",
+        "five_second_race_probability_proxy": 0.0273955229,
+        "natural_event_confidence": "INSUFFICIENT"
+      },
+      "security": {
+        "positive": "more frequent reward events / lower payout-count variance",
+        "negative": "greater fixed-latency advantage pressure; shorter outage-to-competing-block timescale"
+      },
+      "mining_variance": {
+        "relative_sigma_vs_180": 1,
+        "tiny_miner_event_frequency": "best among 180/300/600"
+      },
+      "daa": {
+        "implementation": "20-block discrete integer-bit retarget, rounded log2 adjustment clamped ±2 bits",
+        "warning": "nearest-bit quantization envelope ~127.3s–254.6s; 256-seed median mean ~191.6s; timestamp rule couples into cadence"
+      },
+      "terminal_research_verdict": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "seconds": 300,
+      "authority_status": "PREFERRED_RESEARCH_INCUMBENT_NOT_ACTIVE",
+      "mainnet_selection_status": "PARAMETER_RESEARCH_ONLY",
+      "evidence_quality": "STRONG_RESEARCH + EXECUTABLE_CANDIDATE + REAL_THREE_REGION_WAN; NO_SELECTION_AUTHORITY",
+      "ux": {
+        "mean_one_block_s": 300,
+        "relative_confirmation_wait": "middle vs 180/600",
+        "same_20tx_nominal_tps": 0.0666666667
+      },
+      "stale_reorg": {
+        "direction": "lower fixed-delay/outage pressure than 180; higher than 600",
+        "five_second_race_probability_proxy": 0.0165285462,
+        "wan_p95_s": 0.116,
+        "natural_event_confidence": "NOT_DISCRIMINATING_ENOUGH_FOR_WINNER"
+      },
+      "security": {
+        "positive": "more propagation margin than 180; candidate chainwork/reorg semantics tested",
+        "negative": "lower reward-event frequency and greater payout variance than 180"
+      },
+      "mining_variance": {
+        "relative_sigma_vs_180": 1.2909944487
+      },
+      "daa": {
+        "implementation": "candidate anchored-ASERT-style full uint256 target; 6h half-life",
+        "warning": "Different family from active 180 DAA; real launch initial target still requires hashrate calibration."
+      },
+      "activation_authorized": false
+    },
+    {
+      "seconds": 600,
+      "authority_status": "RESEARCH_CHALLENGER",
+      "mainnet_selection_status": "PARAMETER_RESEARCH_ONLY",
+      "evidence_quality": "RESEARCH + REAL_THREE_REGION_WAN; NO ACTIVE IMPLEMENTATION",
+      "ux": {
+        "mean_one_block_s": 600,
+        "relative_confirmation_wait": "longest among 180/300/600",
+        "same_20tx_nominal_tps": 0.0333333333
+      },
+      "stale_reorg": {
+        "direction": "lowest fixed-delay/outage pressure among 180/300/600",
+        "wan_p95_s": 0.13805,
+        "normalized_race_proxy_vs_300": 0.5951
+      },
+      "security": {
+        "positive": "larger propagation margin",
+        "negative": "half the 6h DAA observation density vs 300; greater payout variance"
+      },
+      "mining_variance": {
+        "relative_sigma_vs_180": 1.8257418584,
+        "relative_sigma_vs_300": 1.4142135624
+      },
+      "daa": {
+        "research_proxy": "anchored-ASERT-style 6h half-life",
+        "observations_per_half_life": 36,
+        "warning": "Not direct evidence for an active 600s consensus implementation."
+      }
+    },
+    {
+      "seconds": 900,
+      "authority_status": "RESEARCH_CLOSED_CURRENT_BRANCH",
+      "mainnet_selection_status": "PARAMETER_NOT_JUSTIFIED",
+      "evidence_quality": "RESEARCH_ONLY",
+      "ux": {
+        "mean_one_block_s": 900,
+        "relative_confirmation_wait": "worst of tested 300/600/900 set"
+      },
+      "stale_reorg": {
+        "wan_p95_s": 0.2984,
+        "normalized_race_proxy_vs_300": 0.8575,
+        "promotion_gate": "FAILED >=25% improvement criterion"
+      },
+      "security": {
+        "negative": [
+          "24 observations per 6h DAA half-life",
+          "highest payout variance",
+          "added maturity/calendar quantization complexity"
+        ]
+      },
+      "daa": {
+        "research_proxy": "anchored-ASERT-style 6h half-life",
+        "observations_per_half_life": 24
+      },
+      "disposition": "CLOSED"
+    }
+  ],
+  "cross_row_warning": "180 and 300/600/900 DAA evidence is not algorithm-normalized. Any mainnet block-time selection must avoid attributing DAA-family effects to interval alone."
+}
