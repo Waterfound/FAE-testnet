@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_MATURITY_ANALYSIS_V1",
+  "active_v4": {
+    "enforced": false,
+    "finding": "Canonical v4 spend path accepts any unspent UTXO without coinbase-origin maturity gating."
+  },
+  "research_300": {
+    "blocks": 200,
+    "first_spend_height_rule": "created_height + 200",
+    "wall_clock_at_target": "16h40m",
+    "software_semantics": "GREEN_CANDIDATE_ONLY"
+  },
+  "same_200_blocks_wall_clock": {
+    "180s": "10h",
+    "300s": "16h40m",
+    "600s": "33h20m",
+    "900s": "50h"
+  },
+  "wall_clock_preserving_examples": {
+    "target_wall_clock": "16h40m",
+    "180s": {
+      "blocks_333": "16h39m",
+      "blocks_334": "16h42m"
+    },
+    "300s": {
+      "blocks": 200,
+      "wall_clock": "16h40m"
+    },
+    "600s": {
+      "blocks": 100,
+      "wall_clock": "16h40m"
+    },
+    "900s": {
+      "blocks": 67,
+      "wall_clock": "16h45m"
+    }
+  },
+  "unresolved_policy_question": "The evidence does not establish whether maturity should target elapsed wall time, confirmation count, expected accumulated chainwork, or a quantified reorg-risk threshold.",
+  "verdict": "PARAMETER_NEEDS_MORE_EVIDENCE",
+  "minimum_to_freeze": "After block-time/DAA selection, precommit a settlement-risk objective and derive the smallest maturity satisfying it; do not inherit 200 merely from candidate history."
+}
