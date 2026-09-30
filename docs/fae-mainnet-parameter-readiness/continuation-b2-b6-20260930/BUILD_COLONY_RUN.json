@@ -20,7 +20,7 @@
       "id": "B2-00",
       "name": "Canonical fee semantics reconstruction",
       "dependencies": [],
-      "state": "ACTIVE"
+      "state": "PASS"
     },
     {
       "id": "B2-01",
@@ -28,7 +28,7 @@
       "dependencies": [
         "B2-00"
       ],
-      "state": "READY"
+      "state": "PASS"
     },
     {
       "id": "B2-02",
@@ -36,7 +36,7 @@
       "dependencies": [
         "B2-01"
       ],
-      "state": "READY"
+      "state": "PASS"
     },
     {
       "id": "B2-03",
@@ -44,7 +44,7 @@
       "dependencies": [
         "B2-02"
       ],
-      "state": "READY"
+      "state": "PASS"
     },
     {
       "id": "B2-04",
@@ -52,7 +52,7 @@
       "dependencies": [
         "B2-02"
       ],
-      "state": "READY"
+      "state": "PASS_EXTERNAL_BOUNDARY_RECORDED"
     },
     {
       "id": "B2-05",
@@ -61,7 +61,7 @@
         "B2-03",
         "B2-04"
       ],
-      "state": "READY"
+      "state": "PASS"
     },
     {
       "id": "B2-06",
@@ -69,7 +69,7 @@
       "dependencies": [
         "B2-05"
       ],
-      "state": "READY"
+      "state": "CLOSED"
     },
     {
       "id": "B6-00",
@@ -77,7 +77,7 @@
       "dependencies": [
         "B2-06"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "PASS"
     },
     {
       "id": "B6-01",
@@ -85,7 +85,7 @@
       "dependencies": [
         "B6-00"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "PASS"
     },
     {
       "id": "B6-02",
@@ -93,7 +93,7 @@
       "dependencies": [
         "B6-01"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "PASS"
     },
     {
       "id": "B6-03",
@@ -101,7 +101,7 @@
       "dependencies": [
         "B6-01"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "PASS_EXTERNAL_CALIBRATION_BOUNDARY"
     },
     {
       "id": "B6-04",
@@ -110,7 +110,7 @@
         "B6-02",
         "B6-03"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "PASS"
     },
     {
       "id": "B6-05",
@@ -118,8 +118,19 @@
       "dependencies": [
         "B6-04"
       ],
-      "state": "SERIAL_WAIT"
+      "state": "CLOSED"
     }
   ],
-  "integration_policy": "Evidence-only writes under docs/fae-mainnet-parameter-readiness. No executable consensus/economic file changes."
+  "integration_policy": "Evidence-only writes under docs/fae-mainnet-parameter-readiness. No executable consensus/economic file changes.",
+  "result": {
+    "B2": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
+    "B6_maturity": "ANALYTICAL_MODEL_CLOSED__SETTLEMENT_POLICY_SELECTION_REQUIRED",
+    "B6_launch_target": "CALIBRATION_CONTRACT_CLOSED__EXTERNAL_HASHRATE_EVIDENCE_REQUIRED",
+    "internal_admissible_work_exhausted": true,
+    "parameter_set_ready_to_freeze": false,
+    "authority_created": false,
+    "consensus_changed": false,
+    "economics_changed": false
+  },
+  "terminal_state": "CLOSED_ANALYTICAL_CONTINUATION"
 }
