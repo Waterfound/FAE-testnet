@@ -109,11 +109,48 @@
   },
   "external_dependencies": {
     "dp6": {
-      "status": "HEURISTIC_ONLY_EXTERNAL_WORKSTREAM",
-      "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+      "status": "GENUINE_EXTERNAL_EVIDENCE_GATE",
+      "terminal_classification": "STRONG_HEURISTIC__LOGIC_PPA_BOUND_CLOSED__MEMORY_ECONOMIC_BOUND_OPEN",
+      "economic_proposition": {
+        "direction": "WEAKENED_NOT_FALSIFIED",
+        "decision_state": "STILL_INCONCLUSIVE"
+      },
+      "admitted_source": {
+        "branch": "evidence/fae-dp6-rp-b3-t2-20260930",
+        "observed_head": "7a041df798d2d3d623fa77a1ae58a07caa5a6b1a",
+        "source_revision": "3ea20ce42e867797eb781e25cfc268cc7d308741",
+        "run_id": 36742292802,
+        "terminal_artifact": "labs/asic-f2-pre-go/reviews/rp-b3-t2/RP_B3_T2B_SPECIALIZED_BOUND_TERMINAL.json"
+      },
+      "closed_now": [
+        "technology-calibrated full DP6 predictive standard-cell logic area",
+        "predictive achievable frequency at ASAP7 BC",
+        "critical-path family",
+        "statistical logic power sensitivity",
+        "Argon logic PPA sensitivity",
+        "RW5 logic PPA sensitivity",
+        "logic energy-per-cycle sensitivity"
+      ],
+      "still_open": [
+        "optimized specialist cycles/work",
+        "workload-trace logic power",
+        "complete logic joules/valid-work",
+        "effective dependent-random-access efficiency",
+        "controller/PHY/package area and power",
+        "installed memory/package cost",
+        "production die/yield/capex assumptions",
+        "complete specialist LCVW"
+      ],
+      "economic_implication": "Logic is sufficiently compact/fast in the admitted predictive PPA that memory/package/random-I/O economics are now the dominant unresolved specialization bound. No defensible specialist LCVW interval exists yet.",
       "asic_lab": "HOLD",
-      "current_observation": "RP-B3-T1 workflow run 36656132054 completed with overall failure after the PPA execution step succeeded and evidence artifact 11073562201 was uploaded; persistence step failed. No terminal admitted DP6 premise upgrade is inferred.",
-      "implication": "Specialized-hardware economic advantage remains unbounded enough to block robust commodity-participation/security-budget claims."
+      "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
+      "exact_next_frontier": {
+        "id": "RP-B3-T3",
+        "name": "Specialized Memory-System / Random-I-O / Package Economic Bound",
+        "gate": "GENUINE_EXTERNAL_EVIDENCE_GATE"
+      },
+      "physical_reconsideration": "NO",
+      "implication_for_mainnet_readiness": "B3 remains blocking, but only at the memory-system/economic specialist-bound layer; logic PPA is no longer an open blocker."
     },
     "representative_device": {
       "status": "EXTERNAL_EVIDENCE",
