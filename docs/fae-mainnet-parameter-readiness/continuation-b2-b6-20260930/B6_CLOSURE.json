@@ -1,0 +1,29 @@
+{
+  "schema": "FAE_B6_ANALYTICAL_CLOSURE_V1",
+  "blocker": "B6_MATURITY_AND_LAUNCH_TARGET",
+  "maturity_terminal_classification": "ANALYTICAL_MODEL_CLOSED__SETTLEMENT_POLICY_SELECTION_REQUIRED",
+  "launch_target_terminal_classification": "CALIBRATION_CONTRACT_CLOSED__EXTERNAL_HASHRATE_EVIDENCE_REQUIRED",
+  "internal_analytical_work_exhausted": true,
+  "consensus_changed": false,
+  "economics_changed": false,
+  "maturity_changed": false,
+  "launch_target_selected": false,
+  "policy_selected": false,
+  "residual_boundaries": {
+    "maturity": [
+      "Waterfound selects settlement objective W, D or hybrid after consuming B1/B5 evidence.",
+      "Numeric N is then mechanically derived from selected T and policy inputs.",
+      "If miner-paid fees are selected in B2, Waterfound explicitly decides whether all coinbase-origin value shares one maturity rule."
+    ],
+    "launch_target": [
+      "Selected block-time and DAA profile must exist.",
+      "Provenance-bound launch work-rate evidence must exist.",
+      "Waterfound selects H_ref aggregation and any explicit margin policy.",
+      "Deterministic target derivation and independent recomputation bind into the activation profile."
+    ]
+  },
+  "blocker_reduction": {
+    "before": "B6 broad unresolved maturity plus launch-target policy/calibration blocker",
+    "after": "Maturity numeric value is no longer an independent research problem; only settlement-policy inputs remain. Launch-target mechanism and arithmetic are closed; only external H_ref evidence plus policy aggregation remain."
+  }
+}
