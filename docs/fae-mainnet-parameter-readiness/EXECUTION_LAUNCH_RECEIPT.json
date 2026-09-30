@@ -1,0 +1,21 @@
+{
+  "receipt_id": "gelr-f861324e9a34ac1473ef7c37",
+  "order_id": "gelo-5c0ecb77ebc4ee1d38a890c3",
+  "order_digest": "sha256:5c0ecb77ebc4ee1d38a890c3cb3fef4dcd8d30ca2872ccd37eb81b184fad153e",
+  "disposition": "ADMITTED",
+  "disposition_reason": "launch_admitted",
+  "workstream_id": "fae-mainnet-consensus-economic-parameter-readiness-001",
+  "owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "executor": "chatgpt-github-connector",
+  "launch_id": "gel-82ba9a9075bea276e09c933b",
+  "dispatch_identity": "geld-dc5f1aa4e9ead53410d0cfbd",
+  "first_artifact_ref": "docs/fae-mainnet-parameter-readiness/EXECUTION_LAUNCH_RECEIPT.json",
+  "authority_ref": "user-order://2026-09-29/fae-mainnet-consensus-economic-parameter-readiness",
+  "authority_binding_digest": "sha256:8396facf00ae4a6c9eaba92a2697021d8a68a4b2808bd2124c19aba5fd645d67",
+  "executor_binding_digest": "sha256:515d4fde103cf45c0b67d424e55ee3bb8d0753006f68f1eb60e08631fb28107e",
+  "recovery_required": false,
+  "authority_created": false,
+  "execution_triggered": false,
+  "schema_version": "ge.execution-launch-receipt.v1"
+}
