@@ -1,7 +1,7 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_DURABLE_STATE_V1",
   "continuation_id": "fae-mpr-b2-b6-20260930-001",
-  "generation": 2,
+  "generation": 3,
   "source_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
   "active": {
     "frontier": "B2_B6_CONTINUATION",
@@ -21,7 +21,7 @@
     {
       "frontier": "B2_security_adequacy",
       "state": "external_wait",
-      "wake_condition": "DP6/HFB/RDE and later economic evidence support numeric security adequacy assessment."
+      "wake_condition": "RP-B3-T3 memory/economic specialist-bound evidence plus HFB/RDE and later economic evidence support numeric security-adequacy assessment. RP-B3-T2B logic PPA is closed and must not be reopened."
     },
     {
       "frontier": "B6_settlement_policy",
@@ -56,5 +56,5 @@
   },
   "internal_work_remaining": false,
   "human_required_now": false,
-  "note": "No further work is admissible inside this continuation without either an explicit Waterfound policy choice or new external evidence. No background execution is claimed."
+  "note": "B2 and B6 remain closed analytically. DP6 T2B is reconciled only as a downstream dependency refinement: logic PPA closed; memory/economic bound remains external at RP-B3-T3. No previously closed frontier is reopened."
 }
