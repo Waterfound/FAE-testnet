@@ -121,8 +121,10 @@
     },
     {
       "id": "B3_DP6_SPECIALIST_BOUND",
-      "kind": "EXTERNAL_WORKSTREAM",
-      "minimum": "Admit a terminal evidence-based DP6 robust-premise disposition that bounds specialized cost/work advantage sufficiently for the participation objective. Current state remains strong heuristic/HOLD."
+      "kind": "EXTERNAL_EVIDENCE",
+      "state": "STRONG_HEURISTIC__LOGIC_PPA_BOUND_CLOSED__MEMORY_ECONOMIC_BOUND_OPEN",
+      "economic_proposition": "WEAKENED_NOT_FALSIFIED__STILL_INCONCLUSIVE",
+      "minimum": "RP-B3-T3 must admit genuine external evidence sufficient to bound DP6 dependent-random-access memory-system/controller/PHY/package economics and produce a defensible specialist LCVW interval. Logic PPA is closed. ASIC Lab remains HOLD and NEW_AWS_INFORMATION_GAIN remains INSUFFICIENT_TO_REOPEN."
     },
     {
       "id": "B4_REPRESENTATIVE_DEVICE_HFB",
