@@ -64,9 +64,13 @@
   "evidence": {
     "candidate_artifact": "design/mining-authored-reference/composition-pass-1.html",
     "pass1_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS1_EVIDENCE.json",
+    "ci_reconciliation": "docs/FAE_MINING_AUTHORED_REFERENCE_CI_RECONCILIATION.json",
     "studio_url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
     "browser_qa_run_id": "414ed4dc-96bc-4ed5-ae22-0ea79e87f545",
     "browser_qa": "PASS_13_OF_13",
+    "visual_language_ci_run_id": 36662851504,
+    "visual_language_ci": "SUCCESS",
+    "draft_pr": 268,
     "review_blockers": "NONE"
   },
   "serialization_rule": "Parallelize independence. Serialize shared state.",
