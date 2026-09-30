@@ -98,8 +98,8 @@ cat > "$DESIGN_DIR/config.mk" <<EOF
 export PLATFORM = asap7
 export DESIGN_NAME = $TOP
 export DESIGN_NICKNAME = $NICK
-export VERILOG_FILES = $(sort $(wildcard $(DESIGN_HOME)/src/fae_dp6_rp_b3_t2/*.v))
-export SDC_FILE = $(DESIGN_HOME)/$(PLATFORM)/fae_dp6_rp_b3_t2/$NICK/constraint.sdc
+export VERILOG_FILES = \$(sort \$(wildcard \$(DESIGN_HOME)/src/fae_dp6_rp_b3_t2/*.v))
+export SDC_FILE = \$(DESIGN_HOME)/\$(PLATFORM)/fae_dp6_rp_b3_t2/$NICK/constraint.sdc
 export CORNER = $CORNER
 export LIB_MODEL = NLDM
 export ASAP7_USE_VT = RVT
@@ -118,10 +118,10 @@ cat > "$DESIGN_DIR/constraint.sdc" <<EOF
 current_design $TOP
 set clk_period $PERIOD_NS
 set clk_port [get_ports ap_clk]
-create_clock -name core_clock -period $clk_period $clk_port
+create_clock -name core_clock -period \$clk_period \$clk_port
 set non_clock_inputs [all_inputs -no_clocks]
-set_input_delay [expr $clk_period * 0.10] -clock core_clock $non_clock_inputs
-set_output_delay [expr $clk_period * 0.10] -clock core_clock [all_outputs]
+set_input_delay [expr \$clk_period * 0.10] -clock core_clock \$non_clock_inputs
+set_output_delay [expr \$clk_period * 0.10] -clock core_clock [all_outputs]
 EOF
 
 cp "$DESIGN_DIR/config.mk" "$RESULTS/config/config.mk"
