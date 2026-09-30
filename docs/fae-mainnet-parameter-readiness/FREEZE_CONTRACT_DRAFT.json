@@ -1,0 +1,71 @@
+{
+  "schema": "FAE_FUTURE_MAINNET_PARAMETER_FREEZE_CONTRACT_DRAFT_V1",
+  "status": "DRAFT_NOT_EXECUTED_NOT_AUTHORIZED",
+  "purpose": "Exact contract that a future parameter freeze must satisfy; this artifact does not select, change, activate or deploy parameters.",
+  "required_authority": {
+    "parameter_selection_authority": "explicit Waterfound authority required after evidence gates close",
+    "activation_authority": "separate explicit authority required; never implied by freeze",
+    "release_authority": "separate explicit authority required"
+  },
+  "immutable_bindings_required": [
+    "canonical implementation source commit",
+    "network/profile id",
+    "genesis descriptor + commitment",
+    "transaction signing domain",
+    "block interval",
+    "DAA family and every DAA/timestamp parameter",
+    "initial launch target and calibration-evidence digest",
+    "atoms per FAE",
+    "initial subsidy atoms",
+    "halving era blocks",
+    "theoretical cap atoms",
+    "exact terminal scheduled issuance atoms",
+    "terminal shortfall atoms",
+    "coinbase maturity predicate and block count",
+    "fee destination/conservation rule",
+    "capacity policy including max tx/block or equivalent",
+    "fair-launch invariants",
+    "activation/fork semantics"
+  ],
+  "mandatory_fair_launch_invariants": {
+    "premine_atoms": "0",
+    "vc_allocation_atoms": "0",
+    "insider_allocation_atoms": "0",
+    "treasury_mint": "forbidden",
+    "hidden_admin_mint": "forbidden",
+    "inherited_testnet_balances": "forbidden unless separately and explicitly authorized; current candidate model is fresh genesis"
+  },
+  "arithmetic_checks": [
+    "Recompute terminal issuance from integer atom subsidies; never use reward*era*2 as a substitute.",
+    "Assert terminal issuance <= theoretical cap.",
+    "Record exact shortfall; no implicit terminal top-up.",
+    "Assert all amounts fit canonical integer storage and serialization.",
+    "Recompute wall-clock halving and maturity from frozen block interval."
+  ],
+  "evidence_gates_required": [
+    "block-time selection evidence gate",
+    "DAA/timestamp evidence gate",
+    "stale/reorg/recovery/network gate",
+    "DP6 specialized-advantage premise gate where economics depends on commodity participation",
+    "representative-device + HFB economics gate",
+    "fee/security-budget model gate",
+    "launch initial-target calibration gate",
+    "independent Project Assurance over the complete freeze bundle"
+  ],
+  "fail_closed_rules": [
+    "ACTIVE_TESTNET_AUTHORITY is not mainnet authority.",
+    "RESEARCH_CANDIDATE or PREFERRED_RESEARCH_INCUMBENT is not selection authority.",
+    "INSUFFICIENT_EVIDENCE may not be converted into a winner.",
+    "Documentation cannot override executable truth.",
+    "Selection, freeze, release and activation are distinct authority transitions.",
+    "If any required evidence digest/source revision is missing or mismatched, freeze is invalid."
+  ],
+  "required_output_state": {
+    "parameter_manifest": "single machine-readable canonical manifest",
+    "evidence_manifest": "provenance-bound evidence refs + digests",
+    "verifier": "deterministic fail-closed verifier",
+    "independent_verification": "required",
+    "selectionAuthorized": false,
+    "activationAuthorized": false
+  }
+}
