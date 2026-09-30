@@ -10,23 +10,23 @@ RESULTS="${T2}/results/${VARIANT}"
 EXPECTED="c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33"
 ORFS_COMMIT="a12d46907510891a2e3d3310abdd19975d28db0e"
 ASAP7_TREE_EXPECTED="102f845a9d321d1a0f7db10434ad84e54c0334b5"
-PERIOD_NS="5.5"
+PERIOD_PS="5500"
 CORNER="BC"
 
 case "$VARIANT" in
   full)
     TOP="fae_dp6_hls"
-    NICK="full_bc_5p5ns"
+    NICK="full_bc_5500ps"
     TARGET="cts"
     ;;
   argon)
     TOP="fae_dp6_hls_argon2d_fixed"
-    NICK="argon_bc_5p5ns"
+    NICK="argon_bc_5500ps"
     TARGET="synth"
     ;;
   rw5)
     TOP="fae_dp6_hls_rw5"
-    NICK="rw5_bc_5p5ns"
+    NICK="rw5_bc_5500ps"
     TARGET="synth"
     ;;
   *)
@@ -116,7 +116,7 @@ EOF
 
 cat > "$DESIGN_DIR/constraint.sdc" <<EOF
 current_design $TOP
-set clk_period $PERIOD_NS
+set clk_period $PERIOD_PS
 set clk_port [get_ports ap_clk]
 create_clock -name core_clock -period \$clk_period \$clk_port
 set non_clock_inputs [all_inputs -no_clocks]
@@ -201,7 +201,7 @@ prov={
   "container_image_id":"$IMAGE_ID",
   "container_repo_digest":"$IMAGE_DIGEST",
   "technology":{"name":"ASAP7","role":"predictive research platform; not production-foundry evidence","process_nm_predictive":7,"corner":"BC","temperature_C":25,"voltage_V":0.77,"library_model":"NLDM","vt":"RVT"},
-  "constraint":{"clock_period_ns":float("$PERIOD_NS"),"input_delay_fraction":0.10,"output_delay_fraction":0.10,"core_utilization_percent":40,"place_density":0.60},
+  "constraint":{"clock_period_ps":int("$PERIOD_PS"),"clock_period_ns":5.5,"asap7_time_unit":"ps","input_delay_fraction":0.10,"output_delay_fraction":0.10,"core_utilization_percent":40,"place_density":0.60},
   "power_boundary":"No VCD/SAIF supplied. OpenROAD report_power therefore reflects its default/statistical activity treatment and is admitted only as predictive sensitivity, not measured workload power.",
   "verilog_file_count":int("$VERILOG_COUNT")
 }
