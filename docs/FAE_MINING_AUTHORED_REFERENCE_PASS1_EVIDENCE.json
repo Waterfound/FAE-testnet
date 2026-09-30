@@ -1,0 +1,76 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_PASS1_EVIDENCE_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "source_authority": {
+    "branch": "design/fae-direction-d-plus-approval",
+    "revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c"
+  },
+  "candidate": {
+    "branch": "design/fae-mining-authored-reference-001",
+    "artifact": "design/mining-authored-reference/composition-pass-1.html"
+  },
+  "static_validation": {
+    "result": "PASS",
+    "required_checks": [
+      "darker authoritative orange topper present",
+      "oversized Current work rate object present",
+      "continuous computation field present",
+      "accepted-work event semantics use green",
+      "blue activity explicitly does not represent reward progress",
+      "Mining Overview preserves accepted works and average work rate",
+      "device telemetry explicitly preserves CURRENT W/s LEFT / CAPACITY RIGHT",
+      "human composition gate is explicit"
+    ],
+    "prohibited_smells_absent": [
+      "purple or decorative gradients",
+      "glassmorphism",
+      "reward ETA / almost there / percent-to-reward",
+      "marketing hero treatment"
+    ]
+  },
+  "studio": {
+    "kind": "ISOLATED_NON_PRODUCTION_APPROVAL_SURFACE",
+    "app_id": "fae-mining-authored-reference-composition-p18jsf",
+    "url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "host_status": "READY",
+    "frontend_errors": 0,
+    "network_errors": 0
+  },
+  "real_browser_qa": {
+    "result": "PASS",
+    "run_id": "414ed4dc-96bc-4ed5-ae22-0ea79e87f545",
+    "checks_passed": 13,
+    "blockers_for_waterfound_visual_review": "NONE",
+    "observed": [
+      "page opens and renders",
+      "authoritative darker orange topper",
+      "compact darker less-blue ticker",
+      "Wallet and Mining controls preserve Direction D+",
+      "one oversized Current work rate object dominates Mining",
+      "continuous white instrument field avoids SaaS card-grid composition",
+      "blue computation field is visually primary",
+      "accepted-work events are discrete green marks",
+      "Mining Overview preserves six authoritative metrics and green deltas",
+      "device telemetry preserves current W/s left, capacity right, compact bars",
+      "anti-AI/crypto visual smells are absent",
+      "no fatal errors, overlap, clipping or major layout break",
+      "composition materially avoids generic AI/SaaS/crypto-dashboard feel"
+    ]
+  },
+  "recognition_gate": {
+    "machine_precheck": "PASS_FOR_HUMAN_REVIEW",
+    "human_judgment_required": true,
+    "state": "PENDING_WATERFOUND_COMPOSITION_APPROVAL",
+    "questions": [
+      "Do you want to touch it?",
+      "Do you want to leave it open?",
+      "Does it make you want to discover what is happening?",
+      "Does it feel inevitable rather than arbitrary?",
+      "Does it feel authored without feeling like a toy?",
+      "Without FAE branding, does it still feel like a distinct product species?"
+    ]
+  },
+  "authority_effect": "NONE",
+  "production_effect": "NONE",
+  "cii": "NOT_RUN"
+}
