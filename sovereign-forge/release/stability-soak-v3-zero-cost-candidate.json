@@ -1,0 +1,54 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_ZERO_COST_CANDIDATE_V1",
+  "status": "PREPARED_BLOCKED_BY_CURRENT_RENDER_BILLING",
+  "software_commit": "745faec3c2ee3fd214199b60293f46e7b9d5a92b",
+  "authority": {
+    "public_testnet_v4_unchanged": true,
+    "new_economy_activation": false,
+    "candidate_promoted": false,
+    "mainnet_authorized": false
+  },
+  "duration_hours": 96,
+  "margin_hours": 12,
+  "max_transient_outage_seconds": 180,
+  "phase_hours": [24,24,24,24],
+  "topology": {
+    "provider": "render",
+    "plan": "free",
+    "continuous_services": 5,
+    "monthly_free_instance_hours": 750,
+    "required_instance_hours_with_margin": 540,
+    "theoretical_headroom_hours": 210,
+    "nodes": [
+      {"role":"node-a","region":"oregon","state":"ephemeral-resync","identity":"render-secret-file","peer_bootstrap":"environment"},
+      {"role":"node-b","region":"frankfurt","state":"ephemeral-resync","identity":"render-secret-file","peer_bootstrap":"environment"},
+      {"role":"node-c","region":"singapore","state":"ephemeral-resync","identity":"render-secret-file","peer_bootstrap":"environment"}
+    ],
+    "controller": {"role":"controller","region":"virginia","state":"stateless-log-emitter"},
+    "observer": {"role":"observer","region":"ohio","state":"stateless-log-emitter"},
+    "keepalive": "mutual-polling-and-peer-traffic",
+    "render_log_retention_hours": 168
+  },
+  "recovery_evidence": {
+    "fresh_bootstrap_cycles": 3,
+    "fresh_bootstrap_max_ms": 220,
+    "v3_sized_total_height": 1163,
+    "v3_sized_additional_blocks": 1152,
+    "v3_sized_bootstrap_ms": 3362,
+    "frozen_bound_ms": 180000
+  },
+  "current_infrastructure": {
+    "workspace_suspended": true,
+    "suspender": "billing",
+    "quota_clear_proven": false
+  },
+  "run_started": false,
+  "notes": [
+    "No local persistent disk is required for this candidate because current P2P v6 fresh-bootstrap recovery is independently gated below the frozen 180s bound.",
+    "Node identity must be rematerialized from Render configuration/secret material on every runtime replacement; peer bootstrap must remain in environment configuration.",
+    "Chain, durable snapshot and trust-store files may be ephemeral; losing them becomes an observed recovery event rather than an automatic invalidation.",
+    "The soak must not start while the Render workspace is suspended or unless at least 540 free instance-hours are independently shown available for the five-service 108h envelope.",
+    "No redeploy or code/config change is permitted after the 96h clock starts.",
+    "Render application logs are part of the raw evidence surface; 7-day Hobby retention exceeds the 108h experiment envelope."
+  ]
+}
