@@ -1,0 +1,125 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_CONTINUATION",
+  "run_id": "bc-fae-mpr-b2-b6-20260930-001",
+  "source": {
+    "executable_truth": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+    "prior_readiness_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
+    "main_reverified_equal_to_executable_truth": true
+  },
+  "governing_rules": [
+    "Evidence before status.",
+    "Memory suggests. Evidence decides.",
+    "Explore with strong heuristics. Commit on robust premises.",
+    "Documentation describes. Implementation repositories define executable truth.",
+    "Parallelize independence. Serialize shared state."
+  ],
+  "serialization_rule": "B6 may not enter ACTIVE/RUNNING until B2 has a persisted terminal analytical closure artifact.",
+  "frontiers": [
+    {
+      "id": "B2-00",
+      "name": "Canonical fee semantics reconstruction",
+      "dependencies": [],
+      "state": "ACTIVE"
+    },
+    {
+      "id": "B2-01",
+      "name": "Fee destination policy space + conservation invariants",
+      "dependencies": [
+        "B2-00"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B2-02",
+      "name": "Subsidy+fee security-budget normalized model",
+      "dependencies": [
+        "B2-01"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B2-03",
+      "name": "Post-halving + zero/low/stress fee sensitivity",
+      "dependencies": [
+        "B2-02"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B2-04",
+      "name": "DP6/HFB/RDE dependency boundary",
+      "dependencies": [
+        "B2-02"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B2-05",
+      "name": "Project Assurance + policy decision package",
+      "dependencies": [
+        "B2-03",
+        "B2-04"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B2-06",
+      "name": "B2 analytical closure",
+      "dependencies": [
+        "B2-05"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "B6-00",
+      "name": "Maturity executable-truth reconciliation",
+      "dependencies": [
+        "B2-06"
+      ],
+      "state": "SERIAL_WAIT"
+    },
+    {
+      "id": "B6-01",
+      "name": "Maturity objective model: blocks/time/reorg-depth/work",
+      "dependencies": [
+        "B6-00"
+      ],
+      "state": "SERIAL_WAIT"
+    },
+    {
+      "id": "B6-02",
+      "name": "180/300/600/900 sensitivity + derivation contract",
+      "dependencies": [
+        "B6-01"
+      ],
+      "state": "SERIAL_WAIT"
+    },
+    {
+      "id": "B6-03",
+      "name": "Launch initial-target analytical calibration contract",
+      "dependencies": [
+        "B6-01"
+      ],
+      "state": "SERIAL_WAIT"
+    },
+    {
+      "id": "B6-04",
+      "name": "Project Assurance + normative-decision boundary",
+      "dependencies": [
+        "B6-02",
+        "B6-03"
+      ],
+      "state": "SERIAL_WAIT"
+    },
+    {
+      "id": "B6-05",
+      "name": "B6 analytical closure",
+      "dependencies": [
+        "B6-04"
+      ],
+      "state": "SERIAL_WAIT"
+    }
+  ],
+  "integration_policy": "Evidence-only writes under docs/fae-mainnet-parameter-readiness. No executable consensus/economic file changes."
+}
