@@ -1,0 +1,145 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_LAUNCH_PACKAGE_V1",
+  "status": "CONDITION_WAIT",
+  "run_id": "FAE-STABILITY-SOAK-V3-20261001-001",
+  "created_at": "2026-09-30T01:54:00Z",
+  "portfolio_class": "SECONDARY",
+  "repository": "Waterfound/FAE-testnet",
+  "operational_branch": "render-wan-lab",
+  "tested_harness_revision": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+  "preflight_branch": "preflight/stability-soak-v3-launch-readiness-20260929",
+  "frozen_runtime_base": "140be01baff5a770263f81a13b728e63b0ce02cb",
+  "frozen_operational_base": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+  "fae_software_revision": "745faec3c2ee3fd214199b60293f46e7b9d5a92b",
+  "preflight_ci": {
+    "run_id": 36657167384,
+    "conclusion": "success",
+    "exact_revision": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+    "prior_control_plane_false_positive_run": 36656978761
+  },
+  "success_contract": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT.json",
+  "environment": {
+    "provider": "Render",
+    "plan": "free",
+    "continuous_services": 5,
+    "required_instance_hours_with_margin": 540,
+    "duration_hours": 96,
+    "margin_hours": 12,
+    "regions": {
+      "node_a": "oregon",
+      "node_b": "frankfurt",
+      "node_c": "singapore",
+      "controller": "virginia",
+      "observer": "ohio"
+    },
+    "services": {
+      "node_a": "srv-daicporm8hqs73cauong",
+      "node_b": "srv-daicps3m8hqs73cav78g",
+      "node_c": "srv-daicpu0ae00c73dvigm0",
+      "controller": "srv-daideq95efls73d2mn40",
+      "observer": "srv-daicrhp5efls73d0fv8g"
+    },
+    "current_observation": {
+      "all_required_services_plan_free": true,
+      "workspace_suspended": true,
+      "suspender": "billing",
+      "quota_clear_proven": false,
+      "observed_on": "2026-09-29"
+    }
+  },
+  "zero_cost_boundary": {
+    "new_spend_authorized": false,
+    "paid_fallback_authorized": false,
+    "plan_a_launch_requires": [
+      "workspace unsuspended",
+      "all five services still plan=free",
+      "at least 540 free instance-hours proven",
+      "no billing-producing action",
+      "prestart gates GREEN"
+    ],
+    "plan_b_and_c": "prepared historically but not automatically authorized by this package"
+  },
+  "required_runtime_inputs": {
+    "nodes": [
+      "FAE_V3_RUN_ID",
+      "FAE_NODE_ID/FAE_V3_ROLE",
+      "FAE_PEERS with two stable peer bootstrap URLs",
+      "FAE_V3_MONITOR_URLS",
+      "stable identity via existing FAE_IDENTITY_FILE or FAE_NODE_IDENTITY_JSON_B64"
+    ],
+    "controller": [
+      "FAE_V3_RUN_ID",
+      "FAE_V3_NODE_A",
+      "FAE_V3_NODE_B",
+      "FAE_V3_NODE_C",
+      "FAE_V3_T0_UTC",
+      "FAE_V3_START_HEIGHT",
+      "FAE_V3_MINER_ADDRESS"
+    ],
+    "observer": [
+      "FAE_V3_RUN_ID",
+      "FAE_V3_NODE_A",
+      "FAE_V3_NODE_B",
+      "FAE_V3_NODE_C",
+      "FAE_V3_T0_UTC"
+    ],
+    "secret_policy": "No wallet seed/private key is required or admitted. Existing node identity material remains provider-managed configuration. FAE_V3_MINER_ADDRESS is public-only."
+  },
+  "launch_procedure": [
+    "At or after the 2026-10-01 checkpoint, read-only recheck Render workspace and the five required service records.",
+    "Fail closed unless every required service remains plan=free, unsuspended, auto-deploy off, and the free-hour proof establishes >=540 remaining hours for the 108h envelope.",
+    "Verify render-wan-lab resolves exactly to ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d; do not deploy a different revision.",
+    "Bring the five existing free services to the tested revision with FAE_V3_RUN_ID set and NO FAE_V3_T0_UTC yet. This is prestart only.",
+    "Verify /v3/health and /v3/meta on all three nodes plus controller and observer; confirm distinct stable node identities, >=2 configured peers per node, exact revision, no run_started flag, and a common healthy chain view.",
+    "Run the frozen prestart contract and persist its evidence. Record initial height and a public-only FAE_V3_MINER_ADDRESS.",
+    "Arm controller and observer with one identical future FAE_V3_T0_UTC, controller FAE_V3_START_HEIGHT, and the public miner address. Ensure both monitors boot healthy before T0. Do not alter code/config after T0.",
+    "Treat the run as started only at T0 with persisted launch evidence. Partial prestart/arming is not a started soak.",
+    "During 96h preserve dual monitor coverage, node-local telemetry, 180s recovery bound, stale/reorg accounting, propagation samples, checkpoints and provider logs without changing criteria.",
+    "At >=96 continuous hours, capture controller/observer/node event streams, /v3/chain-summary, exact revision metadata and provider runtime evidence before any cleanup.",
+    "Run evidence admission and the frozen analyzer/classifier. Only PASS closes the soak; any partial or missing evidence uses the frozen terminal classifications.",
+    "After evidence capture/admission, stop the lab-only runtime using non-destructive provider controls and retain all admitted artifacts."
+  ],
+  "heartbeat_health": {
+    "monitor_heartbeat_seconds": 10,
+    "node_peer_probe_seconds": 1,
+    "node_local_tip_watch_ms": 25,
+    "max_combined_monitor_gap_ms": 30000,
+    "max_recovery_ms": 180000
+  },
+  "checkpoint_recovery": {
+    "node_checkpoint_interval_seconds": 5,
+    "state_write": "Durable state plus atomic raw-state replacement in authoritative recovery path",
+    "restart_semantics": "Node identity/bootstrap configuration survives runtime replacement; ephemeral chain state may be rebuilt from peers and is measured against the 180s bound.",
+    "preflight_evidence": [
+      "stability-soak-v3-zero-cost-recovery.mjs",
+      "stability-soak-v3-zero-cost-scale.mjs",
+      "stability-soak-v3-harness-smoke.test.mjs"
+    ]
+  },
+  "evidence_destinations": {
+    "raw": [
+      "Render application logs for controller, observer and nodes",
+      "node /v3/events buffers",
+      "node /v3/chain-summary",
+      "provider deploy/service metadata"
+    ],
+    "frozen": [
+      "FAE-testnet branch artifacts bound to exact commit",
+      "GitHub Actions preflight run 36657167384"
+    ],
+    "admission": "sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs + frozen success contract",
+    "retention_guard": "Export/admit raw provider evidence before provider log retention can expire; absence of required evidence => EVIDENCE_INCOMPLETE."
+  },
+  "termination_cleanup": {
+    "no_redeploy_after_t0": true,
+    "no_threshold_change_after_t0": true,
+    "cleanup_only_after_evidence_capture": true,
+    "destructive_cleanup": false
+  },
+  "wake_condition": {
+    "earliest_checkpoint": "2026-10-01",
+    "exact_condition": "At/after checkpoint: Render workspace unsuspended AND five required services still free AND >=540 free instance-hours independently proven AND exact revision/prestart health gates GREEN.",
+    "if_unsatisfied": "Remain CONDITION_WAIT. Do not use paid fallback and do not declare V3 started."
+  },
+  "run_started": false
+}
