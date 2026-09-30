@@ -1,0 +1,41 @@
+name: FAE DP6 RP-B3-T2 ASAP7 STA Power
+
+on:
+  push:
+    branches:
+      - evidence/fae-dp6-rp-b3-t1-20260929
+    paths:
+      - '.github/workflows/fae-dp6-rp-b3-t2-asap7-sta-power.yml'
+      - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/LAUNCH.json'
+      - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/run_asap7_sta_power.sh'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-dp6-rp-b3-t2-asap7-sta-power
+  cancel-in-progress: false
+
+jobs:
+  sta_power:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout exact evidence branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Execute bounded RP-B3-T2 STA and power calibration
+        run: |
+          chmod +x labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/run_asap7_sta_power.sh
+          labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/run_asap7_sta_power.sh
+
+      - name: Upload RP-B3-T2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-dp6-rp-b3-t2-asap7-sta-power-evidence
+          path: labs/asic-f2-pre-go/reviews/rp-b3-t2/results
+          if-no-files-found: error
+          retention-days: 30

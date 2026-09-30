@@ -1,0 +1,102 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.build_colony_run.v1",
+  "run_id": "fae-dp6-rp-b3-t2-asap7-sta-power-001",
+  "authority": "FAE_DP6_ROBUST_PREMISE_REVIEW analytical/non-production authority",
+  "principles": [
+    "Evidence before status.",
+    "Parallelize independence. Serialize shared state.",
+    "Fail closed.",
+    "Memory suggests. Evidence decides."
+  ],
+  "reconstructed_input": {
+    "branch_head": "98af9d5dab4692e39255717d7f2313cc0fd0a5da",
+    "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "equivalence": "PASS_EQUIVALENCE",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+    "container_digest": "openroad/orfs@sha256:9eed01a3dc8030f423af6a3601c172459a4ddf8f76913db5e25febe3e7435d7a",
+    "rp_b3_t1_disposition": "STRONG_HEURISTIC_ONLY",
+    "asic_lab": "HOLD"
+  },
+  "admitted_existing_evidence": {
+    "run_36656132054": "full/Argon/RW5 ASAP7 technology mapping; no valid timing/power",
+    "run_36657989186": {
+      "artifact_id": 11078322941,
+      "status": "CANCELLED_AFTER_PARTIAL_PROGRESS",
+      "valid_completed_stages": [
+        "full_2ns synthesis rc=0",
+        "rw5_2ns synthesis rc=0",
+        "argon_2ns synthesis rc=0",
+        "full_1ns synthesis rc=0",
+        "full_2ns floorplan",
+        "full_2ns placement",
+        "full_2ns CTS",
+        "full_2ns global routing"
+      ],
+      "partial_route_timing": {
+        "requested_period_ns": 2.0,
+        "global_route_setup_wns_ps": -3133.894,
+        "global_route_setup_tns_ps": -64802596.0,
+        "global_route_hold_wns_ps": -504.948,
+        "global_route_hold_tns_ps": -1406835.250,
+        "interpretation": "partial global-route timing point only; detailed routing/final signoff not completed"
+      }
+    }
+  },
+  "frontiers": [
+    {
+      "id": "T2-A",
+      "name": "Existing artifact admission",
+      "status": "CLOSED"
+    },
+    {
+      "id": "T2-B",
+      "name": "2ns partial timing extraction",
+      "status": "CLOSED"
+    },
+    {
+      "id": "T2-C",
+      "name": "6ns targeted synthesis/placement STA+power calibration",
+      "status": "READY_TO_EXECUTE",
+      "reason": "Smallest run that can generate ORFS report_clock_min_period/report_power without repeating full routing."
+    },
+    {
+      "id": "T2-D",
+      "name": "Specialist architecture and energy reconciliation",
+      "status": "BLOCKED_BY_T2_C"
+    },
+    {
+      "id": "T2-E",
+      "name": "Robust premise terminal disposition",
+      "status": "BLOCKED_BY_T2_D"
+    }
+  ],
+  "targeted_run": {
+    "platform": "ASAP7 predictive research",
+    "frontend": "slang",
+    "clock_point_ns": 6.0,
+    "views": ["full DP6", "Argon standalone", "RW5 standalone"],
+    "full_dp6_max_stage": "placement",
+    "submodule_max_stage": "synthesis",
+    "power": "ORFS/Liberty statistical activity; no VCD/SAIF; predictive only",
+    "no_route": true,
+    "no_physical_provider": true,
+    "new_spend": false,
+    "runner": "standard GitHub-hosted ubuntu-24.04 on public repository"
+  },
+  "forbidden": [
+    "AWS FPGA",
+    "AFI",
+    "F2",
+    "physical build",
+    "physical benchmark",
+    "attacker sweep",
+    "sustained/HFB",
+    "DP6 semantic change",
+    "DP7",
+    "consensus/economics change",
+    "release",
+    "activation height",
+    "mainnet"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.launch.v1",
+  "frontier": "RP-B3-T2 — ASAP7 STA/Power Closure on unchanged C6",
+  "hypothesis": "A 6 ns clock point can yield valid ASAP7 STA/power evidence with unchanged parity-bound C6, while avoiding the 3-hour full-route path.",
+  "bounded_change": "No RTL or DP6 semantic change. Add one targeted analytical runner using the existing OpenSTA-compatible SDC, exact ORFS pin, exact ASAP7 platform and pinned ORFS container digest.",
+  "predicted_information_gain": [
+    "valid report_clock_min_period / Fmax",
+    "valid WNS/TNS at a less aggressive clock point",
+    "predictive statistical logic power",
+    "full/Argon/RW5 synth power separation where ORFS reports it",
+    "placed full-DP6 area"
+  ],
+  "stop_before": ["CTS", "global routing", "detailed routing", "physical provider"],
+  "asic_lab": "HOLD",
+  "new_spend": false
+}
