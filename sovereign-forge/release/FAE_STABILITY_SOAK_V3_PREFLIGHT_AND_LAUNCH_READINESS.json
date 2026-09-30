@@ -200,18 +200,20 @@
   },
   "launch_package": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_LAUNCH_PACKAGE.json",
   "durable_checkpoint": {
+    "checkpoint_ref": "github://Waterfound/General-Execution/commit/340bff6832250764214edb4dbd6a61bd4d57e253/checkpoints/fae-stability-soak-v3-preflight-launch-readiness-001.json",
     "wake_date": "2026-10-01",
-    "wake_condition": "Recheck zero-cost Render state; require unsuspended workspace, five free services, >=540 proven free hours, exact tested revision and GREEN prestart.",
-    "next_action": "Read-only provider recheck and prestart admission; automatically launch only if every zero-cost/authority condition is positively satisfied.",
+    "wake_condition": "At/after 2026-10-01: Render workspace unsuspended AND all five required services remain free-plan AND >=540 free instance-hours positively proven AND render-wan-lab=ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d AND prestart health/identity/topology gates GREEN.",
+    "next_action": "Read-only provider/capacity recheck and prestart admission; automatically launch only if every zero-cost/authority condition is positively satisfied.",
     "no_background_claim": true
   },
   "unresolved_risks": [
     "V1 exact root cause remains unproven.",
     "V2 exact terminal cause and final scientific metrics are not recoverable from currently accessible logs.",
-    "Render workspace is currently billing-suspended and free-hour clearance for October is not yet proven."
+    "Render workspace is currently billing-suspended and free-hour clearance for October is not yet proven.",
+    "Build Colony private-repository Actions attempt produced no executable steps; cause is unproven and it is not admitted as PASS evidence."
   ],
   "exact_next_action": "At/after 2026-10-01, recheck Render zero-cost eligibility/capacity and all five service prestart gates against ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d. If any zero-cost condition fails, remain CONDITION_WAIT; do not spend or use paid fallback.",
-  "exact_wake_condition": "2026-10-01 checkpoint AND Render unsuspended AND five required services plan=free AND >=540 free instance-hours proven AND exact revision/health/prestart gates GREEN.",
+  "exact_wake_condition": "2026-10-01 checkpoint AND Render unsuspended AND five required services plan=free AND >=540 free instance-hours proven AND render-wan-lab exact revision ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d AND health/prestart gates GREEN.",
   "authority_boundary": {
     "new_spend": false,
     "paid_fallback": false,
@@ -222,5 +224,42 @@
     "activation_height": false,
     "criteria_weakening": false,
     "destructive_infrastructure": false
+  },
+  "operational_revision": {
+    "branch": "render-wan-lab",
+    "exact_tested_revision": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+    "ref_reconciled_to_exact_tested_revision": true,
+    "artifact_branch": "preflight/stability-soak-v3-launch-readiness-20260929",
+    "artifact_revision_before_closeout": "6d366d28cf93463623521c66fbc44a678882eb7f"
+  },
+  "build_colony": {
+    "branch": "colony-run/fae-stability-soak-v3-preflight-20260929",
+    "profile_revision": "8a97faa52c8ebd5112dd8465e98abf8d4b45dca8",
+    "workflow_revision": "c57c9a080b1eb17b537ecb0348782e584cd56c4f",
+    "targeted_run": 36657738257,
+    "result": "RUN_ATTEMPTED_NOT_ADMITTED",
+    "job_steps_exposed": 0,
+    "cause_proven": false,
+    "admission_note": "Not counted as PASS evidence. The GitHub Actions job terminated before any workflow step was exposed and no log blob was available."
+  },
+  "durable_execution": {
+    "canonical_bootstrap_event": "fae-stability-soak-v3-preflight-bootstrap-001",
+    "canonical_trigger_commit": "fbd55f55c8b07d81f72e61f820f531dd5d6b7a58",
+    "canonical_workflow_run": 36657313962,
+    "canonical_status": "bootstrapped",
+    "human_required": false,
+    "authority_created": false,
+    "post_state_digest": "sha256:2d649b548c0b57abdc2664767ea223922dd05a9c5f259e007ffef99b6402fc19",
+    "event_report_digest": "sha256:c7ea5fb54dd4df9d8bc04670982ffe279ded2fe98e86cfa220e70472d56127d3",
+    "continuity_checkpoint_commit": "340bff6832250764214edb4dbd6a61bd4d57e253",
+    "continuity_checkpoint_path": "checkpoints/fae-stability-soak-v3-preflight-launch-readiness-001.json",
+    "duplicate_bootstrap_rejected": {
+      "event": "fae-stability-soak-v3-preflight-condition-wait-001",
+      "trigger_commit": "d250336e73a757e3ea336761fe299c125d45b671",
+      "workflow_run": 36658053781,
+      "effect_on_canonical_state": "none",
+      "proven_reason": "durable portfolio head already exists with different state"
+    },
+    "reconciliation_note": "The canonical bootstrap was created before the final exact-source preflight PASS and contains an obsolete exact-source evidence blocker. The continuity checkpoint binds the later exact tested revision and PASS without inventing an unsupported ASP transition."
   }
 }
