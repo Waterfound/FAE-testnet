@@ -1,0 +1,46 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_CONTINUATION_RECEIPT_V1",
+  "continuation_id": "fae-mpr-b2-b6-20260930-001",
+  "workstream_id": "fae-mainnet-consensus-economic-parameter-readiness-001",
+  "authority_ref": "user-order://2026-09-30/fae-mpr-b2-fee-security-budget-then-b6-maturity-policy",
+  "disposition": "ADMITTED",
+  "admitted_at": "2026-09-30T12:50:00-03:00",
+  "executable_truth_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "shared_state_base_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
+  "execution_branch": "colony/fae-mainnet-parameter-readiness-001",
+  "serial_order": [
+    "B2_FEE_SECURITY_BUDGET",
+    "B6_MATURITY_AND_LAUNCH_TARGET_ANALYTICAL"
+  ],
+  "scope": {
+    "authorized": [
+      "Build Colony",
+      "Durable Execution",
+      "deterministic modeling",
+      "sensitivity analysis",
+      "historical/canonical evidence reconciliation",
+      "Project Assurance",
+      "bounded Diagnostic Intelligence",
+      "documentation/evidence artifacts",
+      "read-only external research"
+    ],
+    "forbidden": [
+      "consensus changes",
+      "economics changes",
+      "active fee semantic changes",
+      "subsidy/reward/halving/block-time changes",
+      "active coinbase maturity changes",
+      "activation height",
+      "release",
+      "mainnet activation",
+      "new spending",
+      "paid providers",
+      "consuming DP6 authority",
+      "consuming Representative Device/HFB authority",
+      "consuming Stability Soak authority"
+    ]
+  },
+  "authority_created": false,
+  "consensus_changed": false,
+  "economics_changed": false
+}
