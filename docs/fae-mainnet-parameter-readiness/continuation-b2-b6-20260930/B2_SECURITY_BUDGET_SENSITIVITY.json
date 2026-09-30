@@ -1,0 +1,87 @@
+{
+  "schema": "FAE_B2_SECURITY_BUDGET_SENSITIVITY_V1",
+  "status": "DETERMINISTIC_POLICY_NEUTRAL_MODEL",
+  "notation": {
+    "S_e": "scheduled subsidy FAE/day in era e",
+    "F_e": "realized transaction fees FAE/day in era e; never forecast here",
+    "alpha": "fraction of realized fees credited to miners, 0 <= alpha <= 1",
+    "miner_budget": "B_e = S_e + alpha * F_e",
+    "burn_amount": "(1-alpha)*F_e only when the non-miner share is explicitly burn",
+    "warning": "B_e is protocol revenue in FAE/day, not attack cost."
+  },
+  "schedule_anchors": {
+    "active_v4_180": {
+      "epoch0_subsidy_fae_day": 4800,
+      "fee_credit_alpha_active": 0
+    },
+    "research_300": {
+      "epoch0_subsidy_fae_day": 4032,
+      "fee_credit_alpha_candidate": 1
+    },
+    "research_600_calendar_supply_neutral": {
+      "epoch0_subsidy_fae_day": 4032,
+      "status": "research transform only"
+    },
+    "research_900_exact_pair": {
+      "epoch0_subsidy_fae_day": 4031.25,
+      "status": "research-only closed branch"
+    }
+  },
+  "zero_fee": {
+    "assumption": "F_e = 0",
+    "result": "B_e = S_e for every fee-destination policy.",
+    "robust_conclusion": "Fee policy cannot rescue a zero-fee security budget; as subsidy approaches zero, miner protocol revenue approaches zero."
+  },
+  "proportional_fee_sensitivity": {
+    "definition": "F_e = lambda * S_e, sensitivity axis only; not a demand forecast.",
+    "lambda": [
+      0,
+      0.01,
+      0.05,
+      0.1,
+      0.25,
+      1
+    ],
+    "miner_paid_multiplier": "1 + lambda",
+    "burn_or_nonminer_multiplier": "1",
+    "split_multiplier": "1 + alpha*lambda",
+    "robust_conclusion": "For a given realized fee load, miner revenue is monotone in alpha."
+  },
+  "fixed_token_fee_floor_sensitivity": {
+    "definition": "F_e = lambda * S_0 held constant only as a stress axis; not a demand forecast.",
+    "fee_dominates_subsidy_from_era": {
+      "lambda_0.01": 7,
+      "lambda_0.05": 5,
+      "lambda_0.10": 4,
+      "lambda_0.25": 2,
+      "lambda_1.00": 0
+    },
+    "explanation": "Because subsidy halves, a fixed absolute fee flow doubles its fee/subsidy ratio each era.",
+    "robust_conclusion": "If nonzero fee flow persists while subsidy declines, fee-destination policy becomes increasingly material over time."
+  },
+  "block_time_decoupling": {
+    "finding": "Under calendar/supply-neutral reward scaling, block interval alone does not materially change subsidy revenue per unit wall-clock time.",
+    "evidence": [
+      "300s research = 4032 FAE/day at era 0",
+      "600s neutral transform = 4032 FAE/day at era 0",
+      "900s exact pair = 4031.25 FAE/day due quantized exact pair"
+    ],
+    "boundary": "Block time still changes fee market capacity, reward-event variance, DAA/network behavior and therefore cannot supply a fee-demand forecast."
+  },
+  "external_conversion_boundary": {
+    "cannot_derive_from_B_e_alone": [
+      "network hashrate",
+      "fiat attack cost",
+      "specialized miner cost/work",
+      "commodity miner margin",
+      "operator concentration"
+    ],
+    "required_external_evidence": [
+      "DP6 specialist bound",
+      "Representative Device physical economics",
+      "HFB work-per-watt/work-per-dollar",
+      "real fee demand after launch or a separately justified demand model",
+      "FAE value/market conditions if fiat attack cost is claimed"
+    ]
+  }
+}
