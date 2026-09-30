@@ -701,6 +701,19 @@ async function sendFAE(){
   const amount=parseAmt($('sendamt').value);
   const destination=$('sendto').value.trim();
   if(!validAddr(destination)||amount<=0n)throw Error('Invalid destination or amount');
+  if(!globalThis.FAEWalletSigningIntent)throw Error('Wallet signing-intent guard is unavailable');
+  const signingIntent=FAEWalletSigningIntent.create({
+    network:NETWORK,
+    sourceAddress:wallet.address,
+    destination,
+    amountAtoms:String(amount)
+  });
+  const currentIntent=()=>({
+    network:NETWORK,
+    sourceAddress:wallet?.address||'',
+    destination:$('sendto').value.trim(),
+    amountAtoms:String(parseAmt($('sendamt').value))
+  });
   const spendable=await api('/spendable?address='+encodeURIComponent(wallet.address));
   let total=0n;
   const inputs=[];
@@ -720,7 +733,14 @@ async function sendFAE(){
     public_key_spki:wallet.pub,
     signature:''
   };
-  transaction.signature=b64(await crypto.subtle.sign('Ed25519',wallet.priv,E.encode(stable(txPayload(transaction)))));
+  FAEWalletSigningIntent.assertCurrent(signingIntent,currentIntent());
+  FAEWalletSigningIntent.assertTransaction(signingIntent,transaction);
+  const signingPayload=stable(txPayload(transaction));
+  const signatureBytes=await crypto.subtle.sign('Ed25519',wallet.priv,E.encode(signingPayload));
+  FAEWalletSigningIntent.assertCurrent(signingIntent,currentIntent());
+  FAEWalletSigningIntent.assertTransaction(signingIntent,transaction);
+  if(stable(txPayload(transaction))!==signingPayload)throw Error('SEND_INTENT_INTEGRITY: transaction changed during signing');
+  transaction.signature=b64(signatureBytes);
   const accepted=await api('/submit-tx',{
     method:'POST',
     headers:{'content-type':'application/json'},
