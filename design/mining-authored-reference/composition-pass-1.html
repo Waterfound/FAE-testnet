@@ -45,7 +45,7 @@ main{padding:34px 42px 48px}
 @media(max-width:560px){.topper{padding-inline:14px}.ticker{padding-inline:14px}.nav{height:51px}.nav button{padding-inline:10px}.stage-head p{display:none}.rate strong{font-size:61px}.rate span{font-size:19px}.trace{height:175px;gap:3px}.trace i{width:4px}.device{grid-template-columns:95px 1fr}.device-state{display:none}.foot{display:block}.foot span{display:block;margin-top:5px}}
 </style>
 </head>
-<body>
+<body data-mining-state="active">
 <div class="shell">
   <header>
     <div class="topper"><span class="brand">FAE</span><span class="status"><i></i>Testnet online</span></div>
@@ -55,23 +55,23 @@ main{padding:34px 42px 48px}
   <main>
     <div class="stage-head">
       <div><h1>Mining</h1><p>Local computation is active. The surface shows work as work: continuous, measurable and probabilistic.</p></div>
-      <button class="pause">Ⅱ&nbsp;&nbsp;Pause mining</button>
+      <button class="pause" id="miningToggle" aria-pressed="true"><span class="control-symbol">Ⅱ</span>&nbsp;&nbsp;<span class="control-label">Pause mining</span></button>
     </div>
     <section class="instrument">
       <div class="primary">
         <div class="rate-label">Current work rate</div>
-        <div class="rate"><strong>2.49</strong><span>W/s</span></div>
+        <div class="rate"><strong id="currentRate">2.49</strong><span>W/s</span></div>
         <div class="live-line"></div>
         <div class="trace-head"><span>Computation field · last 90 seconds</span><b>1,428 accepted works / 24h</b></div>
-        <div class="trace" aria-label="Work activity trace">
+        <div class="trace" id="workTrace" aria-label="Work activity trace">
           <i style="height:31%"></i><i class="soft" style="height:44%"></i><i style="height:39%"></i><i style="height:62%"></i><i class="accepted" style="height:51%"></i><i style="height:70%"></i><i class="soft" style="height:58%"></i><i style="height:73%"></i><i style="height:49%"></i><i style="height:67%"></i><i class="accepted" style="height:81%"></i><i style="height:76%"></i><i style="height:59%"></i><i class="soft" style="height:48%"></i><i style="height:69%"></i><i style="height:84%"></i><i style="height:63%"></i><i class="accepted" style="height:89%"></i><i style="height:72%"></i><i class="soft" style="height:54%"></i><i style="height:65%"></i><i style="height:79%"></i><i style="height:61%"></i><i style="height:74%"></i><i class="accepted" style="height:92%"></i><i style="height:85%"></i><i class="soft" style="height:68%"></i><i style="height:77%"></i><i style="height:57%"></i><i style="height:66%"></i><i class="accepted" style="height:86%"></i><i style="height:73%"></i><i style="height:81%"></i><i class="soft" style="height:62%"></i><i style="height:71%"></i><i style="height:88%"></i><i class="accepted" style="height:94%"></i><i style="height:79%"></i><i class="soft" style="height:64%"></i><i style="height:82%"></i><i style="height:68%"></i><i style="height:75%"></i><i class="accepted" style="height:90%"></i><i style="height:84%"></i><i style="height:69%"></i><i class="soft" style="height:60%"></i><i style="height:76%"></i><i style="height:87%"></i>
         </div>
         <div class="trace-foot"><span class="prob">Blue is computation activity, not progress toward a reward. Green marks a completed accepted-work event.</span><span>focused ceiling&nbsp;&nbsp;<b>3.10 W/s</b></span></div>
       </div>
       <aside class="overview">
         <h2>Mining Overview</h2>
-        <div class="metric"><span>Active devices</span><b>3 / 3</b></div>
-        <div class="metric"><span>Accepted works (24h)</span><b>1,428 <em>+12% ↗</em></b></div>
+        <div class="metric"><span>Active devices</span><b id="activeDevices">3 / 3</b></div>
+        <div class="metric accepted-metric"><span>Accepted works (24h)</span><b><span id="acceptedWorks">1,428</span> <em>+12% ↗</em></b></div>
         <div class="metric"><span>Efficiency</span><b style="color:#0c4cc4">82%</b></div>
         <div class="metric"><span>Average work rate</span><b>2.41 W/s <em>+8% ↗</em></b></div>
         <div class="metric"><span>Uptime</span><b>4h 26m</b></div>
@@ -81,7 +81,7 @@ main{padding:34px 42px 48px}
     <section class="devices">
       <div class="devices-head"><h2>Devices</h2><span>CURRENT W/s LEFT · CAPACITY RIGHT</span></div>
       <div class="device">
-        <div class="device-name"><span class="glyph"><i class="phone"></i></span>iPhone</div>
+        <div class="device-name"><span class="glyph"><i class="phone"></i></span>iPhone <small>this device</small></div>
         <div class="track"><div class="fill" style="width:82%">2.54 W/s</div><span class="capacity">3.10 W/s</span></div>
         <div class="device-state"><b>82%</b>focused capacity</div>
       </div>
@@ -96,7 +96,7 @@ main{padding:34px 42px 48px}
         <div class="device-state"><b>66%</b>balanced</div>
       </div>
     </section>
-    <div class="foot"><span>Composition pass only — motion/life intentionally deferred.</span><span class="gate">PENDING_WATERFOUND_COMPOSITION_APPROVAL</span></div>
+    <div class="foot"><span>PASS 2 — LIFE preview uses deterministic synthetic work events; production binds these same states to real mining telemetry.</span><span class="gate">PENDING_WATERFOUND_LIFE_APPROVAL</span></div>
   </main>
 </div>
 </body>
