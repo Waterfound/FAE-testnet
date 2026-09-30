@@ -1,7 +1,7 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_DURABLE_STATE_V1",
   "portfolio_id": "fae-mainnet-parameter-readiness-001",
-  "generation": 2,
+  "generation": 3,
   "repository": "Waterfound/FAE-testnet",
   "branch": "colony/fae-mainnet-parameter-readiness-001",
   "frozen_executable_source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
@@ -36,8 +36,8 @@
       "predicate": "New provenance-bound evidence closes the F180 terminal missing-evidence set or otherwise supplies a genuinely discriminating precommitted block-time selection dataset."
     },
     {
-      "dependency": "DP6 robust premise",
-      "predicate": "A terminal admitted DP6 robust-premise disposition replaces STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE with evidence sufficient to bound specialist advantage for the participation objective."
+      "dependency": "DP6 specialist memory/economic bound",
+      "predicate": "Wake only when RP-B3-T3 admits genuine external evidence that materially bounds DP6 dependent-random-access memory-system/controller/PHY/package economics and moves specialist LCVW from UNKNOWN. Do not reopen RP-B3-T2B, ASIC physical work, AFI/F2, or AWS from the T2B result."
     },
     {
       "dependency": "representative-device + HFB",
@@ -61,7 +61,7 @@
   "human_required_now": false,
   "new_authority_required_now": false,
   "external_gate_now": true,
-  "closure_boundary": "All readiness-internal work remains exhausted. B2 and the analytical portion of B6 are now additionally closed; remaining progress requires policy selections and/or external evidence from existing dependent workstreams.",
+  "closure_boundary": "All readiness-internal work remains exhausted. DP6 RP-B3-T2B is reconciled as logic-PPA closed but memory/economic specialist bound open; B3 now waits specifically on RP-B3-T3 genuine external evidence. Other blockers/frontiers remain unchanged.",
   "artifacts": [
     "MODELING_RESULTS.json",
     "EVIDENCE_MATRIX.json",
