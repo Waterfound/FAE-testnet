@@ -1,0 +1,16 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_LIFE_APPROVAL_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "gate_id": "authority://fae-visual-language/mining-authored-reference-life",
+  "decision": "APPROVED",
+  "authority": "Waterfound",
+  "approved_stage": "PASS 2 — LIFE",
+  "effect": {
+    "MAR-06": "PASS",
+    "MAR-07": "AUTHORIZED_TO_ACTIVATE",
+    "MAR-08": "REMAINS_BLOCKED_UNTIL_REFERENCE_APPROVAL"
+  },
+  "production_authority": false,
+  "main_merge_authority": false,
+  "cii_authority": false
+}
