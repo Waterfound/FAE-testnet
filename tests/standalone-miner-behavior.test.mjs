@@ -7,7 +7,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  createEmitter, normalizeNodeEndpoint, readConfig, runMiner, saveConfig
+  normalizeNodeEndpoint, parseArgs, readConfig, resolveOptions, runMiner, saveConfig
 } from '../standalone/fae-miner.mjs';
 import {
   NETWORK, doubleHashHex, hashHeaderNonce, workMeetsTarget
@@ -67,6 +67,33 @@ test('remote plaintext endpoints fail closed while loopback HTTP remains usable'
   assert.equal(normalizeNodeEndpoint('https://node.example/'),'https://node.example');
   assert.throws(()=>normalizeNodeEndpoint('http://node.example'),/HTTPS/);
   assert.throws(()=>normalizeNodeEndpoint('https://user:pass@node.example'),/credentials/);
+});
+
+
+test('invalid reward address is rejected before any node request',()=>{
+  const args=parseArgs(['--node','http://127.0.0.1:8787','--address','faet1invalid']);
+  assert.throws(()=>resolveOptions(args,{}),/Invalid FAE reward address/);
+});
+
+test('malformed template fails closed without block submission',async()=>{
+  let submissions=0;
+  const {server,base}=await listen(async(req,res)=>{
+    const url=new URL(req.url,'http://127.0.0.1');
+    if(url.pathname==='/status')return send(res,200,{ok:true,network:NETWORK,height:0,tip_hash:ZERO});
+    if(url.pathname==='/template'){
+      const malformed=makeTemplate({height:1,previousHash:ZERO,difficulty:1});
+      malformed.header.network='wrong-network';
+      return send(res,200,malformed);
+    }
+    if(url.pathname==='/submit-block'){submissions++;return send(res,200,{ok:true})}
+    send(res,404,{ok:false,error:'not_found'});
+  });
+  try{
+    await assert.rejects(()=>runMiner(options(base),{emit:()=>{}}),/TEMPLATE_NETWORK_MISMATCH/);
+    assert.equal(submissions,0);
+  }finally{
+    await close(server);
+  }
 });
 
 test('secret-free config persists only public miner settings',async()=>{
