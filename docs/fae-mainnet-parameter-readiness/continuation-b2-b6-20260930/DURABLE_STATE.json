@@ -1,0 +1,31 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_DURABLE_STATE_V1",
+  "continuation_id": "fae-mpr-b2-b6-20260930-001",
+  "generation": 0,
+  "source_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
+  "active": {
+    "frontier": "B2-00",
+    "state": "running",
+    "objective": "Close all admissible Fee + Security Budget modeling without selecting policy."
+  },
+  "secondary": {
+    "frontier": "B2-01",
+    "state": "ready"
+  },
+  "passive": [
+    {
+      "frontier": "B6-00..B6-05",
+      "state": "serial_wait",
+      "wake_condition": "B2-06 persisted with terminal analytical closure"
+    }
+  ],
+  "stop_conditions": [
+    "genuine explicit Waterfound policy-selection gate",
+    "external evidence required for security adequacy",
+    "technical fail-closed contradiction",
+    "closure"
+  ],
+  "human_required": false,
+  "authority_created": false,
+  "no_background_claim": true
+}
