@@ -1,7 +1,7 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_DURABLE_STATE_V1",
   "portfolio_id": "fae-mainnet-parameter-readiness-001",
-  "generation": 1,
+  "generation": 2,
   "repository": "Waterfound/FAE-testnet",
   "branch": "colony/fae-mainnet-parameter-readiness-001",
   "frozen_executable_source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
@@ -49,11 +49,11 @@
     },
     {
       "dependency": "fee/security policy",
-      "predicate": "A mainnet fee destination/conservation rule and conservative subsidy+fee security-budget policy are evidence-backed and selected under explicit authority."
+      "predicate": "B2 modeling is closed. Wake for shared-state reconciliation when Waterfound selects fee destination semantics/alpha, or when new external economic evidence changes numeric security-adequacy bounds."
     },
     {
       "dependency": "maturity + launch target",
-      "predicate": "Settlement/reorg-risk objective is precommitted and maturity derived under the selected target; real launch initial target is provenance-bound to launch-hashrate calibration."
+      "predicate": "Maturity model and launch-target calibration contract are closed. Wake when Waterfound selects settlement-policy inputs and/or when provenance-bound launch work-rate evidence exists after block-time/DAA selection."
     }
   ],
   "next_action_on_wake": "Re-run evidence reconciliation only for changed dependencies, preserve immutable prior evidence, rerun Project Assurance, and recompute PARAMETER_READINESS. Do not activate or modify consensus/economics.",
@@ -61,7 +61,7 @@
   "human_required_now": false,
   "new_authority_required_now": false,
   "external_gate_now": true,
-  "closure_boundary": "All work admissible under the current readiness-only authority has been executed. Remaining blockers require external evidence, terminal evidence from other workstreams, or a later explicit parameter-selection authority.",
+  "closure_boundary": "All readiness-internal work remains exhausted. B2 and the analytical portion of B6 are now additionally closed; remaining progress requires policy selections and/or external evidence from existing dependent workstreams.",
   "artifacts": [
     "MODELING_RESULTS.json",
     "EVIDENCE_MATRIX.json",
@@ -72,6 +72,9 @@
     "PROJECT_ASSURANCE.json",
     "PARAMETER_READINESS.json",
     "FREEZE_CONTRACT_DRAFT.json",
-    "READINESS_REPORT.md"
+    "READINESS_REPORT.md",
+    "continuation-b2-b6-20260930/B2_CLOSURE.json",
+    "continuation-b2-b6-20260930/B6_CLOSURE.json",
+    "continuation-b2-b6-20260930/BLOCKER_REDUCTION.json"
   ]
 }
