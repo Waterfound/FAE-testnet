@@ -1,0 +1,66 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-29",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "design/fae-mining-authored-reference-001",
+  "source_authority_branch": "design/fae-direction-d-plus-approval",
+  "source_authority_revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+  "workstream": "FAE — Visual Language & Art Direction System / Mining Authored Reference",
+  "mission": "Materialize Mining as the first authored FAE reference surface without propagating or consuming production authority.",
+  "execution_order": "Art direction creates -> Waterfound selects -> CII learns -> System preserves",
+  "cii": {"authorized": false, "state": "DEFERRED_UNTIL_REFERENCE_APPROVAL"},
+  "authority_boundary": {
+    "may": [
+      "reconstruct authoritative Direction D+ lineage",
+      "create isolated candidate branch and Studio",
+      "design and implement Mining composition reference",
+      "perform static and browser verification",
+      "persist Build Colony and Durable Execution evidence",
+      "open a draft PR for review"
+    ],
+    "may_not": [
+      "merge to main",
+      "public rebrand or production deployment",
+      "propagate to Wallet or other product surfaces",
+      "change mining algorithm, consensus, economics, wallet cryptography, transaction semantics or network behavior",
+      "redesign Explorer",
+      "run CII before Waterfound reference approval"
+    ]
+  },
+  "frontiers": [
+    {"id":"MAR-00","name":"Authority and lineage reconstruction","state":"PASS"},
+    {"id":"MAR-01","name":"Anti-generic design constraints and composition thesis","state":"PASS"},
+    {"id":"MAR-02","name":"PASS 1 — Mining composition reference implementation","state":"ACTIVE"},
+    {"id":"MAR-03","name":"Static/source validation","state":"PENDING"},
+    {"id":"MAR-04","name":"Isolated Studio deployment and browser verification","state":"PENDING"},
+    {"id":"MAR-05","name":"FAE Recognition Test","state":"PENDING_HUMAN_VISUAL_JUDGMENT"},
+    {"id":"MAR-06","name":"PASS 2 — LIFE","state":"BLOCKED_BY_MAR_05"},
+    {"id":"MAR-07","name":"PASS 3 — FINISH","state":"BLOCKED_BY_MAR_06"},
+    {"id":"MAR-08","name":"CII grammar extraction","state":"BLOCKED_BY_REFERENCE_APPROVAL"}
+  ],
+  "composition_thesis": {
+    "concept": "living computation instrument",
+    "preserve": [
+      "Orange Top / White Field / Blue Circulation",
+      "darker authoritative orange topper",
+      "darker less-blue compact topper text",
+      "current W/s left and capacity right",
+      "approximately 20% reduced device bars",
+      "Mining Overview ordering/framing/colors/accepted works/average work rate/activity",
+      "blue means computation/activity, never guaranteed reward progress",
+      "product-first and zero sales aesthetics"
+    ],
+    "remove_or_reduce": [
+      "card grid dependence",
+      "nested rounded rectangles",
+      "dashboard-like KPI boxes",
+      "boilerplate subtitles",
+      "decorative gradients/glows",
+      "tiny pills and generic SaaS density"
+    ],
+    "new_compositional_move": "A large continuous computation field anchored by an oversized work-rate object, a quiet operational rail, and device performance embedded as instrument traces rather than cards."
+  },
+  "serialization_rule": "Parallelize independence. Serialize shared state.",
+  "status": "RUNNING"
+}
