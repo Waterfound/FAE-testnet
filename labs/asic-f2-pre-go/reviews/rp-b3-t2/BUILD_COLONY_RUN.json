@@ -1,0 +1,79 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.build_colony.v1",
+  "date": "2026-09-30",
+  "frontier": "RP-B3-T2 — ASAP7 STA/Power Closure on unchanged C6",
+  "branch": "evidence/fae-dp6-rp-b3-t2-20260930",
+  "authority": "FAE_DP6_ROBUST_PREMISE_REVIEW analytical-only; no physical/provider spend",
+  "inherited": {
+    "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "equivalence": "PASS_EQUIVALENCE",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+    "asap7_content_sha256": "c95da2f5625ecd64bf13810a63474ab5fbfea19ddf701d88d985521080bdc426",
+    "asic_lab": "HOLD",
+    "robust_premise": "STRONG_HEURISTIC_ONLY"
+  },
+  "decomposition": [
+    {
+      "id": "full-bc-cts",
+      "top": "fae_dp6_hls",
+      "corner": "BC",
+      "voltage_V": 0.77,
+      "temperature_C": 25,
+      "clock_period_ns": 5.5,
+      "target": "cts",
+      "purpose": "placed/clocked STA, fmax, power and area"
+    },
+    {
+      "id": "argon-bc-synth",
+      "top": "fae_dp6_hls_argon2d_fixed",
+      "corner": "BC",
+      "voltage_V": 0.77,
+      "temperature_C": 25,
+      "clock_period_ns": 5.5,
+      "target": "synth",
+      "purpose": "standalone Argon technology-mapped STA/power sensitivity"
+    },
+    {
+      "id": "rw5-bc-synth",
+      "top": "fae_dp6_hls_rw5",
+      "corner": "BC",
+      "voltage_V": 0.77,
+      "temperature_C": 25,
+      "clock_period_ns": 5.5,
+      "target": "synth",
+      "purpose": "standalone RW5 technology-mapped STA/power sensitivity"
+    }
+  ],
+  "execution_policy": {
+    "parallelize_independence": true,
+    "serialize_shared_state": true,
+    "full_detailed_route": false,
+    "reason": "Prior bounded run timed out during detailed routing after useful placement/global-route evidence; RP-B3-T2 requires STA/power closure, not GDS closure.",
+    "ppa_platform": "ASAP7 predictive FinFET 7nm; not production foundry evidence",
+    "power_activity": "ORFS/OpenROAD default statistical activity unless the report itself establishes more; no VCD/SAIF is asserted",
+    "cost": "standard GitHub-hosted runner on public repository; no paid provider authority"
+  },
+  "stop_conditions": [
+    "technical closure",
+    "genuine tool/library/evidence gate",
+    "semantic-equivalence failure",
+    "genuine authority gate"
+  ],
+  "forbidden": [
+    "AWS FPGA",
+    "AFI",
+    "F2",
+    "physical build",
+    "physical benchmark",
+    "physical attacker sweep",
+    "sustained/HFB",
+    "DP6 semantic change",
+    "DP7",
+    "consensus/economics change",
+    "release",
+    "activation",
+    "mainnet",
+    "paid/larger runner"
+  ]
+}
