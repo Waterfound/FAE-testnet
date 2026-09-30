@@ -1,0 +1,59 @@
+{
+  "schema": "FAE_B6_PROJECT_ASSURANCE_V1",
+  "disposition": "PASS_WITH_SETTLEMENT_POLICY_GATE_AND_EXTERNAL_CALIBRATION_GATE",
+  "challenges": [
+    {
+      "id": "B6-PA-01",
+      "challenge": "Does candidate-300 implementation success justify 200 blocks normatively?",
+      "result": "NO",
+      "finding": "It proves semantics, not settlement-policy optimality."
+    },
+    {
+      "id": "B6-PA-02",
+      "challenge": "Is preserving 200 blocks across block-time choices valid?",
+      "result": "NO",
+      "finding": "It changes nominal time from 10h at 180s to 50h at 900s."
+    },
+    {
+      "id": "B6-PA-03",
+      "challenge": "Can actual elapsed wall-clock time be guaranteed by N blocks?",
+      "result": "NO",
+      "finding": "N*T is nominal expectation; stochastic mining and DAA variation remain."
+    },
+    {
+      "id": "B6-PA-04",
+      "challenge": "Should maturity be implemented directly from timestamps now?",
+      "result": "NOT_JUSTIFIED",
+      "finding": "That would add a new timestamp-dependent consensus surface absent from current maturity evidence."
+    },
+    {
+      "id": "B6-PA-05",
+      "challenge": "Can dynamic chainwork-threshold maturity be frozen now?",
+      "result": "RESEARCH_ONLY",
+      "finding": "It is conceptually security-normalized but unimplemented and unevidenced in current FAE candidate semantics."
+    },
+    {
+      "id": "B6-PA-06",
+      "challenge": "Can launch target be calculated without real work-rate evidence?",
+      "result": "NO",
+      "finding": "The formula is closed but H_ref remains an external evidence input."
+    },
+    {
+      "id": "B6-PA-07",
+      "challenge": "Can a test or CI pow-limit target become launch target?",
+      "result": "NO",
+      "finding": "The candidate activation-profile mechanism already rejects that shortcut and binds real target to calibration evidence."
+    },
+    {
+      "id": "B6-PA-08",
+      "challenge": "Does B2 fee policy affect maturity scope?",
+      "result": "YES_POLICY_INPUT",
+      "finding": "If fees are paid through coinbase, whether fee-derived value shares coinbase maturity must be explicit. Candidate-300 currently matures all coinbase outputs together."
+    }
+  ],
+  "directional_external_reference": {
+    "source": "Bitcoin Core consensus.h and validation.cpp",
+    "observation": "Bitcoin enforces a fixed height-based coinbase maturity and re-evaluates coinbase maturity during mempool/reorganization handling.",
+    "boundary": "This is design precedent only and does not justify importing Bitcoin's numeric maturity into FAE."
+  }
+}
