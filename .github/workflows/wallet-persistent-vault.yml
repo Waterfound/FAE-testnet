@@ -6,10 +6,12 @@ on:
       - build-colony/wallet-persistent-vault-20260928
     paths:
       - wallet-vault.js
+      - wallet-signing-intent.js
       - wallet.js
       - index.html
       - tests/client-smoke.mjs
       - tests/wallet-vault-contract.mjs
+      - tests/wallet-signing-integrity.mjs
       - tests/wallet-vault-browser.spec.mjs
       - tests/wallet-browser-validation.spec.mjs
       - docs/wallet-persistent-vault/**
@@ -48,12 +50,15 @@ jobs:
           node --check core.js
           node --check wallet-crypto.js
           node --check wallet-vault.js
+          node --check wallet-signing-intent.js
           node --check wallet.js
           node --check wallet-transactions.js
           node --check mining.js
           node --check network-status.js
       - name: Wallet persistent-vault contract
         run: node tests/wallet-vault-contract.mjs
+      - name: Wallet reviewed-intent signing integrity
+        run: node tests/wallet-signing-integrity.mjs
       - name: Wallet crypto compatibility
         run: node tests/crypto-compat.mjs
       - name: Wallet transaction contract
