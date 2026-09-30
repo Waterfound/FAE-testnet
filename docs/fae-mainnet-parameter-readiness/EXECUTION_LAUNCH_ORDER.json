@@ -1,0 +1,52 @@
+{
+  "workstream_id": "fae-mainnet-consensus-economic-parameter-readiness-001",
+  "owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "executor": "chatgpt-github-connector",
+  "objective": "Reconstruct evidence-first the active FAE consensus/economic parameters, distinguish active authority from research candidates, model freeze readiness, and identify the minimal remaining blockers without changing or activating consensus/economics.",
+  "order_ref": "user-order://2026-09-29/fae-mainnet-consensus-economic-parameter-readiness",
+  "source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "required_authority_scopes": [
+    "build_colony",
+    "deterministic_simulation",
+    "documentation_evidence_artifacts",
+    "durable_execution",
+    "economic_modeling",
+    "evidence_reconciliation",
+    "general_execution",
+    "historical_replay",
+    "project_assurance",
+    "read_only_external_research",
+    "repository_inspection",
+    "static_source_analysis"
+  ],
+  "authority": {
+    "actor": "Waterfound",
+    "authority_ref": "user-order://2026-09-29/fae-mainnet-consensus-economic-parameter-readiness",
+    "authority_boundary": "Readiness/reconciliation only. No consensus/economic parameter change, activation, release, mainnet, paid infrastructure, spending, destructive action, activation height, or public deployment.",
+    "granted_scopes": [
+      "build_colony",
+      "deterministic_simulation",
+      "documentation_evidence_artifacts",
+      "durable_execution",
+      "economic_modeling",
+      "evidence_reconciliation",
+      "general_execution",
+      "historical_replay",
+      "project_assurance",
+      "read_only_external_research",
+      "repository_inspection",
+      "static_source_analysis"
+    ],
+    "schema_version": "ge.execution-launch-authority-binding.v1"
+  },
+  "executor_binding": {
+    "executor": "chatgpt-github-connector",
+    "availability": "AVAILABLE",
+    "evidence_ref": "docs/fae-mainnet-parameter-readiness/EXECUTOR_EVIDENCE.json",
+    "evidence_digest": "sha256:340b1a4e4a0388b8c55228c1c1381e5351f7882dd92708901f82b2d82fe435da",
+    "schema_version": "ge.execution-launch-executor-binding.v1"
+  },
+  "known_first_artifact_ref": "docs/fae-mainnet-parameter-readiness/EXECUTION_LAUNCH_RECEIPT.json",
+  "schema_version": "ge.execution-launch-order.v1"
+}
