@@ -1,0 +1,22 @@
+{
+  "schema": "FAE_B6_MATURITY_EXECUTABLE_RECONCILIATION_V1",
+  "active_v4": {
+    "maturity_rule": "NONE",
+    "coinbase_origin_metadata": "not represented as a separate UTXO origin in canonical v4",
+    "finding": "The canonical v4 spend path has no creation-height maturity predicate for coinbase outputs."
+  },
+  "research_300": {
+    "authority": "RESEARCH_CANDIDATE_NOT_ACTIVE",
+    "maturity_blocks": 200,
+    "first_spend_height": "H + 200",
+    "nominal_target_time_seconds": 60000,
+    "implementation_invariants": [
+      "coinbase outputs are tagged origin=coinbase",
+      "maturity height is derived from creation height",
+      "mempool and block validation use the same spend-height predicate",
+      "candidate replay/reorganization tests cover maturity semantics"
+    ],
+    "software_semantics": "EVIDENCE_SUPPORTED_CANDIDATE_ONLY"
+  },
+  "core_boundary": "Implementation correctness of 200 is supported; normative justification for 200 is not."
+}
