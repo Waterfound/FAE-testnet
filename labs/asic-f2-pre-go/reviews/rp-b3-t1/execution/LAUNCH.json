@@ -1,0 +1,13 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.launch.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "launch_id": "rp-b3-t1-asap7-gha-001",
+  "authority_ref": "labs/asic-f2-pre-go/reviews/rp-b3-t1/RUN.json",
+  "equivalence_ref": "labs/asic-f2-pre-go/reviews/rp-b3-t1/EQUIVALENCE.json",
+  "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+  "platform": "ASAP7",
+  "platform_role": "technology-calibrated predictive research platform; not production-foundry evidence",
+  "executor": "GitHub-hosted ubuntu public-repository non-production research runner",
+  "asic_lab_disposition": "HOLD",
+  "aws_used": false
+}
