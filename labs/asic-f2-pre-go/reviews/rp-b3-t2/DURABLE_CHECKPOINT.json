@@ -1,0 +1,37 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.durable_checkpoint.v1",
+  "checkpoint_id": "rp-b3-t2-targeted-sta-power-in-progress-001",
+  "current_branch": "evidence/fae-dp6-rp-b3-t1-20260929",
+  "targeted_run": {
+    "github_run_id": 36751099893,
+    "source_revision": "6729545b18789f01bc099ba13911dc81b91b583e",
+    "workflow": "FAE DP6 RP-B3-T2 ASAP7 STA Power",
+    "status_at_checkpoint": "IN_PROGRESS",
+    "scope": "6ns (166.667MHz nominal) full DP6 synth+placement, Argon/RW5 synth; ORFS report STA/power; no route"
+  },
+  "completed_frontiers": {
+    "existing_artifact_admission": "CLOSED",
+    "run_36657989186_stage_reconciliation": "CLOSED",
+    "partial_2ns_timing_extraction": "CLOSED",
+    "adversarial_replication_area_model": "CLOSED",
+    "public_dependent_memory_calibration": "CLOSED",
+    "public_installed_memory_pricing_search": "CLOSED_WITH_EXTERNAL_EVIDENCE_GAP",
+    "commodity_reference_comparison": "CLOSED_NON_CANONICAL_REFERENCE_ONLY",
+    "c6_microarchitecture_source_boundary": "CLOSED"
+  },
+  "active_frontier": "T2-C 6ns targeted STA/power calibration",
+  "pending_after_run": [
+    "admit artifact only if C6 SHA/PASS_EQUIVALENCE/ORFS/ASAP7/container provenance match",
+    "extract report_clock_min_period, WNS/TNS, placed area and statistical power",
+    "update strongest specialist architecture envelope",
+    "determine terminal robust-premise disposition",
+    "determine exact next external/human gate"
+  ],
+  "invariants": {
+    "c6_semantics": "UNCHANGED",
+    "equivalence": "PASS_EQUIVALENCE",
+    "asic_lab": "HOLD",
+    "aws_fpga": "PROHIBITED",
+    "new_spend": "NONE"
+  }
+}
