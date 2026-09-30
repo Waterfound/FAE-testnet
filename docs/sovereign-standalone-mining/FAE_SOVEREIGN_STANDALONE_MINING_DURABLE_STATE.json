@@ -1,0 +1,84 @@
+{
+  "schema": "FAE_SOVEREIGN_STANDALONE_MINING_DURABLE_STATE_V1",
+  "updated_at": "2026-09-30T17:30:00Z",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "build-colony/fae-sovereign-standalone-mining-001",
+  "source_revision": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+  "build_colony_run_commit": "95c91e09168c12e26c600b7293606352b6119d09",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "general_execution_revision": "ff510496136c0c35fa377f6962750f1fdfb84b8e",
+  "mode": "DURABLE_EXECUTION",
+  "status": "EXECUTION_IN_PROGRESS",
+  "checkpoint": "BUILD_COLONY_PLAN_MATERIALIZED",
+  "frontier": {
+    "SSM-00-boundary-and-source-freeze": {
+      "state": "GREEN",
+      "evidence": [
+        "Build Colony run manifest",
+        "Element 58 planning revision",
+        "canonical verifier protected-source boundary"
+      ]
+    },
+    "SSM-01-consensus-facing-semantics-baseline": {
+      "state": "GREEN",
+      "evidence": [
+        "mining.js direct path",
+        "fae-node.mjs template/submission validation",
+        "smoke-independent-node.mjs"
+      ]
+    },
+    "SSM-02-canonical-standalone-mining-core": {
+      "state": "READY"
+    },
+    "SSM-03-cli-headless-product": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-02"
+    },
+    "SSM-04-secret-free-config-and-authored-operational-states": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-03"
+    },
+    "SSM-05-independent-node-integration": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-03"
+    },
+    "SSM-06-stale-reconnect-restart-shutdown": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-05"
+    },
+    "SSM-07-browser-standalone-parity-vectors": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-02/SSM-03"
+    },
+    "SSM-08-security-no-secret-audit": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-04/SSM-07"
+    },
+    "SSM-09-canonical-verification-integration": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-05/SSM-06/SSM-07/SSM-08"
+    },
+    "SSM-10-independent-operator-documentation": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-09"
+    },
+    "SSM-11-terminal-reconciliation": {
+      "state": "BLOCKED_BY_DEPENDENCY",
+      "dependency": "SSM-10"
+    }
+  },
+  "next_action": "Implement SSM-02 and continue every newly reachable software frontier without requesting additional authority.",
+  "authority_consumed": [
+    "repository write on isolated candidate branch"
+  ],
+  "authority_not_consumed": [
+    "consensus",
+    "economics",
+    "release",
+    "deployment",
+    "mainnet",
+    "paid infrastructure",
+    "main merge"
+  ],
+  "terminal_verdict": null
+}
