@@ -1,0 +1,180 @@
+{
+  "schema": "fae.dp6.rp_b3.technology_calibrated_coefficient_ledger.v1",
+  "date": "2026-09-29",
+  "authority": "non-production research/evidence/modeling only",
+  "branch": "evidence/fae-dp6-rp-b3-20260929",
+  "inherited": {
+    "rp_b1": "closed",
+    "rp_b2": "closed",
+    "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+    "asic_lab": "HOLD",
+    "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+  },
+  "tool_gate": {
+    "repository_generated_dp6_rtl_netlist_present": false,
+    "local_yosys": false,
+    "local_openroad": false,
+    "local_abc": false,
+    "local_verilator": false,
+    "local_iverilog": false,
+    "conclusion": "A reproducible full-DP6 standard-cell PPA run against a named library cannot be executed in the current runtime without introducing a synthesis/physical-design toolchain and a named library/PDK or receiving an independently generated frozen-DP6 RTL/netlist."
+  },
+  "coefficients": [
+    {
+      "id": "blamka_90nm_saed_generic",
+      "coefficient_class": "compute primitive PPA achievability point",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "SAED EDK 90nm",
+      "tool": "Synopsys Design Compiler",
+      "scope": "one 256-bit BlaMka G function; not full Argon2 or DP6",
+      "area_mm2": 0.107088,
+      "power_mW": 0.485,
+      "max_frequency_MHz": 214.592,
+      "throughput_Gbps": 3.433,
+      "derived_G_per_s": 13410156.25,
+      "derived_argon_only_work_per_s_per_unit": 0.39965684897164516,
+      "derived_area_mm2_per_argon_work_s_if_linearly_replicated": 0.26794986818203553,
+      "derived_dynamic_energy_J_per_argon_work_if_linearly_replicated": 0.001213541069665016,
+      "epistemic_boundary": "This is an achieved/synthesized attacker-friendly implementation point, hence an upper bound on resources needed by this primitive in this technology, not a lower bound on future ASIC resources. It excludes memory, BLAKE2 initialization/finalization, RW5, controller/PHY, package and interconnect."
+    },
+    {
+      "id": "sram_7nm_bitcell",
+      "coefficient_class": "on-die SRAM cell-array area",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "7nm FinFET high-density 6T SRAM",
+      "bitcell_area_um2": 0.027,
+      "demonstrated_capacity_Mb": 256,
+      "derived_256MiB_bitcell_only_area_mm2": 57.982058496,
+      "epistemic_boundary": "Cell-array-only mathematical lower bound at this published bitcell geometry; actual DP6 SRAM macro requires periphery, redundancy, ECC, routing, banking and interfaces and therefore exceeds this area. Not a universal lower bound across future technologies."
+    },
+    {
+      "id": "sram_16nm_2port_macro",
+      "coefficient_class": "on-die SRAM demonstrated macro density/latency point",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "16nm FinFET 1W1R 2-port SRAM",
+      "density_Mb_per_mm2": 6.05,
+      "measured_read_access_ps": 313,
+      "measured_voltage_V": 0.8,
+      "derived_256MiB_area_at_same_macro_density_mm2": 354.95597487603305,
+      "epistemic_boundary": "Demonstrated 2-port macro point, not a strict lower bound for a differently organized single-port DP6 SRAM."
+    },
+    {
+      "id": "hbm2_access_energy",
+      "coefficient_class": "external stacked DRAM access energy",
+      "evidence_status": "STRONGLY_SUPPORTED",
+      "technology": "HBM2",
+      "energy_pJ_per_bit": 3.97,
+      "source_derived_traffic_energy_J_per_work_low": 0.01758386454528,
+      "source_derived_traffic_energy_J_per_work_high": 0.02610937462784,
+      "epistemic_boundary": "Academic physical/architectural HBM2 energy model. Applying pJ/bit to DP6 logical traffic is attacker-favorable and does not capture all random-access activation/controller/leakage effects."
+    },
+    {
+      "id": "hbm4_2026_model",
+      "coefficient_class": "HBM4 architecture model",
+      "evidence_status": "PLAUSIBLE",
+      "technology": "modeled HBM4 2026 academic framework",
+      "modeled_capacity_GB": 64,
+      "modeled_bandwidth_GBps": 2048,
+      "modeled_energy_pJ_per_bit": 2.6502,
+      "modeled_worst_case_latency_ns": 74.1885,
+      "modeled_memory_die_area_mm2": 108.8597,
+      "modeled_base_die_area_mm2": 153.0775,
+      "source_derived_traffic_energy_J_per_work_low": 0.011738226150604799,
+      "source_derived_traffic_energy_J_per_work_high": 0.0174294873145344,
+      "epistemic_boundary": "Projection/model, not measured DP6 silicon and not a procurement-cost point."
+    },
+    {
+      "id": "hbm4_commercial_availability",
+      "coefficient_class": "commercial memory architecture availability",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "Micron HBM4 36GB 12H",
+      "capacity_GB": 36,
+      "bandwidth_TBps_gt": 2.8,
+      "pin_speed_Gbps_gt": 11,
+      "power_efficiency_improvement_vs_HBM3E_pct_gt": 20,
+      "epistemic_boundary": "Vendor product specification. It proves availability/capability, not achieved DP6 random-I/O throughput, package cost or pJ/bit absolute value."
+    },
+    {
+      "id": "gddr7_commercial",
+      "coefficient_class": "commercial external memory energy/bandwidth anchor",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "Micron GDDR7 example system",
+      "typical_capacity_GB": 24,
+      "bandwidth_GBps_range": [
+        1344,
+        1536
+      ],
+      "vendor_average_device_power_pJ_per_bit": 4.5,
+      "source_derived_traffic_energy_J_per_work_low": 0.019931332608,
+      "source_derived_traffic_energy_J_per_work_high": 0.029595009024,
+      "epistemic_boundary": "Vendor average device power per bit and bandwidth are not DP6 achieved random-access metrics and exclude controller/PHY/board effects."
+    },
+    {
+      "id": "lpddr4_phy_10nm",
+      "coefficient_class": "external DRAM PHY area/frequency feasibility point",
+      "evidence_status": "PROVEN_BY_EVIDENCE",
+      "technology": "10nm FinFET all-digital LPDDR4 PHY",
+      "width_bits": 16,
+      "data_rate_Gbps_per_pin": 4.4,
+      "voltage_V": 0.69,
+      "area_mm2_including_PLL": 0.57,
+      "epistemic_boundary": "Measured/test-chip point for 16-bit LPDDR4 PHY. Width scaling to GDDR/HBM is not assumed linear."
+    },
+    {
+      "id": "dram_controller_12lp",
+      "coefficient_class": "DRAM controller logic area point",
+      "evidence_status": "STRONGLY_SUPPORTED",
+      "technology": "GlobalFoundries 12LP+ ASIC+LPDDR4 use case",
+      "total_cell_area_mm2": 0.118244,
+      "placed_core_area_mm2": 0.166483,
+      "epistemic_boundary": "Published thesis implementation of controller logic; excludes a complete hard mixed-signal PHY/package and is not DP6-specific."
+    },
+    {
+      "id": "package_interposer_cost",
+      "coefficient_class": "package/interposer absolute procurement cost",
+      "evidence_status": "UNKNOWN",
+      "reason": "Public academic cost models establish dependencies on area, yield, assembly and bonding, but no sufficiently authoritative/current procurement/foundry quote was found that can serve as a conservative lower bound for a DP6 specialized miner."
+    },
+    {
+      "id": "installed_memory_cost",
+      "coefficient_class": "installed memory capacity cost",
+      "evidence_status": "UNKNOWN",
+      "reason": "Public product specifications establish capacity/bandwidth/energy but not a transferable high-volume installed $/GB floor including controller/PHY/package."
+    },
+    {
+      "id": "rw5_asic_ppa",
+      "coefficient_class": "RW5 custom ASIC PPA",
+      "evidence_status": "UNKNOWN",
+      "reason": "No directly comparable published silicon/synthesis implementation of the frozen RW5 machine was found; mapping FPGA resources to ASIC area is explicitly inadmissible."
+    },
+    {
+      "id": "full_dp6_specialist_lcvw",
+      "coefficient_class": "specialist levelized cost per valid work",
+      "evidence_status": "UNKNOWN",
+      "reason": "Cannot close without full/frozen DP6 technology PPA plus memory/package/capex and utilization coefficients."
+    }
+  ],
+  "strongest_plausible_attacker": {
+    "architecture": "external high-bandwidth memory full-state miner with many resident contexts, shared fixed-function Argon/BlaMka engines, microcoded/fixed-function RW5, optional SRAM hot structures/cache, custom memory controller/PHY/interconnect, and low-voltage/frequency optimization",
+    "likely_memory_families": [
+      "GDDR7-class",
+      "HBM3E/HBM4-class",
+      "DDR/LPDDR capacity-oriented variant"
+    ],
+    "on_die_sram_role": "unlikely as the cheapest full 256MiB/context store under published SRAM area evidence; plausible for smaller hot structures/caches",
+    "exact_optimum": "UNKNOWN"
+  },
+  "terminal": {
+    "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+    "proposition_direction": "MORE_CONSTRAINED_AND_MILDLY_WEAKENED_BUT_NOT_FALSIFIED",
+    "asic_lab": "HOLD",
+    "aws_reopen": "NO",
+    "current_new_physical_aws_information_gain": "INSUFFICIENT"
+  },
+  "next_frontier": {
+    "id": "RP-B3-T1",
+    "name": "Frozen-DP6 Named-Library Standard-Cell PPA Calibration",
+    "gate": "GENUINE_TOOL_LIBRARY_OR_EXTERNAL_EVIDENCE_GATE",
+    "minimum_request": "Provide or authorize one non-production synthesis/PPA environment containing: (a) frozen DP6 RTL/netlist mechanically derived from the already frozen HLS semantics or authority to generate it; (b) one named standard-cell library/PDK with legal access; (c) one synthesis/STA/power flow such as Yosys/OpenROAD-compatible or equivalent; and (d) one named memory PHY/package model. No AWS, FPGA, AFI, F2, consensus, release or deployment authority is required."
+  }
+}
