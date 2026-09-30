@@ -1,0 +1,74 @@
+{
+  "schema": "FAE_B2_FEE_SECURITY_BUDGET_DECISION_PACKAGE_V1",
+  "status": "MODELING_CLOSED_POLICY_NOT_SELECTED",
+  "options": [
+    {
+      "id": "MINER_PAID_100",
+      "alpha": 1,
+      "accounting": "coinbase or consensus reward outputs receive subsidy + all verified fees",
+      "supply_effect": "fees redistributed; net UTXO supply change equals subsidy",
+      "miner_security_budget": "maximal direct miner revenue for a given realized fee total",
+      "long_run": "can transmit realized fee demand into miner revenue after subsidy decline",
+      "incentive_boundary": "Concentrated fees can increase fee-sniping/undercutting incentives; requires adversarial/reorg stress review.",
+      "authority": "NOT_SELECTED"
+    },
+    {
+      "id": "BURN_100",
+      "alpha": 0,
+      "accounting": "verified fee amount is removed from spendable supply",
+      "supply_effect": "net UTXO supply change equals subsidy - fees",
+      "miner_security_budget": "fees provide zero direct miner security budget",
+      "long_run": "cannot provide a fee-funded PoW budget as subsidy tends to zero",
+      "incentive_boundary": "reduces direct miner jackpot from historical fees but makes circulating supply depend on transaction fee volume",
+      "authority": "NOT_SELECTED"
+    },
+    {
+      "id": "SPLIT_MINER_BURN",
+      "alpha": "0<alpha<1",
+      "accounting": "alpha*fees credited to miner; remainder explicitly burned",
+      "supply_effect": "net UTXO supply change equals subsidy - (1-alpha)*fees",
+      "miner_security_budget": "intermediate and linear in alpha",
+      "long_run": "fee-funded budget floor is alpha times realized fee flow",
+      "authority": "NOT_SELECTED"
+    },
+    {
+      "id": "NON_MINER_DESTINATION",
+      "alpha": "0..1",
+      "accounting": "some verified fee share is routed to a non-miner recipient",
+      "supply_effect": "if recipient is spendable, fees are redistributed rather than burned",
+      "miner_security_budget": "reduced by the non-miner share",
+      "fair_launch_boundary": "Any privileged treasury/admin/community recipient is a new allocation/governance policy and requires explicit Waterfound authority; it cannot be inferred from current fair-launch constraints.",
+      "authority": "NOT_SELECTED"
+    }
+  ],
+  "robust_independent_conclusions": [
+    "Fee conservation/accounting can be frozen independently of block-time selection.",
+    "The chosen fee destination can be represented by explicit alpha and destination semantics without changing the subsidy cap arithmetic.",
+    "At F=0, all policies collapse to subsidy-only miner revenue.",
+    "At F>0, miner-paid share increases miner protocol revenue exactly by alpha*F; this is accounting, not a proof of attack-cost adequacy.",
+    "If the intended long-run PoW model relies on transaction fees after subsidy decay, alpha=0 cannot satisfy that objective by construction.",
+    "A fee-paid coinbase should have one explicit maturity/origin rule; whether fee-derived coinbase value shares subsidy maturity is deferred to B6 rather than silently assumed."
+  ],
+  "explicit_Waterfound_policy_choices_required": [
+    "fee destination: miner / burn / split / separately justified non-miner recipient",
+    "if split: alpha",
+    "whether long-run PoW security is explicitly intended to rely on fees as subsidy decays",
+    "whether fee-derived coinbase value shares the same maturity as subsidy-derived coinbase value"
+  ],
+  "not_yet_selectable_from_current_evidence": [
+    "numeric minimum safe miner revenue",
+    "numeric safe subsidy or halving schedule",
+    "fiat attack-cost floor",
+    "minimum commodity-miner participation share"
+  ],
+  "external_research_directional_only": [
+    {
+      "source": "Tang & Zhang, Transaction Fee Mining and Mechanism Design, 2023",
+      "use": "Supports treating fee sniping/undercutting and fee-based miner incentives as adversarial design variables; not FAE evidence."
+    },
+    {
+      "source": "Lavi, Sattath & Zohar, Redesigning Bitcoin's fee market, 2017",
+      "use": "Supports the general security-budget role of miner fee revenue as block subsidy declines; not FAE demand evidence."
+    }
+  ]
+}
