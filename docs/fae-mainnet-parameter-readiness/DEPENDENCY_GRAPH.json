@@ -1,0 +1,74 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_DEPENDENCY_GRAPH_V1",
+  "decouplings": [
+    {
+      "parameter": "block_interval vs monetary_calendar",
+      "finding": "UNNECESSARILY_COUPLED_IF_REWARD_AND_ERA_ARE_CHANGED_WITHOUT_A_POLICY_TARGET",
+      "evidence": "300->600 research transform 14/430k -> 28/215k preserves initial issuance/time and halving calendar."
+    },
+    {
+      "parameter": "block_interval vs coinbase_maturity_block_count",
+      "finding": "UNNECESSARILY_COUPLED",
+      "evidence": "200 blocks is 16h40m at 300s but 33h20m at 600s. If a wall-clock/risk policy is intended, derive block count after target selection."
+    },
+    {
+      "parameter": "block_interval vs DAA family",
+      "finding": "MUST_BE_EXPLICITLY_COUPLED_AT_FREEZE_BUT_RESEARCH_COMPARISON_IS_NOT_APPLES_TO_APPLES",
+      "evidence": "Active 180 uses discrete 20-block integer-bit retarget; 300/600/900 research uses an anchored ASERT-style proxy/candidate."
+    },
+    {
+      "parameter": "hard_cap vs exact_terminal_issuance",
+      "finding": "MUST_BE_DISTINGUISHED",
+      "evidence": "Integer atom halvings terminate below geometric caps; a cap is not the same as exact scheduled terminal issuance."
+    },
+    {
+      "parameter": "subsidy vs fee_security_budget",
+      "finding": "CURRENTLY_UNRESOLVED",
+      "evidence": "Active v4 does not pay residual fees into coinbase; 300 candidate does."
+    }
+  ],
+  "dependencies": {
+    "block_interval": [
+      "direct comparable block-time evidence",
+      "DAA/timestamp choice",
+      "propagation/stale/reorg evidence",
+      "Stability Soak/independent-network evidence"
+    ],
+    "initial_reward": [
+      "block interval/calendar policy",
+      "security-budget model",
+      "DP6 specialized advantage",
+      "representative-device economics",
+      "fee policy"
+    ],
+    "halving_interval": [
+      "monetary calendar policy",
+      "security-budget model",
+      "block interval if expressed in blocks"
+    ],
+    "theoretical_cap": [
+      "monetary policy",
+      "reward/era pair"
+    ],
+    "exact_terminal_issuance": [
+      "reward atoms",
+      "era blocks",
+      "integer rounding semantics"
+    ],
+    "coinbase_maturity": [
+      "block interval",
+      "reorg/settlement-risk objective",
+      "DAA/network behavior"
+    ],
+    "fee_policy": [
+      "long-run security budget",
+      "coinbase semantics"
+    ],
+    "launch_initial_difficulty": [
+      "selected DAA/profile",
+      "real launch hashrate evidence"
+    ],
+    "fair_launch_constraints": [],
+    "atomic_unit": []
+  }
+}
