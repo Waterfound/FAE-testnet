@@ -29,13 +29,17 @@ A difference from BrowserCoin is not itself a FAE defect.
 | Cold-start infrastructure independence | Peer Isolation/Eclipse + Independent Node + Mainnet Readiness | Official infrastructure loss must not eliminate an independently specified fresh-device bootstrap path | Peer authentication/diversity, coordinator-off tests, peer learning, partition/reconnect | Fresh zero-root node has no implicit discovery; production bootstrap requirements/nodes remain unset; no real-WAN official-infra=0 proof | HARDEN_EXISTING_FRONTIER | HARDEN_EXISTING_FRONTIER | Preserve zero-seed control, specify independently controlled bootstrap topology, then obtain real-WAN evidence |
 | Protocol-governance survivability | Mainnet Readiness + Activation Boundary + Release Provenance/Verifier | Changes must have explicit authority, deterministic activation compatibility, and survivable procedures for disagreement/emergency cases | Candidate-only activation rules, explicit human authority gates, release provenance, version/policy mismatch fail-closed tests, final production freeze | Review did not locate authoritative evidence for maintainer-disagreement/emergency-change procedure; search incompleteness prevents claiming absence | COVERED_NEEDS_MORE_EVIDENCE | RESEARCH_REQUIRED | Bounded evidence reconstruction only; no new governance system yet |
 
-## CII run
+## CII admission disposition
 
-- CII source tree inspected: `1bcac09cc00774a63fc5ffe5a5ee3788d426facf`, v0.0.9.
-- advisory packet id: `5e375d532847e9604b92a4ec34f5d0be2d4f029e27b953e6fe2a6031f1b4c197`.
-- admitted: wallet integrity hardening, long-horizon hardening, cold-start hardening.
-- governance: RESEARCH_REQUIRED.
+No new systemic architecture was admitted. Three real gaps are bounded hardenings of existing owners; protocol-governance survivability remains evidence reconstruction only.
+
+- wallet integrity: **HARDEN_EXISTING_FRONTIER**;
+- long-horizon node survivability: **HARDEN_EXISTING_FRONTIER**;
+- cold-start infrastructure independence: **HARDEN_EXISTING_FRONTIER**;
+- protocol-governance survivability: **RESEARCH_REQUIRED**;
 - new frontiers justified: **0**.
+
+Recovered execution notes named CII source tree `1bcac09cc00774a63fc5ffe5a5ee3788d426facf`, advisory packet `5e375d532847e9604b92a4ec34f5d0be2d4f029e27b953e6fe2a6031f1b4c197`, and Build Colony replan `bc2-efb3feb55efc4c13`. Those identifiers were not found as persisted artifacts in this branch or by global GitHub code search, so they are not used as evidence for the final classifications.
 
 ## Build Colony execution
 
@@ -52,11 +56,15 @@ Bounded replan after discovering that the existing cross-lab registry did not ex
 
 ## Independent verification
 
-PR #267 candidate head `20fdd625a8e5f0ae71ac75937aaf58bc262d3b7e`:
+PR #267 independently verified review head `93eaf13a68b3b8000b94499bf7060fe674fda6ca`:
 
-- cross-lab-integration-gate run 254: **PASS**; exact candidate head checked and all registered combined checks executed.
-- the added probes therefore executed under GitHub Actions, not merely by the builder.
-- this PASS means the contracts/probes are internally valid and current limits are reproducible. It is **not** Mainnet Readiness closure and does not authorize merge/release/deployment.
+- cross-lab-integration-gate run `36653906275`: **PASS**;
+- psr15-project-assurance run `36653906291`: **PASS**;
+- public-code-security-recurring-assurance run `36653906309`: **PASS**;
+- codeql-security run `36653906280`: **PASS**;
+- verify-canonical-source run `36653906279`: **PASS**.
+
+The added probes therefore executed under GitHub Actions rather than being treated as builder-only evidence. These PASS results establish the bounded candidate/probe claims only. They do **not** close Mainnet Readiness or authorize merge, release, deployment, production bootstrap selection, consensus, economics, or mainnet.
 
 ## Residual disposition
 
@@ -68,3 +76,20 @@ PR #267 candidate head `20fdd625a8e5f0ae71ac75937aaf58bc262d3b7e`:
 ## Authority
 
 Builder evidence is not assurer approval. No action in this review authorizes main merge, release, deployment, consensus/DP6/economic change, activation height, production bootstrap selection, new physical/provider run, or mainnet.
+
+
+## Machine-readable closure
+
+- review artifact: `docs/design-assurance/FAE_BROWSER_COIN_DESIGN_ASSURANCE_REVIEW_V1.json`;
+- Durable state: `docs/FAE_BROWSER_COIN_DESIGN_ASSURANCE_DURABLE_STATE.json`;
+- challenges analyzed: **7**;
+- CII/admission NO_ACTION: **3**;
+- HARDEN_EXISTING_FRONTIER: **3**;
+- NEW_FRONTIER_JUSTIFIED: **0**;
+- RESEARCH_REQUIRED only: **1** (protocol-governance survivability).
+
+Durable bootstrap `fae-browsercoin-design-assurance-bootstrap-002` was processed on `Waterfound/General-Execution@runtime/durable-asp-control` with event report digest `sha256:fdd29d5583bccfbce3d669f77c10f96b509af9a1dfef9afea9449ec911ab17c1` and post-state digest `sha256:a319c37f5fa757f3db92422ba4080edf385be4c6ff0df727a6c68b90a0100a77`.
+
+Terminal verdict:
+
+`DESIGN_ASSURANCE_REVIEW_TECHNICALLY_CLOSED_NO_NEW_FRONTIER_EXISTING_OWNER_HARDENING_AND_EXTERNAL_RESEARCH_GATES_REMAIN`
