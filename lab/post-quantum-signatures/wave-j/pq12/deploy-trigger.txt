@@ -1,0 +1,2 @@
+FAE PQ-12 light physical-device preview deploy trigger — 2026-09-18.
+No test-method change.
