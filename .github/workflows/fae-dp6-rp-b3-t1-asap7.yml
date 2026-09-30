@@ -89,6 +89,7 @@ jobs:
           export PLACE_DENSITY = 0.60
           export TNS_END_PERCENT = 100
           export GENERATE_ARTIFACTS_ON_FAILURE = 1
+          export SYNTH_HDL_FRONTEND = slang
           EOF
           cat > "$CFG/constraint.sdc" <<'EOF'
           set clk_name core_clock
@@ -172,13 +173,14 @@ jobs:
             mkdir -p "$CFGDIR"
             cat > "$CFGDIR/config.mk" <<EOF
           export PLATFORM = asap7
-          export DESIGN_NAME = $MOD
+          export DESIGN_NAME = $TOPMOD
           export DESIGN_NICKNAME = $DESIGN_NICKNAME
           export VERILOG_FILES = $(sort $(wildcard $(DESIGN_HOME)/src/$(DESIGN_NICKNAME)/*.v))
           export SDC_FILE = $(DESIGN_HOME)/asap7/$NICK/constraint.sdc
           export CORE_UTILIZATION = 40
           export PLACE_DENSITY = 0.60
           export GENERATE_ARTIFACTS_ON_FAILURE = 1
+          export SYNTH_HDL_FRONTEND = slang
           EOF
             cat > "$CFGDIR/constraint.sdc" <<'EOF'
           set clk_name core_clock
