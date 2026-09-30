@@ -1,0 +1,140 @@
+{
+  "schema": "FAE_PQ12_LIGHT_PHYSICAL_TEST_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_PLANNING_RUN",
+  "run_date": "2026-09-18",
+  "project": "FAE",
+  "fae_source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "active_gate_class": "evidence_acquisition",
+  "native_progress_unit": "physical_device_test_environment_readiness",
+  "objective": "Deliver one short, public, browser-only PQ-12 test URL for iPad/iPhone that collects local performance evidence without touching active FAE state or requiring user setup.",
+  "authority": {
+    "ceiling": "OPTIONAL_EXTERNAL_EVIDENCE_ONLY",
+    "activation_authorized": false,
+    "active_protocol_change_authorized": false,
+    "wallet_key_use_authorized": false,
+    "backend_rpc_authorized": false,
+    "persistent_storage_authorized": false
+  },
+  "frozen_workload": {
+    "algorithms": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
+    "excluded_algorithms": [
+      "SLH-DSA"
+    ],
+    "warmup_iterations_per_algorithm": 1,
+    "measured_iterations_per_operation_per_algorithm": 3,
+    "operations": [
+      "keygen",
+      "sign",
+      "verify"
+    ],
+    "metrics": [
+      "median latency",
+      "public-key bytes",
+      "private-key bytes",
+      "signature bytes",
+      "overall elapsed time",
+      "hardwareConcurrency if available",
+      "WebCrypto availability",
+      "user agent"
+    ],
+    "intensity": "LIGHT",
+    "target_duration": "short interactive run; no sustained stress loop",
+    "material_policy": "ephemeral local test material only; no real wallet, seed phrase, passphrase or FAE private key",
+    "network_policy": "no FAE RPC, no backend API, no submission to testnet/mainnet",
+    "storage_policy": "no persistent storage and no automatic result upload"
+  },
+  "host_routes": [
+    {
+      "route": "A",
+      "provider": "AppDeploy",
+      "state": "PRIMARY",
+      "rationale": [
+        "frontend-only static hosting",
+        "public HTTPS URL",
+        "no Vercel daily deployment quota dependency",
+        "no user configuration required",
+        "no backend or secrets needed"
+      ]
+    },
+    {
+      "route": "B",
+      "provider": "Vercel standalone preview",
+      "state": "FALLBACK",
+      "rationale": [
+        "known environment and Safari-compatible static hosting",
+        "may be temporarily constrained by Free deployment quota",
+        "must remain separate from fairyelf-fae-testnet"
+      ]
+    },
+    {
+      "route": "C",
+      "provider": "GitHub Pages",
+      "state": "LAST_FALLBACK",
+      "rationale": [
+        "free static hosting tied to public repository",
+        "may require repository Pages configuration or workflow permissions",
+        "higher user/setup friction than route A"
+      ]
+    }
+  ],
+  "dependency_graph": {
+    "PQ12-00": [],
+    "PQ12-01": [
+      "PQ12-00"
+    ],
+    "PQ12-02": [
+      "PQ12-01"
+    ],
+    "PQ12-03": [
+      "PQ12-02"
+    ],
+    "PQ12-04": [
+      "PQ12-03"
+    ]
+  },
+  "packages": [
+    {
+      "id": "PQ12-00",
+      "name": "Authority and intensity freeze",
+      "objective": "Freeze scope so the test cannot grow into a stress benchmark or active-network test.",
+      "gate": "All authority/network/storage/intensity invariants are machine-readable before implementation."
+    },
+    {
+      "id": "PQ12-01",
+      "name": "Light browser benchmark implementation",
+      "objective": "Build single-page Start -> progress -> results -> Copy Results workflow using the frozen workload.",
+      "gate": "No backend/RPC/storage/real wallet dependency; exactly the frozen ML-DSA workload."
+    },
+    {
+      "id": "PQ12-02",
+      "name": "Public static delivery",
+      "objective": "Publish via Route A and automatically fall back to Route B/C only if needed.",
+      "gate": "Public HTTPS URL loads independently of the FAE testnet and exposes only the light test."
+    },
+    {
+      "id": "PQ12-03",
+      "name": "Automated preflight",
+      "objective": "Validate mobile viewport, start/completion flow, no network submission, result rendering, and copy action before user testing.",
+      "gate": "Automated QA passes with no frontend/runtime error."
+    },
+    {
+      "id": "PQ12-04",
+      "name": "Physical evidence handoff",
+      "objective": "User runs the page once on iPad first and returns copied JSON result.",
+      "gate": "Result includes device/browser context and measured values; no secret/private material."
+    }
+  ],
+  "stop_conditions": [
+    "Do not add SLH-DSA to this light test.",
+    "Do not increase iterations to improve statistical precision without a new explicit decision.",
+    "Do not ask the user to configure a host unless all automatic routes fail.",
+    "Do not modify fairyelf-fae-testnet production/testnet deployment.",
+    "Do not claim physical PASS before receiving the user's copied result."
+  ],
+  "next_executable_action": "Implement PQ12-00 and PQ12-01, then deploy Route A."
+}
