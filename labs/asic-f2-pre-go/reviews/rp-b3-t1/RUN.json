@@ -1,0 +1,89 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.run.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "date": "2026-09-29",
+  "authority": "NON_PRODUCTION_ASIC_PPA_RESEARCH_ONLY",
+  "source": {
+    "frozen_hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "c6_export_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "c6_parity": {
+      "canonical": "PASS",
+      "vectors": "16/16 PASS",
+      "physical_f2_canonical_full_160": "PASS",
+      "physical_f2_vectors": "16/16 PASS",
+      "afi": "afi-0dac1ced9e125e5d9"
+    }
+  },
+  "platform": {
+    "flow": "OpenROAD-flow-scripts",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "standard_cell_platform": "ASAP7",
+    "status": "predictive research platform; not production-foundry evidence",
+    "library_model": "NLDM",
+    "vt": "RVT",
+    "corners": {
+      "BC": {
+        "temperature_C": 25,
+        "voltage_V": 0.77
+      },
+      "TC": {
+        "temperature_C": 0,
+        "voltage_V": 0.7
+      },
+      "WC": {
+        "temperature_C": 100,
+        "voltage_V": 0.63
+      }
+    }
+  },
+  "hypotheses": [
+    {
+      "id": "H1",
+      "hypothesis": "The parity-bound C6 RTL can be remapped to ASAP7 without semantic modification.",
+      "bounded_change": "technology mapping only; no RTL behavioral edits",
+      "predicted_information_gain": "closes full-DP6 standard-cell logic area/timing feasibility or fail-closes on portability/tool semantics"
+    },
+    {
+      "id": "H2",
+      "hypothesis": "RW5 and Argon logic can be technology-calibrated separately enough to identify the dominant standard-cell logic contributor.",
+      "bounded_change": "separate synthesis views of existing generated modules only",
+      "predicted_information_gain": "bounds RW5/Argon area and timing contribution without changing DP6"
+    },
+    {
+      "id": "H3",
+      "hypothesis": "A 1.0 ns and 2.0 ns ASAP7 timing sensitivity can bound an attacker-favorable logic operating region.",
+      "bounded_change": "clock constraint only within the same ASAP7 libraries",
+      "predicted_information_gain": "bounds frequency/area/power tradeoff; no algorithm change"
+    }
+  ],
+  "assumptions": {
+    "core_utilization_percent": 40,
+    "place_density": 0.6,
+    "power_activity": "OpenROAD Liberty/statistical activity unless a valid VCD/SAIF is available; reported as estimate only",
+    "memory": "HBM4-class external state remains separate sensitivity model; not implemented as standard cells",
+    "hbm4_model": "RP-B3 inherited named HBM4-class model; no procurement price"
+  },
+  "forbidden": [
+    "AWS FPGA physical build",
+    "AFI creation",
+    "F2 runtime",
+    "FPGA benchmark",
+    "physical attacker sweep",
+    "sustained/HFB",
+    "DP6 semantic change",
+    "DP7",
+    "consensus/economics change",
+    "release",
+    "activation height",
+    "testnet/mainnet activation"
+  ],
+  "fail_closed": [
+    "C6 export reconstructed SHA-256 != c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "ASAP7 provenance cannot be pinned",
+    "RTL requires behavioral changes to synthesize",
+    "timing/power cannot be tied to an explicit ASAP7 corner",
+    "economic cost would require invented pricing"
+  ],
+  "asic_lab_disposition": "HOLD",
+  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+}
