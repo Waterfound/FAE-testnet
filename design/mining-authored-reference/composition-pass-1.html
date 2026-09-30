@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAE Mining — Authored Reference / Composition Pass</title>
+<style>
+:root{
+  --orange:#f47a20;--orange-deep:#bd4f08;--blue:#1769ff;--blue-deep:#0c4cc4;
+  --blue-soft:#8dbdff;--green:#17a962;--ink:#16191e;--muted:#68707b;
+  --quiet:#f5f6f8;--line:#dde2e8;--line2:#edf0f3;--white:#fff;
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--quiet);color:var(--ink)}
+body{font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.shell{max-width:1440px;margin:0 auto;background:#fff;min-height:100vh;border-inline:1px solid #edf0f3}
+.topper{height:39px;background:var(--orange);color:#21140b;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid rgba(95,38,0,.22)}
+.brand{font-size:18px;font-weight:920;letter-spacing:-.035em}.status{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:780}
+.status i{width:7px;height:7px;border-radius:50%;background:#151719}.ticker{height:31px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:25px;padding:0 22px;overflow:hidden;white-space:nowrap;font:720 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;color:#24304c;letter-spacing:.025em}
+.ticker .sep{color:#9098a5}.nav{height:58px;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 25px;border-bottom:1px solid var(--line2)}
+.nav button{height:31px;border:1px solid #dfe4ea;border-radius:5px;background:#fff;color:#5e6774;padding:0 14px;font-weight:760}.nav button.active{border-color:#1769ff;color:#0c4cc4;background:#f7fbff}
+.wallet-icon{width:14px;height:10px;border:1.7px solid currentColor;border-radius:2px;display:inline-block;position:relative;margin-right:7px}.wallet-icon:before{content:"";position:absolute;left:2px;top:-4px;width:8px;height:4px;border:1.7px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0}
+.mining-icon{font-size:16px;margin-right:7px}
+main{padding:34px 42px 48px}
+.stage-head{display:grid;grid-template-columns:1fr auto;align-items:start;gap:30px;margin-bottom:26px}
+.stage-head h1{font-size:24px;line-height:1;margin:0 0 8px;letter-spacing:-.025em}.stage-head p{margin:0;color:#74808d;max-width:500px}
+.pause{border:1px solid #9cc6ff;background:#f5faff;color:#0c4cc4;border-radius:5px;padding:9px 16px;font-weight:800}
+.instrument{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(310px,.72fr);gap:54px;align-items:start}
+.primary{min-width:0}.rate-label{font:760 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;color:#6b7480;text-transform:uppercase;letter-spacing:.09em}
+.rate{display:flex;align-items:flex-end;gap:11px;margin:9px 0 21px}.rate strong{font-size:88px;line-height:.88;letter-spacing:-.075em;font-weight:850}.rate span{font-size:24px;font-weight:760;color:#27313b;padding-bottom:8px}
+.live-line{height:1px;background:var(--line);position:relative;margin-bottom:10px}.live-line:before{content:"";position:absolute;left:0;top:-1px;width:26%;height:3px;background:var(--blue)}
+.trace-head{display:flex;justify-content:space-between;align-items:end;margin:0 0 9px;color:#6d7683;font-size:11px}.trace-head b{color:#26313d}
+.trace{height:222px;display:flex;align-items:flex-end;gap:5px;padding:24px 2px 0;border-bottom:1px solid var(--line);position:relative}
+.trace:before,.trace:after{content:"";position:absolute;left:0;right:0;height:1px;background:#f0f2f5}.trace:before{top:33%}.trace:after{top:66%}
+.trace i{width:6px;background:var(--blue);display:block;position:relative;z-index:1}.trace i.soft{background:#72afff}.trace i.accepted:after{content:"";position:absolute;top:-9px;left:1px;width:4px;height:4px;border-radius:50%;background:var(--green)}
+.trace-foot{display:flex;justify-content:space-between;gap:20px;padding-top:10px;color:#7b8490;font-size:11px}.trace-foot .prob{max-width:420px}
+.overview{border-top:1px solid var(--ink)}
+.overview h2{font-size:14px;margin:14px 0 9px}.metric{padding:13px 0;border-top:1px solid var(--line2);display:grid;grid-template-columns:1fr auto;gap:18px;align-items:baseline}.metric:first-of-type{border-top:0}.metric span{font-size:11px;color:#77818e}.metric b{font-size:22px;letter-spacing:-.035em}.metric em{font-style:normal;color:var(--green);font-size:11px;font-weight:820;margin-left:6px}
+.devices{margin-top:42px;padding-top:22px;border-top:1px solid var(--line)}
+.devices-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:13px}.devices-head h2{font-size:16px;margin:0}.devices-head span{font-size:10px;color:#8a929d}
+.device{display:grid;grid-template-columns:165px minmax(240px,1fr) 92px;gap:24px;align-items:center;padding:14px 0;border-top:1px solid var(--line2)}
+.device:first-of-type{border-top:0}.device-name{display:flex;align-items:center;gap:12px;font-weight:760}.glyph{width:24px;height:24px;display:grid;place-items:center}.phone,.tablet,.laptop{display:block;position:relative;border:2px solid #191c20;background:#fff}.phone{width:11px;height:21px;border-radius:3px}.tablet{width:17px;height:22px;border-radius:2px}.laptop{width:24px;height:15px;border-radius:2px}.laptop:after{content:"";position:absolute;left:-4px;right:-4px;bottom:-5px;height:3px;border:2px solid #191c20;border-top:0}
+.track{height:13px;background:#eef2f6;position:relative;overflow:hidden;border-radius:2px}.fill{height:100%;background:var(--blue);display:flex;align-items:center;justify-content:flex-start;padding-left:7px;color:#fff;font:800 9px ui-monospace,SFMono-Regular,Consolas,monospace}.fill.mid{background:#3d8cff}.fill.low{background:#82bfff;color:#16385d}.capacity{position:absolute;right:7px;top:50%;transform:translateY(-50%);font:800 9px ui-monospace,SFMono-Regular,Consolas,monospace;color:#25314a}.device-state{text-align:right;font-size:10px;color:#697381}.device-state b{display:block;color:#20262d;font-size:11px}
+.foot{margin-top:36px;padding-top:15px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;font-size:10px;color:#7a8490}.gate{font-weight:760;color:#303b47}
+@media(max-width:900px){main{padding:26px 20px 36px}.instrument{grid-template-columns:1fr;gap:34px}.rate strong{font-size:72px}.stage-head{grid-template-columns:1fr}.pause{justify-self:start}.device{grid-template-columns:130px 1fr 72px;gap:12px}.ticker{overflow-x:auto}.nav{padding-inline:18px}}
+@media(max-width:560px){.topper{padding-inline:14px}.ticker{padding-inline:14px}.nav{height:51px}.nav button{padding-inline:10px}.stage-head p{display:none}.rate strong{font-size:61px}.rate span{font-size:19px}.trace{height:175px;gap:3px}.trace i{width:4px}.device{grid-template-columns:95px 1fr}.device-state{display:none}.foot{display:block}.foot span{display:block;margin-top:5px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="topper"><span class="brand">FAE</span><span class="status"><i></i>Testnet online</span></div>
+    <div class="ticker"><b>BLOCK HEIGHT&nbsp;1,842,391</b><span class="sep">◆</span><b>SUPPLY&nbsp;1,000,000,000</b><span class="sep">◆</span><b>REWARD&nbsp;12.5 FAE</b><span class="sep">◆</span><b>DIFFICULTY&nbsp;2,431,987</b></div>
+    <div class="nav"><button><span class="wallet-icon"></span>Wallet</button><button class="active"><span class="mining-icon">↗</span>Mining</button></div>
+  </header>
+  <main>
+    <div class="stage-head">
+      <div><h1>Mining</h1><p>Local computation is active. The surface shows work as work: continuous, measurable and probabilistic.</p></div>
+      <button class="pause">Ⅱ&nbsp;&nbsp;Pause mining</button>
+    </div>
+    <section class="instrument">
+      <div class="primary">
+        <div class="rate-label">Current work rate</div>
+        <div class="rate"><strong>2.49</strong><span>W/s</span></div>
+        <div class="live-line"></div>
+        <div class="trace-head"><span>Computation field · last 90 seconds</span><b>1,428 accepted works / 24h</b></div>
+        <div class="trace" aria-label="Work activity trace">
+          <i style="height:31%"></i><i class="soft" style="height:44%"></i><i style="height:39%"></i><i style="height:62%"></i><i class="accepted" style="height:51%"></i><i style="height:70%"></i><i class="soft" style="height:58%"></i><i style="height:73%"></i><i style="height:49%"></i><i style="height:67%"></i><i class="accepted" style="height:81%"></i><i style="height:76%"></i><i style="height:59%"></i><i class="soft" style="height:48%"></i><i style="height:69%"></i><i style="height:84%"></i><i style="height:63%"></i><i class="accepted" style="height:89%"></i><i style="height:72%"></i><i class="soft" style="height:54%"></i><i style="height:65%"></i><i style="height:79%"></i><i style="height:61%"></i><i style="height:74%"></i><i class="accepted" style="height:92%"></i><i style="height:85%"></i><i class="soft" style="height:68%"></i><i style="height:77%"></i><i style="height:57%"></i><i style="height:66%"></i><i class="accepted" style="height:86%"></i><i style="height:73%"></i><i style="height:81%"></i><i class="soft" style="height:62%"></i><i style="height:71%"></i><i style="height:88%"></i><i class="accepted" style="height:94%"></i><i style="height:79%"></i><i class="soft" style="height:64%"></i><i style="height:82%"></i><i style="height:68%"></i><i style="height:75%"></i><i class="accepted" style="height:90%"></i><i style="height:84%"></i><i style="height:69%"></i><i class="soft" style="height:60%"></i><i style="height:76%"></i><i style="height:87%"></i>
+        </div>
+        <div class="trace-foot"><span class="prob">Blue is computation activity, not progress toward a reward. Green marks a completed accepted-work event.</span><span>focused ceiling&nbsp;&nbsp;<b>3.10 W/s</b></span></div>
+      </div>
+      <aside class="overview">
+        <h2>Mining Overview</h2>
+        <div class="metric"><span>Active devices</span><b>3 / 3</b></div>
+        <div class="metric"><span>Accepted works (24h)</span><b>1,428 <em>+12% ↗</em></b></div>
+        <div class="metric"><span>Efficiency</span><b style="color:#0c4cc4">82%</b></div>
+        <div class="metric"><span>Average work rate</span><b>2.41 W/s <em>+8% ↗</em></b></div>
+        <div class="metric"><span>Uptime</span><b>4h 26m</b></div>
+        <div class="metric"><span>Your contribution</span><b style="color:#0c4cc4">0.34%</b></div>
+      </aside>
+    </section>
+    <section class="devices">
+      <div class="devices-head"><h2>Devices</h2><span>CURRENT W/s LEFT · CAPACITY RIGHT</span></div>
+      <div class="device">
+        <div class="device-name"><span class="glyph"><i class="phone"></i></span>iPhone</div>
+        <div class="track"><div class="fill" style="width:82%">2.54 W/s</div><span class="capacity">3.10 W/s</span></div>
+        <div class="device-state"><b>82%</b>focused capacity</div>
+      </div>
+      <div class="device">
+        <div class="device-name"><span class="glyph"><i class="tablet"></i></span>iPad</div>
+        <div class="track"><div class="fill low" style="width:43%">1.29 W/s</div><span class="capacity">3.00 W/s</span></div>
+        <div class="device-state"><b>43%</b>shared use</div>
+      </div>
+      <div class="device">
+        <div class="device-name"><span class="glyph"><i class="laptop"></i></span>MacBook</div>
+        <div class="track"><div class="fill mid" style="width:66%">2.31 W/s</div><span class="capacity">3.50 W/s</span></div>
+        <div class="device-state"><b>66%</b>balanced</div>
+      </div>
+    </section>
+    <div class="foot"><span>Composition pass only — motion/life intentionally deferred.</span><span class="gate">PENDING_WATERFOUND_COMPOSITION_APPROVAL</span></div>
+  </main>
+</div>
+</body>
+</html>
