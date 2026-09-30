@@ -96,7 +96,7 @@ export function normalizeNodeEndpoint(value){
   return url.toString().replace(/\/$/,'');
 }
 
-async function readConfig(path){
+export async function readConfig(path){
   if(!path)return{};
   const parsed=JSON.parse(await readFile(resolve(path),'utf8'));
   if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw Error('Miner config must be a JSON object');
@@ -108,7 +108,7 @@ async function readConfig(path){
   return parsed;
 }
 
-function resolveOptions(args,config){
+export function resolveOptions(args,config){
   const node=normalizeNodeEndpoint(args.node??config.node??'');
   const address=String(args.address??config.address??'');
   if(!validAddress(address))throw Error('Invalid FAE reward address');
@@ -126,7 +126,7 @@ function resolveOptions(args,config){
   });
 }
 
-async function saveConfig(path,options){
+export async function saveConfig(path,options){
   if(!path)return;
   const persisted={
     node:options.node,
@@ -163,7 +163,11 @@ async function fetchJson(base,path,{method='GET',body,timeoutMs=7000}={}){
       throw new NodeUnavailableError(error.name==='AbortError'?'Node request timed out':'Node request failed',error);
     }
     const payload=await response.json().catch(()=>({}));
-    if(!response.ok)throw new HttpError(response.status,payload);
+    if(!response.ok){
+      const httpError=new HttpError(response.status,payload);
+      if(response.status>=500)throw new NodeUnavailableError(`Node HTTP ${response.status}`,httpError);
+      throw httpError;
+    }
     return payload;
   }finally{
     clearTimeout(timer);
