@@ -61,6 +61,46 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
 .accepted-metric.accepted-flash b{color:var(--green)}
 @media(prefers-reduced-motion:reduce){.rate strong,.trace i,.fill,.overview .metric,.pause,.live-line:before{transition:none!important}}
 
+
+/* PASS 3 — FINISH: precision without reopening composition or LIFE. */
+html{font-variant-numeric:tabular-nums}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.nav button,.pause{transition:border-color .16s ease,background-color .16s ease,color .16s ease,transform .12s ease}
+@media(hover:hover){
+  .nav button:hover{border-color:#bfc8d3;color:#303945;background:#fbfcfd}
+  .nav button.active:hover{border-color:var(--blue);color:var(--blue-deep);background:#f4f9ff}
+  .pause:hover{border-color:#6aa9ff;background:#eef7ff}
+}
+.rate strong,.metric b,.device-state b,.capacity,.fill{font-variant-numeric:tabular-nums lining-nums}
+.rate-label,.devices-head span{letter-spacing:.075em}
+.stage-head h1{font-weight:820}
+.event-line{min-height:24px;margin:-8px 0 12px;padding-left:10px;border-left:2px solid transparent;color:#737d89;font-size:11px;display:flex;align-items:center;opacity:0;transition:opacity .18s ease,color .18s ease,border-color .18s ease}
+.event-line.visible{opacity:1}
+.event-line.success{color:#0b7d48;border-left-color:var(--green)}
+.event-line.quiet{color:#68727e;border-left-color:#cbd2da}
+.event-line.error{color:#5f2b08;border-left-color:var(--orange)}
+.trace i.accepted-now:after{box-shadow:none;border:1px solid rgba(23,169,98,.36)}
+body[data-mining-state="empty"] .rate strong{color:#a1a8b0}
+body[data-mining-state="empty"] .trace i{opacity:.08;height:2%!important}
+body[data-mining-state="empty"] .live-line:before{width:0}
+body[data-mining-state="error"] .rate strong{color:#7f8791}
+body[data-mining-state="error"] .trace i{opacity:.1}
+body[data-mining-state="error"] .live-line:before{width:0;background:var(--orange)}
+body[data-mining-state="error"] .pause{background:#fff;border-color:#d8c3b5;color:#5f2b08}
+.ticker{scrollbar-width:none}.ticker::-webkit-scrollbar{display:none}
+@media(max-width:560px){
+  .trace-head{align-items:flex-start;gap:8px;flex-direction:column}
+  .trace-foot{align-items:flex-start;gap:6px;flex-direction:column}
+  .event-line{margin-top:-4px;margin-bottom:8px}
+  .device-name small{display:none}
+  .devices-head span{font-size:8px}
+  .pause{min-height:38px}
+}
+@media(prefers-reduced-motion:reduce){
+  .event-line,.nav button,.pause{transition:none!important}
+}
+
 </style>
 </head>
 <body data-mining-state="active">
@@ -73,8 +113,9 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
   <main>
     <div class="stage-head">
       <div><h1>Mining</h1><p>Local computation is active. The surface shows work as work: continuous, measurable and probabilistic.</p></div>
-      <button class="pause" id="miningToggle" aria-pressed="true"><span class="control-symbol">Ⅱ</span>&nbsp;&nbsp;<span class="control-label">Pause mining</span></button>
+      <button class="pause" id="miningToggle" aria-pressed="true" aria-label="Pause mining on this device"><span class="control-symbol" aria-hidden="true">Ⅱ</span>&nbsp;&nbsp;<span class="control-label">Pause mining</span></button>
     </div>
+    <div class="event-line" id="eventLine" aria-live="polite" aria-atomic="true"></div>
     <section class="instrument">
       <div class="primary">
         <div class="rate-label">Current work rate</div>
@@ -114,7 +155,7 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
         <div class="device-state"><b>66%</b>balanced</div>
       </div>
     </section>
-    <div class="foot"><span>PASS 2 — LIFE preview uses deterministic synthetic work events; production binds these same states to real mining telemetry.</span><span class="gate">PENDING_WATERFOUND_LIFE_APPROVAL</span></div>
+    <div class="foot"><span>Reference preview uses deterministic synthetic work events; production binds the same states to real mining telemetry.</span><span class="gate">PENDING_WATERFOUND_FINISH_APPROVAL</span></div>
   </main>
 </div>
 
@@ -127,15 +168,31 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
   const acceptedWorks = document.getElementById('acceptedWorks');
   const acceptedMetric = document.querySelector('.accepted-metric');
   const localDevice = document.querySelector('.local-device');
+  const eventLine = document.getElementById('eventLine');
   const bars = Array.from(document.querySelectorAll('#workTrace i'));
   const sequence = [61,74,69,82,76,88,71,79,92,84,73,86,67,81,75,89,78,94,72,83,77,90,69,85];
   let cursor = 0;
   let accepted = 1428;
   let timer = null;
+  let eventTimer = null;
+
+  const showEvent = (message, kind = 'quiet', duration = 1200) => {
+    if (!eventLine) return;
+    if (eventTimer) clearTimeout(eventTimer);
+    eventLine.textContent = message;
+    eventLine.className = 'event-line visible ' + kind;
+    if (duration > 0) {
+      eventTimer = setTimeout(() => {
+        eventLine.className = 'event-line';
+        eventLine.textContent = '';
+      }, duration);
+    }
+  };
 
   const renderState = (active) => {
     body.dataset.miningState = active ? 'active' : 'paused';
     toggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    toggle.setAttribute('aria-label', active ? 'Pause mining on this device' : 'Resume mining on this device');
     toggle.querySelector('.control-symbol').textContent = active ? 'Ⅱ' : '▶';
     toggle.querySelector('.control-label').textContent = active ? 'Pause mining' : 'Resume mining';
     rate.textContent = active ? '2.49' : '0.00';
@@ -158,6 +215,7 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
       accepted += 1;
       acceptedWorks.textContent = accepted.toLocaleString('en-US');
       if (acceptedMetric) acceptedMetric.classList.add('accepted-flash');
+      showEvent('Work accepted · +1', 'success', 900);
       setTimeout(() => {
         bar.classList.remove('accepted-now');
         if (acceptedMetric) acceptedMetric.classList.remove('accepted-flash');
@@ -180,15 +238,38 @@ body[data-mining-state="paused"] .trace-head span:after{content:" · paused";col
     if (active) {
       stop();
       renderState(false);
+      showEvent('Mining paused on this device', 'quiet', 1400);
     } else {
       renderState(true);
+      showEvent('Mining resumed on this device', 'quiet', 1100);
       tick();
       start();
     }
   });
 
-  renderState(true);
-  start();
+  const reviewState = new URLSearchParams(window.location.search).get('review');
+
+  if (reviewState === 'empty') {
+    stop();
+    renderState(false);
+    body.dataset.miningState = 'empty';
+    activeDevices.textContent = '0 / 3';
+    rate.textContent = '0.00';
+    bars.forEach((bar) => { bar.style.height = '2%'; });
+    showEvent('No active work on this device.', 'quiet', 0);
+  } else if (reviewState === 'error') {
+    stop();
+    renderState(false);
+    body.dataset.miningState = 'error';
+    rate.textContent = '—';
+    showEvent('Mining stopped — device unavailable. Retry when ready.', 'error', 0);
+  } else {
+    renderState(true);
+    start();
+    if (reviewState === 'accepted') {
+      setTimeout(() => showEvent('Work accepted · +1', 'success', 1800), 250);
+    }
+  }
 })();
 </script>
 
