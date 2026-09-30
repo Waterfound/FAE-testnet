@@ -1,0 +1,19 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_COMPOSITION_APPROVAL_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "gate_id": "authority://fae-visual-language/mining-authored-reference-composition",
+  "decision": "APPROVED",
+  "authority": "Waterfound",
+  "decision_source": "explicit chat approval",
+  "approved_stage": "PASS 1 — COMPOSITION",
+  "effect": {
+    "MAR-05": "PASS",
+    "MAR-06": "AUTHORIZED_TO_ACTIVATE",
+    "MAR-07": "REMAINS_BLOCKED_UNTIL_LIFE_REVIEW",
+    "MAR-08": "REMAINS_BLOCKED_UNTIL_REFERENCE_APPROVAL"
+  },
+  "authority_expansion": "NONE_BEYOND_EXISTING_VISUAL_WORKSTREAM",
+  "production_authority": false,
+  "main_merge_authority": false,
+  "cii_authority": false
+}
