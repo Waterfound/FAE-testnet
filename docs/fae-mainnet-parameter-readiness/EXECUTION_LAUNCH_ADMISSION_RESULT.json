@@ -1,0 +1,13 @@
+{
+  "schema_version": "ge.execution-launch-admission-result.v1",
+  "replay_status": "CREATED",
+  "order_id": "gelo-5c0ecb77ebc4ee1d38a890c3",
+  "order_digest": "sha256:5c0ecb77ebc4ee1d38a890c3cb3fef4dcd8d30ca2872ccd37eb81b184fad153e",
+  "receipt_id": "gelr-f861324e9a34ac1473ef7c37",
+  "receipt_digest": "sha256:34d8c846d1a2d02f0f3002f056e28912a5e75d6b5b8e4abc18bde58d5e541587",
+  "disposition": "ADMITTED",
+  "launch_id": "gel-82ba9a9075bea276e09c933b",
+  "dispatch_identity": "geld-dc5f1aa4e9ead53410d0cfbd",
+  "authority_created": false,
+  "execution_triggered": false
+}
