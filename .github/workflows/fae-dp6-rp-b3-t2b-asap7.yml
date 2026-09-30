@@ -1,0 +1,53 @@
+name: FAE DP6 RP-B3-T2B ASAP7 STA Power Correct Units
+
+on:
+  push:
+    branches:
+      - evidence/fae-dp6-rp-b3-t2-20260930
+    paths:
+      - '.github/workflows/fae-dp6-rp-b3-t2b-asap7.yml'
+      - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/LAUNCH_T2B.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-dp6-rp-b3-t2b-asap7-correct-units
+  cancel-in-progress: false
+
+jobs:
+  ppa:
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        variant: [full, argon, rw5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - name: Checkout exact RP-B3-T2 evidence branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Execute bounded ASAP7 STA/power calibration with correct ps units
+        id: ppa
+        continue-on-error: true
+        env:
+          T2_VARIANT: ${{ matrix.variant }}
+        run: |
+          chmod +x labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/run_asap7_sta_power_t2.sh
+          labs/asic-f2-pre-go/reviews/rp-b3-t2/execution/run_asap7_sta_power_t2.sh
+
+      - name: Upload RP-B3-T2B evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-dp6-rp-b3-t2b-${{ matrix.variant }}
+          path: labs/asic-f2-pre-go/reviews/rp-b3-t2/results/${{ matrix.variant }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Fail closed if analytical flow failed
+        if: always() && steps.ppa.outcome == 'failure'
+        run: exit 1
