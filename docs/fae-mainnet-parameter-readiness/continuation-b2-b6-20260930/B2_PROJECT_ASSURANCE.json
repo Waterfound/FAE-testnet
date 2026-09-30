@@ -1,0 +1,48 @@
+{
+  "schema": "FAE_B2_PROJECT_ASSURANCE_V1",
+  "disposition": "PASS_WITH_POLICY_GATE_AND_EXTERNAL_ADEQUACY_BOUNDARY",
+  "challenges": [
+    {
+      "id": "B2-PA-01",
+      "challenge": "Are active-v4 residual fees merely 'unpaid', or do they have a state effect?",
+      "result": "CLOSED",
+      "finding": "They are implicitly burned/unassigned: confirmed outputs sum below inputs and no fee UTXO is created."
+    },
+    {
+      "id": "B2-PA-02",
+      "challenge": "Could paying fees to miners inflate supply or consume the subsidy cap?",
+      "result": "CLOSED",
+      "finding": "Not if issuance counts subsidy only and fee_total is conserved from spent inputs. The research-300 core already separates issuedSubsidyAtoms from fees."
+    },
+    {
+      "id": "B2-PA-03",
+      "challenge": "Can future fee demand be inferred from current code or testnet?",
+      "result": "NO",
+      "finding": "All fee-volume values remain sensitivity axes only."
+    },
+    {
+      "id": "B2-PA-04",
+      "challenge": "Does miner-paid fee policy prove sufficient security?",
+      "result": "NO",
+      "finding": "It increases protocol revenue but attack-cost adequacy remains dependent on DP6/HFB/RDE, hashrate response and market conditions."
+    },
+    {
+      "id": "B2-PA-05",
+      "challenge": "Can burn/non-miner fees support long-run miners after subsidy vanishes?",
+      "result": "NO_DIRECT_SUPPORT",
+      "finding": "Only the miner-credited share alpha*F contributes directly to miner protocol revenue."
+    },
+    {
+      "id": "B2-PA-06",
+      "challenge": "Is fee policy blocked by unresolved block time?",
+      "result": "MOSTLY_DECOUPLED",
+      "finding": "Conservation/destination semantics are block-time independent; realized fee demand/capacity is not."
+    },
+    {
+      "id": "B2-PA-07",
+      "challenge": "Does a non-miner destination fit fair launch automatically?",
+      "result": "NO",
+      "finding": "A privileged recipient creates a new allocation/governance policy and requires explicit authority."
+    }
+  ]
+}
