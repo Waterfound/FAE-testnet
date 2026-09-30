@@ -37,7 +37,7 @@
     "initial_reward": [
       "block interval/calendar policy",
       "security-budget model",
-      "DP6 specialized advantage",
+      "DP6 memory/economic specialist bound (RP-B3-T3 external evidence gate; logic PPA closed)",
       "representative-device economics",
       "fee policy"
     ],
@@ -70,5 +70,18 @@
     ],
     "fair_launch_constraints": [],
     "atomic_unit": []
+  },
+  "dependency_states": {
+    "dp6_specialist_bound": {
+      "state": "STRONG_HEURISTIC__LOGIC_PPA_BOUND_CLOSED__MEMORY_ECONOMIC_BOUND_OPEN",
+      "economic_proposition": "WEAKENED_NOT_FALSIFIED__STILL_INCONCLUSIVE",
+      "logic_ppa": "CLOSED",
+      "memory_economic_bound": "OPEN",
+      "specialist_lcvw": "UNKNOWN",
+      "next_frontier": "RP-B3-T3",
+      "gate": "GENUINE_EXTERNAL_EVIDENCE_GATE",
+      "asic_lab": "HOLD",
+      "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+    }
   }
 }
