@@ -1,22 +1,27 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_DURABLE_STATE_V1",
   "continuation_id": "fae-mpr-b2-b6-20260930-001",
-  "generation": 0,
+  "generation": 1,
   "source_checkpoint": "a3856d2ea0de98869523145930394bc79535c3b5",
   "active": {
-    "frontier": "B2-00",
+    "frontier": "B6-00",
     "state": "running",
-    "objective": "Close all admissible Fee + Security Budget modeling without selecting policy."
+    "objective": "Close analytical/policy-readiness for coinbase maturity and launch initial-target calibration contract without selecting values."
   },
   "secondary": {
-    "frontier": "B2-01",
+    "frontier": "B6-01",
     "state": "ready"
   },
   "passive": [
     {
-      "frontier": "B6-00..B6-05",
-      "state": "serial_wait",
-      "wake_condition": "B2-06 persisted with terminal analytical closure"
+      "frontier": "B2",
+      "state": "closed",
+      "wake_condition": "Reopen only if executable fee semantics or explicit Waterfound fee policy changes."
+    },
+    {
+      "frontier": "B6-external-calibration",
+      "state": "external_wait",
+      "wake_condition": "Selected block-time/DAA + provenance-bound launch hashrate/network evidence becomes available."
     }
   ],
   "stop_conditions": [
@@ -27,5 +32,10 @@
   ],
   "human_required": false,
   "authority_created": false,
-  "no_background_claim": true
+  "no_background_claim": true,
+  "serialization_evidence": {
+    "B2_terminal_artifact": "docs/fae-mainnet-parameter-readiness/continuation-b2-b6-20260930/B2_CLOSURE.json",
+    "B2_terminal_classification": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
+    "B6_promotion_admitted": true
+  }
 }
