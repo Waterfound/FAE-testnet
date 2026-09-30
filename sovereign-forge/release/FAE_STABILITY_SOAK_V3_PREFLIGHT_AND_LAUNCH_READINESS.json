@@ -188,14 +188,69 @@
   "frozen_success_contract": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT.json",
   "provider_readiness": {
     "provider": "Render",
-    "plan": "free",
-    "required_services": 5,
-    "current_services_free": true,
-    "current_workspace_suspended": true,
-    "suspender": "billing",
-    "required_free_hours": 540,
+    "workspace_id": "tea-daicggp594qs7386ck00",
+    "required_services": [
+      {
+        "role": "node-a",
+        "id": "srv-daicporm8hqs73cauong",
+        "region": "oregon",
+        "plan": "free",
+        "branch": "render-wan-lab",
+        "auto_deploy": "off",
+        "suspended": true,
+        "suspender": "billing"
+      },
+      {
+        "role": "node-b",
+        "id": "srv-daicps3m8hqs73cav78g",
+        "region": "frankfurt",
+        "plan": "free",
+        "branch": "render-wan-lab",
+        "auto_deploy": "off",
+        "suspended": true,
+        "suspender": "billing"
+      },
+      {
+        "role": "node-c",
+        "id": "srv-daicpu0ae00c73dvigm0",
+        "region": "singapore",
+        "plan": "free",
+        "branch": "render-wan-lab",
+        "auto_deploy": "off",
+        "suspended": true,
+        "suspender": "billing"
+      },
+      {
+        "role": "controller",
+        "id": "srv-daideq95efls73d2mn40",
+        "region": "virginia",
+        "plan": "free",
+        "branch": "render-wan-lab",
+        "auto_deploy": "off",
+        "suspended": true,
+        "suspender": "billing"
+      },
+      {
+        "role": "observer",
+        "id": "srv-daicrhp5efls73d0fv8g",
+        "region": "ohio",
+        "plan": "free",
+        "branch": "render-wan-lab",
+        "auto_deploy": "off",
+        "suspended": true,
+        "suspender": "billing"
+      }
+    ],
+    "operational_branch_head": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+    "exact_tested_revision_match": true,
+    "runtime": "node",
+    "storage_assumption": "No persistent disk is configured in the observed service records; V3 node state uses recoverable ephemeral storage and tested peer bootstrap/recovery.",
+    "network_requirement": "Five public web services with A/B/C peer bootstrap and controller/observer access; observed IP allowlist is 0.0.0.0/0 on the required services.",
+    "required_free_instance_hours": 540,
     "quota_clear_proven": false,
-    "billing_action_authorized": false,
+    "workspace_suspended": true,
+    "suspender": "billing",
+    "any_billing_action_authorized": false,
     "verdict": "CONDITION_WAIT"
   },
   "launch_package": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_LAUNCH_PACKAGE.json",
