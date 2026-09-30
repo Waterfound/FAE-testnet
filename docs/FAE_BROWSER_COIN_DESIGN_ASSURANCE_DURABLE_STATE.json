@@ -1,0 +1,59 @@
+{
+  "schema": "FAE_BROWSER_COIN_DESIGN_ASSURANCE_DURABLE_STATE_V1",
+  "workstream": "FAE — Browser-Coin Design Assurance Review",
+  "workstream_id": "fae-browsercoin-design-assurance-001",
+  "run_id": "bc2-71a6f1e4cc210352",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-browsercoin-design-assurance-001",
+  "source_main_revision": "b00bbebca81a8f1085f7e61beddca862d8b5dfaa",
+  "last_reconciled_revision": "c79e131d87b4af35a1ce4415c7bfb59dcbb66cde",
+  "continuity_state": "CHECKPOINTED_RESUMABLE",
+  "active_frontier": {
+    "id": "BDA-00",
+    "state": "verifying",
+    "objective": "Reconcile the recovered seven-commit execution body with canonical FAE evidence before accepting any challenge classification or further hardening."
+  },
+  "completed_frontiers": [
+    "BDA-LAUNCH-MATERIALIZED"
+  ],
+  "admissible_next": [
+    "BDA-01",
+    "BDA-02",
+    "BDA-03",
+    "BDA-04",
+    "BDA-05",
+    "BDA-06"
+  ],
+  "durable_runtime": {
+    "repository": "Waterfound/General-Execution",
+    "branch": "runtime/durable-asp-control",
+    "portfolio_id": "fae-browsercoin-design-assurance-001",
+    "bootstrap_event_id": "fae-browsercoin-design-assurance-bootstrap-001",
+    "event_state": "TO_BE_PERSISTED_BEFORE_SUBSTANTIVE_RESUME"
+  },
+  "recovered_work": {
+    "commit_count_after_baseline": 7,
+    "recovered_head": "a4028c8c26a6de11bb307fb915b89637f745d8bd",
+    "preserved": true,
+    "restart_from_zero": false
+  },
+  "authority_flags": {
+    "dp6_changed": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "halving_changed": false,
+    "activation_height_changed": false,
+    "release_performed": false,
+    "deployment_performed": false,
+    "wallet_authority_changed": false,
+    "destructive_infrastructure": false,
+    "paid_provider_execution": false
+  },
+  "stop_conditions": [
+    "genuine human/authority gate",
+    "genuine external-evidence/provider gate",
+    "technical/canonical closure"
+  ],
+  "serialization_rule": "Parallelize independence. Serialize shared state.",
+  "terminal_state": null
+}
