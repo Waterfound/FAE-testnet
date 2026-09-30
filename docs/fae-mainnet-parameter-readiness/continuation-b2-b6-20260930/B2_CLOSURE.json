@@ -1,0 +1,25 @@
+{
+  "schema": "FAE_B2_FEE_SECURITY_BUDGET_CLOSURE_V1",
+  "blocker": "B2_FEE_SECURITY_BUDGET",
+  "terminal_classification": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
+  "internal_modeling_exhausted": true,
+  "policy_selected": false,
+  "consensus_changed": false,
+  "economics_changed": false,
+  "new_spend": false,
+  "conclusions": {
+    "conservation_model": "CLOSED",
+    "destination_policy_space": "CLOSED",
+    "zero_low_stress_sensitivity": "CLOSED_AS_NORMALIZED_NON_FORECAST_MODEL",
+    "post_halving_trajectory": "CLOSED_ALGEBRAICALLY",
+    "block_time_independent_findings": "CLOSED",
+    "hardware_attack_cost_adequacy": "EXTERNAL_EVIDENCE",
+    "fee_demand_forecast": "INTENTIONALLY_UNSET",
+    "Waterfound_policy_gate": "OPEN"
+  },
+  "remaining_B2_boundary": [
+    "Waterfound explicitly selects fee destination semantics (and alpha if split).",
+    "Security adequacy of numeric reward/halving remains downstream of DP6/HFB/RDE and later real economic evidence; this does not block closing the B2 analytical model."
+  ],
+  "serial_gate_result": "B2-06 CLOSED; B6 analytical frontiers may now be promoted."
+}
