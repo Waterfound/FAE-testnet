@@ -5,47 +5,48 @@
   "repository": "Waterfound/FAE-testnet",
   "branch": "design/fae-mining-authored-reference-001",
   "source_revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
-  "current_frontier": "MAR-05",
-  "completed_frontiers": ["MAR-00","MAR-01","MAR-02","MAR-03","MAR-04"],
+  "current_frontier": "MAR-06",
+  "completed_frontiers": ["MAR-00","MAR-01","MAR-02","MAR-03","MAR-04","MAR-05"],
   "blocked_frontiers": {
-    "MAR-06": "BLOCKED_BY_MAR_05",
-    "MAR-07": "BLOCKED_BY_MAR_06",
+    "MAR-07": "BLOCKED_UNTIL_LIFE_REVIEW",
     "MAR-08": "BLOCKED_BY_REFERENCE_APPROVAL"
+  },
+  "composition_approval": {
+    "state": "APPROVED",
+    "evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_COMPOSITION_APPROVAL.json"
+  },
+  "life_frontier": {
+    "state": "ACTIVE",
+    "scope": [
+      "causal mining active/inactive behavior",
+      "continuous work activity tied to active state",
+      "brief accepted-work response",
+      "start/stop transitions preserving spatial continuity",
+      "contained tactile control response"
+    ],
+    "prohibited": [
+      "decorative looping animation without state cause",
+      "fake reward progress",
+      "confetti or gamer effects",
+      "layout-jumping transitions",
+      "new visual language that overrides approved composition"
+    ]
   },
   "studio": {
     "url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
     "app_id": "fae-mining-authored-reference-composition-p18jsf",
-    "status": "READY",
-    "browser_qa": "PASS_13_OF_13",
-    "browser_qa_run_id": "414ed4dc-96bc-4ed5-ae22-0ea79e87f545"
+    "status": "PASS1_READY"
   },
   "review_surface": {
     "draft_pr": 268,
     "base": "design/fae-direction-d-plus-approval",
     "head": "design/fae-mining-authored-reference-001",
-    "visual_language_ci": "SUCCESS",
-    "cross_lab_integration_gate": "EXPECTED_GENERIC_GATE_MISMATCH__NOT_A_DESIGN_DEFECT",
     "merge_readiness_claimed": false
   },
-  "terminal_condition": "HUMAN_GATE_AT_MAR_05_OR_TECHNICAL_FAIL_CLOSED_OR_CLOSURE",
-  "human_gate": {
-    "required": true,
-    "gate_id": "authority://fae-visual-language/mining-authored-reference-composition",
-    "human_required": true,
-    "condition": "Waterfound visually approves this PASS 1 composition or specifies revisions after opening the browser-verified Studio.",
-    "next_authorized_transition_on_approval": "MAR-05 -> PASS; MAR-06 -> ACTIVE",
-    "next_transition_on_revision_request": "MAR-02 -> ACTIVE_REFINEMENT; preserve all accepted Direction D+ invariants"
-  },
+  "terminal_condition": "NEXT_GENUINE_HUMAN_GATE_OR_TECHNICAL_FAIL_CLOSED_OR_CLOSURE",
   "future_frontiers": {
-    "life": "Only after MAR-05 approval.",
-    "finish": "Only after LIFE is approved/sufficient.",
+    "finish": "Only after LIFE review/approval.",
     "cii": "Only after the Mining reference implementation is approved as successful."
   },
-  "evidence_refs": [
-    "docs/FAE_MINING_AUTHORED_REFERENCE_BUILD_COLONY_RUN.json",
-    "docs/FAE_MINING_AUTHORED_REFERENCE_PASS1_EVIDENCE.json",
-    "docs/FAE_MINING_AUTHORED_REFERENCE_CI_RECONCILIATION.json",
-    "design/mining-authored-reference/composition-pass-1.html"
-  ],
-  "state": "HUMAN_GATE"
+  "state": "RUNNING"
 }
