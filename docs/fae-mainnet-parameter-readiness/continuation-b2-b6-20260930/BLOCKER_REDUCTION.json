@@ -1,0 +1,44 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_B2_B6_REDUCTION_V1",
+  "continuation_id": "fae-mpr-b2-b6-20260930-001",
+  "serial_execution_verified": true,
+  "B2": {
+    "before": "DESIGN_AND_MODELING unresolved",
+    "after": "MODELING_CLOSED__EXPLICIT_POLICY_SELECTION_REQUIRED__SECURITY_ADEQUACY_EXTERNAL",
+    "internal_work_remaining": false,
+    "Waterfound_decision_required": true,
+    "external_evidence_required_for_numeric_security_adequacy": true
+  },
+  "B6": {
+    "maturity": {
+      "before": "UNRESOLVED_POLICY",
+      "after": "ANALYTICAL_MODEL_CLOSED__SETTLEMENT_POLICY_SELECTION_REQUIRED",
+      "internal_work_remaining": false,
+      "numeric_maturity_mechanically_derivable_after_policy_and_target": true
+    },
+    "launch_initial_target": {
+      "before": "EXTERNAL_CALIBRATION + ANALYTICAL boundary",
+      "after": "CALIBRATION_CONTRACT_CLOSED__EXTERNAL_HASHRATE_EVIDENCE_REQUIRED",
+      "internal_work_remaining": false,
+      "numeric_target_selected": false
+    }
+  },
+  "unchanged_blockers": [
+    "B1_BLOCK_TIME_SELECTION",
+    "B3_DP6_SPECIALIST_BOUND",
+    "B4_REPRESENTATIVE_DEVICE_HFB",
+    "B5_STABILITY_NETWORK"
+  ],
+  "authority": {
+    "consensus_changed": false,
+    "economics_changed": false,
+    "fee_semantics_changed": false,
+    "maturity_changed": false,
+    "activation_height_selected": false,
+    "release": false,
+    "mainnet_activation": false,
+    "spending": false,
+    "paid_provider": false
+  },
+  "overall_parameter_freeze_status": "PARAMETER_SET_NOT_READY_TO_FREEZE"
+}
