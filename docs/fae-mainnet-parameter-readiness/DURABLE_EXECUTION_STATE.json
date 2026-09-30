@@ -1,82 +1,77 @@
 {
   "schema": "FAE_MAINNET_PARAMETER_READINESS_DURABLE_STATE_V1",
   "portfolio_id": "fae-mainnet-parameter-readiness-001",
-  "generation": 0,
+  "generation": 1,
   "repository": "Waterfound/FAE-testnet",
   "branch": "colony/fae-mainnet-parameter-readiness-001",
-  "source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "frozen_executable_source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
   "launch_receipt_id": "gelr-f861324e9a34ac1473ef7c37",
   "launch_receipt_digest": "sha256:34d8c846d1a2d02f0f3002f056e28912a5e75d6b5b8e4abc18bde58d5e541587",
   "authority_ref": "user-order://2026-09-29/fae-mainnet-consensus-economic-parameter-readiness",
   "authority_created": false,
-  "active": {
-    "frontier": "MPR-01",
-    "state": "in_progress",
-    "next_action": "Reconstruct executable active-testnet consensus/economics directly from canonical code and migrations."
+  "execution_state": "CONDITION_WAIT",
+  "internal_frontiers": {
+    "completed": [
+      "MPR-00",
+      "MPR-01",
+      "MPR-02",
+      "MPR-03",
+      "MPR-04",
+      "MPR-05",
+      "MPR-06",
+      "MPR-07",
+      "MPR-10",
+      "MPR-11",
+      "MPR-12"
+    ],
+    "external_dependency_bound": [
+      "MPR-08",
+      "MPR-09"
+    ]
   },
-  "secondary": {
-    "frontier": "MPR-02",
-    "state": "admissible",
-    "next_action": "Compute exact integer-atom issuance for active and research schedules."
-  },
-  "passive": [
+  "terminal_readiness_verdict": "PARAMETER_SET_NOT_READY_TO_FREEZE",
+  "wake_conditions": [
     {
-      "frontier": "MPR-03",
-      "state": "admissible",
-      "wake_condition": "MPR-01 evidence inventory available"
+      "dependency": "180s/block-time evidence",
+      "predicate": "New provenance-bound evidence closes the F180 terminal missing-evidence set or otherwise supplies a genuinely discriminating precommitted block-time selection dataset."
     },
     {
-      "frontier": "MPR-04",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-01 and MPR-03 complete"
+      "dependency": "DP6 robust premise",
+      "predicate": "A terminal admitted DP6 robust-premise disposition replaces STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE with evidence sufficient to bound specialist advantage for the participation objective."
     },
     {
-      "frontier": "MPR-05",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-03 complete"
+      "dependency": "representative-device + HFB",
+      "predicate": "Frozen real-device portfolio and required physical HFB/work-per-watt/work-per-dollar evidence are admitted."
     },
     {
-      "frontier": "MPR-06",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-01/MPR-02/MPR-03 complete; external dependency evidence consumed fail-closed"
+      "dependency": "Stability Soak V3/network",
+      "predicate": "V3 reaches a terminal evidence state and any chosen block-time/DAA network-independence gate is satisfied."
     },
     {
-      "frontier": "MPR-07",
-      "state": "admissible",
-      "wake_condition": "none"
+      "dependency": "fee/security policy",
+      "predicate": "A mainnet fee destination/conservation rule and conservative subsidy+fee security-budget policy are evidence-backed and selected under explicit authority."
     },
     {
-      "frontier": "MPR-08",
-      "state": "admissible",
-      "wake_condition": "consume existing external workstream evidence only; do not resume physical DP6/HFB work"
-    },
-    {
-      "frontier": "MPR-09",
-      "state": "admissible",
-      "wake_condition": "consume existing Stability/network evidence only; do not launch soak from this frontier"
-    },
-    {
-      "frontier": "MPR-10",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-02 through MPR-09 reach terminal evidence-bound states"
-    },
-    {
-      "frontier": "MPR-11",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-10 complete"
-    },
-    {
-      "frontier": "MPR-12",
-      "state": "dependency_wait",
-      "wake_condition": "MPR-11 complete"
+      "dependency": "maturity + launch target",
+      "predicate": "Settlement/reorg-risk objective is precommitted and maturity derived under the selected target; real launch initial target is provenance-bound to launch-hashrate calibration."
     }
   ],
-  "stop_conditions": [
-    "genuine HUMAN_GATE requiring new Waterfound authority",
-    "external evidence gate that cannot be produced under current authority",
-    "fail-closed technical contradiction that prevents further evidence-bound work",
-    "frontier closure"
-  ],
-  "continuation_rule": "Continue autonomously across every admitted frontier. Do not ask for 'prossiga' while evidence-bound work remains admissible. Preserve external workstreams as dependencies rather than duplicating or resuming them.",
-  "terminal_state": "RUNNING"
+  "next_action_on_wake": "Re-run evidence reconciliation only for changed dependencies, preserve immutable prior evidence, rerun Project Assurance, and recompute PARAMETER_READINESS. Do not activate or modify consensus/economics.",
+  "no_background_claim": true,
+  "human_required_now": false,
+  "new_authority_required_now": false,
+  "external_gate_now": true,
+  "closure_boundary": "All work admissible under the current readiness-only authority has been executed. Remaining blockers require external evidence, terminal evidence from other workstreams, or a later explicit parameter-selection authority.",
+  "artifacts": [
+    "MODELING_RESULTS.json",
+    "EVIDENCE_MATRIX.json",
+    "BLOCK_TIME_MATRIX.json",
+    "MATURITY_ANALYSIS.json",
+    "SECURITY_BUDGET_MODEL.json",
+    "DEPENDENCY_GRAPH.json",
+    "PROJECT_ASSURANCE.json",
+    "PARAMETER_READINESS.json",
+    "FREEZE_CONTRACT_DRAFT.json",
+    "READINESS_REPORT.md"
+  ]
 }
