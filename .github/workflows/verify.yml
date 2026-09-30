@@ -81,10 +81,13 @@ jobs:
           node tests/coordinator-trust-smoke.mjs
           node tests/coordinator-rotation-smoke.mjs
 
-      - name: Verify sovereign standalone mining core and operational behavior
+      - name: Verify sovereign standalone miner package, core and operational behavior
         run: |
+          npm ci --prefix standalone
+          npm run --prefix standalone check
           node --test tests/standalone-mining-core.test.mjs
           node --test tests/standalone-miner-behavior.test.mjs
+          node --test tests/standalone-miner-process-restart.test.mjs
 
       - name: Verify public-code security contracts
         run: node tests/public-code-security-contract.mjs
