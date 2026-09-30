@@ -1,0 +1,21 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_DURABLE_STATE_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "authority_owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "design/fae-mining-authored-reference-001",
+  "source_revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+  "current_frontier": "MAR-02",
+  "terminal_condition": "HUMAN_GATE_AT_MAR_05_OR_TECHNICAL_FAIL_CLOSED_OR_CLOSURE",
+  "human_gate": {
+    "required": true,
+    "gate_id": "authority://fae-visual-language/mining-authored-reference-composition",
+    "condition": "Waterfound visually approves or requests changes to PASS 1 Composition after browser-verified Studio is available."
+  },
+  "future_frontiers": {
+    "life": "Only after MAR-05 approval.",
+    "finish": "Only after LIFE is approved/sufficient.",
+    "cii": "Only after the Mining reference implementation is approved as successful."
+  },
+  "state": "RUNNING"
+}
