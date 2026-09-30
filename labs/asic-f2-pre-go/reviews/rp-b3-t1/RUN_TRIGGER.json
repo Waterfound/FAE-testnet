@@ -1,0 +1,11 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.trigger.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "authorized": true,
+  "trigger_reason": "Execute exactly one bounded non-production ASAP7 standard-cell PPA calibration using the parity-bound C6 export.",
+  "expected_c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+  "platform": "ASAP7 predictive FinFET 7nm research platform",
+  "asic_lab": "HOLD",
+  "aws_fpga_authorized": false
+}
