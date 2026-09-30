@@ -1,0 +1,38 @@
+{
+  "schema": "FAE_B2_FEE_SEMANTICS_RECONCILIATION_V1",
+  "source": {
+    "executable_truth": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+    "active_v4_edge": "sovereign-forge/supabase/functions/fae-public-testnet-v4/index.ts",
+    "active_v4_db": "sovereign-forge/supabase/migrations/20260903_fae_v4_canonical.sql",
+    "research_300_branch": "economic-block-time-v2-300-l3",
+    "research_300_core": "sovereign-forge/node/candidate/fae-v5-300-core.mjs",
+    "candidate_fee_migration": "sovereign-forge/supabase/migrations/20260907_fae_v4_pplns_coinbase_candidate.sql"
+  },
+  "active_v4": {
+    "authority": "ACTIVE_TESTNET_AUTHORITY",
+    "tx_fee_formula": "fee = sum(inputs) - sum(outputs)",
+    "block_pays_fees_to_miner": false,
+    "block_coinbase_value_rule": "subsidy only",
+    "fee_state_effect": "Confirmed fee value has no replacement UTXO and therefore leaves the spendable UTXO set: implicit burn/unassigned destruction.",
+    "net_utxo_value_change_per_block": "subsidy - confirmed_fees",
+    "issuance_counter_semantics": "subsidy issuance only",
+    "maturity_enforced": false
+  },
+  "research_300": {
+    "authority": "RESEARCH_CANDIDATE_NOT_ACTIVE",
+    "tx_fee_formula": "fee = sum(inputs) - sum(outputs)",
+    "fee_commitment_required": true,
+    "coinbase_value_rule": "sum(coinbase outputs) = subsidy + included transaction fees",
+    "net_utxo_value_change_per_block": "subsidy",
+    "issuance_counter_semantics": "issuedSubsidyAtoms counts subsidy only; recycled fees do not consume the issuance cap",
+    "maturity_enforced": true
+  },
+  "invariant_findings": [
+    "Fees are transfers/destruction choices, not new issuance. A supply cap must count newly minted subsidy, not subsidy+recycled fees.",
+    "For each transaction: inputs = outputs + fee, fee >= 0.",
+    "For each block: fee_total must be recomputed from exactly the included transactions and committed fail-closed.",
+    "Any credited fee outputs must sum exactly to the credited share of fee_total; no hidden fee creation is admissible.",
+    "Reorg/replay must deterministically reverse and recompute fee destinations.",
+    "A non-miner fee recipient is a policy allocation and cannot be silently introduced under the no-treasury/fair-launch constraint."
+  ]
+}
