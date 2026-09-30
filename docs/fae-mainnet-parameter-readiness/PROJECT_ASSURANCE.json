@@ -1,0 +1,61 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_PROJECT_ASSURANCE_V1",
+  "disposition": "PASS_WITH_BLOCKING_FINDINGS",
+  "challenges": [
+    {
+      "id": "PA-01",
+      "challenge": "Could active-testnet authority be mistaken for a mainnet choice?",
+      "result": "PASS_GUARD",
+      "finding": "All active-v4 facts are labeled ACTIVE_TESTNET_AUTHORITY only."
+    },
+    {
+      "id": "PA-02",
+      "challenge": "Could 180s INSUFFICIENT_EVIDENCE be converted into 300s wins?",
+      "result": "PASS_GUARD",
+      "finding": "No. 300 remains preferred research incumbent, not a selected mainnet parameter."
+    },
+    {
+      "id": "PA-03",
+      "challenge": "Are geometric supply products being confused with integer terminal issuance?",
+      "result": "BLOCKING_FINDING",
+      "finding": "Yes, this distinction must be explicit for every candidate. Independent atom modeling shows 600/900 transformed packages also terminate below their geometric 12.04M cap under right-shift halvings."
+    },
+    {
+      "id": "PA-04",
+      "challenge": "Is 200-block maturity active or economically justified?",
+      "result": "BLOCKING_FINDING",
+      "finding": "No active-v4 maturity enforcement exists. Candidate implementation correctness is strong, but the economic/security rationale for 200 rather than a derived risk target remains unresolved."
+    },
+    {
+      "id": "PA-05",
+      "challenge": "Is fee policy stable across active and candidate implementations?",
+      "result": "BLOCKING_FINDING",
+      "finding": "No. Active v4 leaves residual fees out of miner coinbase; 300 candidate pays fees to coinbase. Long-run security-budget assumptions therefore cannot be frozen yet."
+    },
+    {
+      "id": "PA-06",
+      "challenge": "Is block-time evidence DAA-normalized?",
+      "result": "BLOCKING_FINDING",
+      "finding": "Not fully. 180 implementation-specific DAA evidence and 300/600/900 ASERT research evidence are different algorithm families."
+    },
+    {
+      "id": "PA-07",
+      "challenge": "Can security budget be inferred from subsidy alone?",
+      "result": "PASS_GUARD",
+      "finding": "No such inference is admitted; DP6/HFB/representative-device, fee demand and market/hash-supply variables remain explicit dependencies."
+    },
+    {
+      "id": "PA-08",
+      "challenge": "Are external workstreams being duplicated or resumed?",
+      "result": "PASS_GUARD",
+      "finding": "No. DP6/RDE/HFB/Stability are consumed read-only and retain their own authority boundaries."
+    },
+    {
+      "id": "PA-09",
+      "challenge": "Was any consensus/economic executable file changed by this run?",
+      "result": "PASS_GUARD",
+      "finding": "No. Run writes are confined to docs/fae-mainnet-parameter-readiness on an isolated branch."
+    }
+  ],
+  "conclusion": "The evidence is sufficient to reconcile the state and define a future freeze contract, but not to freeze the coupled numeric mainnet parameter set."
+}
