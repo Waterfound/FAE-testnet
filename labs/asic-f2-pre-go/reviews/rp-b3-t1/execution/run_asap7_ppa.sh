@@ -75,6 +75,7 @@ export CORE_MARGIN = 2
 export PLACE_DENSITY = 0.60
 export TNS_END_PERCENT = 100
 export SYNTH_USE_SYN = 1
+export SYNTH_HDL_FRONTEND = slang
 EOF
   cat > "$d/constraint.sdc" <<EOF
 current_design $top
@@ -146,6 +147,10 @@ tool=open(os.path.join(res,"logs","tool-versions.txt")).read()
 prov={
   "schema":"fae.dp6.rp_b3_t1.tool_provenance.v1",
   "run_id":"fae-dp6-rp-b3-t1-asap7-001",
+  "logical_attempt":2,
+  "recovery_of_failed_run_id":36654718186,
+  "source_revision":os.environ.get("GITHUB_SHA"),
+  "synth_hdl_frontend":"slang",
   "executor":{"provider":"github-actions","run_id":os.environ.get("GITHUB_RUN_ID"),"run_attempt":os.environ.get("GITHUB_RUN_ATTEMPT"),"runner_os":os.environ.get("RUNNER_OS"),"runner_arch":os.environ.get("RUNNER_ARCH")},
   "orfs_commit":"$ORFS_HEAD",
   "asap7_tree":"$ASAP7_TREE",
@@ -164,6 +169,10 @@ open(os.path.join(res,"TOOL_PROVENANCE.json"),"w").write(json.dumps(prov,indent=
 status={
   "schema":"fae.dp6.rp_b3_t1.execution_result.v1",
   "run_id":"fae-dp6-rp-b3-t1-asap7-001",
+  "logical_attempt":2,
+  "recovery_of_failed_run_id":36654718186,
+  "source_revision":os.environ.get("GITHUB_SHA"),
+  "synth_hdl_frontend":"slang",
   "integrity":"PASS",
   "equivalence":"PASS_EQUIVALENCE",
   "stages":{
