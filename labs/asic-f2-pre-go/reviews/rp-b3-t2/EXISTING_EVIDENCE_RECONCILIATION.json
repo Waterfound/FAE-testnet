@@ -1,0 +1,79 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.existing_evidence_reconciliation.v1",
+  "date": "2026-09-30",
+  "source_run": {
+    "github_run_id": 36657989186,
+    "head_sha": "cfbd8f8a978d65d24951b22275f0720d2ee572a0",
+    "conclusion": "cancelled",
+    "artifact_id": 11078322941,
+    "artifact_sha256": "6521dc71cb7e073dae6d39ded25e58d9950f65b1865fab3ef864fed69eb2470e"
+  },
+  "provenance": {
+    "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "equivalence": "PASS_EQUIVALENCE",
+    "frontend": "slang",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+    "container_digest": "openroad/orfs@sha256:9eed01a3dc8030f423af6a3601c172459a4ddf8f76913db5e25febe3e7435d7a"
+  },
+  "stage_admission": {
+    "full_2ns_synth": "PASS_RC0",
+    "rw5_2ns_synth": "PASS_RC0",
+    "argon_2ns_synth": "PASS_RC0",
+    "full_1ns_synth": "PASS_RC0",
+    "full_2ns_floorplan": "PASS",
+    "full_2ns_placement": "PASS",
+    "full_2ns_cts": "PASS",
+    "full_2ns_global_route": "PASS",
+    "full_2ns_detailed_route": "NOT_COMPLETED",
+    "final_signoff": "NOT_COMPLETED",
+    "power": "NOT_PRODUCED"
+  },
+  "synthesis_area_points": {
+    "full_2ns_post_repair_um2": 91105,
+    "full_1ns_post_repair_um2": 91105,
+    "argon_2ns_post_repair_um2": 48648,
+    "rw5_2ns_post_repair_um2": 10498
+  },
+  "placed_route_points": {
+    "detailed_place_design_area_um2": 96805,
+    "cts_design_area_um2": 100498,
+    "cts_utilization_percent": 44,
+    "global_route_routed_nets": 741066,
+    "global_route_wirelength_um": 45423186
+  },
+  "timing_points": {
+    "requested_clock_ns": 2,
+    "floorplan_setup_wns_ps": -2698.693,
+    "post_cts_setup_wns_ps": -3099.356,
+    "post_cts_hold_wns_ps": -526.079,
+    "global_route_setup_wns_ps": -3133.894,
+    "global_route_setup_tns_ps": -64802596,
+    "global_route_setup_violating_endpoints": 112047,
+    "global_route_hold_wns_ps": -504.948,
+    "global_route_hold_tns_ps": -1406835.25,
+    "approximate_period_from_2ns_plus_global_route_setup_deficit_ns": 5.133894,
+    "approximate_frequency_mhz": 194.7839203536341,
+    "boundary": "Approximate frequency is a partial-global-route inference, not report_clock_min_period and not signoff Fmax."
+  },
+  "artifact_file_sha256": {
+    "logs/argon_2ns-synth.log": "83b776741e51d82c8d577532eb148c3b04d360fa63e75e440bf8ee9786ebb14b",
+    "logs/argon_2ns-synth.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "logs/full_1ns-synth.log": "fe715470360c4f8ab318ad79e2ac5b44a56ecce093a6e8577de2def13b2d2b46",
+    "logs/full_1ns-synth.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "logs/full_2ns-route.log": "56632f4d5dc7988430e97eb2675cc997b044e01eaa58528f89476f563ab1c97d",
+    "logs/full_2ns-synth.log": "11f666ef26775343255775382b1d260c6287b3970c3711b09d2c63d20a6661bd",
+    "logs/full_2ns-synth.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "logs/rw5_2ns-synth.log": "a89fb3823616d86b6a9d8ba4b872f3ccafcf04ed8c34e87ab5a170bae4ccdeea",
+    "logs/rw5_2ns-synth.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "logs/tool-versions.txt": "fe147116b1145be391c6af2060a676308274181db133502df8ae14369c100f65"
+  },
+  "epistemic_boundary": [
+    "Cancellation does not invalidate already completed stages.",
+    "No final detailed-route/signoff timing is claimed.",
+    "No power result is inferred from absence of a report.",
+    "ASAP7 remains predictive research technology, not foundry silicon evidence."
+  ],
+  "asic_lab": "HOLD",
+  "aws_reopen": "NO"
+}
