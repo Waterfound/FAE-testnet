@@ -3,42 +3,18 @@
 const WALLET_KEY='fae-public-v4-wallet';
 const WATCH_KEY='fae-public-v4-active-watch';
 const KEYRING_KEY='fae-public-v4-keyring-v3';
+
 let sessionMnemonic='';
 let walletLoadError='';
 let lastSubmittedTxid='';
 let lastSubmittedAddress='';
+let activeWalletId=null;
+let vaultWallets=[];
+let vaultCapability=null;
+let pendingNewWallet=null;
+let pendingRecovery=null;
 
-function storedAddress(record){
-  return{
-    index:Number(record.index)||0,
-    address:record.address,
-    pub:record.pub,
-    jwk:record.jwk
-  };
-}
-
-function storedAccount(account){
-  return{
-    format:'FAE_BROWSER_KEYRING_V3',
-    network:NETWORK,
-    source:account.source||'browser',
-    passphraseProtected:Boolean(account.passphraseProtected),
-    activeIndex:Number(account.activeIndex)||0,
-    addresses:account.addresses.map(storedAddress)
-  };
-}
-
-function saveAccount(){
-  if(!walletAccount)return;
-  localStorage.setItem(KEYRING_KEY,JSON.stringify(storedAccount(walletAccount)));
-  const active=walletAccount.addresses[walletAccount.activeIndex]||walletAccount.addresses[0];
-  if(active){
-    // Keep the original single-address record for safe rollback compatibility.
-    localStorage.setItem(WALLET_KEY,JSON.stringify({address:active.address,pub:active.pub,jwk:active.jwk}));
-  }
-}
-
-function newAccount(derived,source='browser'){
+function legacyNewAccount(derived,source='browser'){
   return{
     source,
     passphraseProtected:Boolean(derived.passphraseProtected),
@@ -79,41 +55,111 @@ async function migrateSingleWallet(record){
     const entropy=FAEWalletCrypto.entropyFromPrivateJwk(record.jwk);
     const mnemonic=await FAEWalletCrypto.mnemonicFromEntropy(entropy);
     const derived=await FAEWalletCrypto.deriveAddressRecords(mnemonic,'');
-    if(derived.addresses[0].address===restored.address)return newAccount(derived,'migrated');
+    if(derived.addresses[0].address===restored.address)return legacyNewAccount(derived,'migrated');
   }catch{
-    // An older direct-key package can still remain a valid one-address wallet.
+    // A legacy direct-key package may remain a valid one-address wallet.
   }
   return{source:'migrated',passphraseProtected:false,activeIndex:0,addresses:[restored]};
 }
 
+function sameAddressSet(left,right){
+  return JSON.stringify((left||[]).map(item=>[Number(item.index)||0,item.address,item.pub]))===
+    JSON.stringify((right||[]).map(item=>[Number(item.index)||0,item.address,item.pub]));
+}
+
+async function migrateLegacyWallet(){
+  const rawKeyring=localStorage.getItem(KEYRING_KEY);
+  const rawSingle=localStorage.getItem(WALLET_KEY);
+  if(!rawKeyring&&!rawSingle)return null;
+
+  let account;
+  let legacyFormat;
+  try{
+    if(rawKeyring){
+      let record;
+      try{record=JSON.parse(rawKeyring)}catch{throw Error('Legacy wallet keyring JSON is invalid')}
+      account=await hydrateStoredAccount(record);
+      legacyFormat=record?.format||'FAE_BROWSER_KEYRING_V3';
+    }else{
+      let record;
+      try{record=JSON.parse(rawSingle)}catch{throw Error('Legacy single-wallet JSON is invalid')}
+      if(!record?.jwk||!record?.address)throw Error('Legacy single-wallet record is incomplete');
+      account=await migrateSingleWallet(record);
+      legacyFormat='FAE_BROWSER_SINGLE_WALLET';
+    }
+
+    const before=await FAEWalletVault.listWallets();
+    const admitted=await FAEWalletVault.admitAccount(account,{
+      network:NETWORK,
+      source:'legacy-migration',
+      makeActive:before.length===0
+    });
+    const verified=await FAEWalletVault.loadAccount(admitted.walletId);
+    if(!sameAddressSet(account.addresses,verified.addresses))throw Error('Legacy migration identity verification failed');
+
+    await FAEWalletVault.markMigration({
+      status:'complete',
+      from:legacyFormat,
+      walletId:admitted.walletId,
+      completedAt:new Date().toISOString()
+    });
+
+    // Delete legacy private-key storage only after the encrypted vault commit
+    // has been read back, decrypted and identity-verified.
+    localStorage.removeItem(KEYRING_KEY);
+    localStorage.removeItem(WALLET_KEY);
+    return admitted.walletId;
+  }catch(error){
+    await FAEWalletVault.markMigration({
+      status:'failed',
+      error:String(error?.message||error),
+      failedAt:new Date().toISOString()
+    }).catch(()=>{});
+    throw error;
+  }
+}
+
+async function refreshVaultWallets(){
+  vaultWallets=await FAEWalletVault.listWallets();
+  return vaultWallets;
+}
+
 async function loadWallet(){
   walletLoadError='';
+  walletAccount=null;
+  activeWalletId=null;
   try{
-    const savedKeyring=JSON.parse(localStorage.getItem(KEYRING_KEY)||'null');
-    if(savedKeyring)walletAccount=await hydrateStoredAccount(savedKeyring);
-    if(!walletAccount){
-      const original=JSON.parse(localStorage.getItem(WALLET_KEY)||'null');
-      if(original?.jwk&&original?.address){
-        walletAccount=await migrateSingleWallet(original);
-        saveAccount();
-      }
+    vaultCapability=await FAEWalletVault.capabilityProbe();
+    try{
+      await migrateLegacyWallet();
+    }catch(error){
+      walletLoadError='Legacy wallet migration stopped safely: '+error.message;
     }
+
+    await refreshVaultWallets();
+    if(vaultWallets.length){
+      const active=await FAEWalletVault.loadActive();
+      if(!active?.record||!active?.account)throw Error('Persistent vault contains Wallets but no valid active Wallet');
+      if(active.record.network!==NETWORK)throw Error('Saved Wallet belongs to another network');
+      activeWalletId=active.record.walletId;
+      walletAccount=active.account;
+    }
+
     const watch=localStorage.getItem(WATCH_KEY);
     if(watch&&validAddr(watch)){
       wallet={index:0,address:watch,watchOnly:true};
     }else if(walletAccount?.addresses.length){
       wallet=walletAccount.addresses[walletAccount.activeIndex]||walletAccount.addresses[0];
+    }else{
+      wallet=null;
     }
   }catch(error){
     walletAccount=null;
     wallet=null;
+    activeWalletId=null;
+    vaultWallets=[];
     walletLoadError=error.message;
   }
-}
-
-function replacementConfirmed(){
-  if(!walletAccount)return true;
-  return window.confirm('Replace the wallet currently saved in this browser? Continue only if its recovery material is safely backed up.');
 }
 
 async function copyText(value){
@@ -135,31 +181,84 @@ async function copyText(value){
 
 function setStatus(id,message,tone=''){
   const element=$(id);
+  if(!element)return;
   element.textContent=message;
   element.className='status'+(tone?' '+tone:'');
 }
 
+function clearPendingNewWallet(){
+  pendingNewWallet=null;
+  $('newseedwords').value='';
+  $('confirmseed').value='';
+  $('new-wallet-backup').hidden=true;
+  $('new-wallet-confirmation').hidden=true;
+  $('new-wallet-start').hidden=false;
+}
+
+function clearPendingRecovery(){
+  pendingRecovery=null;
+  $('recoveryseed').value='';
+  $('recoverypassphrase').value='';
+  $('recoverypreview').value='';
+  $('recoverypreview-wrap').hidden=true;
+}
+
 function showWalletAction(action){
+  if(!['create','recovery'].includes(action))return;
+  if(action==='create')clearPendingRecovery();
+  else clearPendingNewWallet();
   const selectedPanel=$(action+'-panel');
   const willOpen=selectedPanel.hidden;
-  for(const name of ['create','recovery','insert']){
+  for(const name of ['create','recovery']){
     const active=name===action&&willOpen;
     $(name+'-panel').hidden=!active;
     $('action-'+name).setAttribute('aria-pressed',String(active));
   }
-  if(willOpen)setTimeout(()=>{
-    const target=action==='insert'?'insertseed':action==='recovery'?'recovery':'createwallet';
-    $(target).focus();
-  },0);
+  if(willOpen)setTimeout(()=>$(action==='recovery'?'recoveryseed':'createwallet').focus(),0);
+}
+
+function renderWalletList(){
+  const container=$('walletlist');
+  if(!container)return;
+  clearElement(container);
+  if(!vaultWallets.length){
+    const empty=document.createElement('div');
+    empty.className='empty';
+    empty.textContent='No Wallets are saved in this browser.';
+    container.append(empty);
+    return;
+  }
+  vaultWallets.forEach((record,index)=>{
+    const row=document.createElement('div');
+    row.className='wallet-row'+(record.walletId===activeWalletId?' active':'');
+    const main=document.createElement('div');
+    main.className='wallet-row-main';
+    const label=document.createElement('div');
+    label.className='wallet-row-label';
+    label.textContent='Wallet '+(index+1)+(record.passphraseProtected?' · passphrase':'');
+    const address=document.createElement('div');
+    address.className='wallet-row-address mono';
+    address.textContent=record.addresses[0]?.address||'No address';
+    main.append(label,address);
+    const button=document.createElement('button');
+    button.type='button';
+    button.className=record.walletId===activeWalletId?'ghost':'alt';
+    button.textContent=record.walletId===activeWalletId?'Active':'Switch';
+    button.disabled=record.walletId===activeWalletId;
+    button.addEventListener('click',()=>switchWallet(record.walletId).catch(showWalletError));
+    row.append(main,button);
+    container.append(row);
+  });
 }
 
 function renderAddressList(){
   const container=$('addresslist');
+  if(!container)return;
   clearElement(container);
   if(!walletAccount?.addresses.length){
     const empty=document.createElement('div');
     empty.className='empty';
-    empty.textContent='No related wallet addresses yet.';
+    empty.textContent='No derived Wallet addresses yet.';
     container.append(empty);
     return;
   }
@@ -186,9 +285,31 @@ function renderAddressList(){
   });
 }
 
+function renderVaultPersistence(){
+  const target=$('vaultstate');
+  if(!target)return;
+  if(walletLoadError){
+    target.textContent=walletLoadError;
+    return;
+  }
+  const persistence=vaultCapability?.persistence;
+  target.textContent=persistence?.persisted
+    ?'Local encrypted vault ready · browser persistent-storage protection granted.'
+    :'Local encrypted vault ready · browser storage policy remains browser-managed; keep the 24-word recovery phrase offline.';
+}
+
 function renderWallet(){
+  const hasFullWallet=vaultWallets.length>0;
   const full=Boolean(wallet&&!wallet.watchOnly&&wallet.priv);
   const watch=Boolean(wallet?.watchOnly);
+
+  $('wallet-connected-state').hidden=!hasFullWallet;
+  $('wallet-empty-note').hidden=hasFullWallet;
+  $('wallet-entry-title').textContent=hasFullWallet?'Add Wallet':'Set up Wallet';
+  $('wallet-entry-subtitle').textContent=hasFullWallet
+    ?'Add another independent Wallet without replacing the current one.'
+    :'Choose how you want to begin.';
+
   $('addr').value=wallet?.address||'';
   $('miningaddr').value=wallet?.address||'';
   $('receive').disabled=!wallet;
@@ -197,14 +318,17 @@ function renderWallet(){
   $('send').disabled=!full;
   $('exportwallet').disabled=!full||!walletAccount;
   $('togglehistory').disabled=!wallet;
+  $('removewallet').disabled=!activeWalletId;
+
   const showSubmittedTxid=Boolean(lastSubmittedTxid&&wallet?.address===lastSubmittedAddress);
   $('lastsendtx').hidden=!showSubmittedTxid;
   $('lastsendtxid').value=showSubmittedTxid?lastSubmittedTxid:'';
   $('copylastsendtx').disabled=!showSubmittedTxid;
   $('restorefromsend').hidden=full||!wallet;
+  $('restorefromsend').textContent=walletAccount?'Return to active Wallet':'Recovery Wallet';
   $('usesaved').hidden=!watch||!walletAccount;
 
-  const kindText=!wallet?'No wallet':watch?'External address':walletAccount?.passphraseProtected?'Passphrase wallet':'Full wallet';
+  const kindText=!wallet?'No wallet':watch?'External address':walletAccount?.passphraseProtected?'Passphrase Wallet':'Full Wallet';
   const kindTone=watch?'pill warn':'pill';
   $('wallet-kind').textContent=kindText;
   $('wallet-kind').className=kindTone;
@@ -212,92 +336,174 @@ function renderWallet(){
   $('mining-wallet-kind').className=kindTone;
 
   if(!wallet){
-    setStatus('wstate',walletLoadError?'Saved wallet could not be opened: '+walletLoadError:'No wallet selected.',walletLoadError?'bad':'');
-    setStatus('sendstate','Create, insert, or recover a full wallet to send.');
+    setStatus('wstate',walletLoadError?'Wallet storage requires attention: '+walletLoadError:'No Wallet selected.',walletLoadError?'bad':'');
+    setStatus('sendstate','Create or recover a full Wallet to send.');
     setStatus('mstate','Select a reward address in Wallet, or insert a public address below.');
   }else if(watch){
-    setStatus('wstate','Public address active. Receiving and mining are enabled; sending is locked.','warn');
-    setStatus('sendstate','This is a public address only. Insert its seed phrase to send.','warn');
+    setStatus('wstate','External public address active for receiving/mining. Its private key is not present here.','warn');
+    setStatus('sendstate','Return to a saved full Wallet to send.','warn');
     if(!mining)setStatus('mstate','Ready to mine locally to the external public address.','ok');
   }else{
-    setStatus('wstate','Full Ed25519 wallet ready. Receiving, sending, and mining are enabled.','ok');
-    setStatus('sendstate','Full wallet ready. Enter a destination and amount.','ok');
-    if(!mining)setStatus('mstate','Ready to mine locally to the active wallet address.','ok');
+    setStatus('wstate','Wallet Connected · local signing is available.','ok');
+    setStatus('sendstate','Full Wallet ready. Enter a destination and amount.','ok');
+    if(!mining)setStatus('mstate','Ready to mine locally to the active Wallet address.','ok');
   }
-  $('watchstate').textContent=watch?'External address is active. Its private key is not present in this browser.':'';
+  $('watchstate').textContent=watch?'External address is active. It is separate from the persistent Wallet vault.':'';
+  renderWalletList();
   renderAddressList();
+  renderVaultPersistence();
 }
 
-async function activateAccountAddress(listIndex,{refreshData=true}={}){
-  if(mining)throw Error('Stop mining before changing the reward address');
-  const selected=walletAccount?.addresses[listIndex];
-  if(!selected)throw Error('Wallet address not found');
-  walletAccount.activeIndex=listIndex;
-  wallet=selected;
+async function activateVaultAccount(walletId,{refreshData=true}={}){
+  if(mining)throw Error('Stop mining before switching Wallets');
+  await FAEWalletVault.setActiveWallet(walletId);
+  const account=await FAEWalletVault.loadAccount(walletId);
+  activeWalletId=walletId;
+  walletAccount=account;
   localStorage.removeItem(WATCH_KEY);
-  saveAccount();
+  wallet=account.addresses[account.activeIndex]||account.addresses[0];
+  await refreshVaultWallets();
   renderWallet();
   if(refreshData)await refresh();
 }
 
-async function createNewWallet(){
-  if(mining)throw Error('Stop mining before creating a wallet');
-  if(!replacementConfirmed())return;
+async function switchWallet(walletId){
+  return activateVaultAccount(walletId);
+}
+
+async function activateAccountAddress(listIndex,{refreshData=true}={}){
+  if(mining)throw Error('Stop mining before changing the reward address');
+  if(!activeWalletId)throw Error('No active Wallet is selected');
+  const selected=walletAccount?.addresses[listIndex];
+  if(!selected)throw Error('Wallet address not found');
+  walletAccount=await FAEWalletVault.setActiveAddress(activeWalletId,listIndex);
+  wallet=walletAccount.addresses[walletAccount.activeIndex];
+  localStorage.removeItem(WATCH_KEY);
+  await refreshVaultWallets();
+  renderWallet();
+  if(refreshData)await refresh();
+}
+
+async function canonicalMnemonic(raw){
+  const words=String(raw||'').trim().split(/\s+/).filter(Boolean);
+  if(words.length!==24)throw Error('Enter exactly 24 recovery words');
+  const entropy=await FAEWalletCrypto.entropyFromMnemonic(words.join(' '));
+  return FAEWalletCrypto.mnemonicFromEntropy(entropy);
+}
+
+async function beginNewWallet(){
+  if(mining)throw Error('Stop mining before creating a Wallet');
+  await FAEWalletVault.capabilityProbe();
   const button=$('createwallet');
   button.disabled=true;
   try{
     const entropy=crypto.getRandomValues(new Uint8Array(32));
-    sessionMnemonic=await FAEWalletCrypto.mnemonicFromEntropy(entropy);
-    const derived=await FAEWalletCrypto.deriveAddressRecords(sessionMnemonic,'');
-    walletAccount=newAccount(derived,'created');
-    localStorage.removeItem(WATCH_KEY);
-    wallet=walletAccount.addresses[0];
-    saveAccount();
-    renderWallet();
-    await showBackup();
-    setStatus('recoverystate','Wallet created. Save the 24 words offline before mining or receiving funds.','warn');
-    await refresh();
-  }finally{
-    button.disabled=false;
-  }
+    const mnemonic=await FAEWalletCrypto.mnemonicFromEntropy(entropy);
+    const account=legacyNewAccount(await FAEWalletCrypto.deriveAddressRecords(mnemonic,''),'created');
+    pendingNewWallet={mnemonic,account};
+    $('newseedwords').value=mnemonic;
+    $('new-wallet-start').hidden=true;
+    $('new-wallet-backup').hidden=false;
+    $('new-wallet-confirmation').hidden=true;
+    setStatus('recoverystate','NEW_WALLET_BACKUP · Not saved yet. Store all 24 words offline.','warn');
+  }finally{button.disabled=false}
 }
 
-async function insertWalletFromSeed(){
-  if(mining)throw Error('Stop mining before inserting a wallet');
-  if(!replacementConfirmed())return;
-  const seedPhrase=$('insertseed').value;
-  const passphrase=$('insertpassphrase').value;
-  if(!seedPhrase.trim())throw Error('Enter the 24-word seed phrase');
-  const button=$('insertwallet');
-  button.disabled=true;
-  try{
-    const derived=await FAEWalletCrypto.deriveAddressRecords(seedPhrase,passphrase);
-    sessionMnemonic=derived.mnemonic;
-    walletAccount=newAccount(derived,'inserted');
-    localStorage.removeItem(WATCH_KEY);
-    wallet=walletAccount.addresses[0];
-    saveAccount();
-    $('insertseed').value='';
-    $('insertpassphrase').value='';
-    renderWallet();
-    setStatus(
-      'recoverystate',
-      derived.passphraseProtected
-        ?'Passphrase wallet inserted. Five distinct addresses were derived; the passphrase was not saved.'
-        :'Ordinary wallet inserted. Its original first address remains compatible with earlier FAE v4 wallets.',
-      'ok'
-    );
-    await refresh();
-  }finally{
-    button.disabled=false;
-  }
+async function copyNewSeed(){
+  if(!pendingNewWallet)throw Error('Generate a New Wallet first');
+  await copyText(pendingNewWallet.mnemonic);
+  setStatus('recoverystate','24 words copied. Offline written backup is still recommended; clear the clipboard after use.','warn');
+}
+
+function readyForNewWalletConfirmation(){
+  if(!pendingNewWallet)throw Error('Generate a New Wallet first');
+  $('new-wallet-backup').hidden=true;
+  $('new-wallet-confirmation').hidden=false;
+  $('confirmseed').value='';
+  $('confirmseed').focus();
+  setStatus('recoverystate','NEW_WALLET_CONFIRMATION · Re-enter all 24 words. The Wallet is still not saved.','warn');
+}
+
+function backToNewWalletSeed(){
+  if(!pendingNewWallet)throw Error('No pending New Wallet');
+  $('new-wallet-confirmation').hidden=true;
+  $('new-wallet-backup').hidden=false;
+  $('confirmseed').value='';
+}
+
+async function confirmNewWallet(){
+  if(mining)throw Error('Stop mining before saving a Wallet');
+  if(!pendingNewWallet)throw Error('No pending New Wallet');
+  const confirmed=await canonicalMnemonic($('confirmseed').value);
+  if(confirmed!==pendingNewWallet.mnemonic)throw Error('The 24 words do not exactly match the generated Wallet');
+  const expectedAddress=pendingNewWallet.account.addresses[0].address;
+  const admitted=await FAEWalletVault.admitAccount(pendingNewWallet.account,{
+    network:NETWORK,
+    source:'created-backup-confirmed',
+    makeActive:true
+  });
+  const verified=await FAEWalletVault.loadAccount(admitted.walletId);
+  if(verified.addresses[0].address!==expectedAddress)throw Error('Persistent Wallet identity verification failed');
+  clearPendingNewWallet();
+  sessionMnemonic='';
+  $('create-panel').hidden=true;
+  $('action-create').setAttribute('aria-pressed','false');
+  await refreshVaultWallets();
+  await activateVaultAccount(admitted.walletId,{refreshData:false});
+  setStatus('recoverystate','BACKUP_CONFIRMED · Wallet Connected. The New Wallet is now saved in the local encrypted vault.','ok');
+  await refresh();
+}
+
+async function verifyRecoveryWallet(){
+  if(mining)throw Error('Stop mining before recovering a Wallet');
+  await FAEWalletVault.capabilityProbe();
+  const phrase=await canonicalMnemonic($('recoveryseed').value);
+  const passphrase=$('recoverypassphrase').value;
+  const derived=await FAEWalletCrypto.deriveAddressRecords(phrase,passphrase);
+  pendingRecovery={
+    account:legacyNewAccount(derived,'recovered'),
+    mnemonic:phrase
+  };
+  $('recoverypreview').value=derived.addresses[0].address;
+  $('recoverypreview-wrap').hidden=false;
+  $('recoveryseed').value='';
+  $('recoverypassphrase').value='';
+  setStatus(
+    'recoverystate',
+    derived.passphraseProtected
+      ?'Recovery derived locally with the supplied passphrase. Check the receiving address before adding it.'
+      :'Recovery derived locally. Check the receiving address before adding it.',
+    'warn'
+  );
+}
+
+async function admitRecoveryWallet(){
+  if(mining)throw Error('Stop mining before adding a Wallet');
+  if(!pendingRecovery)throw Error('Verify the recovery phrase first');
+  const expected=pendingRecovery.account.addresses[0].address;
+  const admitted=await FAEWalletVault.admitAccount(pendingRecovery.account,{
+    network:NETWORK,
+    source:'recovered',
+    makeActive:true
+  });
+  const verified=await FAEWalletVault.loadAccount(admitted.walletId);
+  if(verified.addresses[0].address!==expected)throw Error('Recovered Wallet identity verification failed');
+  clearPendingRecovery();
+  sessionMnemonic='';
+  $('recovery-panel').hidden=true;
+  $('action-recovery').setAttribute('aria-pressed','false');
+  await refreshVaultWallets();
+  await activateVaultAccount(admitted.walletId,{refreshData:false});
+  setStatus('recoverystate',admitted.deduplicated?'Wallet already existed in this vault · switched to it.':'Wallet Connected · recovery added to the local encrypted vault.','ok');
+  await refresh();
 }
 
 async function accountFromRecovery(raw){
   if(!raw.trim())throw Error('Paste or choose an FAE recovery package');
   if(!raw.trim().startsWith('{')){
-    const derived=await FAEWalletCrypto.deriveAddressRecords(raw,'');
-    return{account:newAccount(derived,'recovered'),mnemonic:derived.mnemonic};
+    const phrase=await canonicalMnemonic(raw);
+    const derived=await FAEWalletCrypto.deriveAddressRecords(phrase,'');
+    return{account:legacyNewAccount(derived,'recovered'),mnemonic:phrase};
   }
 
   let record;
@@ -307,8 +513,7 @@ async function accountFromRecovery(raw){
   if(record?.format==='FAE_TESTNET_WALLET_RECOVERY_V3'){
     let mnemonic='';
     if(record.recovery_words){
-      const entropy=await FAEWalletCrypto.entropyFromMnemonic(record.recovery_words);
-      mnemonic=await FAEWalletCrypto.mnemonicFromEntropy(entropy);
+      mnemonic=await canonicalMnemonic(record.recovery_words);
     }
     const account=await hydrateStoredAccount({
       ...record,
@@ -324,9 +529,10 @@ async function accountFromRecovery(raw){
   }
 
   if(record?.format==='FAE_TESTNET_WALLET_RECOVERY_V2'){
-    const derived=await FAEWalletCrypto.deriveAddressRecords(record.recovery_words||'','');
+    const mnemonic=await canonicalMnemonic(record.recovery_words||'');
+    const derived=await FAEWalletCrypto.deriveAddressRecords(mnemonic,'');
     if(record.address&&record.address!==derived.addresses[0].address)throw Error('Recovery words do not match the package address');
-    return{account:newAccount(derived,'recovered'),mnemonic:derived.mnemonic};
+    return{account:legacyNewAccount(derived,'recovered'),mnemonic};
   }
 
   if(record?.format==='FAE_TESTNET_WALLET_RECOVERY_V1'){
@@ -343,7 +549,7 @@ async function accountFromRecovery(raw){
 
 async function importRecovery(){
   if(mining)throw Error('Stop mining before recovery');
-  if(!replacementConfirmed())return;
+  await FAEWalletVault.capabilityProbe();
   let raw=$('recovery').value;
   const file=$('recoveryfile').files?.[0];
   if(file)raw=await file.text();
@@ -351,56 +557,53 @@ async function importRecovery(){
   button.disabled=true;
   try{
     const recovered=await accountFromRecovery(raw);
-    walletAccount=recovered.account;
-    sessionMnemonic=recovered.mnemonic;
-    wallet=walletAccount.addresses[walletAccount.activeIndex]||walletAccount.addresses[0];
-    localStorage.removeItem(WATCH_KEY);
-    saveAccount();
+    const admitted=await FAEWalletVault.admitAccount(recovered.account,{
+      network:NETWORK,
+      source:'legacy-recovery-package',
+      makeActive:true
+    });
+    sessionMnemonic='';
     $('recovery').value='';
     $('recoveryfile').value='';
-    renderWallet();
-    setStatus('recoverystate','Recovery package verified. The wallet is ready to receive, send, and mine.','ok');
+    await refreshVaultWallets();
+    await activateVaultAccount(admitted.walletId,{refreshData:false});
+    setStatus('recoverystate',admitted.deduplicated?'Legacy package matches an existing Wallet · switched to it.':'Legacy recovery package verified and added to the encrypted vault.','ok');
     await refresh();
-  }finally{
-    button.disabled=false;
-  }
+  }finally{button.disabled=false}
 }
 
 async function mnemonicForAccount(){
   if(sessionMnemonic)return sessionMnemonic;
   if(walletAccount?.passphraseProtected){
-    throw Error('The seed phrase is not stored for this passphrase wallet. Use the original seed and exact passphrase.');
+    throw Error('The original seed phrase cannot be reconstructed from this passphrase-derived Wallet. Use the original 24 words and exact passphrase.');
   }
   const first=walletAccount?.addresses.find(item=>item.index===0)||walletAccount?.addresses[0];
-  if(!first)throw Error('Full wallet required');
+  if(!first)throw Error('Full Wallet required');
   const entropy=FAEWalletCrypto.entropyFromPrivateJwk(first.jwk);
   const mnemonic=await FAEWalletCrypto.mnemonicFromEntropy(entropy);
   const check=await FAEWalletCrypto.deriveAddressRecords(mnemonic,'',1);
   if(check.addresses[0].address!==first.address)throw Error('This legacy key does not expose a seed phrase');
-  sessionMnemonic=mnemonic;
   return mnemonic;
 }
 
 async function showBackup(){
-  if(!walletAccount||!wallet||wallet.watchOnly)throw Error('Full wallet required');
+  if(!walletAccount||!wallet||wallet.watchOnly)throw Error('Full Wallet required');
   $('backup').hidden=false;
   try{
     const words=await mnemonicForAccount();
     $('seedwords').value=words;
     $('copyseed').disabled=false;
-    $('backupnote').textContent=walletAccount.passphraseProtected
-      ?'These words require the exact original passphrase to derive this wallet. Store them separately. The downloadable JSON contains direct private keys and can spend without the passphrase.'
-      :'Write these words on paper in exact order. The downloadable JSON also contains direct private keys.';
+    $('backupnote').textContent='Store these 24 words offline. They are never sent to FAE infrastructure.';
   }catch(error){
-    $('seedwords').value='Seed phrase not retained in this browser session.';
+    $('seedwords').value='Original seed phrase is not retained by this Wallet record.';
     $('copyseed').disabled=true;
-    $('backupnote').textContent=error.message+' The downloadable recovery JSON contains direct private keys for the five derived addresses.';
+    $('backupnote').textContent=error.message+' The advanced recovery JSON contains direct testnet private keys.';
   }
   $('backup').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 async function recoveryPackage(){
-  if(!walletAccount||!wallet||wallet.watchOnly)throw Error('Full wallet required');
+  if(!walletAccount||!wallet||wallet.watchOnly)throw Error('Full Wallet required');
   let recoveryWords;
   try{recoveryWords=await mnemonicForAccount()}catch{recoveryWords=undefined}
   const record={
@@ -415,7 +618,7 @@ async function recoveryPackage(){
       public_key_spki:item.pub,
       private_key_jwk:item.jwk
     })),
-    warning:'VALUELESS TESTNET PRIVATE KEYS — ANYONE WITH THIS FILE CAN SPEND THESE ADDRESSES. NEVER REUSE IN BITCOIN OR TREZOR.'
+    warning:'PRIVATE TESTNET KEYS — ANYONE WITH THIS FILE CAN SPEND THESE ADDRESSES. KEEP IT PRIVATE AND OFFLINE.'
   };
   if(recoveryWords)record.recovery_words=recoveryWords;
   return record;
@@ -458,8 +661,39 @@ async function useExistingAddress(){
 
 async function useSavedFullWallet(){
   if(mining)throw Error('Stop mining before changing the reward address');
-  if(!walletAccount?.addresses.length)throw Error('No full wallet is saved in this browser');
-  await activateAccountAddress(walletAccount.activeIndex);
+  if(!activeWalletId||!walletAccount?.addresses.length)throw Error('No full Wallet is saved in this browser');
+  await activateVaultAccount(activeWalletId);
+}
+
+function prepareRemoveWallet(){
+  if(!activeWalletId)throw Error('No active Wallet to remove');
+  $('remove-panel').hidden=false;
+  $('remove-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function removeActiveWallet(){
+  if(mining)throw Error('Stop mining before removing a Wallet');
+  if(!activeWalletId)throw Error('No active Wallet to remove');
+  const removing=activeWalletId;
+  const result=await FAEWalletVault.removeWallet(removing);
+  await refreshVaultWallets();
+  sessionMnemonic='';
+  $('remove-panel').hidden=true;
+
+  if(result.activeWalletId){
+    activeWalletId=result.activeWalletId;
+    walletAccount=await FAEWalletVault.loadAccount(activeWalletId);
+    localStorage.removeItem(WATCH_KEY);
+    wallet=walletAccount.addresses[walletAccount.activeIndex]||walletAccount.addresses[0];
+  }else{
+    activeWalletId=null;
+    walletAccount=null;
+    const watch=localStorage.getItem(WATCH_KEY);
+    wallet=watch&&validAddr(watch)?{index:0,address:watch,watchOnly:true}:null;
+  }
+  renderWallet();
+  setStatus('recoverystate','Wallet removed from this browser. No other Wallet was changed.','ok');
+  await refresh();
 }
 
 async function sendFAE(){
@@ -467,6 +701,19 @@ async function sendFAE(){
   const amount=parseAmt($('sendamt').value);
   const destination=$('sendto').value.trim();
   if(!validAddr(destination)||amount<=0n)throw Error('Invalid destination or amount');
+  if(!globalThis.FAEWalletSigningIntent)throw Error('Wallet signing-intent guard is unavailable');
+  const signingIntent=FAEWalletSigningIntent.create({
+    network:NETWORK,
+    sourceAddress:wallet.address,
+    destination,
+    amountAtoms:String(amount)
+  });
+  const currentIntent=()=>({
+    network:NETWORK,
+    sourceAddress:wallet?.address||'',
+    destination:$('sendto').value.trim(),
+    amountAtoms:String(parseAmt($('sendamt').value))
+  });
   const spendable=await api('/spendable?address='+encodeURIComponent(wallet.address));
   let total=0n;
   const inputs=[];
@@ -486,7 +733,14 @@ async function sendFAE(){
     public_key_spki:wallet.pub,
     signature:''
   };
-  transaction.signature=b64(await crypto.subtle.sign('Ed25519',wallet.priv,E.encode(stable(txPayload(transaction)))));
+  FAEWalletSigningIntent.assertCurrent(signingIntent,currentIntent());
+  FAEWalletSigningIntent.assertTransaction(signingIntent,transaction);
+  const signingPayload=stable(txPayload(transaction));
+  const signatureBytes=await crypto.subtle.sign('Ed25519',wallet.priv,E.encode(signingPayload));
+  FAEWalletSigningIntent.assertCurrent(signingIntent,currentIntent());
+  FAEWalletSigningIntent.assertTransaction(signingIntent,transaction);
+  if(stable(txPayload(transaction))!==signingPayload)throw Error('SEND_INTENT_INTEGRITY: transaction changed during signing');
+  transaction.signature=b64(signatureBytes);
   const accepted=await api('/submit-tx',{
     method:'POST',
     headers:{'content-type':'application/json'},
@@ -542,19 +796,33 @@ function showWalletError(error){
 
 $('action-create').addEventListener('click',()=>showWalletAction('create'));
 $('action-recovery').addEventListener('click',()=>showWalletAction('recovery'));
-$('action-insert').addEventListener('click',()=>showWalletAction('insert'));
-$('createwallet').addEventListener('click',()=>createNewWallet().catch(showWalletError));
-$('insertwallet').addEventListener('click',()=>insertWalletFromSeed().catch(showWalletError));
+$('createwallet').addEventListener('click',()=>beginNewWallet().catch(showWalletError));
+$('copynewseed').addEventListener('click',()=>copyNewSeed().catch(showWalletError));
+$('readyconfirm').addEventListener('click',()=>{try{readyForNewWalletConfirmation()}catch(error){showWalletError(error)}});
+$('backtonewseed').addEventListener('click',()=>{try{backToNewWalletSeed()}catch(error){showWalletError(error)}});
+$('cancelnewwallet').addEventListener('click',()=>{clearPendingNewWallet();setStatus('recoverystate','New Wallet creation cancelled. Nothing was saved.')});
+$('cancelnewwalletconfirm').addEventListener('click',()=>{clearPendingNewWallet();setStatus('recoverystate','New Wallet creation cancelled. Nothing was saved.')});
+$('confirmwallet').addEventListener('click',()=>confirmNewWallet().catch(showWalletError));
+$('verifyrecovery').addEventListener('click',()=>verifyRecoveryWallet().catch(showWalletError));
+$('admitrecovery').addEventListener('click',()=>admitRecoveryWallet().catch(showWalletError));
+$('cancelrecovery').addEventListener('click',()=>{clearPendingRecovery();setStatus('recoverystate','Recovery cancelled. Nothing was added.')});
 $('importwallet').addEventListener('click',()=>importRecovery().catch(showWalletError));
+$('removewallet').addEventListener('click',()=>{try{prepareRemoveWallet()}catch(error){showWalletError(error)}});
+$('confirmremove').addEventListener('click',()=>removeActiveWallet().catch(showWalletError));
+$('cancelremove').addEventListener('click',()=>{$('remove-panel').hidden=true});
 $('receive').addEventListener('click',()=>copyReceiveAddress().catch(showWalletError));
 $('exportwallet').addEventListener('click',()=>showBackup().catch(showWalletError));
 $('copyseed').addEventListener('click',()=>copySeed().catch(showWalletError));
 $('downloadbackup').addEventListener('click',()=>downloadBackup().catch(showWalletError));
-$('closebackup').addEventListener('click',()=>{$('backup').hidden=true});
+$('closebackup').addEventListener('click',()=>{$('backup').hidden=true;$('seedwords').value=''});
 $('send').addEventListener('click',()=>sendFAE().catch(error=>setStatus('sendstate',error.message,'bad')));
 $('restorefromsend').addEventListener('click',()=>{
+  if(walletAccount){
+    useSavedFullWallet().catch(error=>setStatus('sendstate',error.message,'bad'));
+    return;
+  }
   setEnvironment('wallet');
-  showWalletAction('insert');
+  showWalletAction('recovery');
 });
 $('togglehistory').addEventListener('click',toggleHistory);
 $('copylastsendtx').addEventListener('click',()=>copyLastSentTxid().catch(error=>setStatus('sendstate',error.message,'bad')));

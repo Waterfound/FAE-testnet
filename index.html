@@ -61,7 +61,7 @@ button.ghost{background:transparent;color:#4f5965;border-color:var(--line)}butto
 button.danger{background:#fff2f0;color:var(--danger);border-color:#efb9b4}button:disabled{opacity:.45;cursor:not-allowed}
 .environment-tab{background:transparent;color:var(--muted);border:0;font-size:15px}.environment-tab:hover:not(:disabled){background:#e4e8ee}.environment-tab[aria-selected="true"]{background:#fff;color:var(--blue-deep);box-shadow:0 1px 3px rgba(26,34,45,.09)}
 .panel-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.95fr);gap:14px}.stack{display:grid;gap:14px}.wide{grid-column:1/-1}
-.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{margin:0}.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wallet-action[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{margin:0}.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wallet-action[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}\n.wallet-entry-buttons{display:grid;grid-template-columns:1fr;gap:9px;max-width:440px}.wallet-entry-buttons .wallet-action{text-align:left}.wallet-list{display:grid;gap:8px;margin:12px 0}.wallet-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}.wallet-row.active{border-color:var(--blue);background:var(--blue-soft)}.wallet-row-main{min-width:0}.wallet-row-label{font-weight:760}.wallet-row-address{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.advanced-recovery{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}.advanced-recovery summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .action-panel{margin-top:14px;padding-top:16px;border-top:1px solid var(--line)}.field{display:block;margin:12px 0 5px;color:#535d69;font-size:13px;font-weight:650}
 textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius:8px;color:var(--text);padding:11px}textarea:read-only{background:#f7f8fa}textarea{min-height:72px;resize:vertical}.seed{min-height:118px;line-height:1.65}.active-address{min-height:77px}
 .address-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.address-list{display:grid;gap:7px;margin-top:10px}
@@ -187,133 +187,196 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
       <div>
         <div class="product-kicker">Wallet / local ownership</div>
         <h2 id="wallet-surface-title">A wallet you hold, not an account you borrow.</h2>
-        <p>Keys and signing remain on this device. The interface keeps recovery, sending and transaction traceability explicit.</p>
+        <p>Keys and signing remain on this device. The interface keeps backup, recovery, sending and transaction traceability explicit.</p>
       </div>
       <div class="trust-strip" aria-label="Wallet trust properties">
         <span><b>Local keys</b><small>No custodian</small></span>
-        <span><b>Local signing</b><small>Private material stays here</small></span>
-        <span><b>Traceable</b><small>Full TXID is visible</small></span>
+        <span><b>Local signing</b><small>Private keys remain on device</small></span>
+        <span><b>Full TXID is visible</b><small>Transaction traceability</small></span>
+        <span><b>Verified backup</b><small>Before New Wallet admission</small></span>
+        <span><b>Persistent vault</b><small>Until you remove it or storage is cleared</small></span>
       </div>
     </section>
+
     <div class="stack">
-      <section class="card">
-        <h2>Wallet actions</h2>
-        <div class="wallet-actions" role="group" aria-label="Wallet actions">
-          <button id="action-create" class="wallet-action alt" aria-pressed="false">Create wallet</button>
-          <button id="action-recovery" class="wallet-action alt" aria-pressed="false">Recovery Wallet</button>
-          <button id="action-insert" class="wallet-action alt" aria-pressed="false">Insert Wallet</button>
+      <section id="wallet-entry-card" class="card">
+        <div class="section-head">
+          <div>
+            <h2 id="wallet-entry-title">Set up Wallet</h2>
+            <div id="wallet-entry-subtitle" class="small">Choose how you want to begin.</div>
+          </div>
         </div>
+        <div class="wallet-entry-buttons" role="group" aria-label="Wallet setup actions">
+          <button id="action-create" class="wallet-action">New Wallet</button>
+          <button id="action-recovery" class="wallet-action alt">Recovery Wallet</button>
+        </div>
+        <p id="wallet-empty-note" class="small">Your Wallet stays saved in this browser/profile until you remove it or browser/device storage is cleared. FAE does not keep a server backup.</p>
 
         <div id="create-panel" class="action-panel" hidden>
-          <h3>Create a new browser wallet</h3>
-          <p class="small">Generates 24 recovery words and five deterministic FAE addresses on this device.</p>
-          <button id="createwallet">Generate new wallet</button>
+          <h3>New Wallet</h3>
+          <p class="notice">FAE will generate 24 recovery words locally. Store them safely offline. Anyone with the words can recover the ordinary Wallet. FAE cannot restore them for you.</p>
+          <div id="new-wallet-start">
+            <button id="createwallet">Generate 24 recovery words</button>
+          </div>
+          <div id="new-wallet-backup" class="backup" hidden>
+            <h3>Back up these 24 words</h3>
+            <p class="small">Write every word offline in the exact order. This Wallet is temporary and is <strong>not yet saved</strong>.</p>
+            <label class="field" for="newseedwords">24-word recovery phrase</label>
+            <textarea id="newseedwords" class="mono seed" readonly autocomplete="off" spellcheck="false"></textarea>
+            <div class="actions">
+              <button id="copynewseed" class="alt">Copy 24 words</button>
+              <button id="readyconfirm">I saved them · verify backup</button>
+              <button id="cancelnewwallet" class="ghost">Cancel</button>
+            </div>
+          </div>
+          <div id="new-wallet-confirmation" class="backup" hidden>
+            <h3>Verify your backup</h3>
+            <p class="small">Re-enter all 24 words. The Wallet will not be admitted to persistent storage until the checksum and exact phrase match.</p>
+            <label class="field" for="confirmseed">Re-enter all 24 words</label>
+            <textarea id="confirmseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter all 24 words in order"></textarea>
+            <div class="actions">
+              <button id="confirmwallet">Verify & save Wallet</button>
+              <button id="backtonewseed" class="alt">Show words again</button>
+              <button id="cancelnewwalletconfirm" class="ghost">Cancel</button>
+            </div>
+          </div>
         </div>
 
         <div id="recovery-panel" class="action-panel" hidden>
-          <h3>Restore a recovery backup</h3>
-          <p class="small">Paste an FAE recovery JSON package, or choose one from this device. Legacy V1/V2 packages remain supported.</p>
-          <label class="field" for="recovery">Recovery package</label>
-          <textarea id="recovery" class="mono" placeholder="Paste the recovery JSON package"></textarea>
-          <label class="field" for="recoveryfile">Or choose a .json file</label>
-          <input id="recoveryfile" type="file" accept="application/json,.json">
-          <div class="actions"><button id="importwallet">Restore wallet</button></div>
-        </div>
+          <h3>Recovery Wallet</h3>
+          <p class="small">Enter the 24-word recovery phrase. Add the exact optional passphrase only when that Wallet originally used one.</p>
+          <label class="field" for="recoveryseed">24-word recovery phrase</label>
+          <textarea id="recoveryseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter the 24 recovery words in order"></textarea>
+          <label class="field" for="recoverypassphrase">Optional passphrase</label>
+          <input id="recoverypassphrase" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank for an ordinary Wallet">
+          <div class="passphrase-note">Every different passphrase can derive a different valid Wallet. FAE cannot know that a passphrase is “correct” unless you recognize the derived address.</div>
+          <div class="actions"><button id="verifyrecovery">Verify recovery</button></div>
 
-        <div id="insert-panel" class="action-panel" hidden>
-          <h3>Insert a wallet from its seed phrase</h3>
-          <label class="field" for="insertseed">24-word seed phrase</label>
-          <textarea id="insertseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter the 24 FAE recovery words in order"></textarea>
-          <label class="field" for="insertpassphrase">Passphrase <span class="small">(optional)</span></label>
-          <input id="insertpassphrase" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank for the ordinary wallet">
-          <div class="passphrase-note">Trezor-style behavior: every different passphrase opens a different valid wallet. A typo will not show an error. The passphrase is never saved.</div>
-          <p class="small">This changes FAE derivation only; it does not make this testnet wallet compatible with Trezor, and it does not encrypt keys saved in this browser.</p>
-          <button id="insertwallet">Insert wallet</button>
+          <div id="recoverypreview-wrap" class="backup" hidden>
+            <h3>Check the receiving address</h3>
+            <p class="small">Confirm this identifies the Wallet you intend to add before it is saved locally.</p>
+            <label class="field" for="recoverypreview">First receiving address</label>
+            <textarea id="recoverypreview" class="mono active-address" readonly></textarea>
+            <div class="actions">
+              <button id="admitrecovery">Add recovered Wallet</button>
+              <button id="cancelrecovery" class="ghost">Cancel</button>
+            </div>
+          </div>
+
+          <details class="advanced-recovery">
+            <summary>Advanced · legacy recovery JSON</summary>
+            <p class="small">For earlier FAE testnet recovery packages. Private-key packages are validated locally before migration.</p>
+            <label class="field" for="recovery">Legacy recovery package</label>
+            <textarea id="recovery" class="mono" placeholder="Paste the recovery JSON package"></textarea>
+            <label class="field" for="recoveryfile">Or choose a .json file</label>
+            <input id="recoveryfile" type="file" accept="application/json,.json">
+            <div class="actions"><button id="importwallet" class="alt">Restore legacy package</button></div>
+          </details>
         </div>
-        <div id="recoverystate" class="status">Wallet creation and recovery happen locally in this browser.</div>
+        <div id="recoverystate" class="status" role="status" aria-live="polite">Wallet creation and recovery happen locally in this browser.</div>
       </section>
 
-      <div class="panel-grid">
+      <div id="wallet-connected-state" class="stack" hidden>
         <section class="card">
-          <div class="address-head">
+          <div class="section-head">
             <div>
-              <h2>Active wallet</h2>
-              <span id="wallet-kind" class="pill">No wallet</span>
+              <h2>My Wallets</h2>
+              <div class="small">Independent Wallet identities are kept separately from their derived addresses.</div>
             </div>
-            <div id="bal" class="balance">0 FAE</div>
           </div>
-          <label class="field" for="addr">Active receiving address</label>
-          <textarea id="addr" class="mono active-address" readonly placeholder="No address selected"></textarea>
+          <div id="walletlist" class="wallet-list"><div class="empty">Loading local Wallets…</div></div>
           <div class="actions">
-            <button id="receive" disabled>Receive · copy address</button>
-            <button id="exportwallet" class="alt" disabled>Wallet backup</button>
-            <button id="refresh" class="ghost">Refresh</button>
+            <button id="removewallet" class="danger">Remove active Wallet</button>
           </div>
-          <div id="wstate" class="status">No wallet selected.</div>
-          <div id="ustate" class="small">Select or create a wallet.</div>
-
-          <div id="backup" class="backup" hidden>
-            <h3>Private recovery material</h3>
-            <p id="backupnote" class="small"></p>
-            <label class="field" for="seedwords">24-word FAE recovery phrase</label>
-            <textarea id="seedwords" class="mono seed" readonly></textarea>
+          <div id="remove-panel" class="backup" hidden>
+            <h3>Remove Wallet from this browser?</h3>
+            <p class="notice">Removing this Wallet from this device does not delete the Wallet or its funds. Make sure you have the 24-word recovery phrase and any required passphrase before continuing.</p>
             <div class="actions">
-              <button id="copyseed" class="alt">Copy 24 words</button>
-              <button id="downloadbackup" class="alt">Download recovery JSON</button>
-              <button id="closebackup" class="ghost">Hide</button>
+              <button id="confirmremove" class="danger">Yes · remove this Wallet</button>
+              <button id="cancelremove" class="ghost">Cancel</button>
             </div>
+          </div>
+          <div id="vaultstate" class="small"></div>
+        </section>
+
+        <div class="panel-grid">
+          <section class="card">
+            <div class="address-head">
+              <div>
+                <h2>Active Wallet</h2>
+                <span id="wallet-kind" class="pill">No wallet</span>
+              </div>
+              <div id="bal" class="balance">0 FAE</div>
+            </div>
+            <label class="field" for="addr">Active receiving address</label>
+            <textarea id="addr" class="mono active-address" readonly placeholder="No address selected"></textarea>
+            <div class="actions">
+              <button id="receive" disabled>Receive · copy address</button>
+              <button id="exportwallet" class="alt" disabled>Wallet backup</button>
+              <button id="refresh" class="ghost">Refresh</button>
+            </div>
+            <div id="wstate" class="status">No wallet selected.</div>
+            <div id="ustate" class="small">Select or create a wallet.</div>
+
+            <div id="backup" class="backup" hidden>
+              <h3>Private recovery material</h3>
+              <p id="backupnote" class="small"></p>
+              <label class="field" for="seedwords">24-word FAE recovery phrase</label>
+              <textarea id="seedwords" class="mono seed" readonly></textarea>
+              <div class="actions">
+                <button id="copyseed" class="alt">Copy 24 words</button>
+                <button id="downloadbackup" class="alt">Download recovery JSON</button>
+                <button id="closebackup" class="ghost">Hide</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Send FAE</h2>
+            <label class="field" for="sendto">Destination address</label>
+            <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
+            <label class="field" for="sendamt">Amount</label>
+            <input id="sendamt" inputmode="decimal" value="1">
+            <div class="actions">
+              <button id="send" disabled>Sign & send FAE</button>
+              <button id="restorefromsend" class="alt" hidden>Recovery Wallet</button>
+            </div>
+            <div id="sendstate" class="status" role="status" aria-live="polite">Recover or create a full Wallet to send.</div>
+            <div id="lastsendtx" class="txid-result" hidden>
+              <label class="field" for="lastsendtxid">Transaction ID</label>
+              <textarea id="lastsendtxid" class="mono" readonly spellcheck="false" aria-label="Full submitted transaction ID"></textarea>
+              <div class="actions"><button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button></div>
+            </div>
+            <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
+          </section>
+        </div>
+
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <h2>Transactions</h2>
+              <div class="small">History follows the active derived address. Open any transaction to view and copy its full ID.</div>
+            </div>
+            <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
+          </div>
+          <div id="history-panel">
+            <div id="historystate" class="status" role="status" aria-live="polite" data-state="idle">Select or create a wallet to load recent transfers.</div>
+            <div class="actions"><button id="retryhistory" class="ghost" hidden disabled>Retry transaction history</button></div>
+            <div id="historycoverage" class="small">Coverage: recent transfers for the active address. The source scans the latest 100 network transactions and returns up to 30 for this address. No pagination; mining rewards are excluded; this is not lifetime history.</div>
+            <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">Select or create a wallet to load recent transfers.</div></div>
           </div>
         </section>
 
         <section class="card">
-          <h2>Send FAE</h2>
-          <label class="field" for="sendto">Destination address</label>
-          <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
-          <label class="field" for="sendamt">Amount</label>
-          <input id="sendamt" inputmode="decimal" value="1">
-          <div class="actions">
-            <button id="send" disabled>Sign & send FAE</button>
-            <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
-          </div>
-          <div id="sendstate" class="status" role="status" aria-live="polite">Create, insert, or recover a full wallet to send.</div>
-          <div id="lastsendtx" class="txid-result" hidden>
-            <label class="field" for="lastsendtxid">Transaction ID</label>
-            <textarea id="lastsendtxid" class="mono" readonly spellcheck="false" aria-label="Full submitted transaction ID"></textarea>
-            <div class="actions">
-              <button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button>
+          <div class="section-head">
+            <div>
+              <h2>Wallet addresses</h2>
+              <div class="small">Derived addresses belong to the active Wallet. Switching an address never switches Wallet identity.</div>
             </div>
           </div>
-          <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
+          <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
         </section>
       </div>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h2>Transactions</h2>
-            <div class="small">History follows the active address. Open any transaction to view and copy its full ID.</div>
-          </div>
-          <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
-        </div>
-        <div id="history-panel">
-          <div id="historystate" class="status" role="status" aria-live="polite" data-state="idle">Select or create a wallet to load recent transfers.</div>
-          <div class="actions">
-            <button id="retryhistory" class="ghost" hidden disabled>Retry transaction history</button>
-          </div>
-          <div id="historycoverage" class="small">Coverage: recent transfers for the active address. The source scans the latest 100 network transactions and returns up to 30 for this address. No pagination; mining rewards are excluded; this is not lifetime history.</div>
-          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">Select or create a wallet to load recent transfers.</div></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h2>Wallet addresses</h2>
-            <div class="small">Choose an address to receive, send, view balance, or mine to it.</div>
-          </div>
-        </div>
-        <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
-      </section>
     </div>
   </section>
 
@@ -323,7 +386,8 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
 <script src="/network-status.js"></script>
 <script src="/wallet-transactions.js"></script>
 <script src="/core.js"></script>
-<script src="/wallet-crypto.js"></script>
+<script src="/wallet-crypto.js"></script>\n<script src="/wallet-vault.js"></script>
+<script src="/wallet-signing-intent.js"></script>
 <script src="/wallet.js"></script>
 <script src="/mining.js"></script>
 <script src="/coordinator-trust.js"></script>
