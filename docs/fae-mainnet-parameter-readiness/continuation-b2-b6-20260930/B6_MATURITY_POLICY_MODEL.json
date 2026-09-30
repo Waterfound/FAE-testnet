@@ -1,0 +1,26 @@
+{
+  "schema": "FAE_B6_MATURITY_POLICY_MODEL_V1",
+  "definitions": {
+    "T": "selected nominal block target in seconds",
+    "W": "Waterfound-selected nominal maturity-time objective in seconds, optional",
+    "D": "Waterfound-selected minimum creation-to-spend height distance, optional",
+    "N_time": "ceil(W/T) when W is selected",
+    "N": "max(N_time,D) when both are selected; otherwise the selected component",
+    "first_spend": "coinbase created at H is first spendable in block H+N"
+  },
+  "important_semantics": [
+    "N*T is nominal target-time exposure, not guaranteed elapsed wall-clock time.",
+    "A fixed block count should not be copied across different T values when the objective is nominal time or expected work over time.",
+    "Expected chainwork per wall-clock time is approximately invariant across block targets at equal aggregate work rate.",
+    "Actual reorganization risk also depends on network conditions, DAA response, realized work and adversarial assumptions.",
+    "Timestamp-based maturity would add a new timestamp-dependent consensus rule and is not supported by current FAE maturity evidence.",
+    "Dynamic chainwork-threshold maturity remains research-only because it is not implemented/evidenced in the current candidate."
+  ],
+  "admissible_policy_inputs": {
+    "nominal_time_objective_W": "NORMATIVE_WATERFOUND_SELECTION",
+    "minimum_height_distance_D": "NORMATIVE_WATERFOUND_SELECTION informed by later network/reorg evidence",
+    "selected_block_target_T": "EXTERNAL_DEPENDENCY_B1",
+    "selected_DAA_and_network_evidence": "EXTERNAL_DEPENDENCY_B1_B5"
+  },
+  "deterministic_derivation": "After W/D/T are selected, N is mechanically derivable; the numeric maturity need not be independently hand-selected."
+}
