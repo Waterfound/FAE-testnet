@@ -1,0 +1,11 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_PREFLIGHT_RUN_REQUEST_V1",
+  "requested_on": "2026-09-29",
+  "purpose": "Trigger exact-source preflight validation after the preflight workflow became present on the branch.",
+  "parent_candidate": "34d6b014f83e6b32493ee978fb8bcce261522ec9",
+  "real_soak_launch_authorized_by_this_artifact": false,
+  "provider_spend_authorized_by_this_artifact": false,
+  "scientific_success_criteria_changed": false,
+  "consensus_or_economics_changed": false,
+  "expected_workflow": "stability-soak-v3-preflight-readiness"
+}
