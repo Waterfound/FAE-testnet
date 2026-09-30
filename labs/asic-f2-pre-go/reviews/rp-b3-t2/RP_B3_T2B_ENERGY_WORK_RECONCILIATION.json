@@ -1,0 +1,54 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.energy_work_reconciliation.v1",
+  "source_run_id": 36742292802,
+  "power_boundary": "predictive statistical activity, not measured workload power",
+  "logic_energy_model": {
+    "full_cts_energy_per_cycle_J": 4.9037945e-10,
+    "formula": "E_logic_per_work = N_specialist_cycles_per_work * 4.9037945e-10 J at the 5.5ns statistical-power point",
+    "N_specialist_cycles_per_work": "UNKNOWN",
+    "numeric_logic_J_per_work": "UNKNOWN"
+  },
+  "memory_energy_sensitivity_inherited": {
+    "HBM4_modeled_J_per_work_low": 0.011738226150604799,
+    "HBM4_modeled_J_per_work_high": 0.0174294873145344,
+    "classification": "PLAUSIBLE_COMPONENT_SENSITIVITY_NOT_DP6_SILICON_MEASUREMENT"
+  },
+  "logic_memory_break_even": {
+    "cycles_per_work_at_HBM4_low_energy": 23937027.03,
+    "cycles_per_work_at_HBM4_high_energy": 35542858.32,
+    "interpretation": "under the statistical full-logic power model, logic energy equals the inherited HBM4 component-energy sensitivity at roughly 23.9M-35.5M cycles/work"
+  },
+  "HBM4_latency_capacity_integration": {
+    "modeled_latency_ns": 74.1885,
+    "raw_256MiB_contexts_for_36GB": 134.1104507,
+    "rw5_dependent_steps_per_work": 1048576,
+    "contexts_per_work_per_second": 0.077792280576,
+    "latency_only_ceiling_work_per_s": 1723.95577,
+    "prior_bandwidth_only_ceiling_work_per_s": "3406-5057",
+    "interpretation": "under the inherited HBM4 model, dependent-latency/context capacity is tighter than peak bulk bandwidth before compute; neither is achieved DP6 throughput"
+  },
+  "replicated_compute_sensitivity": {
+    "one_full_engine_per_36GB_raw_context": {
+      "engine_count": 134.1104507,
+      "linear_stdcell_area_mm2": 11.4890143,
+      "linear_allocated_core_area_mm2": 30.5117369,
+      "linear_statistical_logic_power_W_at_5p5ns": 11.9572744
+    },
+    "engine_count_to_avoid_compute_bottleneck_at_HBM4_latency_ceiling": "E >= Q_latency * N_cycles_per_work / 181.8181818e6",
+    "examples_at_target_clock": [
+      {"N_cycles_per_work": 5000000, "engines": 47.41, "stdcell_area_mm2": 4.06, "statistical_logic_power_W": 4.23},
+      {"N_cycles_per_work": 10000000, "engines": 94.82, "stdcell_area_mm2": 8.12, "statistical_logic_power_W": 8.45},
+      {"N_cycles_per_work": 20000000, "engines": 189.64, "stdcell_area_mm2": 16.25, "statistical_logic_power_W": 16.91},
+      {"N_cycles_per_work": 50000000, "engines": 474.09, "stdcell_area_mm2": 40.61, "statistical_logic_power_W": 42.27}
+    ],
+    "epistemic_boundary": "linear replication ignores shared control/PHY savings and assumes the statistical full-engine power point; it is a sensitivity envelope, not an optimized miner design"
+  },
+  "commodity_reference_boundary": {
+    "browser_reference_J_per_work": 23.77086,
+    "rtx2070_reference_J_per_work": 41.97248,
+    "comparison_admission": "REFERENCE_ONLY_NOT_CANONICAL_ADVANTAGE_RATIO",
+    "reason": "commodity figures are measured whole-system references while specialist values above are component/model sensitivities with missing memory PHY/package/board and workload activity"
+  },
+  "result": "NO_DEFENSIBLE_COMPLETE_J_PER_VALID_WORK_INTERVAL",
+  "reason": "optimized specialist cycles/work, activity factors, effective random-access efficiency, PHY/controller/package energy and total system overhead remain unbounded"
+}

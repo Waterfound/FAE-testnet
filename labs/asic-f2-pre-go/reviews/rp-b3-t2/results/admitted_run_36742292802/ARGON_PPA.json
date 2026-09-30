@@ -1,0 +1,20 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.argon_ppa.v1",
+  "variant": "argon",
+  "top": "fae_dp6_hls_argon2d_fixed",
+  "stage": "synthesis",
+  "area_stdcell_mm2": 0.048648,
+  "fmax_MHz": 367.389,
+  "period_min_ps": 2721.91,
+  "setup_tns_ps": 0,
+  "hold_tns_ps": 0,
+  "worst_setup_slack_ps": 2778.09,
+  "power_total_W": 0.0333661,
+  "power_internal_W": 0.0273069,
+  "power_switching_W": 0.00601857,
+  "power_leakage_W": 0.0000405825,
+  "energy_per_target_clock_cycle_pJ": 183.51355,
+  "critical_path_hierarchy": "blake2b_long -> b2final -> b2compress",
+  "power_admission": "SYNTHESIS_STATISTICAL_SENSITIVITY_ONLY_NO_CLOCK_TREE_NO_VCD_SAIF",
+  "not_additive_to_full": true
+}

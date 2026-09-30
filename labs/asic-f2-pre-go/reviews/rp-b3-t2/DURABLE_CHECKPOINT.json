@@ -1,0 +1,40 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.durable_checkpoint.v1",
+  "checkpoint": "RP_B3_T2B_TECHNICAL_CLOSURE",
+  "run_id": 36742292802,
+  "source_revision": "3ea20ce42e867797eb781e25cfc268cc7d308741",
+  "artifacts_admitted": [11113737060,11111282755,11112226105],
+  "frontiers": {
+    "artifact_recovery": "CLOSED",
+    "identity_equivalence": "CLOSED_PASS",
+    "full_area_timing_power": "CLOSED",
+    "argon_area_timing_power": "CLOSED",
+    "rw5_area_timing_power": "CLOSED",
+    "energy_work_reconciliation": "CLOSED_PARAMETRIC",
+    "specialized_logic_bound": "CLOSED",
+    "specialized_financial_bound": "EXTERNAL_EVIDENCE_GATE"
+  },
+  "terminal": {
+    "robust_premise": "STRONG_HEURISTIC_ONLY",
+    "economic_direction": "WEAKENED_NOT_FALSIFIED",
+    "specialist_lcvw": "UNKNOWN",
+    "asic_lab": "HOLD",
+    "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
+    "next_frontier": "RP-B3-T3 — Specialized Memory-System / Random-I-O / Package Economic Bound"
+  },
+  "forbidden_actions_observed": {
+    "sta_power_rerun_by_reconciliation": false,
+    "aws": false,
+    "afi": false,
+    "f2": false,
+    "physical_build": false,
+    "physical_benchmark": false,
+    "attacker_sweep": false,
+    "sustained_hfb": false,
+    "dp6_dp7_change": false,
+    "consensus_economics_change": false,
+    "release_activation_mainnet": false,
+    "new_spend": false
+  },
+  "stop_reason": "TECHNICAL_CLOSURE_PLUS_GENUINE_EXTERNAL_EVIDENCE_GATE"
+}

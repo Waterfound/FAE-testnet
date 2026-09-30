@@ -1,0 +1,21 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.rw5_ppa.v1",
+  "variant": "rw5",
+  "top": "fae_dp6_hls_rw5",
+  "stage": "synthesis",
+  "area_stdcell_mm2": 0.0104976,
+  "fmax_MHz": 388.653,
+  "period_min_ps": 2572.99,
+  "setup_tns_ps": 0,
+  "hold_tns_ps": 0,
+  "worst_setup_slack_ps": 2927.01,
+  "power_total_W": 0.00926615,
+  "power_internal_W": 0.00714128,
+  "power_switching_W": 0.00211663,
+  "power_leakage_W": 0.00000823898,
+  "energy_per_target_clock_cycle_pJ": 50.963825,
+  "critical_path": "r_q1[0] input -> r_d1[63] output through arithmetic/majority logic",
+  "power_admission": "SYNTHESIS_STATISTICAL_SENSITIVITY_ONLY_NO_CLOCK_TREE_NO_VCD_SAIF",
+  "not_additive_to_full": true,
+  "interpretation": "RW5 datapath is neither the dominant mapped area nor the full-design timing limiter in this ASAP7 implementation; workload cost can still be large because RW5 executes 1,048,576 dependent steps/work."
+}

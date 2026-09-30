@@ -1,0 +1,33 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.artifact_manifest.v1",
+  "github_run_id": 36742292802,
+  "head_sha": "3ea20ce42e867797eb781e25cfc268cc7d308741",
+  "workflow": "FAE DP6 RP-B3-T2B ASAP7 STA Power Correct Units",
+  "artifacts": {
+    "full": {
+      "artifact_id": 11113737060,
+      "name": "fae-dp6-rp-b3-t2b-full",
+      "github_sha256": "5537c65fd79dd4d777cc05f6b5e91c0e3c72a7508754e4a0025b57eb96f3fb75",
+      "downloaded_sha256": "5537c65fd79dd4d777cc05f6b5e91c0e3c72a7508754e4a0025b57eb96f3fb75",
+      "job_conclusion": "success"
+    },
+    "argon": {
+      "artifact_id": 11111282755,
+      "name": "fae-dp6-rp-b3-t2b-argon",
+      "github_sha256": "7306c9652291b25fa04902859458d7be7595c93b89ccc854c7143cd2f924b31f",
+      "downloaded_sha256": "7306c9652291b25fa04902859458d7be7595c93b89ccc854c7143cd2f924b31f",
+      "job_conclusion": "success"
+    },
+    "rw5": {
+      "artifact_id": 11112226105,
+      "name": "fae-dp6-rp-b3-t2b-rw5",
+      "github_sha256": "68e7dfb39a40ba413b15c01539ff0888cc0c91060fe1ffe4bc662df95df02724",
+      "downloaded_sha256": "68e7dfb39a40ba413b15c01539ff0888cc0c91060fe1ffe4bc662df95df02724",
+      "job_conclusion": "success"
+    }
+  },
+  "admission": "PASS",
+  "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "equivalence": "PASS_EQUIVALENCE",
+  "ppa_rerun_performed_by_reconciliation": false
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.full_ppa.v1",
+  "variant": "full",
+  "top": "fae_dp6_hls",
+  "stage": "CTS",
+  "technology": {
+    "platform": "ASAP7",
+    "role": "predictive research platform; not production-foundry evidence",
+    "process_nm_predictive": 7,
+    "corner": "BC",
+    "temperature_C": 25,
+    "voltage_V": 0.77,
+    "library_model": "NLDM",
+    "vt": "RVT"
+  },
+  "tool_provenance": {
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+    "container_digest": "openroad/orfs@sha256:fbba994b8e518c9678cfff25a7b7b80328394adfb71b6afafba8df3e5a1359ca",
+    "yosys": "0.68+post",
+    "frontend": "slang"
+  },
+  "constraint": {
+    "target_period_ps": 5500,
+    "target_frequency_MHz": 181.8181818,
+    "core_utilization_percent": 40,
+    "place_density": 0.60
+  },
+  "area": {
+    "synth_stdcell_mm2": 0.091105,
+    "detailed_place_stdcell_mm2": 0.082025,
+    "cts_stdcell_mm2": 0.0856683,
+    "allocated_core_mm2": 0.227512,
+    "allocated_die_mm2": 0.231596,
+    "macros_mm2": 0
+  },
+  "timing": {
+    "cts_period_min_ps": 3371.91,
+    "cts_fmax_MHz": 296.568,
+    "cts_setup_tns_ps": 0,
+    "cts_hold_tns_ps": 0,
+    "cts_worst_setup_slack_ps": 2128.09,
+    "synth_fmax_MHz": 362.89,
+    "detailed_place_fmax_MHz": 297.332,
+    "critical_path_delay_report_ps": 3885.5381,
+    "critical_path_hierarchy": "dp6_run_bytes -> argon2d_fixed -> blake2b_long -> b2update/b2compress",
+    "interpretation": "full timing is limited by BLAKE2b/Argon-side setup logic in this implementation, not by the standalone RW5 datapath"
+  },
+  "power": {
+    "activity_model": "OpenROAD default/statistical activity; no VCD/SAIF",
+    "cts_internal_W": 0.0636974,
+    "cts_switching_W": 0.0254007,
+    "cts_leakage_W": 0.0000618244,
+    "cts_total_W": 0.0891599,
+    "clock_power_share_approx_percent": 34.5,
+    "energy_per_target_clock_cycle_pJ": 490.37945,
+    "admission": "PREDICTIVE_SENSITIVITY_NOT_MEASURED_WORKLOAD_POWER"
+  },
+  "epistemic_boundary": [
+    "No memory macro, HBM/GDDR PHY, package, board or cooling power is included.",
+    "CTS is used instead of detailed route; this is not GDS/signoff evidence.",
+    "Power is not workload-trace based.",
+    "Fmax is technology-calibrated predictive timing, not production silicon."
+  ]
+}
