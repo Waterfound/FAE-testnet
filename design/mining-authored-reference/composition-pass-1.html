@@ -43,6 +43,24 @@ main{padding:34px 42px 48px}
 .foot{margin-top:36px;padding-top:15px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;font-size:10px;color:#7a8490}.gate{font-weight:760;color:#303b47}
 @media(max-width:900px){main{padding:26px 20px 36px}.instrument{grid-template-columns:1fr;gap:34px}.rate strong{font-size:72px}.stage-head{grid-template-columns:1fr}.pause{justify-self:start}.device{grid-template-columns:130px 1fr 72px;gap:12px}.ticker{overflow-x:auto}.nav{padding-inline:18px}}
 @media(max-width:560px){.topper{padding-inline:14px}.ticker{padding-inline:14px}.nav{height:51px}.nav button{padding-inline:10px}.stage-head p{display:none}.rate strong{font-size:61px}.rate span{font-size:19px}.trace{height:175px;gap:3px}.trace i{width:4px}.device{grid-template-columns:95px 1fr}.device-state{display:none}.foot{display:block}.foot span{display:block;margin-top:5px}}
+
+/* PASS 2 — LIFE: causal state behavior, no decorative ambient loop. */
+.rate strong,.trace i,.fill,.overview .metric,.pause,.live-line:before{transition:opacity .28s ease,color .28s ease,background-color .28s ease,transform .18s ease,width .42s cubic-bezier(.22,.61,.36,1),height .28s cubic-bezier(.22,.61,.36,1)}
+.pause:active{transform:translateY(1px)}
+body[data-mining-state="paused"] .live-line:before{width:0}
+body[data-mining-state="paused"] .rate strong{color:#a1a8b0}
+body[data-mining-state="paused"] .trace i{opacity:.16}
+body[data-mining-state="paused"] .trace i.accepted:after{opacity:0}
+body[data-mining-state="paused"] .local-device .fill{width:0!important;opacity:.18}
+body[data-mining-state="paused"] .local-device .device-state b{color:#8b929b}
+body[data-mining-state="paused"] .pause{background:#fff;color:#27313b;border-color:#cfd6de}
+body[data-mining-state="paused"] .trace-head span:after{content:" · paused";color:#8b939e}
+.device-name small{font-size:9px;font-weight:650;color:#8b939e;margin-left:3px}
+.trace i.work-tick{transform:translateY(-2px)}
+.trace i.accepted-now:after{content:"";position:absolute;top:-12px;left:0;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(23,169,98,.12);opacity:1;transition:opacity .6s ease,box-shadow .6s ease}
+.accepted-metric.accepted-flash b{color:var(--green)}
+@media(prefers-reduced-motion:reduce){.rate strong,.trace i,.fill,.overview .metric,.pause,.live-line:before{transition:none!important}}
+
 </style>
 </head>
 <body data-mining-state="active">
@@ -80,7 +98,7 @@ main{padding:34px 42px 48px}
     </section>
     <section class="devices">
       <div class="devices-head"><h2>Devices</h2><span>CURRENT W/s LEFT · CAPACITY RIGHT</span></div>
-      <div class="device">
+      <div class="device local-device">
         <div class="device-name"><span class="glyph"><i class="phone"></i></span>iPhone <small>this device</small></div>
         <div class="track"><div class="fill" style="width:82%">2.54 W/s</div><span class="capacity">3.10 W/s</span></div>
         <div class="device-state"><b>82%</b>focused capacity</div>
@@ -99,5 +117,80 @@ main{padding:34px 42px 48px}
     <div class="foot"><span>PASS 2 — LIFE preview uses deterministic synthetic work events; production binds these same states to real mining telemetry.</span><span class="gate">PENDING_WATERFOUND_LIFE_APPROVAL</span></div>
   </main>
 </div>
+
+<script>
+(() => {
+  const body = document.body;
+  const toggle = document.getElementById('miningToggle');
+  const rate = document.getElementById('currentRate');
+  const activeDevices = document.getElementById('activeDevices');
+  const acceptedWorks = document.getElementById('acceptedWorks');
+  const acceptedMetric = document.querySelector('.accepted-metric');
+  const localDevice = document.querySelector('.local-device');
+  const bars = Array.from(document.querySelectorAll('#workTrace i'));
+  const sequence = [61,74,69,82,76,88,71,79,92,84,73,86,67,81,75,89,78,94,72,83,77,90,69,85];
+  let cursor = 0;
+  let accepted = 1428;
+  let timer = null;
+
+  const renderState = (active) => {
+    body.dataset.miningState = active ? 'active' : 'paused';
+    toggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    toggle.querySelector('.control-symbol').textContent = active ? 'Ⅱ' : '▶';
+    toggle.querySelector('.control-label').textContent = active ? 'Pause mining' : 'Resume mining';
+    rate.textContent = active ? '2.49' : '0.00';
+    activeDevices.textContent = active ? '3 / 3' : '2 / 3';
+    if (localDevice) {
+      const state = localDevice.querySelector('.device-state');
+      if (state) state.innerHTML = active ? '<b>82%</b>focused capacity' : '<b>Paused</b>local mining';
+    }
+  };
+
+  const tick = () => {
+    if (body.dataset.miningState !== 'active' || !bars.length) return;
+    const bar = bars[cursor % bars.length];
+    bar.style.height = sequence[cursor % sequence.length] + '%';
+    bar.classList.add('work-tick');
+    setTimeout(() => bar.classList.remove('work-tick'), 170);
+
+    if ((cursor + 1) % 7 === 0) {
+      bar.classList.add('accepted-now');
+      accepted += 1;
+      acceptedWorks.textContent = accepted.toLocaleString('en-US');
+      if (acceptedMetric) acceptedMetric.classList.add('accepted-flash');
+      setTimeout(() => {
+        bar.classList.remove('accepted-now');
+        if (acceptedMetric) acceptedMetric.classList.remove('accepted-flash');
+      }, 720);
+    }
+    cursor += 1;
+  };
+
+  const start = () => {
+    if (timer) clearInterval(timer);
+    timer = setInterval(tick, 520);
+  };
+  const stop = () => {
+    if (timer) clearInterval(timer);
+    timer = null;
+  };
+
+  toggle.addEventListener('click', () => {
+    const active = body.dataset.miningState === 'active';
+    if (active) {
+      stop();
+      renderState(false);
+    } else {
+      renderState(true);
+      tick();
+      start();
+    }
+  });
+
+  renderState(true);
+  start();
+})();
+</script>
+
 </body>
 </html>
