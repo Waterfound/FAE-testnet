@@ -1,0 +1,143 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_VERDICT_V1",
+  "generated_from_source_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "overall": {
+    "can_full_mainnet_consensus_economic_parameter_set_be_frozen_now": false,
+    "verdict": "PARAMETER_SET_NOT_READY_TO_FREEZE",
+    "reason": "Core numeric choices remain blocked by block-time selection evidence, fee/security-budget policy, specialized-hardware/representative-device economics, stability/network evidence and launch-difficulty calibration."
+  },
+  "parameters": [
+    {
+      "parameter": "atomic unit",
+      "candidate": "1 FAE = 100,000,000 atoms",
+      "evidence_role": "EVIDENCE_SUPPORTED",
+      "freeze_state": "PARAMETER_READY_TO_FREEZE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "fair-launch constraints",
+      "candidate": "no premine / no VC / no insider allocation / no treasury mint / no hidden admin issuance",
+      "evidence_role": "EVIDENCE_SUPPORTED_POLICY_CONSTRAINT",
+      "freeze_state": "PARAMETER_READY_TO_FREEZE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "fresh-genesis / no v4 balance inheritance",
+      "candidate": "zero issuance at genesis; distinct network/profile identity",
+      "evidence_role": "EVIDENCE_SUPPORTED_CANDIDATE_MECHANISM",
+      "freeze_state": "PARAMETER_READY_TO_FREEZE",
+      "depends_on_dp6": false,
+      "note": "Concrete production genesis values/digest remain unset."
+    },
+    {
+      "parameter": "integer subsidy rounding semantics",
+      "candidate": "integer atoms, right-shift halvings, no terminal top-up by implication",
+      "evidence_role": "EVIDENCE_SUPPORTED",
+      "freeze_state": "PARAMETER_READY_TO_FREEZE",
+      "depends_on_dp6": false,
+      "note": "Numeric reward/era/cap are not ready."
+    },
+    {
+      "parameter": "block interval",
+      "candidate": "180 active; 300 preferred research incumbent; 600 challenger; 900 closed",
+      "evidence_role": "UNRESOLVED_SELECTION",
+      "freeze_state": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "initial block reward",
+      "candidate": "10 active-v4 vs 14 research-300",
+      "evidence_role": "UNRESOLVED",
+      "freeze_state": "PARAMETER_DEPENDS_ON_EXTERNAL_GATE",
+      "depends_on_dp6": true
+    },
+    {
+      "parameter": "halving interval",
+      "candidate": "600k active-v4 vs 430k research-300",
+      "evidence_role": "UNRESOLVED",
+      "freeze_state": "PARAMETER_DEPENDS_ON_EXTERNAL_GATE",
+      "depends_on_dp6": true
+    },
+    {
+      "parameter": "numeric theoretical cap",
+      "candidate": "12M active-v4 vs 12.04M research-300",
+      "evidence_role": "UNRESOLVED",
+      "freeze_state": "PARAMETER_DEPENDS_ON_EXTERNAL_GATE",
+      "depends_on_dp6": true
+    },
+    {
+      "parameter": "exact terminal issuance",
+      "candidate": "11,999,999.922 active-v4; 12,039,999.9484 research-300",
+      "evidence_role": "EVIDENCE_SUPPORTED_DERIVATION_BUT_SELECTION_UNRESOLVED",
+      "freeze_state": "PARAMETER_RESEARCH_ONLY",
+      "depends_on_dp6": true
+    },
+    {
+      "parameter": "coinbase maturity",
+      "candidate": "none enforced in active-v4; 200 blocks in research-300",
+      "evidence_role": "UNRESOLVED_POLICY",
+      "freeze_state": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "fee destination/security-budget role",
+      "candidate": "active-v4 residual fee not paid to miner; research-300 pays subsidy+fees",
+      "evidence_role": "UNRESOLVED",
+      "freeze_state": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "depends_on_dp6": true
+    },
+    {
+      "parameter": "DAA family/parameters",
+      "candidate": "active-v4 20-block discrete integer-bit vs 300 candidate anchored ASERT 6h",
+      "evidence_role": "UNRESOLVED_SELECTION",
+      "freeze_state": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "launch initial difficulty/target",
+      "candidate": "profile-bound mechanism exists; real calibration unset",
+      "evidence_role": "EXTERNAL_EVIDENCE",
+      "freeze_state": "PARAMETER_DEPENDS_ON_EXTERNAL_GATE",
+      "depends_on_dp6": false
+    },
+    {
+      "parameter": "max transactions/block / capacity policy",
+      "candidate": "20 active and 300 candidate",
+      "evidence_role": "HEURISTIC_ONLY_WHEN_BLOCK_TIME_CHANGES",
+      "freeze_state": "PARAMETER_NEEDS_MORE_EVIDENCE",
+      "depends_on_dp6": false
+    }
+  ],
+  "minimal_remaining_blockers": [
+    {
+      "id": "B1_BLOCK_TIME_SELECTION",
+      "kind": "EVIDENCE",
+      "minimum": "Close the frozen 180s direct-evidence gaps or obtain a genuinely discriminating independent-network dataset, then apply a precommitted selection rule without treating absence of 180 failure as a 300 win."
+    },
+    {
+      "id": "B2_FEE_SECURITY_BUDGET",
+      "kind": "DESIGN_AND_MODELING",
+      "minimum": "Choose the mainnet fee destination/conservation rule and produce conservative subsidy+fee security-budget ranges. Do not assume fee demand."
+    },
+    {
+      "id": "B3_DP6_SPECIALIST_BOUND",
+      "kind": "EXTERNAL_WORKSTREAM",
+      "minimum": "Admit a terminal evidence-based DP6 robust-premise disposition that bounds specialized cost/work advantage sufficiently for the participation objective. Current state remains strong heuristic/HOLD."
+    },
+    {
+      "id": "B4_REPRESENTATIVE_DEVICE_HFB",
+      "kind": "PHYSICAL_EXTERNAL_EVIDENCE",
+      "minimum": "Admit the frozen four-class representative-device physical portfolio plus the required HFB/work-per-watt/work-per-dollar evidence."
+    },
+    {
+      "id": "B5_STABILITY_NETWORK",
+      "kind": "EXTERNAL_EVIDENCE",
+      "minimum": "Obtain terminal Stability Soak V3 evidence and the independent/operator/network evidence required by the chosen block-time/DAA claim; do not relabel a short zero-stale run as rare-event proof."
+    },
+    {
+      "id": "B6_MATURITY_AND_LAUNCH_TARGET",
+      "kind": "POLICY_PLUS_EXTERNAL_CALIBRATION",
+      "minimum": "Precommit the settlement/reorg-risk objective and derive maturity under the selected target; separately bind the real launch initial difficulty to provenance-bound launch-hashrate calibration."
+    }
+  ]
+}
