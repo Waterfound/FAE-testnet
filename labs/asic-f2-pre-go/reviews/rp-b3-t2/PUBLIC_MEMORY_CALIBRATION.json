@@ -1,0 +1,39 @@
+{
+  "schema": "fae.dp6.rp_b3_t2.public_memory_calibration.v1",
+  "date": "2026-09-30",
+  "evidence": [
+    {
+      "source": "Demystifying the Memory System of Modern Datacenter FPGAs for Software Programmers through Microbenchmarking, FPGA 2021",
+      "url": "https://zhenman.github.io/files/C20-FPGA2021-uBench.pdf",
+      "measurement": "Random 4-byte off-chip access at 300 MHz: HBM2 ~108 ns, DDR4 ~110 ns on tested platform.",
+      "applicability": "STRONGLY_SUPPORTED order-of-magnitude latency calibration; FPGA/HLS interconnect and page-hit methodology prevent direct transfer to custom HBM4 ASIC."
+    },
+    {
+      "source": "Demystifying the Characteristics of High Bandwidth Memory for Real-Time Systems, ICCAD 2021",
+      "url": "https://www.ece.mcmaster.ca/faculty/hassan/assets/publications/hbm_iccad2021.pdf",
+      "measurement": "Pointer-chasing-like latency workload exhibits low locality and does not benefit materially from HBM peak bandwidth.",
+      "applicability": "STRONGLY_SUPPORTED qualitative calibration for dependent-access workloads; not DP6 throughput measurement."
+    },
+    {
+      "source": "TrendForce HBM Supply Constraints Persist, 2027 Price Outlook Revised Upward, 2026-09-29",
+      "url": "https://www.trendforce.com/presscenter/news/20260929-13255.html",
+      "measurement": "HBM remains supply-constrained; base-die cost does not scale proportionally with DRAM layer count; absolute transferable procurement price not publicly exposed.",
+      "applicability": "Supports keeping installed HBM/package cost UNKNOWN rather than inventing $/GB."
+    }
+  ],
+  "latency_sensitivity_with_36gb_context_anchor": {
+    "contexts": 134.1104507,
+    "q_ceiling_74_1885ns": 1723.9557666519283,
+    "q_ceiling_108ns": 1184.237892539413,
+    "q_ceiling_150ns": 852.6512826283772,
+    "q_ceiling_200ns": 639.488461971283,
+    "interpretation": "Latency-only ceilings ignore compute/bandwidth/power and do not represent achieved DP6 throughput. They show that plausible HBM dependent latency alone does not force aggregate throughput near commodity-browser rates when many contexts are resident."
+  },
+  "pricing_gate": {
+    "installed_memory_cost": "UNKNOWN",
+    "package_interposer_cost": "UNKNOWN",
+    "reason": "Public trend/forecast evidence establishes scarcity and relative cost structure, not a defensible transferable procurement lower bound."
+  },
+  "disposition_effect": "Memory latency remains a real specialization burden, but neither measured HBM2 latency nor public pricing evidence closes the commodity-viability inequality.",
+  "asic_lab": "HOLD"
+}
