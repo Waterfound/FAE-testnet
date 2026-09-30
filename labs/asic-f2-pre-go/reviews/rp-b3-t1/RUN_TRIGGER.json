@@ -7,5 +7,9 @@
   "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
   "platform": "ASAP7 predictive FinFET 7nm research platform",
   "asic_lab": "HOLD",
-  "aws_fpga_authorized": false
+  "aws_fpga_authorized": false,
+  "attempt": 2,
+  "previous_run_id": 36654718186,
+  "repair": "ORFS SYNTH_HDL_FRONTEND=slang only; no C6 RTL behavioral edits. Submodule names bound to exact Vitis-exported prefixed modules.",
+  "predicted_information_gain": "Distinguishes Verilog-2005 frontend limitation from true RTL synthesis incompatibility and enables ASAP7 mapping if slang accepts the unchanged C6 RTL."
 }
