@@ -5,49 +5,36 @@
   "repository": "Waterfound/FAE-testnet",
   "branch": "design/fae-mining-authored-reference-001",
   "source_revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
-  "current_frontier": "MAR-07_REVIEW",
-  "completed_frontiers": ["MAR-00","MAR-01","MAR-02","MAR-03","MAR-04","MAR-05","MAR-06","MAR-07_IMPLEMENTATION","MAR-07_BROWSER_QA"],
-  "blocked_frontiers": {
-    "MAR-08": "BLOCKED_UNTIL_FINAL_MINING_REFERENCE_APPROVAL"
-  },
-  "composition_approval": {
+  "current_frontier": "MAR-08",
+  "completed_frontiers": ["MAR-00","MAR-01","MAR-02","MAR-03","MAR-04","MAR-05","MAR-06","MAR-07"],
+  "final_reference": {
     "state": "APPROVED",
-    "evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_COMPOSITION_APPROVAL.json"
+    "approval_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_FINAL_APPROVAL.json",
+    "reference_artifact": "design/mining-authored-reference/composition-pass-1.html",
+    "studio_url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/"
   },
-  "life_approval": {
-    "state": "APPROVED",
-    "evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_LIFE_APPROVAL.json"
+  "cii_frontier": {
+    "state": "ACTIVE",
+    "scope": [
+      "FAE spatial grammar",
+      "FAE motion grammar",
+      "FAE semantic color grammar",
+      "FAE typography hierarchy",
+      "FAE state behavior",
+      "FAE quiet/active contrast",
+      "FAE iconography principles",
+      "FAE interaction timing",
+      "FAE anti-patterns",
+      "FAE authorship invariants"
+    ],
+    "prohibited": [
+      "propagate grammar to Wallet or other FAE surfaces",
+      "change production code",
+      "merge to main",
+      "reinterpret the approved reference",
+      "grant CII implementation authority"
+    ]
   },
-  "finish_frontier": {
-    "implementation": "PASS",
-    "browser_qa": "PASS",
-    "ci": "PASS_FOR_VISUAL_REVIEW",
-    "evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS3_FINISH_EVIDENCE.json",
-    "state": "HUMAN_GATE"
-  },
-  "studio": {
-    "url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
-    "app_id": "fae-mining-authored-reference-composition-p18jsf",
-    "status": "PASS3_READY",
-    "browser_qa_run_id": "e771bcec-e794-49e6-b9c4-9010788a14b5"
-  },
-  "review_surface": {
-    "draft_pr": 268,
-    "base": "design/fae-direction-d-plus-approval",
-    "head": "design/fae-mining-authored-reference-001",
-    "merge_readiness_claimed": false
-  },
-  "terminal_condition": "HUMAN_GATE_AT_FINAL_REFERENCE_REVIEW_OR_TECHNICAL_FAIL_CLOSED_OR_CLOSURE",
-  "human_gate": {
-    "required": true,
-    "gate_id": "authority://fae-visual-language/mining-authored-reference-final",
-    "human_required": true,
-    "condition": "Waterfound approves the completed Mining reference implementation as successful or specifies final revisions after using the browser-verified Studio.",
-    "next_authorized_transition_on_approval": "MAR-07 -> PASS; MAR-08 -> AUTHORIZED_TO_ACTIVATE_CII_GRAMMAR_EXTRACTION",
-    "next_transition_on_revision_request": "MAR-07 -> ACTIVE_REFINEMENT; preserve approved PASS 1 composition and PASS 2 LIFE"
-  },
-  "future_frontiers": {
-    "cii": "Only after explicit final Mining reference approval."
-  },
-  "state": "HUMAN_GATE"
+  "terminal_condition": "CII_EXTRACTION_COMPLETE_OR_TECHNICAL_FAIL_CLOSED_OR_NEW_HUMAN_GATE",
+  "state": "RUNNING"
 }
