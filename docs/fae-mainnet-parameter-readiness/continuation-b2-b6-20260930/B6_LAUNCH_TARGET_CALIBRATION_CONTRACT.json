@@ -1,0 +1,55 @@
+{
+  "schema": "FAE_B6_LAUNCH_INITIAL_TARGET_CALIBRATION_CONTRACT_V1",
+  "status": "CALIBRATION_CONTRACT_CLOSED_NUMERIC_TARGET_UNSET",
+  "existing_candidate_mechanism": {
+    "branch": "economic-block-time-v2-300-l3",
+    "profile_requires": [
+      "explicit 256-bit initial_target_hex",
+      "non-placeholder calibration_evidence_sha256",
+      "calibration evidence label"
+    ],
+    "profile_binding": [
+      "target seconds",
+      "DAA family and half-life",
+      "initial target",
+      "calibration evidence digest",
+      "genesis commitment",
+      "transaction domain"
+    ],
+    "fail_closed": true,
+    "activationAuthorized": false
+  },
+  "analytical_contract": {
+    "assumptions": [
+      "PoW output is uniform over 256-bit values",
+      "valid work condition is hash <= target"
+    ],
+    "variables": {
+      "H_ref": "policy-selected, evidence-backed aggregate effective work rate in hashes per second",
+      "T": "selected block target seconds"
+    },
+    "exact_probability": "p_valid = (target + 1) / 2^256",
+    "expected_hashes_per_block": "2^256 / (target + 1)",
+    "target_formula": "target = floor(2^256 / (H_ref * T)) - 1, followed by fail-closed range and pow-limit checks",
+    "margin_rule": "Any calibration margin must be an explicit policy input; it may not be hidden inside H_ref."
+  },
+  "evidence_bundle_requirements": [
+    "final selected PoW semantics and DAA/profile identity",
+    "provenance-bound measurements from the intended launch population",
+    "measurement interval and sample count",
+    "aggregate effective work-rate derivation",
+    "provenance sufficient to prevent double counting",
+    "selected H_ref aggregation rule and any explicit margin",
+    "computed initial target",
+    "independent recomputation",
+    "digest bound into activation profile"
+  ],
+  "unresolved_normative_inputs": [
+    "which evidence population qualifies as launch-representative",
+    "how H_ref is aggregated",
+    "whether an explicit calibration margin is used",
+    "acceptable early-chain interval tolerance"
+  ],
+  "external_gate": "Real launch work-rate evidence is required; no numeric initial target is derivable now without inventing H_ref.",
+  "robust_conclusion": "The software binding and arithmetic contract can close before block-time selection; the numeric target cannot."
+}
