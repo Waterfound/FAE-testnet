@@ -1,69 +1,56 @@
 {
-  "schema": "fae.dp6.rp_b3_t1.durable_checkpoint.v2",
-  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
-  "checkpoint_id": "rp-b3-t1-attempt2-slang-dispatched-001",
-  "checkpoint": "ATTEMPT_2_SLANG_DISPATCHED__AWAITING_EXECUTION_SLOT",
-  "authority_binding": "NON_PRODUCTION_ASIC_PPA_RESEARCH_ONLY",
-  "recovered_from": {
-    "failed_run_id": 36654718186,
-    "failed_frontend": "default Yosys read_verilog",
-    "first_divergence": "fae_dp6_hls_gmem0_m_axi.v:1260 procedural for-loop second expression not constant",
-    "interpretation": "frontend incompatibility only; not DP6 semantic or ASIC synthesis impossibility"
+  "schema": "fae.dp6.rp_b3_t1.durable_checkpoint.v3",
+  "checkpoint_id": "rp-b3-t1-admitted-partial-ppa-terminal-001",
+  "checkpoint": "ADMITTED_PARTIAL_ASAP7_MAPPING__TERMINAL_RECONCILIATION_CLOSED",
+  "authority_binding": "FAE_DP6_ROBUST_PREMISE_REVIEW_ANALYTICAL_ONLY",
+  "admitted_evidence": {
+    "github_run_id": 36656132054,
+    "artifact_id": 11073562201,
+    "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+    "artifact_sha256": "bd3a062c31614a1b089f42caae7c17929e9697f0d41f285c499c0cf036f5ddcb",
+    "integrity": "PASS",
+    "equivalence": "PASS_EQUIVALENCE",
+    "frontend": "slang",
+    "technology_mapping": "PASS_BEFORE_SDC_GATE"
   },
-  "workflow_recovery": {
-    "corrupted_checkpoint_sha": "833c7c20f9aff255c8db8e11deaebb0695535eca",
-    "repaired_workflow_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
-    "slang_binding_sha": "1be683b465a061f0e666af8695d8b6604e615022",
-    "lineage_artifact": "labs/asic-f2-pre-go/reviews/rp-b3-t1/ATTEMPT_2_RECOVERY.json"
+  "first_observable_divergence": {
+    "stage": "OpenSTA SDC read after mapping/ODB export",
+    "error": "constraint.sdc line 5: invalid command name remove_from_collection",
+    "classification": "HARNESS_CONSTRAINT_COMPATIBILITY_FAILURE"
   },
-  "physical_invocations": [
-    {
-      "github_run_id": 36655645920,
-      "head_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
-      "status_at_checkpoint": "in_progress",
-      "admissibility": "NOT_ADMISSIBLE_AS_ATTEMPT_2_SLANG",
-      "reason": "executor revision did not bind SYNTH_HDL_FRONTEND=slang"
-    },
-    {
-      "github_run_id": 36656132054,
-      "head_sha": "1be683b465a061f0e666af8695d8b6604e615022",
-      "status_at_checkpoint": "pending",
-      "admissibility": "SOLE_ADMISSIBLE_ATTEMPT_2_SLANG_RESULT",
-      "required_provenance": {
-        "logical_attempt": 2,
-        "recovery_of_failed_run_id": 36654718186,
-        "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
-        "synth_hdl_frontend": "slang",
-        "expected_c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
-        "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
-        "platform": "ASAP7"
-      }
-    }
-  ],
-  "current_frontier": "ATTEMPT_2_SLANG_EXECUTION_AND_EVIDENCE_ADMISSION",
-  "acceptance_order": [
-    "C6 identity PASS",
-    "tool/library provenance PASS",
-    "slang accepts unchanged C6 RTL",
-    "synthesis matrix",
-    "place/route calibration only if synthesis admissible",
-    "separable RW5/Argon/BlaMka views when valid",
-    "terminal PPA artifact"
-  ],
-  "fail_closed_rules": [
-    "do not admit run 36655645920 as attempt 2 slang evidence",
-    "do not infer slang admission from queue/execution time",
-    "do not alter C6 RTL behavior",
-    "do not reopen ASIC Lab",
-    "do not use AWS FPGA/AFI/F2/physical benchmark"
-  ],
-  "local_execution_probe": "current chat container lacks network and ORFS/Yosys/OpenROAD, so no equivalent local execution domain was available without weakening provenance",
-  "asic_lab_disposition": "HOLD",
-  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
-  "invariant": [
+  "terminal_state": {
+    "robust_premise_disposition": "STRONG_HEURISTIC_ONLY",
+    "rp_b3_classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+    "specialist_lcvw": "UNKNOWN",
+    "asic_lab": "HOLD",
+    "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+  },
+  "bounded_results": {
+    "full_logic_area_mm2_asap7_mapping": 0.0795977,
+    "argon_standalone_area_mm2_asap7_mapping": 0.042277,
+    "rw5_standalone_area_mm2_asap7_mapping": 0.00931605,
+    "timing": "UNKNOWN",
+    "power": "UNKNOWN",
+    "energy_per_work": "UNKNOWN"
+  },
+  "preexisting_later_run": {
+    "github_run_id": 36657989186,
+    "head_sha": "cfbd8f8a978d65d24951b22275f0720d2ee572a0",
+    "status_observed": "in_progress",
+    "admission_in_this_checkpoint": "NOT_ADMITTED",
+    "reason": "Current user instruction is to recover run 36656132054 and correct persistence only, without repeating PPA."
+  },
+  "next_frontier": {
+    "id": "RP-B3-T2",
+    "name": "ASAP7 STA/Power Closure on unchanged C6",
+    "state": "HUMAN_GATE_IF_FURTHER_ANALYTICAL_EXECUTION_IS_DESIRED",
+    "note": "Not executed in this closure."
+  },
+  "stop_reason": "TECHNICAL_CLOSURE_UNDER_CURRENT_NO_REPEAT_PPA_AUTHORITY",
+  "invariants": [
     "Evidence before status.",
+    "Fail closed.",
     "Memory suggests. Evidence decides.",
-    "First observable divergence != root-cause proof.",
-    "conversation interruption != development interruption"
+    "Absence of falsification is not proof of robustness."
   ]
 }

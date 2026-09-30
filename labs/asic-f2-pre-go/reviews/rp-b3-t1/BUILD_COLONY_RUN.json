@@ -1,106 +1,50 @@
 {
-  "schema": "fae.dp6.rp_b3_t1.build_colony_run.v2",
-  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
-  "authority_ref": "FAE_DP6_ROBUST_PREMISE_REVIEW analytical/non-production authority",
+  "schema": "fae.dp6.rp_b3_t1.build_colony_run.v3",
+  "run_id": "fae-dp6-rp-b3-t1-reconciliation-20260930",
   "principle": "Parallelize independence. Serialize shared state.",
-  "reconstructed_state": {
+  "frontier": "RP-B3-T1 evidence admission and terminal reconciliation",
+  "input_state": {
     "rp_b1": "CLOSED",
     "rp_b2": "CLOSED",
     "rp_b3": "ANALYTICAL_CLOSURE",
-    "rp_b3_t1": "ACTIVE",
-    "classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
-    "asic_lab": "HOLD",
-    "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN"
+    "rp_b3_t1": "CHECKPOINTED_RESUMABLE",
+    "asic_lab": "HOLD"
   },
-  "evidence_binding": {
-    "c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
-    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
-    "platform": "ASAP7 predictive research",
-    "frontend": "slang"
-  },
-  "execution_chain": [
+  "workstreams": [
     {
-      "run_id": 36654718186,
-      "status": "FAIL_CLOSED",
-      "first_divergence": "default Yosys frontend procedural-for incompatibility"
+      "id": "artifact-recovery",
+      "status": "CLOSED",
+      "result": "Artifact 11073562201 recovered and SHA-256 matched GitHub artifact digest."
     },
     {
-      "run_id": 36655645920,
-      "status": "FAILURE_NOT_ADMISSIBLE_AS_SLANG",
-      "finding": "cell mapping reached; OpenSTA SDC remove_from_collection incompatibility; persistence failure after artifact upload"
+      "id": "provenance-admission",
+      "status": "CLOSED",
+      "result": "Run 36656132054 bound to source 1be683b4, slang, frozen C6 SHA, ORFS pin and ASAP7 tree."
     },
     {
-      "run_id": 36656132054,
-      "status": "IN_PROGRESS",
-      "role": "admissible slang frontend attempt"
+      "id": "mapping-extraction",
+      "status": "CLOSED",
+      "result": "Full/Argon/RW5 technology-mapped area points extracted; no timing or power admitted."
     },
     {
-      "run_id": 36657989186,
-      "status": "PENDING_SERIALIZED",
-      "role": "OpenSTA-native SDC bounded repair; unchanged C6 RTL"
+      "id": "persistence-repair",
+      "status": "CLOSED",
+      "result": "Compact durable evidence and raw-artifact hash manifest materialized on evidence branch without PPA rerun."
+    },
+    {
+      "id": "robust-premise-reconciliation",
+      "status": "CLOSED",
+      "result": "STRONG_HEURISTIC_ONLY preserved; ASIC Lab HOLD preserved; AWS reopening not justified."
     }
   ],
-  "domains": [
-    {
-      "id": "export-reconstruction",
-      "status": "CLOSED"
-    },
-    {
-      "id": "semantic-equivalence",
-      "status": "CLOSED"
-    },
-    {
-      "id": "slang-frontend-admission",
-      "status": "IN_PROGRESS",
-      "run_id": 36656132054
-    },
-    {
-      "id": "opensta-sdc-compatibility",
-      "status": "MATERIALIZED_PENDING",
-      "run_id": 36657989186
-    },
-    {
-      "id": "full-dp6-ppa",
-      "status": "BLOCKED_BY_EXECUTION_CHAIN"
-    },
-    {
-      "id": "rw5-ppa",
-      "status": "BLOCKED_BY_EXECUTION_CHAIN"
-    },
-    {
-      "id": "argon-ppa",
-      "status": "BLOCKED_BY_EXECUTION_CHAIN"
-    },
-    {
-      "id": "ppa-reconciliation",
-      "status": "BLOCKED_BY_DEPENDENCIES"
-    },
-    {
-      "id": "robust-premise-disposition",
-      "status": "BLOCKED_BY_DEPENDENCIES"
-    }
-  ],
-  "durable_execution": {
-    "auto_continue": true,
-    "stop_conditions": [
-      "technical closure",
-      "genuine external/tool/library gate",
-      "semantic-equivalence failure",
-      "genuine human/authority gate"
-    ]
+  "forbidden_actions_observed": {
+    "ppa_rerun_by_this_reconciliation": false,
+    "aws_fpga": false,
+    "afi": false,
+    "f2_runtime": false,
+    "physical_benchmark": false,
+    "dp6_semantic_change": false,
+    "consensus_economics_change": false
   },
-  "forbidden": [
-    "AWS FPGA",
-    "physical FPGA build",
-    "AFI",
-    "F2 runtime",
-    "physical benchmark",
-    "physical attacker sweep",
-    "sustained/HFB",
-    "DP6 semantic change",
-    "consensus/economics change",
-    "release",
-    "activation",
-    "mainnet"
-  ]
+  "terminal": "TECHNICAL_CLOSURE_UNDER_CURRENT_AUTHORITY"
 }

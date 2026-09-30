@@ -1,0 +1,61 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.terminal_reconciliation.v1",
+  "date": "2026-09-30",
+  "admitted_run": {
+    "github_run_id": 36656132054,
+    "artifact_id": 11073562201,
+    "head_sha": "1be683b465a061f0e666af8695d8b6604e615022",
+    "artifact_sha256": "bd3a062c31614a1b089f42caae7c17929e9697f0d41f285c499c0cf036f5ddcb"
+  },
+  "admission_verdict": "ADMITTED_PARTIAL_TECHNOLOGY_CALIBRATED_MAPPING_EVIDENCE",
+  "proven": [
+    "C6 export identity and reconstruction passed.",
+    "Research RTL remains parity-bound to frozen DP6 semantics.",
+    "ORFS and ASAP7 provenance are fixed.",
+    "slang accepted the unchanged Vitis-generated C6 RTL.",
+    "Full DP6, Argon and RW5 views reached ASAP7 standard-cell technology mapping and ODB export.",
+    "Full-DP6 mapped standard-cell area point is 0.0795977 mm2 on the named ASAP7 predictive platform.",
+    "Argon standalone mapped area point is 0.042277 mm2.",
+    "RW5 standalone mapped area point is 0.00931605 mm2."
+  ],
+  "not_proven": [
+    "valid full-DP6 STA timing",
+    "critical path",
+    "achievable frequency",
+    "placed/routed area",
+    "logic power",
+    "RW5 power",
+    "Argon power",
+    "logic joules per valid work",
+    "complete memory PHY/controller PPA",
+    "specialist capex",
+    "specialist LCVW"
+  ],
+  "economic_interpretation": {
+    "direction": "MILDLY_WEAKENED_BUT_STILL_INCONCLUSIVE",
+    "reason": "Technology mapping shows specialized DP6 logic can be compact relative to the full-state memory footprint, so logic-area burden cannot carry the resistance thesis. Memory capacity/random-access/package economics still dominate the unresolved bound, and timing/power/LCVW remain unavailable."
+  },
+  "robust_premise_disposition": "STRONG_HEURISTIC_ONLY",
+  "rp_b3_terminal_classification": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE",
+  "specialist_lcvw": "UNKNOWN",
+  "asic_lab_disposition": "HOLD",
+  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
+  "physical_evidence_decision": {
+    "new_aws_fpga": "NOT_JUSTIFIED",
+    "reason": "The unresolved coefficients are standard-cell timing/power and memory/package economics; another FPGA datapoint does not resolve them.",
+    "minimum_eventual_physical_dependency": "Canonical Representative Device evidence across the already frozen four required device classes; do not substitute another AWS FPGA run."
+  },
+  "current_authority_closure": "CLOSED_WITH_RESIDUAL_ANALYTICAL_GAP",
+  "exact_next_frontier": {
+    "id": "RP-B3-T2",
+    "name": "ASAP7 STA/Power Closure on unchanged C6",
+    "status": "HUMAN_GATE_UNDER_CURRENT_NO_REPEAT_PPA_INSTRUCTION",
+    "minimum_scope": "One bounded non-production analytical rerun using unchanged parity-bound C6 and the already identified OpenSTA-native SDC compatibility repair, solely to obtain valid STA/power/placement evidence. No AWS FPGA, AFI, F2, physical benchmark, consensus change, or DP6 semantic edit."
+  },
+  "rules": [
+    "Evidence before status.",
+    "Fail closed.",
+    "Memory suggests. Evidence decides.",
+    "Absence of falsification is not proof of robustness."
+  ]
+}

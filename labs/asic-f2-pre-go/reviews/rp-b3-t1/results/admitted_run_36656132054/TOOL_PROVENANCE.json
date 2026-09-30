@@ -1,0 +1,43 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.tool_provenance.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "logical_attempt": 2,
+  "recovery_of_failed_run_id": 36654718186,
+  "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+  "synth_hdl_frontend": "slang",
+  "executor": {
+    "provider": "github-actions",
+    "run_id": "36656132054",
+    "run_attempt": "1",
+    "runner_os": "Linux",
+    "runner_arch": "X64"
+  },
+  "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+  "asap7_tree": "102f845a9d321d1a0f7db10434ad84e54c0334b5",
+  "asap7_content_sha256": "c95da2f5625ecd64bf13810a63474ab5fbfea19ddf701d88d985521080bdc426",
+  "container_image_id": "sha256:672b0d9aac1245b5755ea25887ea7b27518a97f18da6984e769573ef929e9796",
+  "container_repo_digest": "openroad/orfs@sha256:9eed01a3dc8030f423af6a3601c172459a4ddf8f76913db5e25febe3e7435d7a",
+  "tool_version_output": "orfs_commit=a12d46907510891a2e3d3310abdd19975d28db0e\nasap7_tree=102f845a9d321d1a0f7db10434ad84e54c0334b5\ncontainer_id=sha256:672b0d9aac1245b5755ea25887ea7b27518a97f18da6984e769573ef929e9796\ncontainer_digest=openroad/orfs@sha256:9eed01a3dc8030f423af6a3601c172459a4ddf8f76913db5e25febe3e7435d7a\nYosys 0.68+post (git sha1 UNKNOWN, Release, GNU /usr/local/bin/wrapped-cc/g++ 11.4.0)\nunknown \n",
+  "platform": {
+    "name": "ASAP7",
+    "role": "technology-calibrated predictive research platform; not production-foundry evidence",
+    "process_nm_predictive": 7,
+    "library_model": "NLDM",
+    "vt": "RVT",
+    "BC": {"temperature_C": 25, "voltage_V": 0.77},
+    "TC": {"temperature_C": 0, "voltage_V": 0.70},
+    "WC": {"temperature_C": 100, "voltage_V": 0.63}
+  },
+  "constraints": {
+    "full_2ns_ns": 2.0,
+    "full_1ns_ns": 1.0,
+    "rw5_2ns_ns": 2.0,
+    "argon_2ns_ns": 2.0,
+    "core_utilization_percent": 40,
+    "place_density": 0.60
+  },
+  "power_assumption": "OpenROAD/Liberty statistical activity unless explicit VCD/SAIF is present; predictive estimate only",
+  "reconstructed_export_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+  "reconstructed_export_bytes": 1045260,
+  "verilog_file_count": 143
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.admitted_artifact_manifest.v1",
+  "github_run_id": 36656132054,
+  "artifact_id": 11073562201,
+  "artifact_name": "fae-dp6-rp-b3-t1-asap7-evidence",
+  "artifact_size_bytes": 41064,
+  "artifact_sha256": "bd3a062c31614a1b089f42caae7c17929e9697f0d41f285c499c0cf036f5ddcb",
+  "head_sha": "1be683b465a061f0e666af8695d8b6604e615022",
+  "created_at": "2026-09-30T02:21:19Z",
+  "expires_at": "2026-10-30T02:21:18Z",
+  "admission": "ADMITTED_PARTIAL_PPA_EVIDENCE",
+  "job_level_conclusion": "failure",
+  "ppa_step_conclusion": "success",
+  "upload_step_conclusion": "success",
+  "persistence_step_conclusion": "failure",
+  "raw_file_sha256": {
+    "EXECUTION_RESULT.json": "08e50de9a5980727cf072ad7fb4ce50c16c2e6b3b692e98ad06ca8b921b49787",
+    "PPA_SIGNAL_EXTRACT.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "TOOL_PROVENANCE.json": "2ff5ba442dbd933d96ef4233ee946bdef9ea68c2e9f83b2d897e66ed41e67cea",
+    "logs/argon_2ns-synth.log": "6ea0874df992baf3d42a9970dcfeca0b7ccfea57423892bba6e45eb73fca8774",
+    "logs/argon_2ns-synth.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "logs/docker-pull.txt": "47375787becf2432fcdb5784bc05d2192fbb5c4948f8eaf21bac236c96759185",
+    "logs/full_1ns-synth.log": "8ffc72dbd4601f52a2d0ee2285556bbf5859ba4391984e7a15851fad3fafaa7e",
+    "logs/full_1ns-synth.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "logs/full_2ns-synth.log": "88d2966a65c97185e7feca47b67eb7975d1edfe57fa9ffe5f59cb2c3edcac303",
+    "logs/full_2ns-synth.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "logs/rw5_2ns-synth.log": "6c3dc9eb2ee2e6e5e8d0aabaa30747f434296f7ac326042f538510fb60e8cb65",
+    "logs/rw5_2ns-synth.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "logs/tool-versions.txt": "fe147116b1145be391c6af2060a676308274181db133502df8ae14369c100f65"
+  },
+  "persistence_note": "Compact durable results are materialized on the evidence branch. Raw logs remain identity-bound to the Actions artifact by artifact digest and per-file SHA-256."
+}

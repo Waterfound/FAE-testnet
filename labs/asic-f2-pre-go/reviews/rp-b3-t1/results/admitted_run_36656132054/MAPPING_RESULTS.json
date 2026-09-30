@@ -1,0 +1,80 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.asap7_mapping_results.v1",
+  "source_run_id": 36656132054,
+  "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+  "frontend": "slang",
+  "c6_integrity": "PASS",
+  "equivalence": "PASS_EQUIVALENCE",
+  "technology": "ASAP7 predictive FinFET 7nm research platform",
+  "mapping_admission": "PASS_TECHNOLOGY_MAPPING_BEFORE_SDC_GATE",
+  "views": {
+    "full_2ns_label": {
+      "requested_period_ns": 2.0,
+      "mapped_cells_reported": 589290,
+      "mapped_bits_reported": 569827,
+      "standard_cell_area_um2": 79597.7,
+      "standard_cell_area_mm2": 0.0795977,
+      "exported_odb_instances": 565842,
+      "exported_odb_nets": 453607,
+      "exported_odb_ports": 729,
+      "stage_rc": 2,
+      "timing_valid": false
+    },
+    "full_1ns_label": {
+      "requested_period_ns": 1.0,
+      "mapped_cells_reported": 589290,
+      "mapped_bits_reported": 569827,
+      "standard_cell_area_um2": 79597.7,
+      "standard_cell_area_mm2": 0.0795977,
+      "exported_odb_instances": 565842,
+      "exported_odb_nets": 453607,
+      "exported_odb_ports": 729,
+      "stage_rc": 2,
+      "timing_valid": false
+    },
+    "argon_2ns_label": {
+      "requested_period_ns": 2.0,
+      "mapped_cells_reported": 309700,
+      "mapped_bits_reported": 302595,
+      "standard_cell_area_um2": 42277.0,
+      "standard_cell_area_mm2": 0.042277,
+      "exported_odb_instances": 301864,
+      "exported_odb_nets": 246515,
+      "exported_odb_ports": 677,
+      "stage_rc": 2,
+      "timing_valid": false
+    },
+    "rw5_2ns_label": {
+      "requested_period_ns": 2.0,
+      "mapped_cells_reported": 78221,
+      "mapped_bits_reported": 71705,
+      "standard_cell_area_um2": 9316.05,
+      "standard_cell_area_mm2": 0.00931605,
+      "exported_odb_instances": 69164,
+      "exported_odb_nets": 58387,
+      "exported_odb_ports": 953,
+      "stage_rc": 2,
+      "timing_valid": false
+    }
+  },
+  "first_observable_divergence": {
+    "stage": "OpenSTA SDC read after technology mapping and ODB export",
+    "error": "constraint.sdc line 5: invalid command name remove_from_collection",
+    "classification": "HARNESS_CONSTRAINT_COMPATIBILITY_FAILURE",
+    "semantic_failure": false,
+    "frontend_failure": false,
+    "asic_infeasibility_proven": false
+  },
+  "derived_non_additive_observations": {
+    "argon_standalone_area_fraction_of_full": 0.5311334373,
+    "rw5_standalone_area_fraction_of_full": 0.1170391858,
+    "full_logic_vs_prior_256MiB_7nm_bitcell_only_area_ratio": 0.001372553,
+    "prior_256MiB_7nm_bitcell_only_area_is_about_x_full_logic": 728.4389
+  },
+  "epistemic_boundary": [
+    "Standalone submodule mapping areas are not additive decomposition of the full design.",
+    "No valid STA timing, critical-path, achieved frequency, placement/routing, or power result is admitted from this run.",
+    "1 ns and 2 ns labels yielding identical mapped area do not constitute clock sensitivity because SDC admission failed after mapping.",
+    "ASAP7 is predictive research calibration, not production-foundry silicon evidence."
+  ]
+}

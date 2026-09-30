@@ -1,0 +1,20 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.execution_result.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "logical_attempt": 2,
+  "recovery_of_failed_run_id": 36654718186,
+  "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+  "synth_hdl_frontend": "slang",
+  "integrity": "PASS",
+  "equivalence": "PASS_EQUIVALENCE",
+  "stages": {
+    "full_2ns_synth_rc": 2,
+    "rw5_2ns_synth_rc": 2,
+    "argon_2ns_synth_rc": 2,
+    "full_1ns_synth_rc": 2,
+    "full_2ns_route_attempt_rc": null,
+    "full_1ns_place_attempt_rc": null
+  },
+  "asic_lab_disposition": "HOLD",
+  "aws_used": false
+}
