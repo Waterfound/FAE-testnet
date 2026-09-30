@@ -1,0 +1,50 @@
+{
+  "schema": "FAE_MINING_AUTHORED_REFERENCE_CI_RECONCILIATION_V1",
+  "workstream_id": "fae-mining-authored-reference-001",
+  "pr": {
+    "number": 268,
+    "state": "OPEN_DRAFT",
+    "base": "design/fae-direction-d-plus-approval",
+    "head": "design/fae-mining-authored-reference-001"
+  },
+  "checks": {
+    "visual_language_lab": {
+      "run_id": 36662851504,
+      "conclusion": "SUCCESS",
+      "relevance": "DIRECT"
+    },
+    "codeql_security": {
+      "run_id": 36662851536,
+      "conclusion": "SUCCESS",
+      "relevance": "DIRECT_SECURITY_ASSURANCE"
+    },
+    "public_code_security_recurring_assurance": {
+      "run_id": 36662851506,
+      "conclusion": "SUCCESS",
+      "relevance": "DIRECT_SECURITY_ASSURANCE"
+    },
+    "cross_lab_integration_gate": {
+      "run_id": 36662851686,
+      "conclusion": "FAILURE",
+      "failed_step": "Require candidate to contain latest canonical main",
+      "classification": "EXPECTED_GENERIC_INTEGRATION_GATE_MISMATCH",
+      "reason": "This isolated art-direction candidate intentionally derives from the authoritative Direction D+ approval branch rather than claiming integration readiness against latest canonical main.",
+      "design_defect_proven": false,
+      "production_gate_effect": "NONE_BECAUSE_NO_PRODUCTION_OR_MAIN_INTEGRATION_IS_AUTHORIZED"
+    },
+    "verify_canonical_source": {
+      "run_id": 36662851491,
+      "state_at_human_gate": "IN_PROGRESS",
+      "classification": "REPOSITORY_WIDE_NONBLOCKING_FOR_ISOLATED_VISUAL_REVIEW"
+    },
+    "vercel_statuses": {
+      "state": "FAILURE",
+      "reason": "existing free-plan daily build-rate limit",
+      "relevance": "NONBLOCKING",
+      "replacement_preview": "AppDeploy isolated Studio is READY and browser-verified"
+    }
+  },
+  "disposition": "PASS_FOR_WATERFOUND_VISUAL_REVIEW",
+  "merge_readiness_claimed": false,
+  "main_integration_claimed": false
+}
