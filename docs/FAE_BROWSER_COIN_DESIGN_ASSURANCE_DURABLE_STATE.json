@@ -6,17 +6,16 @@
   "repository": "Waterfound/FAE-testnet",
   "branch": "colony/fae-browsercoin-design-assurance-001",
   "source_main_revision": "b00bbebca81a8f1085f7e61beddca862d8b5dfaa",
-  "last_reconciled_revision": "c79e131d87b4af35a1ce4415c7bfb59dcbb66cde",
-  "continuity_state": "CHECKPOINTED_RESUMABLE",
+  "last_reconciled_revision": "6856e6bd56ed406827042cafb1bf4ca459e0f2ad",
+  "continuity_state": "CHECKPOINTED_TECHNICAL_CLOSURE_WITH_RESIDUAL_GATES",
   "active_frontier": {
-    "id": "BDA-00",
-    "state": "verifying",
-    "objective": "Reconcile the recovered seven-commit execution body with canonical FAE evidence before accepting any challenge classification or further hardening."
+    "id": "BDA-06",
+    "state": "complete",
+    "objective": "Persist the consolidated Design Assurance matrix, machine-readable review artifact, final Durable checkpoint and exact evidence-bound terminal verdict."
   },
   "completed_frontiers": [
-    "BDA-LAUNCH-MATERIALIZED"
-  ],
-  "admissible_next": [
+    "BDA-LAUNCH-MATERIALIZED",
+    "BDA-00",
     "BDA-01",
     "BDA-02",
     "BDA-03",
@@ -24,19 +23,89 @@
     "BDA-05",
     "BDA-06"
   ],
+  "machine_readable_review": "docs/design-assurance/FAE_BROWSER_COIN_DESIGN_ASSURANCE_REVIEW_V1.json",
+  "review_summary": {
+    "challenges_analyzed": 7,
+    "no_action_from_this_review": 3,
+    "harden_existing_frontier": 3,
+    "new_frontier_justified": 0,
+    "research_required_only": 1
+  },
   "durable_runtime": {
     "repository": "Waterfound/General-Execution",
     "branch": "runtime/durable-asp-control",
-    "portfolio_id": "fae-browsercoin-design-assurance-001",
-    "bootstrap_event_id": "fae-browsercoin-design-assurance-bootstrap-001",
-    "event_state": "TO_BE_PERSISTED_BEFORE_SUBSTANTIVE_RESUME"
+    "portfolio_id": "fae-browsercoin-design-assurance",
+    "bootstrap_event_id": "fae-browsercoin-design-assurance-bootstrap-002",
+    "trigger_commit": "99064b4fb31d136a2b7b2f38b45b96a4b7df007f",
+    "processed_commit": "896d624f24c3a143f1524930829a16bb9a04fd95",
+    "event_state": "PROCESSED_BOOTSTRAPPED",
+    "event_report_digest": "sha256:fdd29d5583bccfbce3d669f77c10f96b509af9a1dfef9afea9449ec911ab17c1",
+    "post_state_digest": "sha256:a319c37f5fa757f3db92422ba4080edf385be4c6ff0df727a6c68b90a0100a77",
+    "authority_created": false,
+    "semantic_note": "The runtime bootstrap preserves resumability for admitted assurance work. Final review closure is recorded in this state and the dedicated General-Execution checkpoint without inventing an unsupported ASP transition."
   },
-  "recovered_work": {
-    "commit_count_after_baseline": 7,
-    "recovered_head": "a4028c8c26a6de11bb307fb915b89637f745d8bd",
-    "preserved": true,
-    "restart_from_zero": false
+  "verification": {
+    "candidate_revision": "93eaf13a68b3b8000b94499bf7060fe674fda6ca",
+    "github_actions": [
+      {
+        "name": "cross-lab-integration-gate",
+        "run_id": 36653906275,
+        "conclusion": "success"
+      },
+      {
+        "name": "psr15-project-assurance",
+        "run_id": 36653906291,
+        "conclusion": "success"
+      },
+      {
+        "name": "public-code-security-recurring-assurance",
+        "run_id": 36653906309,
+        "conclusion": "success"
+      },
+      {
+        "name": "codeql-security",
+        "run_id": 36653906280,
+        "conclusion": "success"
+      },
+      {
+        "name": "verify-canonical-source",
+        "run_id": 36653906279,
+        "conclusion": "success"
+      }
+    ]
   },
+  "residual_gates": [
+    {
+      "challenge": "specialized-hardware-resistance",
+      "kind": "external/tool-library",
+      "target": "RP-B3-T1"
+    },
+    {
+      "challenge": "normal-use/browser-lifecycle-parity",
+      "kind": "external-physical",
+      "target": "Representative Device Physical Autopilot / RPA-X1"
+    },
+    {
+      "challenge": "wallet-origin/key-compromise",
+      "kind": "shared-state-serialization",
+      "target": "Persistent Vault / signing-integrity hardening"
+    },
+    {
+      "challenge": "long-horizon-full-node-survivability",
+      "kind": "research-evidence",
+      "target": "Independent Node long-horizon scale/recovery evidence"
+    },
+    {
+      "challenge": "cold-start-infrastructure-independence",
+      "kind": "external-real-wan",
+      "target": "Peer Isolation/Eclipse + Independent Node cold-start evidence"
+    },
+    {
+      "challenge": "protocol-governance-survivability",
+      "kind": "research-evidence-reconstruction",
+      "target": "Mainnet Readiness governance evidence"
+    }
+  ],
   "authority_flags": {
     "dp6_changed": false,
     "consensus_changed": false,
@@ -49,11 +118,15 @@
     "destructive_infrastructure": false,
     "paid_provider_execution": false
   },
-  "stop_conditions": [
-    "genuine human/authority gate",
-    "genuine external-evidence/provider gate",
-    "technical/canonical closure"
+  "stop_conditions_reached": [
+    "technical closure of seven-challenge review",
+    "genuine external/tool-library gate for specialized-hardware evidence",
+    "genuine physical-device evidence gate for lifecycle parity",
+    "shared-state serialization gate for wallet signing-integrity implementation",
+    "research-before-implementation gate for long-horizon node scaling",
+    "genuine real-WAN/bootstrap-administration external evidence gate for cold start",
+    "bounded evidence reconstruction gate for governance survivability"
   ],
   "serialization_rule": "Parallelize independence. Serialize shared state.",
-  "terminal_state": null
+  "terminal_state": "DESIGN_ASSURANCE_REVIEW_TECHNICALLY_CLOSED_NO_NEW_FRONTIER_EXISTING_OWNER_HARDENING_AND_EXTERNAL_RESEARCH_GATES_REMAIN"
 }
