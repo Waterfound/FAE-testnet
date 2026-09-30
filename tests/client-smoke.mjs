@@ -207,7 +207,7 @@ assert.ok(indexHtml.includes('id="lastsendtxid"'),'send flow must expose a full 
 assert.ok(indexHtml.includes('src="/wallet-transactions.js"'),'wallet transaction contract adapter must load before the client');
 assert.ok(indexHtml.includes('id="sendstate" class="status" role="status" aria-live="polite"'),'send receipt feedback must be announced accessibly');
 
-for(const file of ['bip39-en.js','network-status.js','wallet-transactions.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
+for(const file of ['bip39-en.js','network-status.js','wallet-transactions.js','core.js','wallet-crypto.js','wallet-signing-intent.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
 await new Promise(resolve=>setTimeout(resolve,25));
