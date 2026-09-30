@@ -1,0 +1,172 @@
+{
+  "schema": "FAE_MAINNET_PARAMETER_READINESS_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-29",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-mainnet-parameter-readiness-001",
+  "source_main_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "workstream_id": "fae-mainnet-consensus-economic-parameter-readiness-001",
+  "launch_receipt": "gelr-f861324e9a34ac1473ef7c37",
+  "governing_rules": [
+    "Evidence before status.",
+    "Memory suggests. Evidence decides.",
+    "Documentation describes. Implementation repositories define executable truth.",
+    "Parallelize independence. Serialize shared state.",
+    "Close before expand."
+  ],
+  "authority_envelope": {
+    "owner": "Waterfound",
+    "may": [
+      "repository inspection",
+      "Build Colony",
+      "General Execution",
+      "Durable Execution",
+      "economic modeling",
+      "deterministic simulations",
+      "historical replay",
+      "static/source analysis",
+      "evidence reconciliation",
+      "Project Assurance",
+      "bounded Diagnostic Intelligence",
+      "documentation/evidence artifacts",
+      "read-only external research"
+    ],
+    "may_not": [
+      "consensus changes",
+      "economics changes",
+      "reward changes",
+      "block-time changes",
+      "maturity changes",
+      "emission changes",
+      "release",
+      "mainnet",
+      "activation height",
+      "public deployment",
+      "paid infrastructure",
+      "spending",
+      "destructive actions"
+    ]
+  },
+  "shared_state_rule": "Parallelize independence. Serialize shared state.",
+  "frontiers": [
+    {
+      "id": "MPR-00",
+      "name": "Execution admission and immutable source freeze",
+      "dependencies": [],
+      "state": "PASS"
+    },
+    {
+      "id": "MPR-01",
+      "name": "Executable active-testnet truth inventory",
+      "dependencies": [
+        "MPR-00"
+      ],
+      "state": "ACTIVE"
+    },
+    {
+      "id": "MPR-02",
+      "name": "Exact issuance and atomic-unit arithmetic",
+      "dependencies": [
+        "MPR-00"
+      ],
+      "state": "SECONDARY"
+    },
+    {
+      "id": "MPR-03",
+      "name": "Block-time evidence reconciliation: 180/300/600/900 and tested alternatives",
+      "dependencies": [
+        "MPR-01"
+      ],
+      "state": "ADMISSIBLE"
+    },
+    {
+      "id": "MPR-04",
+      "name": "Coinbase maturity and settlement semantics",
+      "dependencies": [
+        "MPR-01",
+        "MPR-03"
+      ],
+      "state": "QUEUED"
+    },
+    {
+      "id": "MPR-05",
+      "name": "DAA, low-hashrate, propagation, stale and reorg coupling",
+      "dependencies": [
+        "MPR-03"
+      ],
+      "state": "QUEUED"
+    },
+    {
+      "id": "MPR-06",
+      "name": "Fees, miner participation and long-run security-budget ranges",
+      "dependencies": [
+        "MPR-01",
+        "MPR-02",
+        "MPR-03"
+      ],
+      "state": "QUEUED"
+    },
+    {
+      "id": "MPR-07",
+      "name": "Fair-launch, genesis and issuance-integrity constraints",
+      "dependencies": [
+        "MPR-01"
+      ],
+      "state": "ADMISSIBLE"
+    },
+    {
+      "id": "MPR-08",
+      "name": "DP6/ASIC, HFB and representative-device dependency consumption",
+      "dependencies": [
+        "MPR-00"
+      ],
+      "state": "ADMISSIBLE"
+    },
+    {
+      "id": "MPR-09",
+      "name": "Stability Soak and network-evidence dependency consumption",
+      "dependencies": [
+        "MPR-00"
+      ],
+      "state": "ADMISSIBLE"
+    },
+    {
+      "id": "MPR-10",
+      "name": "Parameter dependency graph and unnecessary-coupling analysis",
+      "dependencies": [
+        "MPR-02",
+        "MPR-03",
+        "MPR-04",
+        "MPR-05",
+        "MPR-06",
+        "MPR-07",
+        "MPR-08",
+        "MPR-09"
+      ],
+      "state": "QUEUED"
+    },
+    {
+      "id": "MPR-11",
+      "name": "Independent Project Assurance challenge",
+      "dependencies": [
+        "MPR-10"
+      ],
+      "state": "QUEUED"
+    },
+    {
+      "id": "MPR-12",
+      "name": "Freeze-readiness verdict and exact non-executing freeze contract",
+      "dependencies": [
+        "MPR-11"
+      ],
+      "state": "QUEUED"
+    }
+  ],
+  "integration_policy": "Evidence artifacts may be written only under docs/fae-mainnet-parameter-readiness on this branch. No executable consensus/economics files may be modified.",
+  "terminal_claims_forbidden": [
+    "MAINNET_READY",
+    "PARAMETERS_ACTIVATED",
+    "CONSENSUS_CHANGED",
+    "ECONOMICS_CHANGED"
+  ]
+}
