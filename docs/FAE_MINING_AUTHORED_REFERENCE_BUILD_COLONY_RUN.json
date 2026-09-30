@@ -31,10 +31,10 @@
   "frontiers": [
     {"id":"MAR-00","name":"Authority and lineage reconstruction","state":"PASS"},
     {"id":"MAR-01","name":"Anti-generic design constraints and composition thesis","state":"PASS"},
-    {"id":"MAR-02","name":"PASS 1 — Mining composition reference implementation","state":"ACTIVE"},
-    {"id":"MAR-03","name":"Static/source validation","state":"PENDING"},
-    {"id":"MAR-04","name":"Isolated Studio deployment and browser verification","state":"PENDING"},
-    {"id":"MAR-05","name":"FAE Recognition Test","state":"PENDING_HUMAN_VISUAL_JUDGMENT"},
+    {"id":"MAR-02","name":"PASS 1 — Mining composition reference implementation","state":"PASS"},
+    {"id":"MAR-03","name":"Static/source validation","state":"PASS"},
+    {"id":"MAR-04","name":"Isolated Studio deployment and browser verification","state":"PASS"},
+    {"id":"MAR-05","name":"FAE Recognition Test / Waterfound composition review","state":"HUMAN_GATE"},
     {"id":"MAR-06","name":"PASS 2 — LIFE","state":"BLOCKED_BY_MAR_05"},
     {"id":"MAR-07","name":"PASS 3 — FINISH","state":"BLOCKED_BY_MAR_06"},
     {"id":"MAR-08","name":"CII grammar extraction","state":"BLOCKED_BY_REFERENCE_APPROVAL"}
@@ -61,6 +61,14 @@
     ],
     "new_compositional_move": "A large continuous computation field anchored by an oversized work-rate object, a quiet operational rail, and device performance embedded as instrument traces rather than cards."
   },
+  "evidence": {
+    "candidate_artifact": "design/mining-authored-reference/composition-pass-1.html",
+    "pass1_evidence": "docs/FAE_MINING_AUTHORED_REFERENCE_PASS1_EVIDENCE.json",
+    "studio_url": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "browser_qa_run_id": "414ed4dc-96bc-4ed5-ae22-0ea79e87f545",
+    "browser_qa": "PASS_13_OF_13",
+    "review_blockers": "NONE"
+  },
   "serialization_rule": "Parallelize independence. Serialize shared state.",
-  "status": "RUNNING"
+  "status": "HUMAN_GATE"
 }
