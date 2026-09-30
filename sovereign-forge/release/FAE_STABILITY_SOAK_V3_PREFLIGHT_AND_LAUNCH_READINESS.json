@@ -1,0 +1,226 @@
+{
+  "format": "FAE_STABILITY_SOAK_V3_PREFLIGHT_AND_LAUNCH_READINESS",
+  "recorded_at": "2026-09-30T01:54:00Z",
+  "source_of_truth": "Persisted repository/provider evidence; chat memory is non-authoritative.",
+  "terminal_classification": "CONDITION_WAIT",
+  "preflight_verified_and_launch_ready": false,
+  "reason": "Harness/control-plane preflight is verified, but the current zero-cost Render workspace is billing-suspended and free-hour quota clearance is not proven. Temporal checkpoint is also 2026-10-01.",
+  "reconstructed_v1": {
+    "verdict": "FAIL_INCOMPLETE",
+    "controller_revision": "f0710523a337dc4bea21224ca1532995d78ae86b",
+    "runner": "wan-lab/stability-soak-controller.mjs (FAE_STABILITY_SOAK_V1)",
+    "intended_duration_hours": {
+      "value": 96,
+      "basis": "V1 code default and 96h service/deploy naming",
+      "effective_override_proven": false
+    },
+    "start_end": {
+      "exact_started_at": null,
+      "exact_finished_at": null,
+      "deploy_started_at": "2026-09-12T04:39:26.873Z",
+      "documented_actual_duration_hours_approx": 4.004,
+      "provider_cpu_observation": "active workload through approximately 08:55Z, idle-like CPU from ~09:00Z",
+      "exact_run_timestamps_missing": true
+    },
+    "provider_environment": "Render free; coordinator Virginia; nodes Oregon/Frankfurt/Singapore",
+    "topology": "3 regional nodes + 1 coordinator",
+    "termination_observation": "Historical V2 protocol states one HTTP operation aborted/timed out; exact structured terminal report and exact request are not recovered.",
+    "chain": {
+      "last_checkpoint_height": 49,
+      "stales": 0,
+      "reorg_counts": [
+        0,
+        0,
+        0
+      ]
+    },
+    "latency_ms": {
+      "p50": 95,
+      "mean": 100.62,
+      "p95": 128,
+      "max": 196
+    },
+    "wilson_upper_95_approx": 0.0523,
+    "availability_liveness": "Long-running controller workload ceased before intended duration; provider process remained observable after the measurement loop stopped.",
+    "missing_evidence": [
+      "exact report.startedAt/finishedAt",
+      "terminal structured event/log",
+      "exact aborted request/path",
+      "effective V1 FAE_SOAK_HOURS environment value"
+    ],
+    "failure_domain": "UNKNOWN; observed symptom lies at HTTP transport/harness boundary",
+    "cause_proven": false
+  },
+  "reconstructed_v2": {
+    "verdict": "FAIL_OR_INCOMPLETE_NO_FINAL_PASS_EVIDENCE",
+    "controller_revision": "d84399c7eaa25fea5bdad0a32146e14c8b9c7645",
+    "frozen_protocol_revision": "91b74aac1a565a8d3be46bee902c931b995a9024",
+    "runner": "wan-lab/stability-soak-controller.mjs (FAE_STABILITY_SOAK_V2)",
+    "intended_duration_hours": 24,
+    "start_end": {
+      "first_checkpoint_at": "2026-09-13T11:35:41.719Z",
+      "extraordinary_service_deploy_live_at": "2026-09-13T11:42:46.758984Z",
+      "exact_terminal_at": null,
+      "provider_cpu_first_observable_idle_transition": "between 2026-09-14T03:45Z and 03:50Z on fae-stability-soak-24h-extraordinary",
+      "exact_actual_duration_hours": null
+    },
+    "configuration": {
+      "request_timeout_seconds": 12,
+      "request_attempts": 4,
+      "max_transient_outage_seconds": 180
+    },
+    "provider_environment": "Render free; nodes Oregon/Frankfurt/Singapore; coordinator Virginia; separate extraordinary coordinator Ohio also deployed.",
+    "topology": "3 regional nodes + coordinator; frozen V2 protocol retained natural timing/stale/reorg/propagation/reliability metrics.",
+    "first_checkpoint": {
+      "height": 0,
+      "stale_blocks": 0,
+      "reorg_counts": [
+        0,
+        0,
+        0
+      ],
+      "transient_events": 0,
+      "max_transient_outage_seconds": 0
+    },
+    "termination_observation": "No final PASS artifact is recovered. Provider CPU evidence shows the active measurement workload ceased materially before the 24h target while the service process remained resident.",
+    "missing_evidence": [
+      "terminal FAE_STABILITY_SOAK_COMPLETE/FAILED report",
+      "final height/stale/reorg/latency values",
+      "exact terminal error",
+      "provider application logs (current Render log query returned no historical rows)"
+    ],
+    "failure_domain": "UNKNOWN",
+    "cause_proven": false
+  },
+  "failure_ledger": {
+    "V1": {
+      "OBSERVED_FAILURE": "Incomplete run after HTTP abort/timeout symptom before target duration.",
+      "FIRST_OBSERVABLE_DIVERGENCE": "HTTP operation abort documented by frozen V2 protocol; exact timestamp/path unavailable.",
+      "CAUSE_PROVEN": false,
+      "RECURRENCE_RISK_IN_V3": "Single transient request abort should no longer terminate V3 directly, but original root cause remains unknown.",
+      "MITIGATION_STATUS": "PARTIALLY_COVERED"
+    },
+    "V2": {
+      "OBSERVED_FAILURE": "No complete 24h PASS evidence; measurement workload becomes idle before target.",
+      "FIRST_OBSERVABLE_DIVERGENCE": "Provider CPU for extraordinary V2 controller drops from active-loop level at 03:45Z to idle-like level at 03:50Z on 2026-09-14.",
+      "CAUSE_PROVEN": false,
+      "RECURRENCE_RISK_IN_V3": "Unknown root cause; V3 adds restart-aware nodes, dual monitors, fail-closed coverage and explicit recovery evidence.",
+      "MITIGATION_STATUS": "CAUSE_UNKNOWN"
+    }
+  },
+  "current_v3": {
+    "prior_state": "PREPARED_NOT_STARTED",
+    "operational_branch": "render-wan-lab",
+    "tested_revision": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+    "frozen_runtime_base": "140be01baff5a770263f81a13b728e63b0ce02cb",
+    "software_revision": "745faec3c2ee3fd214199b60293f46e7b9d5a92b",
+    "run_id": "FAE-STABILITY-SOAK-V3-20261001-001",
+    "run_started": false
+  },
+  "preflight_checks": {
+    "github_actions_run": 36657167384,
+    "result": "PASS",
+    "passed": [
+      "exact revision binding",
+      "syntax/config validation",
+      "frozen analyzer regressions",
+      "terminal classification regressions",
+      "prestart fail-closed tests",
+      "Render capacity proof tests",
+      "zero-cost candidate invariants",
+      "SIGKILL + total ephemeral-state recovery",
+      "96h-sized chain bootstrap under 180s",
+      "node/controller/observer smoke",
+      "embedded-controller fallback tests",
+      "observer telemetry tests",
+      "atomic raw-state replacement/checkpoint binding",
+      "side-effect-free preflight"
+    ],
+    "non_soak": true
+  },
+  "harness_repair": {
+    "scope": "evidence/result classification only",
+    "change": "V3 analyzer now fail-closes on missing/malformed propagation evidence, P95 >=5s, observed stale rate >=1%, invalid timestamps/final chain, absent chain progression, and malformed reorg accounting; terminal classifier distinguishes PASS/FAIL/INCONCLUSIVE/PROVIDER_FAILURE/HARNESS_FAILURE/EVIDENCE_INCOMPLETE.",
+    "fae_behavior_changed": false
+  },
+  "regression_guards": [
+    {
+      "failure_mode": "V1 one-shot HTTP abort",
+      "status": "PARTIALLY_COVERED",
+      "evidence": "V2 bounded transport policy + V3 monitor/recovery tests; root cause not proven"
+    },
+    {
+      "failure_mode": "transient RPC/network interruption <=180s",
+      "status": "COVERED",
+      "evidence": "readiness regression + monitor runtime"
+    },
+    {
+      "failure_mode": "recovery >180s",
+      "status": "COVERED",
+      "evidence": "hard fail regression"
+    },
+    {
+      "failure_mode": "process crash/restart and ephemeral state loss",
+      "status": "COVERED",
+      "evidence": "real SIGKILL recovery + scale tests"
+    },
+    {
+      "failure_mode": "missing/malformed metrics",
+      "status": "COVERED",
+      "evidence": "EVIDENCE_INCOMPLETE regression"
+    },
+    {
+      "failure_mode": "latency measurement silently omitted from verdict",
+      "status": "COVERED",
+      "evidence": "new P95 fail-closed gate"
+    },
+    {
+      "failure_mode": "stale observed rate silently omitted from verdict",
+      "status": "COVERED",
+      "evidence": "new observed-rate + Wilson gates"
+    },
+    {
+      "failure_mode": "V2 early workload cessation",
+      "status": "CAUSE_UNKNOWN",
+      "evidence": "current V3 coverage/recovery guards exist, but V2 root cause remains unproven"
+    }
+  ],
+  "frozen_success_contract": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_SUCCESS_CONTRACT.json",
+  "provider_readiness": {
+    "provider": "Render",
+    "plan": "free",
+    "required_services": 5,
+    "current_services_free": true,
+    "current_workspace_suspended": true,
+    "suspender": "billing",
+    "required_free_hours": 540,
+    "quota_clear_proven": false,
+    "billing_action_authorized": false,
+    "verdict": "CONDITION_WAIT"
+  },
+  "launch_package": "sovereign-forge/release/FAE_STABILITY_SOAK_V3_LAUNCH_PACKAGE.json",
+  "durable_checkpoint": {
+    "wake_date": "2026-10-01",
+    "wake_condition": "Recheck zero-cost Render state; require unsuspended workspace, five free services, >=540 proven free hours, exact tested revision and GREEN prestart.",
+    "next_action": "Read-only provider recheck and prestart admission; automatically launch only if every zero-cost/authority condition is positively satisfied.",
+    "no_background_claim": true
+  },
+  "unresolved_risks": [
+    "V1 exact root cause remains unproven.",
+    "V2 exact terminal cause and final scientific metrics are not recoverable from currently accessible logs.",
+    "Render workspace is currently billing-suspended and free-hour clearance for October is not yet proven."
+  ],
+  "exact_next_action": "At/after 2026-10-01, recheck Render zero-cost eligibility/capacity and all five service prestart gates against ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d. If any zero-cost condition fails, remain CONDITION_WAIT; do not spend or use paid fallback.",
+  "exact_wake_condition": "2026-10-01 checkpoint AND Render unsuspended AND five required services plan=free AND >=540 free instance-hours proven AND exact revision/health/prestart gates GREEN.",
+  "authority_boundary": {
+    "new_spend": false,
+    "paid_fallback": false,
+    "consensus_changes": false,
+    "economics_changes": false,
+    "release": false,
+    "production_mainnet": false,
+    "activation_height": false,
+    "criteria_weakening": false,
+    "destructive_infrastructure": false
+  }
+}
