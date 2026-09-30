@@ -1,0 +1,41 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.equivalence.v1",
+  "run_id": "fae-dp6-rp-b3-t1-asap7-001",
+  "reconstruction": {
+    "part_count": 8,
+    "reconstructed_bytes": 1045260,
+    "reconstructed_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "expected_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "zip_entries": 328,
+    "verdict": "PASS_INTEGRITY"
+  },
+  "semantic_chain": {
+    "frozen_hls_blob": "ea1ab21fbf359adc35955c42ea8e137707c37b6d",
+    "c6_source_parity": {
+      "canonical": "PASS",
+      "vectors": "16/16 PASS"
+    },
+    "hls_export": {
+      "sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+      "stage": "PASS_CSIM_CSYNTH_EXPORT_BINDING"
+    },
+    "physical_candidate": {
+      "id": "C6-ROTR64-HLS-INLINE",
+      "timing": "PASS",
+      "same_export_sha256": true
+    },
+    "afi": "afi-0dac1ced9e125e5d9",
+    "executed_f2_parity": {
+      "canonical_full_160_bytes": "PASS",
+      "vectors": "16/16 PASS"
+    }
+  },
+  "evidence_refs": [
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/physical-timing-verification/RESULT.json",
+    "labs/asic-f2-pre-go/build-colony/timing-hardening-001/afi-admission/CREATE_RESULT.json",
+    "labs/asic-f2-pre-go/runtime/F2_SINGLE_LANE_BASELINE_RESULT.json"
+  ],
+  "verdict": "PASS_EQUIVALENCE",
+  "proof_kind": "HASH_BOUND_EXECUTED_CANONICAL_PARITY_CONTRACT",
+  "epistemic_boundary": "The exact reconstructed generated RTL archive is hash-bound to the frozen C6 HLS source and to previously executed canonical full-160 plus 16/16 parity. This is not a theorem proving equivalence for all possible inputs beyond the frozen parity contract."
+}
