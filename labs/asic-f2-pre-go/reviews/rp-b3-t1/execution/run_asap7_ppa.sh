@@ -82,7 +82,7 @@ current_design $top
 set clk_period $period
 set clk_port [get_ports ap_clk]
 create_clock -name core_clock -period \$clk_period \$clk_port
-set non_clock_inputs [remove_from_collection [all_inputs] \$clk_port]
+set non_clock_inputs [all_inputs -no_clocks]
 set_input_delay [expr \$clk_period * 0.10] -clock core_clock \$non_clock_inputs
 set_output_delay [expr \$clk_period * 0.10] -clock core_clock [all_outputs]
 EOF
