@@ -1,0 +1,36 @@
+{
+  "schema": "FAE_B6_MATURITY_AND_LAUNCH_TARGET_DECISION_CONTRACT_V1",
+  "status": "ANALYTICAL_MODEL_CLOSED_POLICY_NOT_SELECTED",
+  "maturity_contract": {
+    "implementation_form_supported_by_current_candidate": "fixed creation-to-spend height distance N",
+    "derivation_mode": "N is derived from selected nominal-time objective W and/or selected minimum height distance D after target T is chosen.",
+    "direct_numeric_selection_required": false,
+    "normative_Waterfound_choices": [
+      "settlement objective: nominal time W, minimum height distance D, or hybrid",
+      "the actual W and/or D values",
+      "whether all coinbase-origin value, including any miner-paid fees, shares one maturity rule"
+    ],
+    "externally_informed_inputs": [
+      "block target and DAA selection",
+      "reorg, partition and recovery evidence",
+      "any later adversarial assumptions used to define D"
+    ]
+  },
+  "launch_target_contract": {
+    "mechanism": "CLOSED",
+    "numerical_value": "UNSET",
+    "normative_Waterfound_choices": [
+      "launch calibration population and H_ref aggregation rule",
+      "optional explicit calibration margin/tolerance"
+    ],
+    "external_input": "provenance-bound real launch work-rate evidence"
+  },
+  "no_silent_defaults": [
+    "200 blocks",
+    "16h40m",
+    "an external chain's maturity number",
+    "timestamp-based maturity",
+    "any H_ref",
+    "any calibration margin"
+  ]
+}
