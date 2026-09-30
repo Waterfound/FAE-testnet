@@ -1,0 +1,40 @@
+{
+  "schema": "fae.dp6.rp_b3_t1.attempt_recovery.v1",
+  "recovery_id": "rp-b3-t1-attempt2-slang-recovery-001",
+  "logical_attempt": 2,
+  "original_failed_run_id": 36654718186,
+  "original_failure": "Yosys default Verilog frontend rejected unchanged Vitis-generated RTL: procedural for-loop second expression not constant.",
+  "diagnosis_boundary": "Frontend compatibility divergence only; not evidence of DP6 semantic, ASIC, or synthesis impossibility.",
+  "malformed_checkpoint_commit": "833c7c20f9aff255c8db8e11deaebb0695535eca",
+  "malformed_workflow_repair_commit": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
+  "intermediate_run": {
+    "run_id": 36655645920,
+    "head_sha": "a3a8e5db5aa3d2235802f9907a180d93115d7538",
+    "admissibility": "NOT_ADMISSIBLE_AS_ATTEMPT_2_SLANG",
+    "reason": "Executor at this revision did not bind SYNTH_HDL_FRONTEND=slang; it could repeat the default read_verilog frontend."
+  },
+  "intended_attempt_2": {
+    "source_revision": "1be683b465a061f0e666af8695d8b6604e615022",
+    "repair": "Add SYNTH_HDL_FRONTEND=slang to generated ORFS config; preserve exact prefixed Vitis module names; add attempt/source/frontend provenance only.",
+    "behavioral_rtl_edits": false,
+    "expected_c6_sha256": "c0bf48c3864b72352ba57a2d6c17175c1c6a59dffae52c8fa73a5d346bc60a33",
+    "orfs_commit": "a12d46907510891a2e3d3310abdd19975d28db0e",
+    "platform": "ASAP7 predictive FinFET 7nm research platform",
+    "asic_lab": "HOLD",
+    "aws_fpga_used": false
+  },
+  "acceptance_order": [
+    "C6 identity PASS",
+    "tool/library provenance PASS",
+    "slang frontend accepts unchanged C6 RTL",
+    "synthesis matrix",
+    "place/route calibration only if synthesis admissible",
+    "separable RW5/Argon/BlaMka views when valid",
+    "terminal PPA artifact"
+  ],
+  "epistemic_rules": [
+    "Evidence before status.",
+    "First observable divergence != root-cause proof.",
+    "conversation interruption != development interruption"
+  ]
+}
