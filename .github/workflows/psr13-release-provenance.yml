@@ -38,7 +38,7 @@ jobs:
       NODE_BASE: node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
     steps:
       - name: Checkout primary candidate
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.TARGET_SHA }}
           fetch-depth: 0
@@ -60,13 +60,13 @@ jobs:
         run: node sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs
 
       - name: Checkout clean room A
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.TARGET_SHA }}
           fetch-depth: 0
           path: clean-a
       - name: Checkout clean room B
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.TARGET_SHA }}
           fetch-depth: 0

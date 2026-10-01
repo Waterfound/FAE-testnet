@@ -22,29 +22,29 @@ jobs:
       D_SHA: 848fbd89bc1a0bf565b20b7d14ac2890b837e8c0
     steps:
       - name: Checkout verifier
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: verifier
       - name: Checkout frozen A baseline
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: e3e66f2ca43a4ff071a538cbeae6b9ddc68dc510
           fetch-depth: 0
           path: base
       - name: Checkout frozen Worker B
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: 46aa7de21a658a26c4607ad7514fcce210ef9568
           fetch-depth: 0
           path: b
       - name: Checkout frozen Worker C
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: 99364b91a75c04413cd63d8d44088e2487eb64d6
           fetch-depth: 0
           path: c
       - name: Checkout frozen Worker D
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: 848fbd89bc1a0bf565b20b7d14ac2890b837e8c0
           fetch-depth: 0
