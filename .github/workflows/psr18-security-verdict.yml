@@ -48,7 +48,7 @@ jobs:
 
       - name: Preserve PSR-18 verdict evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-psr18-security-verdict
           path: ${{ runner.temp }}/psr18-security-verdict.json

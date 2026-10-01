@@ -44,7 +44,7 @@ jobs:
         run: node scripts/psr15-project-assurance.mjs --out "$RUNNER_TEMP/psr15-project-assurance-report.json"
 
       - name: Preserve PSR-15 campaign report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-psr15-project-assurance
           path: ${{ runner.temp }}/psr15-project-assurance-report.json
