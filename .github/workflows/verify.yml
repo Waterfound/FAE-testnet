@@ -42,6 +42,8 @@ jobs:
           node --check mining.js
           node --check coordinator-trust.js
           node --check network-status.js
+          node --check standalone/mining-core.mjs
+          node --check standalone/fae-miner.mjs
           node --check sovereign-forge/browser/coordinator-trust.js
           node --check sovereign-forge/node/fae-node-v6-candidate.mjs
           node --check sovereign-forge/node/fae-share-coordinator-v1-candidate.mjs
@@ -78,6 +80,14 @@ jobs:
           node tests/mining-coordinator-smoke.mjs
           node tests/coordinator-trust-smoke.mjs
           node tests/coordinator-rotation-smoke.mjs
+
+      - name: Verify sovereign standalone miner package, core and operational behavior
+        run: |
+          npm ci --prefix standalone
+          npm run --prefix standalone check
+          node --test tests/standalone-mining-core.test.mjs
+          node --test tests/standalone-miner-behavior.test.mjs
+          node --test tests/standalone-miner-process-restart.test.mjs
 
       - name: Verify public-code security contracts
         run: node tests/public-code-security-contract.mjs
@@ -139,6 +149,9 @@ jobs:
 
       - name: Mine and validate isolated smoke block
         run: node sovereign-forge/tests/smoke-independent-node.mjs
+
+      - name: Mine through first-class standalone miner against isolated independent node
+        run: node --test tests/standalone-miner-independent-node.test.mjs
 
       - name: Verify historical bootstrap boundary
         run: node sovereign-forge/tests/sync-legacy-bootstrap.mjs

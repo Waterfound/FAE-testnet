@@ -47,22 +47,34 @@ console.log("visual-language contract: PASS");
 
 const product=fs.readFileSync(path.join(root,"index.html"),"utf8");
 assert.match(product,/data-direction-d="true"/);
+assert.match(product,/data-authorship-propagation="product-wallet-v1"/);
 assert.match(product,/class="fae-topper"/);
 assert.match(product,/class="ticker-viewport"/);
-assert.match(product,/id="height"/);
+assert.match(product,/class="product-shell-head"/);
+assert.match(product,/aria-label="Product modes"/);
+assert.match(product,/Block Height <b id="height">/);
 assert.match(product,/id="issued"/);
 assert.match(product,/id="reward"/);
 assert.match(product,/id="difficulty"/);
-assert.match(product,/Proof of work, in your hands\./);
+assert.doesNotMatch(product,/class="fae-hero"/);
+assert.doesNotMatch(product,/Valueless testnet coins/);
 assert.doesNotMatch(product,/class="card metrics-card"/);
+assert.ok(product.indexOf('id="tab-wallet"') < product.indexOf('id="tab-mining"'),"Wallet mode must precede Mining in the authored product shell");
 
-const walletSurface=fs.readFileSync(path.join(root,"index.html"),"utf8");
-assert.match(walletSurface,/A wallet you hold, not an account you borrow\./);
-assert.match(walletSurface,/Local keys/);
-assert.match(walletSurface,/Local signing/);
-assert.match(walletSurface,/Full TXID is visible/);
+const walletSurface=product.slice(product.indexOf('id="panel-wallet"'),product.indexOf('<p class="footer-note">'));
+assert.match(walletSurface,/Wallet \/ quiet ownership/);
+assert.match(walletSurface,/<h1 id="wallet-surface-title">Wallet<\/h1>/);
+assert.match(walletSurface,/Possession should feel quiet\./);
+assert.match(walletSurface,/Custody<\/span>\s*<strong>Local<\/strong>/);
+assert.match(walletSurface,/No implicit Wallet creation\./);
+assert.match(walletSurface,/choose New Wallet and verify the complete 24-word backup/);
+assert.doesNotMatch(walletSurface,/class="card"/);
+assert.match(walletSurface,/id="action-create"/);
+assert.match(walletSurface,/id="action-recovery"/);
+assert.match(walletSurface,/id="wallet-connected-state"/);
 assert.match(walletSurface,/id="backup"/);
 assert.match(walletSurface,/id="lastsendtx"/);
+assert.match(walletSurface,/id="walletlist"/);
 
 const miningProduct=fs.readFileSync(path.join(root,"index.html"),"utf8");
 const miningRuntime=fs.readFileSync(path.join(root,"mining.js"),"utf8");
@@ -85,6 +97,7 @@ function contrast(a,b){
 assert.ok(contrast('#17191d','#ffffff')>=7,'primary text must meet enhanced contrast on white');
 assert.ok(contrast('#68707b','#ffffff')>=4.5,'muted body text must meet AA contrast on white');
 assert.ok(contrast('#1769ff','#ffffff')>=4.5,'blue active color must meet AA contrast on white');
+assert.ok(contrast('#16794b','#ffffff')>=4.5,'green confirmed/safe color must meet AA contrast on white');
 assert.ok(contrast('#1a130d','#f47a20')>=4.5,'orange topper foreground must meet AA contrast');
 
 assert.match(product,/:focus-visible/);
@@ -93,7 +106,7 @@ assert.match(product,/role="status" aria-live="polite"/);
 assert.match(product,/@media\(max-width:760px\)/);
 assert.match(product,/@media\(max-width:420px\)/);
 
-console.log('Direction D cross-product accessibility contract: PASS');
+console.log('Authored Product Shell + Wallet accessibility contract: PASS');
 
 const primitives=JSON.parse(fs.readFileSync(path.join(root,"design/proven-primitives.json"),"utf8"));
 assert.equal(primitives.status,"PROVEN_IN_ADMITTED_REAL_SURFACES");

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f47a20">
-<title>Fairyelf FAE Public Testnet</title>
+<title>FAE Web Interface</title>
 <style>
 :root{color-scheme:light;--orange:#f47a20;--orange-deep:#bd4f08;--blue:#1769ff;--blue-soft:#eaf1ff;--blue-deep:#0c4cc4;--bg:#f6f7f9;--surface:#fff;--surface-2:#f4f6f8;--line:#d9dde3;--line-strong:#aeb6c2;--text:#17191d;--muted:#68707b;--danger:#b42318;--warning:#8a4b08;--success:#16794b;--focus:#1769ff}
 *{box-sizing:border-box}
@@ -74,48 +74,115 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
 @media(max-width:760px){.product-intro{grid-template-columns:1fr}.topper-head{align-items:flex-start}.brand-lockup span{display:none}.topper-status{max-width:66%}.ticker-track{animation-duration:28s}.fae-hero{grid-template-columns:1fr;gap:18px}.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:92px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
 @media(max-width:420px){main{padding-inline:12px}.card{padding:14px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.topper-head{padding-inline:12px}.ticker-track{gap:22px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}.ticker-viewport{overflow-x:auto}.ticker-track{animation:none;padding-left:18px}#panel-mining:has(#stop:not(:disabled)) .mining-activity-fill{animation:none;transform:scaleX(.58)}}
+
+/* AUTHORED PRODUCT SHELL + WALLET — controlled propagation from approved Mining grammar. */
+html{font-variant-numeric:tabular-nums lining-nums}
+.fae-topper{box-shadow:none}
+.topper-head{min-height:39px;padding:6px 22px}
+.brand-lockup{align-items:center}.brand-lockup b{font-size:18px;letter-spacing:-.035em}
+.topper-status{flex-wrap:nowrap}
+.ticker-viewport{background:#fff;color:#24304c;border-top:1px solid rgba(92,40,0,.13);border-bottom:1px solid #edf0f3}
+.ticker-track{gap:26px;padding:8px 0 8px 100vw;font-size:10px;letter-spacing:.025em;text-transform:uppercase;animation-duration:40s}
+.ticker-track b{font-size:10px;color:#24304c}
+main{max-width:1180px;min-height:calc(100vh - 72px);padding:0 28px 64px;background:#fff;border-inline:1px solid #edf0f3}
+.product-shell-head{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line);padding:0 2px}
+.product-shell-title{display:flex;align-items:baseline;gap:12px}.product-shell-title>span{font-size:15px;font-weight:840;letter-spacing:-.02em}.product-shell-title small{font-size:11px;color:var(--muted)}
+.environment-tabs.authored-mode-switch{position:static;top:auto;z-index:auto;display:flex;grid-template-columns:none;gap:7px;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.authored-mode-switch .environment-tab{min-height:32px;padding:0 13px;border:1px solid #dfe4ea;border-radius:5px;background:#fff;color:#616b77;font-size:12px;font-weight:780}
+.authored-mode-switch .environment-tab:hover:not(:disabled){background:#fafbfc;border-color:#c8d0da}
+.authored-mode-switch .environment-tab[aria-selected="true"]{background:#f7fbff;border-color:var(--blue);color:var(--blue-deep);box-shadow:none}
+#panel-mining{padding-top:30px}
+#panel-wallet{padding-top:34px}
+.wallet-stage-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,.42fr);gap:54px;align-items:start;margin-bottom:24px}
+.wallet-stage-copy{max-width:690px}.wallet-stage-head h1{font-size:32px;line-height:1;margin:6px 0 10px;letter-spacing:-.04em;font-weight:830}.wallet-stage-head p{max-width:650px;color:#67717e;margin:0}
+.wallet-presence{border-top:1px solid var(--text);padding-top:12px;display:grid;grid-template-columns:1fr auto;column-gap:20px;row-gap:5px;align-items:baseline}
+.wallet-presence .presence-label{font:760 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;text-transform:uppercase;letter-spacing:.08em;color:#7a8490}
+.wallet-presence strong{font-size:26px;line-height:1;letter-spacing:-.04em}.wallet-presence small{grid-column:1/-1;color:#737d89}
+.wallet-admission-rule{margin:0 0 30px;padding:12px 0;border-block:1px solid #edf0f3;color:#616b77;font-size:12px}
+.wallet-admission-rule strong{color:#242a31}
+#panel-wallet>.stack,#wallet-connected-state{gap:0}
+#panel-wallet .wallet-section{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:22px 0;box-shadow:none}
+#panel-wallet .wallet-entry-section{border-top-color:var(--text);max-width:780px;padding-top:18px}
+#panel-wallet .wallet-entry-buttons{max-width:420px;gap:8px}
+#panel-wallet .wallet-entry-buttons .wallet-action{text-align:left}
+#panel-wallet #wallet-connected-state>.wallet-section:first-child{border-top-color:var(--text)}
+#panel-wallet #wallet-connected-state>.panel-grid{grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:48px;border-top:1px solid var(--text)}
+#panel-wallet #wallet-connected-state>.panel-grid>.wallet-section{border-top:0;padding-top:22px}
+#panel-wallet .address-head{align-items:flex-start}
+#panel-wallet .balance{font-size:clamp(42px,6vw,64px);line-height:.92;font-weight:840;letter-spacing:-.055em;margin:0}
+#panel-wallet .wallet-list{gap:0;margin-top:8px}
+#panel-wallet .wallet-row{border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0;background:transparent}
+#panel-wallet .wallet-row:last-child{border-bottom:1px solid var(--line)}
+#panel-wallet .wallet-row.active{border-color:var(--blue);background:transparent;box-shadow:inset 3px 0 0 var(--blue);padding-left:11px}
+#panel-wallet .active-mark{color:var(--blue-deep)}
+#panel-wallet .status{background:transparent;border-top:1px solid #edf0f3;border-left:3px solid var(--blue);border-radius:0;padding:9px 0 9px 11px}
+#panel-wallet .status.ok{border-left-color:var(--success);color:#0c603b}
+#panel-wallet .status.bad{border-left-color:var(--danger)}
+#panel-wallet .backup{box-shadow:none;border-radius:5px}
+#panel-wallet .transaction-row,#panel-wallet .block-row{border-radius:4px;box-shadow:none}
+#panel-wallet .action-panel{border-top-color:#edf0f3}
+#panel-wallet .advanced-recovery{border-top-color:#edf0f3}
+#panel-wallet button{transition:border-color .16s ease,background-color .16s ease,color .16s ease,transform .12s ease}
+#panel-wallet button:active:not(:disabled){transform:translateY(1px)}
+#panel-wallet .notice{border-radius:5px}
+.footer-note{padding-top:18px;border-top:1px solid var(--line);text-align:left}
+@media(max-width:760px){
+  main{padding-inline:18px;border-inline:0}
+  .topper-head{padding-inline:18px}
+  .product-shell-head{min-height:58px;gap:14px}
+  .product-shell-title small{display:none}
+  .wallet-stage-head{grid-template-columns:1fr;gap:24px}
+  #panel-wallet #wallet-connected-state>.panel-grid{grid-template-columns:1fr;gap:0}
+  #panel-wallet #wallet-connected-state>.panel-grid>.wallet-section+ .wallet-section{border-top:1px solid var(--line)}
+  .wallet-presence{max-width:440px}
+}
+@media(max-width:420px){
+  main{padding-inline:12px}
+  .topper-head{padding-inline:12px}
+  .product-shell-head{align-items:center}
+  .product-shell-title>span{font-size:13px}
+  .authored-mode-switch .environment-tab{padding-inline:10px}
+  #panel-wallet{padding-top:27px}
+  .wallet-stage-head h1{font-size:28px}
+  #panel-wallet .balance{font-size:46px}
+}
+@media(prefers-reduced-motion:reduce){
+  #panel-wallet button{transition:none!important}
+  .ticker-track{animation:none!important;padding-left:18px}
+  .network-dot{animation:none!important}
+}
+
 </style>
 </head>
-<body data-direction-d="true">
+<body data-direction-d="true" data-authorship-propagation="product-wallet-v1">
 <header class="fae-topper" aria-label="FAE network broadcast">
   <div class="topper-head">
-    <div class="brand-lockup"><b>FAE</b><span>Fairyelf Public Testnet</span></div>
+    <div class="brand-lockup"><b>FAE</b></div>
     <div class="topper-status">
       <div id="netstatus" class="network-status is-connecting" data-state="connecting" role="status" aria-live="polite"><span class="network-dot" aria-hidden="true"></span><span data-network-label>Connecting…</span></div>
-      <span class="pill warn">Valueless testnet coins</span>
     </div>
   </div>
   <div class="ticker-viewport" role="region" aria-label="Live network ticker" tabindex="0">
     <div class="ticker-track">
-      <span>Block <b id="height">—</b></span><i class="ticker-sep">◆</i>
+      <span>Block Height <b id="height">—</b></span><i class="ticker-sep">◆</i>
       <span>Supply <b id="issued">—</b></span><i class="ticker-sep">◆</i>
       <span>Reward <b id="reward">—</b></span><i class="ticker-sep">◆</i>
       <span>Difficulty <b id="difficulty">—</b></span><i class="ticker-sep">◆</i>
-      <span id="runtime">Connecting…</span><i class="ticker-sep">◆</i>
-      <span aria-hidden="true">Device-local PoW</span><i class="ticker-sep" aria-hidden="true">◆</i>
-      <span aria-hidden="true">Non-custodial wallet</span><i class="ticker-sep" aria-hidden="true">◆</i>
-      <span aria-hidden="true">Public shared network</span>
+      <span id="runtime">Connecting…</span>
     </div>
   </div>
 </header>
 <main>
-  <section class="fae-hero" aria-labelledby="fae-hero-title">
-    <div>
-      <div class="hero-kicker">Sovereign computation · ordinary devices</div>
-      <h1 id="fae-hero-title">Proof of work, in your hands.</h1>
-      <p class="hero-copy">Mine on the device you already use, keep wallet ownership local, and verify activity on a public shared network. FAE is built around participation rather than custody.</p>
+  <div class="product-shell-head">
+    <div class="product-shell-title">
+      <span>FAE Web Interface</span>
+      <small>Local ownership and computation</small>
     </div>
-    <div class="hero-principles" aria-label="FAE principles">
-      <div><span>Custody</span><b>Keys stay on your device</b></div>
-      <div><span>Mining</span><b>General-purpose participation</b></div>
-      <div><span>Network</span><b>Open public testnet</b></div>
-    </div>
-  </section>
-
-  <nav class="environment-tabs" role="tablist" aria-label="Testnet environments">
-    <button id="tab-mining" class="environment-tab" role="tab" aria-selected="false" aria-controls="panel-mining" tabindex="-1">Mining</button>
-    <button id="tab-wallet" class="environment-tab" role="tab" aria-selected="true" aria-controls="panel-wallet">Wallet</button>
-  </nav>
+    <nav class="environment-tabs authored-mode-switch" role="tablist" aria-label="Product modes">
+      <button id="tab-wallet" class="environment-tab" role="tab" aria-selected="true" aria-controls="panel-wallet">Wallet</button>
+      <button id="tab-mining" class="environment-tab" role="tab" aria-selected="false" aria-controls="panel-mining" tabindex="-1">Mining</button>
+    </nav>
+  </div>
 
   <section id="panel-mining" role="tabpanel" aria-labelledby="tab-mining" hidden>
     <section class="product-intro mining-intro" aria-labelledby="mining-surface-title">
@@ -183,23 +250,22 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
   </section>
 
   <section id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
-    <section class="product-intro wallet-intro" aria-labelledby="wallet-surface-title">
-      <div>
-        <div class="product-kicker">Wallet / local ownership</div>
-        <h2 id="wallet-surface-title">A wallet you hold, not an account you borrow.</h2>
-        <p>Keys and signing remain on this device. The interface keeps backup, recovery, sending and transaction traceability explicit.</p>
+    <section class="wallet-stage-head" aria-labelledby="wallet-surface-title">
+      <div class="wallet-stage-copy">
+        <div class="product-kicker">Wallet / quiet ownership</div>
+        <h1 id="wallet-surface-title">Wallet</h1>
+        <p>Possession should feel quiet. Keys, signing and encrypted persistence stay on this device while the interface makes ownership explicit without ambient motion.</p>
       </div>
-      <div class="trust-strip" aria-label="Wallet trust properties">
-        <span><b>Local keys</b><small>No custodian</small></span>
-        <span><b>Local signing</b><small>Private keys remain on device</small></span>
-        <span><b>Full TXID is visible</b><small>Transaction traceability</small></span>
-        <span><b>Verified backup</b><small>Before New Wallet admission</small></span>
-        <span><b>Persistent vault</b><small>Until you remove it or storage is cleared</small></span>
+      <div class="wallet-presence" aria-label="Wallet ownership properties">
+        <span class="presence-label">Custody</span>
+        <strong>Local</strong>
+        <small>Persistent encrypted vault · local signing · explicit recovery</small>
       </div>
     </section>
+    <p class="wallet-admission-rule"><strong>No implicit Wallet creation.</strong> A Wallet exists here only after you choose New Wallet and verify the complete 24-word backup, or explicitly recover one.</p>
 
     <div class="stack">
-      <section id="wallet-entry-card" class="card">
+      <section id="wallet-entry-card" class="wallet-section wallet-entry-section">
         <div class="section-head">
           <div>
             <h2 id="wallet-entry-title">Set up Wallet</h2>
@@ -277,7 +343,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
       </section>
 
       <div id="wallet-connected-state" class="stack" hidden>
-        <section class="card">
+        <section class="wallet-section">
           <div class="section-head">
             <div>
               <h2>My Wallets</h2>
@@ -300,7 +366,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
         </section>
 
         <div class="panel-grid">
-          <section class="card">
+          <section class="wallet-section">
             <div class="address-head">
               <div>
                 <h2>Active Wallet</h2>
@@ -331,7 +397,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
             </div>
           </section>
 
-          <section class="card">
+          <section class="wallet-section">
             <h2>Send FAE</h2>
             <label class="field" for="sendto">Destination address</label>
             <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
@@ -351,7 +417,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
           </section>
         </div>
 
-        <section class="card">
+        <section class="wallet-section">
           <div class="section-head">
             <div>
               <h2>Transactions</h2>
@@ -367,7 +433,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
           </div>
         </section>
 
-        <section class="card">
+        <section class="wallet-section">
           <div class="section-head">
             <div>
               <h2>Wallet addresses</h2>
@@ -380,7 +446,7 @@ textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius
     </div>
   </section>
 
-  <p class="footer-note">FAE public testnet · private keys and Proof of Work stay on your device · test coins have no monetary value</p>
+  <p class="footer-note">FAE testnet · private keys and Proof of Work stay on your device</p>
 </main>
 <script src="/bip39-en.js"></script>
 <script src="/network-status.js"></script>

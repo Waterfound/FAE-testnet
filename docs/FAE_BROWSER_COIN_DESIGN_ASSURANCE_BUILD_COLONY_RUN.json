@@ -1,0 +1,94 @@
+{
+  "schema": "FAE_BROWSER_COIN_DESIGN_ASSURANCE_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_RUN",
+  "run_date": "2026-09-29",
+  "run_id": "bc2-71a6f1e4cc210352",
+  "workstream_id": "fae-browsercoin-design-assurance-001",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-browsercoin-design-assurance-001",
+  "source_main_revision": "b00bbebca81a8f1085f7e61beddca862d8b5dfaa",
+  "recovered_pre_checkpoint_head": "a4028c8c26a6de11bb307fb915b89637f745d8bd",
+  "workstream": "FAE — Browser-Coin Design Assurance Review",
+  "continuity_reconciliation": {
+    "prior_checkpoint": "branch created / execution body not yet persisted",
+    "observed_at_resume": "branch already contained 7 workstream commits",
+    "disposition": "PRESERVE_AND_RECONCILE",
+    "restart_from_zero": false
+  },
+  "scope": [
+    "temporal monetary distribution",
+    "specialized-hardware resistance",
+    "normal-use/browser lifecycle parity",
+    "wallet origin/key compromise",
+    "long-horizon full-node survivability",
+    "cold-start infrastructure independence",
+    "protocol-governance survivability"
+  ],
+  "decision_rule": "Does the observed weakness expose an untested or insufficiently evidenced FAE premise?",
+  "principle": "Competitor has weakness != FAE needs new subsystem.",
+  "allowed_classifications": [
+    "COVERED",
+    "COVERED_NEEDS_MORE_EVIDENCE",
+    "EXISTING_FRONTIER_SUFFICIENT",
+    "HARDEN_EXISTING_FRONTIER",
+    "NEW_FRONTIER_JUSTIFIED",
+    "RESEARCH_REQUIRED",
+    "NO_ACTION"
+  ],
+  "authority_boundary": {
+    "may": [
+      "read and reconstruct repository evidence",
+      "persist review/run/checkpoint artifacts",
+      "write bounded non-consensus assurance contracts and local deterministic tests",
+      "strengthen an already-owned frontier when evidence justifies it",
+      "perform source/static/local deterministic validation without paid providers",
+      "perform CII admission analysis"
+    ],
+    "may_not_without_separate_explicit_authority": [
+      "change DP6 or consensus",
+      "change tokenomics, economics, halving, subsidy, supply, or block interval",
+      "select activation height",
+      "release or deploy testnet/mainnet",
+      "change wallet authority or authorize spending",
+      "perform destructive infrastructure changes",
+      "execute paid provider workloads",
+      "create a new architecture merely because a competitor differs"
+    ]
+  },
+  "current_frontier": {
+    "id": "BDA-00",
+    "name": "Continuity reconciliation and evidence validation",
+    "state": "ACTIVE"
+  },
+  "admissible_next": [
+    "BDA-01 reconstruct seven-challenge evidence matrix",
+    "BDA-02 validate wallet delivery/signing-integrity candidate hardening",
+    "BDA-03 validate long-horizon survivability candidate hardening",
+    "BDA-04 validate cold-start independence candidate hardening",
+    "BDA-05 resolve coverage-only/research-only challenges against canonical evidence",
+    "BDA-06 consolidate machine-readable review and terminal verdict"
+  ],
+  "explicit_stop_conditions": [
+    "genuine human or authority gate",
+    "genuine external-evidence or provider gate",
+    "technical/canonical closure",
+    "any required action outside the frozen authority boundary"
+  ],
+  "concurrency_policy": "Parallelize independence. Serialize shared state.",
+  "evidence_rules": [
+    "Evidence before status.",
+    "Memory suggests. Evidence decides.",
+    "Builder != Assurer.",
+    "Fail closed on missing evidence.",
+    "conversation interruption != development interruption."
+  ],
+  "recovered_existing_artifacts": [
+    "docs/design-assurance/FAE_BROWSER_COIN_DESIGN_ASSURANCE_20260929.md",
+    "lab/wallet-delivery-signing-integrity/acceptance-contract.json",
+    "lab/wallet-delivery-signing-integrity/wallet-delivery-signing-integrity.test.mjs",
+    "lab/long-horizon-node-survivability/acceptance-contract.json",
+    "lab/long-horizon-node-survivability/long-horizon-ceiling.test.mjs",
+    "lab/cold-start-infrastructure-independence/acceptance-contract.json",
+    "lab/cold-start-infrastructure-independence/cold-start-independence.test.mjs"
+  ]
+}

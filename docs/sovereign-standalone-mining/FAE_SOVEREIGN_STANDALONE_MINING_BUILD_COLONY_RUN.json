@@ -1,0 +1,170 @@
+{
+  "schema": "FAE_SOVEREIGN_STANDALONE_MINING_BUILD_COLONY_RUN_V1",
+  "run_kind": "REAL_BUILD_COLONY_PLANNING_RUN",
+  "run_date": "2026-09-30",
+  "project": "FAE",
+  "workstream": "Sovereign Standalone Mining",
+  "element": 58,
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "build-colony/fae-sovereign-standalone-mining-001",
+  "canonical_main_revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "planning_revision": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "general_execution_revision": "ff510496136c0c35fa377f6962750f1fdfb84b8e",
+  "active_gate_class": "CAPABILITY_GAP",
+  "evidence_observations": [
+    "Canonical main contains browser local Proof of Work in mining.js and an independent Node.js reference node in sovereign-forge/node/fae-node.mjs.",
+    "The reference node exposes GET /template?address=<faet1...>, GET /status, and POST /submit-block and validates double-SHA-256 work locally.",
+    "The existing independent-node smoke test already proves that a locally operated node can issue a template, accept locally computed Proof of Work, and credit the supplied public reward address.",
+    "No first-class standalone/headless miner product was found in canonical main.",
+    "Browser direct mining consumes only a reward address at the protocol boundary, but the current browser miningLoop is coupled to the browser wallet/watch-only object for product state.",
+    "Browser mining already contains authoritative tip observation, stale-work invalidation, pre-submission freshness validation, and automatic reacquisition behavior.",
+    "The imported Sovereign Forge browser snapshot is hash-pinned and root mining.js is required by CI to remain byte-identical to sovereign-forge/browser/mining.js; silently editing only one copy would violate canonical verification."
+  ],
+  "active_gate_evidence_refs": [
+    "Waterfound/FAE-testnet@3ae59d0d013af0ee518f3cfb73c5fcb08394b075:mining.js",
+    "Waterfound/FAE-testnet@3ae59d0d013af0ee518f3cfb73c5fcb08394b075:core.js",
+    "Waterfound/FAE-testnet@3ae59d0d013af0ee518f3cfb73c5fcb08394b075:sovereign-forge/node/fae-node.mjs",
+    "Waterfound/FAE-testnet@3ae59d0d013af0ee518f3cfb73c5fcb08394b075:sovereign-forge/tests/smoke-independent-node.mjs",
+    "Waterfound/FAE-testnet@3ae59d0d013af0ee518f3cfb73c5fcb08394b075:.github/workflows/verify.yml"
+  ],
+  "work_selection_decision": {
+    "route": "element-58-sovereign-standalone-mining",
+    "route_state": "active",
+    "native_progress_unit": "definition_of_done_gate_completion",
+    "domains": [
+      "SSM-00-boundary-and-source-freeze",
+      "SSM-01-consensus-facing-semantics-baseline",
+      "SSM-02-canonical-standalone-mining-core",
+      "SSM-03-cli-headless-product",
+      "SSM-04-secret-free-config-and-authored-operational-states",
+      "SSM-05-independent-node-integration",
+      "SSM-06-stale-reconnect-restart-shutdown",
+      "SSM-07-browser-standalone-parity-vectors",
+      "SSM-08-security-no-secret-audit",
+      "SSM-09-canonical-verification-integration",
+      "SSM-10-independent-operator-documentation",
+      "SSM-11-terminal-reconciliation"
+    ],
+    "filtered_domains": [
+      "consensus-change",
+      "economic-change",
+      "block-time-change",
+      "reward-change",
+      "halving-change",
+      "mining-algorithm-change",
+      "dp6-activation",
+      "dp7",
+      "wallet-cryptography-change",
+      "address-format-change",
+      "transaction-semantics-change",
+      "public-deployment",
+      "release",
+      "activation-height",
+      "mainnet",
+      "paid-infrastructure",
+      "aws",
+      "afi",
+      "f2",
+      "automatic-main-merge"
+    ]
+  },
+  "authority": {
+    "repository_inspection": true,
+    "software_implementation": true,
+    "local_tests": true,
+    "deterministic_simulation": true,
+    "cli_headless_tooling": true,
+    "semantics_preserving_refactor": true,
+    "parity_tests": true,
+    "independent_local_node_integration": true,
+    "documentation": true,
+    "security_review": true,
+    "evidence_artifacts": true,
+    "draft_pull_request": true,
+    "consensus_change": false,
+    "economic_change": false,
+    "mining_algorithm_change": false,
+    "wallet_secret_access": false,
+    "public_deployment": false,
+    "release": false,
+    "mainnet": false,
+    "paid_infrastructure": false,
+    "automatic_main_merge": false
+  },
+  "invariants": [
+    "Browser != Miner != Wallet != Node.",
+    "Mining requires only a selected node and a public reward address.",
+    "Seed phrases, private keys, wallet passphrases, vault material, and signing authority never enter the standalone miner.",
+    "No implicit wallet creation.",
+    "Proof of Work executes on the mining device.",
+    "The selected node remains authoritative for template and tip state.",
+    "Consensus-facing semantics must be demonstrated equivalent to active v4 behavior before admission.",
+    "A protected/pinned browser snapshot is not rewritten merely to satisfy code-sharing aesthetics.",
+    "Retries and reconnects cannot erase rejection or failure evidence.",
+    "Execution consumes existing authority and creates none."
+  ],
+  "dependency_graph": {
+    "SSM-00-boundary-and-source-freeze": [],
+    "SSM-01-consensus-facing-semantics-baseline": [
+      "SSM-00-boundary-and-source-freeze"
+    ],
+    "SSM-02-canonical-standalone-mining-core": [
+      "SSM-01-consensus-facing-semantics-baseline"
+    ],
+    "SSM-03-cli-headless-product": [
+      "SSM-02-canonical-standalone-mining-core"
+    ],
+    "SSM-04-secret-free-config-and-authored-operational-states": [
+      "SSM-03-cli-headless-product"
+    ],
+    "SSM-05-independent-node-integration": [
+      "SSM-03-cli-headless-product"
+    ],
+    "SSM-06-stale-reconnect-restart-shutdown": [
+      "SSM-05-independent-node-integration"
+    ],
+    "SSM-07-browser-standalone-parity-vectors": [
+      "SSM-02-canonical-standalone-mining-core",
+      "SSM-03-cli-headless-product"
+    ],
+    "SSM-08-security-no-secret-audit": [
+      "SSM-04-secret-free-config-and-authored-operational-states",
+      "SSM-07-browser-standalone-parity-vectors"
+    ],
+    "SSM-09-canonical-verification-integration": [
+      "SSM-05-independent-node-integration",
+      "SSM-06-stale-reconnect-restart-shutdown",
+      "SSM-07-browser-standalone-parity-vectors",
+      "SSM-08-security-no-secret-audit"
+    ],
+    "SSM-10-independent-operator-documentation": [
+      "SSM-09-canonical-verification-integration"
+    ],
+    "SSM-11-terminal-reconciliation": [
+      "SSM-10-independent-operator-documentation"
+    ]
+  },
+  "acceptance": {
+    "standalone_entrypoint": "real Node.js 22+ headless miner",
+    "reward_identity": "valid public faet1 address only",
+    "node_selection": "explicit endpoint with local HTTP permitted and remote HTTPS preferred",
+    "proof_of_work": "active public-testnet v4 double-SHA-256 semantics only",
+    "parity": "browser/reference-node/standalone deterministic vectors agree on canonical serialization, nonce binding, hash, leading-zero target interpretation, submission envelope, reward-address binding, and stale-tip behavior",
+    "operations": "observable real states, bounded reconnect, stale replacement, graceful SIGINT/SIGTERM, restart-safe secret-free configuration",
+    "local_node": "standalone miner mines a real block against an isolated independent reference node and reward appears at supplied address",
+    "security": "no wallet seed/private key/passphrase/signing material dependency or persistence"
+  },
+  "terminal_outcomes": [
+    "SOVEREIGN_STANDALONE_MINING_READY",
+    "EXACT_TECHNICAL_GAP_IDENTIFIED",
+    "ARCHITECTURAL_REFACTOR_REQUIRED",
+    "EXTERNAL_EVIDENCE_GATE",
+    "HUMAN_GATE",
+    "INSUFFICIENT_EVIDENCE"
+  ],
+  "next_executable_frontier": [
+    "SSM-00-boundary-and-source-freeze",
+    "SSM-01-consensus-facing-semantics-baseline"
+  ]
+}

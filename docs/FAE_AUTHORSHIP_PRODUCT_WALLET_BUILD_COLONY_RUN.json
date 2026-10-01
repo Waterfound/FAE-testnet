@@ -1,0 +1,118 @@
+{
+  "schema": "FAE_AUTHORSHIP_PRODUCT_WALLET_BUILD_COLONY_RUN_V1",
+  "workstream_id": "fae-authorship-product-wallet-001",
+  "authority_owner": "Waterfound",
+  "authority_received": "2026-10-01",
+  "mission": "First controlled propagation of approved FAE Authorship Grammar to Product Shell and Wallet only.",
+  "candidate_branch": "design/fae-authorship-product-wallet-001",
+  "functional_source_owner": {
+    "wallet_pr": 266,
+    "wallet_head": "8708b03866f42cf84ba2d01908caec4238928e70"
+  },
+  "readiness": {
+    "branch": "docs/fae-authorship-propagation-readiness-20261001",
+    "commit": "6008b5b074fea7b49f6566341e7a4c779786cd39"
+  },
+  "visual_reference": {
+    "branch": "design/fae-mining-authored-reference-001",
+    "artifact": "design/mining-authored-reference/composition-pass-1.html",
+    "blob_sha": "6aa1fa3711700874c2440d59d28b4005549775db",
+    "final_approval_commit": "2633c90e7c5b3cd3eb85198d049d1cb038eb9016",
+    "frozen": true,
+    "redesign_authorized": false
+  },
+  "cii": {
+    "pr": 21,
+    "head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
+    "gate": "EXTERNAL_CI_GATE",
+    "treated_as_resolved": false,
+    "grammar_invention_authorized": false
+  },
+  "principles": [
+    "FAE must feel like a living instrument of computation.",
+    "Every visible element must feel intentional, not generated.",
+    "Intent before identity.",
+    "Mining = movement.",
+    "Wallet = rest.",
+    "Blue = computation/activity.",
+    "Green = confirmed/received/safe.",
+    "Orange = identity/energy.",
+    "NO IMPLICIT WALLET CREATION."
+  ],
+  "frontiers": [
+    {
+      "id": "APW-00",
+      "name": "Authority and evidence reconstruction",
+      "state": "DONE"
+    },
+    {
+      "id": "APW-01",
+      "name": "Current-main candidate ancestry reconciliation",
+      "state": "DONE",
+      "receipt": "PR #271 merged main into candidate only"
+    },
+    {
+      "id": "APW-02",
+      "name": "Product Shell authored propagation",
+      "state": "DONE_CANDIDATE"
+    },
+    {
+      "id": "APW-03",
+      "name": "Wallet authored propagation",
+      "state": "DONE_CANDIDATE"
+    },
+    {
+      "id": "APW-04",
+      "name": "Static authorship and semantic contract hardening",
+      "state": "DONE_CANDIDATE"
+    },
+    {
+      "id": "APW-05",
+      "name": "Browser and responsive validation",
+      "state": "PENDING_CI"
+    },
+    {
+      "id": "APW-06",
+      "name": "Accessibility focus contrast and reduced-motion validation",
+      "state": "PENDING_CI"
+    },
+    {
+      "id": "APW-07",
+      "name": "Wallet functional regression",
+      "state": "PENDING_CI"
+    },
+    {
+      "id": "APW-08",
+      "name": "Cross-surface consistency and Project Assurance",
+      "state": "READY_AFTER_CI"
+    },
+    {
+      "id": "APW-09",
+      "name": "Exact evidence binding and terminal disposition",
+      "state": "PENDING"
+    }
+  ],
+  "write_scope": {
+    "changed_product_surface": [
+      "index.html"
+    ],
+    "changed_tests": [
+      "tests/visual-language-contract.mjs",
+      "tests/wallet-browser-validation.spec.mjs"
+    ],
+    "protected_runtime_write": false,
+    "explorer_write": false,
+    "mining_reference_write": false,
+    "cii_write": false
+  },
+  "forbidden": [
+    "merge to main",
+    "public deployment",
+    "release",
+    "Explorer propagation",
+    "Network semantic changes",
+    "Mining reference changes",
+    "CII gate promotion",
+    "consensus/economics/DP6/address-format/transaction-semantics/activation/mainnet changes"
+  ]
+}

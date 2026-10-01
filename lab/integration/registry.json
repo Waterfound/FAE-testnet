@@ -212,6 +212,62 @@
         ]
       ],
       "note": "BE-01 freezes the non-authoritative read model; BE-02 adds the independently verified read-only Independent Node query surface; BE-03 adds the separate static Explorer application; BE-04 adds a verified public PUBLIC_PREBIND/UNBOUND frontend; BE-05 freezes the provider-neutral persistent-node + read-only-gateway contract and executable HTTPS binding probe after discovery found no eligible existing host. Combined-main verifies all BE-01→05 regressions and preserves deployment/binding/LIVE as external evidence gates."
+    },
+    {
+      "id": "wallet-delivered-code-signing-integrity",
+      "label": "FAE Wallet Delivered-Code & Signing Integrity Assurance",
+      "required_paths": [
+        "lab/wallet-delivery-signing-integrity/acceptance-contract.json",
+        "lab/wallet-delivery-signing-integrity/wallet-delivery-signing-integrity.test.mjs",
+        "wallet.js",
+        "core.js",
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "--test",
+          "lab/wallet-delivery-signing-integrity/wallet-delivery-signing-integrity.test.mjs"
+        ]
+      ],
+      "note": "Bounded assurance only: proves the candidate contract is tied to the real signing path and preserves the explicit non-claim for arbitrary malicious same-origin JavaScript. It does not by itself close the future intent-freeze/substitution evidence requirement."
+    },
+    {
+      "id": "long-horizon-node-survivability",
+      "label": "FAE Long-Horizon Node Survivability Assurance",
+      "required_paths": [
+        "lab/long-horizon-node-survivability/acceptance-contract.json",
+        "lab/long-horizon-node-survivability/long-horizon-ceiling.test.mjs",
+        "sovereign-forge/node/authoritative/fae-v4-peer-node.mjs"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "--test",
+          "lab/long-horizon-node-survivability/long-horizon-ceiling.test.mjs"
+        ]
+      ],
+      "note": "Reproduces the current authoritative 50,000-block branch-sync ceiling and prevents it from being mistaken for long-horizon survivability closure. No pruning/archival behavior is activated."
+    },
+    {
+      "id": "cold-start-infrastructure-independence",
+      "label": "FAE Cold-Start Infrastructure Independence Assurance",
+      "required_paths": [
+        "lab/cold-start-infrastructure-independence/acceptance-contract.json",
+        "lab/cold-start-infrastructure-independence/cold-start-independence.test.mjs",
+        "sovereign-forge/node/authoritative/fae-v4-peer-node.mjs"
+      ],
+      "combined_checks": [
+        [
+          "node",
+          "--test",
+          "lab/cold-start-infrastructure-independence/cold-start-independence.test.mjs"
+        ]
+      ],
+      "external_or_physical_not_synthesized": [
+        "independently administered real-WAN cold-start rehearsal"
+      ],
+      "note": "Zero-seed is a negative control. A future PASS requires independently controlled bootstrap roots; discovery from mathematical nothing is not a protocol requirement."
     }
   ]
 }
