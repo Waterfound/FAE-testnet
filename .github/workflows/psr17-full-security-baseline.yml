@@ -61,7 +61,7 @@ jobs:
         run: node scripts/psr17-full-security-replay.mjs --out "$RUNNER_TEMP/psr17-full-security-baseline.json"
 
       - name: Preserve PSR-17 replay report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-psr17-full-security-baseline
           path: ${{ runner.temp }}/psr17-full-security-baseline.json

@@ -51,7 +51,7 @@ jobs:
           node scripts/psr16-finding-closure.mjs             --report "$RUNNER_TEMP/psr15-rerun-report.json"             --out "$RUNNER_TEMP/psr16-finding-closure-report.json"
 
       - name: Preserve PSR-16 closure evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-psr16-finding-closure
           path: |

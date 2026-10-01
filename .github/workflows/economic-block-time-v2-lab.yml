@@ -82,21 +82,21 @@ jobs:
           grep -q 'activationAuthorized: false' sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md
 
       - name: Upload standard lab evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: economic-block-time-v2-report
           path: economic-block-time-v2-report.json
           retention-days: 30
 
       - name: Upload extended lab evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: economic-block-time-v2-extended
           path: economic-block-time-v2-extended.json
           retention-days: 30
 
       - name: Upload sensitivity evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: economic-block-time-v2-sensitivity
           path: economic-block-time-v2-sensitivity.json

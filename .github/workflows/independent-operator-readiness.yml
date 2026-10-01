@@ -64,7 +64,7 @@ jobs:
           node lab/independent-operator-readiness/run-clean-room-rehearsal.mjs --out "$RUNNER_TEMP/fae-ior-rehearsal" | tee "$RUNNER_TEMP/fae-ior-rehearsal-result.json"
 
       - name: Upload rehearsal evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-ior-readiness-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
           path: |

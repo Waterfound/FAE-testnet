@@ -144,7 +144,7 @@ jobs:
           echo 'COLONY_H2_AUTHORITY=UNCHANGED'
 
       - name: Preserve final software-ceiling evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fae-colony-h2-final-software-ceiling-evidence
           path: ${{ runner.temp }}/h2-evidence.json
