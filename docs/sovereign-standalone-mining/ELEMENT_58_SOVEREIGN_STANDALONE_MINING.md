@@ -1,21 +1,25 @@
 # Element 58 — Sovereign Standalone Mining
 
-Status: **IMPLEMENTED CANDIDATE / AWAITING WATERFOUND INTEGRATION AUTHORITY**
+Status: **INTEGRATED IN MAIN / TECHNICALLY VERIFIED / NOT RELEASED OR ACTIVATED**
 
 Class: **Mainnet-critical product sovereignty capability**
 
-## Current candidate disposition
+## Current canonical disposition
 
-Element 58 reached candidate-level technical closure on 2026-09-30 with terminal verdict **SOVEREIGN_STANDALONE_MINING_READY**.
+Element 58 reached candidate-level technical closure on 2026-09-30 with terminal verdict **SOVEREIGN_STANDALONE_MINING_READY** and was subsequently integrated into canonical `main` under explicit Waterfound authority.
 
 Evidence-bound identities:
 
 - planning revision: `1efc495ab1c5b3c0439b519a401d89371eb188c7`;
 - verified executable candidate: `305e4ff670649b6c86dafc2bde7d3a74a63c0172`;
 - evidence-only technical closure commit: `ba7c98cb2f1a6f382d79412e03386dd50d898fcd`;
-- implementation PR: #270, intentionally stacked on registration PR #269.
+- PR #269 registration merge: `ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67`;
+- PR #270 integration merge: `785c742dd574936a2460e083e7022eeae5879fdc`;
+- verified canonical merge tree: `7c2fc1841268e3f03306f06b945037cf4781b40a`.
 
-This disposition is candidate-level only. Canonical `main` does not contain Element 58 until separately authorized integration. No release, deployment, activation-height or mainnet authority is implied.
+Post-merge canonical verification passed for the integrated source, including canonical verify, CodeQL, PSR15/16/17/18, recurring security and cross-lab integration. The standalone executable/test/workflow blobs remained byte-identical to the verified candidate.
+
+This is **repository integration + technical verification only**. It does not imply release, deployment, activation height, mainnet activation, consensus/economic/mining-algorithm changes, DP6/DP7 changes, Wallet/address/transaction-semantics changes, or paid infrastructure authority.
 
 ## Purpose
 
@@ -136,8 +140,8 @@ Suggested workstream title:
 
 **FAE — Sovereign Standalone Mining**
 
-The implementation workstream is technically closed at candidate level. The remaining frontier is repository integration governance.
+The implementation and repository-integration workstream is technically closed at canonical-source level.
 
-Current integration disposition: **INTEGRATION_READY_AWAITING_WATERFOUND_AUTHORITY**.
+Current canonical disposition: **SOVEREIGN_STANDALONE_MINING_INTEGRATED_MAIN_VERIFIED**.
 
-The candidate must not be merged, released, deployed or activated without the corresponding explicit authority. Integration must preserve the verified executable source binding or re-establish equivalent evidence if any source transformation is introduced.
+No further integration work is required for Element 58 inside this scope. Release, deployment, activation height and mainnet remain separate authority boundaries.
