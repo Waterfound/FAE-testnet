@@ -82,6 +82,13 @@ async function waitFor(expression,label,limit=80){
   throw Error('Timed out waiting for '+label);
 }
 
+async function click(selector){
+  await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
+}
+async function setValue(selector,value){
+  await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.value=${JSON.stringify(value)};e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+}
+
 await send('Page.enable');
 await send('Runtime.enable');
 await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
@@ -99,7 +106,9 @@ const mockFetch=`
       let body={};
       if(path.startsWith('/status')) body={height:250,issued_fae:'2500',max_supply_fae:'12000000',halving_era_blocks:430000,difficulty_bits:18,node_version:5,tip_hash:'0'.repeat(64)};
       else if(path.startsWith('/state')) body={recent:[]};
-      else if(path.startsWith('/balance')) body={balance_fae:'0'};
+      else if(path.startsWith('/balance')) body={balance_fae:'2'};
+      else if(path.startsWith('/spendable')) body={spendable_fae:'2',utxos:[{outpoint:'native-browser:0',amount_atoms:'200000000'}]};
+      else if(path.startsWith('/submit-tx')) body={txid:'a'.repeat(64)};
       else if(path.startsWith('/transactions')) body={transactions:[]};
       else if(path.startsWith('/blocks')) body={blocks:[]};
       return new Response(JSON.stringify(body),{status:200,headers:{'content-type':'application/json'}});
@@ -121,21 +130,70 @@ assert.match(await evaluate("document.querySelector('.wallet-admission-rule').te
 assert.match(await evaluate("document.querySelector('.wallet-stage-copy').textContent"),/Possession should feel quiet/);
 assert.equal(await evaluate("document.querySelector('.ticker-track').textContent.includes('Block Height')"),true);
 
-await evaluate("document.querySelector('#action-create').click()");
+await click('#action-create');
 assert.equal(await evaluate("document.querySelector('#create-panel').hidden"),false);
 assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),true);
 assert.equal(await evaluate("document.querySelector('#new-wallet-backup').hidden"),true);
 assert.equal(await evaluate("document.querySelector('#new-wallet-confirmation').hidden"),true);
 
-await evaluate("document.querySelector('#tab-mining').click()");
+// Exact browser regression: staged New Wallet must remain non-persistent until all 24 words are verified.
+await click('#createwallet');
+await waitFor("document.querySelector('#newseedwords').value.trim().split(/\\s+/).length===24",'24-word generation');
+const words=await evaluate("document.querySelector('#newseedwords').value.trim()");
+assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),true);
+await click('#readyconfirm');
+await waitFor("!document.querySelector('#new-wallet-confirmation').hidden",'backup confirmation stage');
+await setValue('#confirmseed',words);
+await click('#confirmwallet');
+await waitFor("!document.querySelector('#wallet-connected-state').hidden",'Wallet admission');
+const firstAddress=await evaluate("document.querySelector('#addr').value");
+assert.match(firstAddress,/^faet1/);
+assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),1);
+assert.match(await evaluate("document.querySelector('#recoverystate').textContent"),/BACKUP_CONFIRMED|Wallet Connected/);
+
+// Persistence must survive a real document reload with the encrypted vault still owning the identity.
+await send('Page.navigate',{url:BASE});
+await waitFor("document.readyState==='complete'||document.readyState==='interactive'",'Wallet reload');
+await waitFor("!document.querySelector('#wallet-connected-state').hidden",'persisted Wallet after reload');
+assert.equal(await evaluate("document.querySelector('#addr').value"),firstAddress);
+assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),1);
+
+// Real browser signing path: DOM intent -> reviewed intent guard -> Ed25519 signing -> accepted TXID.
+const sendDestination=await evaluate("walletAccount.addresses[1].address");
+await setValue('#sendto',sendDestination);
+await setValue('#sendamt','1');
+await click('#send');
+await waitFor("!document.querySelector('#lastsendtx').hidden",'accepted transaction receipt');
+assert.equal(await evaluate("document.querySelector('#lastsendtxid').value"),'a'.repeat(64));
+assert.match(await evaluate("document.querySelector('#sendstate').textContent"),/Transaction accepted/);
+
+// Recovery with a passphrase must add a distinct Wallet without replacing the existing one.
+await click('#action-recovery');
+await setValue('#recoveryseed',words);
+await setValue('#recoverypassphrase','authored-native-browser');
+await click('#verifyrecovery');
+await waitFor("!document.querySelector('#recoverypreview-wrap').hidden",'recovery preview');
+const recoveredAddress=await evaluate("document.querySelector('#recoverypreview').value");
+assert.match(recoveredAddress,/^faet1/);
+assert.notEqual(recoveredAddress,firstAddress);
+await click('#admitrecovery');
+await waitFor("document.querySelectorAll('#walletlist .wallet-row').length===2",'second Wallet admission');
+assert.equal(await evaluate("document.querySelector('#addr').value"),recoveredAddress);
+
+// Switch back to the original Wallet using the authored Wallet list controls.
+await evaluate("Array.from(document.querySelectorAll('#walletlist .wallet-row')).find(row=>row.textContent.includes('Wallet 1'))?.querySelector('button:not(:disabled)')?.click()");
+await waitFor("document.querySelector('#addr').value==="+JSON.stringify(firstAddress),'Wallet switch');
+assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),2);
+
+await click('#tab-mining');
 await waitFor("!document.querySelector('#panel-mining').hidden",'Mining mode');
 assert.match(await evaluate("document.querySelector('#miningactivity').textContent"),/Block discovery is probabilistic/);
 assert.equal(await evaluate("/\\d+%\\s+to\\s+reward|almost there|reward in \\d+/i.test(document.querySelector('#panel-mining').textContent)"),false);
 assert.equal(await evaluate("getComputedStyle(document.querySelector('.mining-activity-fill')).animationName"),'none');
 
-await evaluate("document.querySelector('#tab-wallet').click()");
+await click('#tab-wallet');
 await waitFor("!document.querySelector('#panel-wallet').hidden",'Wallet return');
-assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),true);
+assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),false);
 assert.equal(await evaluate("getComputedStyle(document.querySelector('.ticker-track')).animationName"),'none');
 
 await evaluate("document.querySelector('#tab-wallet').focus()");
@@ -153,7 +211,7 @@ await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScal
 await sleep(150);
 overflow=await evaluate("document.documentElement.scrollWidth-document.documentElement.clientWidth");
 assert.ok(overflow<=1,'mobile horizontal overflow: '+overflow);
-assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),true);
+assert.equal(await evaluate("document.querySelector('#wallet-connected-state').hidden"),false);
 
 console.log(JSON.stringify({
   status:'PASS',
@@ -162,6 +220,10 @@ console.log(JSON.stringify({
   viewports:['1440x900','834x1194','390x844'],
   reduced_motion:true,
   no_implicit_wallet_creation:true,
+  staged_24_word_admission:true,
+  encrypted_vault_reload_persistence:true,
+  local_signing_and_tx_receipt:true,
+  passphrase_recovery_and_multi_wallet:true,
   mining_honesty:true,
   horizontal_overflow:false
 },null,2));
