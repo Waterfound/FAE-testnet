@@ -29,7 +29,7 @@
     "Delivery/release provenance proves the tested artifact is the artifact admitted for deployment; this does not grant deployment authority.",
     "No seed phrase, passphrase, private key, or decrypted vault bytes enter evidence."
   ],
-  "residual_after_contract": "Exact-candidate cross-Lab, Wallet signing-integrity, browser and release-provenance verification remain required. The contract itself does not grant release or deployment authority.",
+  "residual_after_contract": "Exact-candidate cross-Lab, Wallet signing-integrity, browser, release-provenance and independent verification remain required. The contract itself does not grant release or deployment authority.",
   "authority": {
     "consensus_change": false,
     "economic_change": false,
