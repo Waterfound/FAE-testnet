@@ -1,0 +1,152 @@
+{
+  "schema": "FAE_STABILITY_SOAK_V3_PRESTART_IDENTITY_GATE_20261001_V1",
+  "recorded_at": "2026-10-01T17:20:35Z",
+  "terminal_classification": "HUMAN_GATE",
+  "run_id": "FAE-STABILITY-SOAK-V3-20261001-001",
+  "run_started": false,
+  "t0_utc": null,
+  "frozen_operational_commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+  "frozen_tree": "f990a694b3c4f5a8ac27c76168b29dd0d2c640c7",
+  "operational_ref": "freeze/stability-soak-v3-operational-8e061f81-20261001",
+  "source_binding": {
+    "all_five_services_bound_to_operational_ref": true,
+    "ref_exactly_equals_frozen_commit": true,
+    "auto_deploy_off": true,
+    "free_plan": true,
+    "unsuspended": true
+  },
+  "capacity_reconciliation": {
+    "billing_capture_local": "2026-10-01T14:06:00-03:00",
+    "captured_consumed_hours": 1.97,
+    "captured_total_hours": 750,
+    "captured_remaining_hours": 748.03,
+    "conservative_recheck_local": "2026-10-01T14:18:22-03:00",
+    "elapsed_hours": 0.2061111111,
+    "free_services_assumed_consuming_for_worst_case": 10,
+    "additional_worst_case_consumption_hours": 2.061111111,
+    "conservative_remaining_lower_bound_hours": 745.968888889,
+    "required_hours": 540,
+    "headroom_lower_bound_hours": 205.968888889,
+    "verdict": "PASS_AT_DEPLOY_TIME",
+    "note": "Conservative bound assumes all 10 returned free web services consumed continuously between Billing capture and pre-deploy recheck."
+  },
+  "configuration": {
+    "nonsecret_prestart_env_applied": true,
+    "run_id_applied": true,
+    "two_peer_per_node_mapping_applied": true,
+    "monitor_urls_applied": true,
+    "controller_observer_node_urls_applied": true,
+    "t0_explicitly_neutralized": true,
+    "controller_start_height_and_miner_address_neutralized": true
+  },
+  "deploys": {
+    "node_a_initial": {
+      "deploy_id": "dep-dav9b13ncjis73amhk0g",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "update_failed",
+      "cause": "stable_node_identity_required"
+    },
+    "node_b": {
+      "deploy_id": "dep-dav9b1m7bikc73f91si0",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "update_failed",
+      "cause": "stable_node_identity_required",
+      "current_live_fallback_commit": "0513006f24eb4c3249aa6a2c47240200de99bb66"
+    },
+    "node_c": {
+      "deploy_id": "dep-dav9b2jbc2fs738horlg",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "update_failed",
+      "cause": "stable_node_identity_required",
+      "current_live_fallback_commit": "0513006f24eb4c3249aa6a2c47240200de99bb66"
+    },
+    "controller": {
+      "deploy_id": "dep-dav9b3bbc2fs738hou50",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "live"
+    },
+    "observer": {
+      "deploy_id": "dep-dav9b449v7es73flqas0",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "live"
+    },
+    "node_a_identity_repair": {
+      "deploy_id": "dep-dav9c0bbc2fs738hrp8g",
+      "commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "status": "live"
+    }
+  },
+  "runtime_evidence": {
+    "node_a": {
+      "url": "https://fae-wan-a-oregon.onrender.com",
+      "health": true,
+      "render_git_commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+      "node_identity": "922e96fbaf612dfd77d6564f4c376b5b8a82e6ae7af193078d4baaeee5ade236",
+      "identity_source": "environment_rematerialized",
+      "configured_peers": 2,
+      "height": 0,
+      "tip_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "node_b": {
+      "v3_health": false,
+      "http_status": 404,
+      "frozen_deploy_live": false
+    },
+    "node_c": {
+      "v3_health": false,
+      "http_status": 404,
+      "frozen_deploy_live": false
+    },
+    "controller": {
+      "url": "https://fae-stability-soak-96h.onrender.com",
+      "exact_frozen_commit": true,
+      "run_started": false,
+      "t0_utc": null,
+      "failed": true,
+      "failure_context": "Prestart B/C outage exceeded frozen 180s recovery bound; this is not a started soak."
+    },
+    "observer": {
+      "url": "https://fae-wan-result-logger.onrender.com",
+      "exact_frozen_commit": true,
+      "run_started": false,
+      "t0_utc": null,
+      "failed": true,
+      "failure_context": "Prestart B/C outage exceeded frozen 180s recovery bound; this is not a started soak."
+    }
+  },
+  "identity_gate": {
+    "proven_cause": "node-b and node-c lack FAE_IDENTITY_FILE / FAE_NODE_IDENTITY_JSON_B64 stable identity material",
+    "source_code_requirement": "sovereign-forge/lab/stability-soak-v3/node-runtime.mjs rejects boot without one of those stable identity inputs",
+    "connector_boundary": "Connected Render tool can merge environment variables but secret-shaped private identity material is blocked by the secure tool boundary; no secret-file mutation tool is exposed.",
+    "repository_render_api_credential_path_found": false,
+    "frozen_source_change_required": false,
+    "system_repair_required": false,
+    "human_action_required": true,
+    "safe_actions": [
+      "Use authenticated Render Dashboard/Cloud Browser.",
+      "For node-b and node-c only, create stable distinct Ed25519 node identity material as a Render secret file referenced by FAE_IDENTITY_FILE, or set FAE_NODE_IDENTITY_JSON_B64 as a secret env value.",
+      "Do not commit private identity material to GitHub and do not paste it into public evidence.",
+      "Keep branch freeze/stability-soak-v3-operational-8e061f81-20261001, plan free, auto-deploy off, and T0 absent."
+    ]
+  },
+  "post_gate_machine_sequence": [
+    "Read back node-b/node-c service configuration and observe exact frozen deploy receipts.",
+    "Verify node-b/node-c /v3/meta exposes exact frozen SHA, distinct public identity IDs and configured_peers>=2.",
+    "Recheck node-a remains exact frozen SHA and identity stable.",
+    "Restart controller and observer prestart runtimes to clear failed=true while keeping FAE_V3_T0_UTC empty.",
+    "Verify all three nodes reachable and convergent from both monitors.",
+    "Run frozen prestart reconciliation with five services free, exact SHA, healthy, three distinct identities, >=2 peers/node, controller/observer healthy, run_started=false and capacity>=540h.",
+    "Persist PREFLIGHT_VERIFIED_AND_LAUNCH_READY or a new precise gate. Do not arm T0 before this."
+  ],
+  "authority_boundary": {
+    "new_spend": false,
+    "paid_fallback": false,
+    "consensus": false,
+    "economics": false,
+    "dp6": false,
+    "release": false,
+    "activation_height": false,
+    "mainnet": false,
+    "frozen_source_modified": false
+  }
+}
