@@ -1,8 +1,21 @@
 # Element 58 — Sovereign Standalone Mining
 
-Status: **PLANNED / NOT STARTED**
+Status: **IMPLEMENTED CANDIDATE / AWAITING WATERFOUND INTEGRATION AUTHORITY**
 
 Class: **Mainnet-critical product sovereignty capability**
+
+## Current candidate disposition
+
+Element 58 reached candidate-level technical closure on 2026-09-30 with terminal verdict **SOVEREIGN_STANDALONE_MINING_READY**.
+
+Evidence-bound identities:
+
+- planning revision: `1efc495ab1c5b3c0439b519a401d89371eb188c7`;
+- verified executable candidate: `305e4ff670649b6c86dafc2bde7d3a74a63c0172`;
+- evidence-only technical closure commit: `ba7c98cb2f1a6f382d79412e03386dd50d898fcd`;
+- implementation PR: #270, intentionally stacked on registration PR #269.
+
+This disposition is candidate-level only. Canonical `main` does not contain Element 58 until separately authorized integration. No release, deployment, activation-height or mainnet authority is implied.
 
 ## Purpose
 
@@ -75,9 +88,9 @@ Current FAE source already contains:
 
 Therefore this Element is not a new consensus design. It is the productization and hardening of an already-supported sovereign architecture.
 
-## Main implementation gaps
+## Completion criteria
 
-The Element is complete only when the project has evidence for, at minimum:
+Candidate-level technical closure requires evidence for, at minimum:
 
 - a first-class standalone/headless miner entry point;
 - selectable node endpoint;
@@ -123,6 +136,8 @@ Suggested workstream title:
 
 **FAE — Sovereign Standalone Mining**
 
-The workstream should begin only when portfolio capacity is available under the existing Active / Secondary / Passive discipline.
+The implementation workstream is technically closed at candidate level. The remaining frontier is repository integration governance.
 
-Until then, this Element remains **PLANNED / NOT STARTED** and should not displace currently active mainnet-readiness work.
+Current integration disposition: **INTEGRATION_READY_AWAITING_WATERFOUND_AUTHORITY**.
+
+The candidate must not be merged, released, deployed or activated without the corresponding explicit authority. Integration must preserve the verified executable source binding or re-establish equivalent evidence if any source transformation is introduced.

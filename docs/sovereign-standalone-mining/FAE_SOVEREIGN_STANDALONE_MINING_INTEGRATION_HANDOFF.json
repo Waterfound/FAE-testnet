@@ -1,0 +1,116 @@
+{
+  "schema": "FAE_SOVEREIGN_STANDALONE_MINING_INTEGRATION_HANDOFF_V1",
+  "generated_at": "2026-10-01T13:39:00-03:00",
+  "disposition": "INTEGRATION_READY_AWAITING_WATERFOUND_AUTHORITY",
+  "repository": "Waterfound/FAE-testnet",
+  "main": {
+    "sha": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+    "tree": "b48c5e7ef5e58c8111306a369b0cdd324e22c866",
+    "protected": false,
+    "repository_rulesets": 0
+  },
+  "pr269": {
+    "number": 269,
+    "state": "open",
+    "draft": true,
+    "mergeable": true,
+    "base": "main",
+    "base_sha": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+    "head": "planning/fae-sovereign-standalone-mining-element",
+    "head_sha": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+    "head_tree": "471f50b3800ee7d0ed43d4144c5ce2b2cbe72996",
+    "synthetic_merge_sha": "e492789d99ce696abcba037f84019606bbf5425b",
+    "synthetic_merge_tree": "471f50b3800ee7d0ed43d4144c5ce2b2cbe72996",
+    "drift": {
+      "ahead_by": 1,
+      "behind_by": 0
+    }
+  },
+  "pr270": {
+    "number": 270,
+    "state": "open",
+    "draft": true,
+    "mergeable_before_handoff": true,
+    "base": "planning/fae-sovereign-standalone-mining-element",
+    "base_sha": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+    "executable_sha": "305e4ff670649b6c86dafc2bde7d3a74a63c0172",
+    "executable_tree": "1477669a070df1df9c1fbeef7cee0d63ba87d56f",
+    "closure_sha": "ba7c98cb2f1a6f382d79412e03386dd50d898fcd",
+    "closure_tree": "f12b3f4bf0a5157bcf3b220895a8a03c9765c18a",
+    "synthetic_merge_sha_before_handoff": "35130b463c8f1600f66403cb7ec09d7058e6ad82",
+    "synthetic_merge_tree_before_handoff": "f12b3f4bf0a5157bcf3b220895a8a03c9765c18a",
+    "drift_from_main_before_handoff": {
+      "ahead_by": 18,
+      "behind_by": 0
+    }
+  },
+  "executable_blob_binding": {
+    "standalone/fae-miner.mjs": "b918a306643d83f1d832c72f3b4f0a32d395c5eb",
+    "standalone/mining-core.mjs": "42c392ad54a3e3c2f446ab79f67948d30b82a73e",
+    "standalone/package.json": "b106d025ed45bebbcae090eef0be3e29ec56006e",
+    "standalone/package-lock.json": "6d2bbd954afdf35a67810bb7a0ea8965309677fe",
+    ".github/workflows/verify.yml": "9d0a2ae4ec112a3734809001f0c5d458c2a72c54"
+  },
+  "verified_evidence": {
+    "executable": {
+      "canonical_verify": {
+        "run_id": 36752867795,
+        "attempt": 2,
+        "conclusion": "success"
+      },
+      "codeql": 36752868064,
+      "psr15": 36752867828,
+      "psr16": 36752867990,
+      "psr17": 36752867853,
+      "psr18": 36752867895,
+      "recurring_security": 36752868047,
+      "cross_lab": 36752867694
+    },
+    "closure": {
+      "canonical_verify": {
+        "run_id": 36753918524,
+        "attempt": 2,
+        "conclusion": "success"
+      },
+      "codeql": 36753918650,
+      "psr15": 36753918695,
+      "psr16": 36753918570,
+      "psr17": 36753918529,
+      "psr18": 36753918477,
+      "recurring_security": 36753918548,
+      "cross_lab": 36753918503
+    }
+  },
+  "ordering": [
+    "authorize_and_merge_pr_269_to_main",
+    "record_post_269_main_sha_tree",
+    "retarget_pr_270_to_main",
+    "recompute_mergeability_and_merge_tree",
+    "verify_blob_binding_and_regression_matrix",
+    "authorize_and_merge_pr_270",
+    "post_merge_source_and_ci_reconciliation"
+  ],
+  "hazards": [
+    "PR270_CURRENT_BASE_IS_PLANNING_BRANCH",
+    "REBASE_CHANGES_CANDIDATE_COMMIT_IDENTITIES",
+    "SQUASH_LOSES_DIRECT_CANDIDATE_ANCESTRY",
+    "CONCURRENT_MAIN_DRIFT_REQUIRES_RECHECK",
+    "MAIN_CURRENTLY_HAS_NO_BRANCH_PROTECTION_OR_RULESETS",
+    "TRANSIENT_LOCAL_NETWORK_TEST_FAILURES_MUST_BE_PRESERVED_AND_RECHECKED"
+  ],
+  "authority": {
+    "merge": false,
+    "ready_for_review_transition": false,
+    "release": false,
+    "deployment": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "mining_algorithm_change": false,
+    "dp6_change": false,
+    "wallet_change": false,
+    "address_format_change": false,
+    "transaction_semantics_change": false,
+    "activation_height": false,
+    "mainnet": false
+  }
+}
