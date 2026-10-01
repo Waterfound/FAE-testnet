@@ -1,0 +1,76 @@
+name: stability-soak-v3-frozen-8e-preflight
+
+on:
+  push:
+    branches:
+      - 'preflight/stability-soak-v3-frozen-8e-20261001'
+    paths:
+      - '.github/workflows/stability-soak-v3-frozen-8e-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout control-plane workflow branch
+        uses: actions/checkout@v4
+        with:
+          path: control
+      - name: Checkout exact frozen operational source
+        uses: actions/checkout@v4
+        with:
+          ref: 8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3
+          path: frozen
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove exact SHA and tree binding
+        working-directory: frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3"
+          test "$(git rev-parse HEAD^{tree})" = "f990a694b3c4f5a8ac27c76168b29dd0d2c640c7"
+          git status --porcelain=v1
+      - name: Syntax/config validation at frozen source
+        working-directory: frozen
+        run: |
+          node --check sovereign-forge/lab/stability-soak-v3/node-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/monitor-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+          node --check wan-lab/wan-node.mjs
+          node --check wan-lab/stability-soak-controller.mjs
+          node --check wan-lab/result-logger.mjs
+      - name: Frozen recovery and scale gates
+        working-directory: frozen
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+      - name: Frozen quota authority analyzer and prestart gates
+        working-directory: frozen
+        run: |
+          node --test sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+          node --test sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
+      - name: Frozen node controller observer harness smoke
+        working-directory: frozen
+        run: node --test sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+      - name: Preserve no-launch boundary
+        working-directory: frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3"
+          git diff --exit-code
+          git status --porcelain=v1
