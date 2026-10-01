@@ -1,0 +1,125 @@
+{
+  "schema": "FAE_AUTHORSHIP_PROPAGATION_READINESS_EVIDENCE_V1",
+  "recorded_at": "2026-10-01",
+  "repository": "Waterfound/FAE-testnet",
+  "evidence_branch": "docs/fae-authorship-propagation-readiness-20261001",
+  "base_main": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "evidence_only": true,
+  "product_write_performed": false,
+  "target_propagation_performed": false,
+  "authority_created": false,
+  "source_bindings": {
+    "direction_d_pr265": {
+      "head": "2ffa8dbbd4ed9b32d5593e6462f7c3486e18603c",
+      "index_blob": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec"
+    },
+    "direction_d_plus": {
+      "revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+      "index_blob": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec"
+    },
+    "mining_reference_pr268": {
+      "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+      "artifact_blob": "6aa1fa3711700874c2440d59d28b4005549775db"
+    },
+    "cii_pr21": {
+      "head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
+      "gate": "EXTERNAL_CI_GATE",
+      "verify_run": 36666757776
+    },
+    "wallet_pr266": {
+      "head": "8708b03866f42cf84ba2d01908caec4238928e70",
+      "tree": "be1a60d0e7735da5cfe6c38d6e5ff6314c85d0a8"
+    },
+    "explorer": {
+      "index_blob": "5130efd7e3625e81e52517fb9a834697ebf6fc1f",
+      "writes_authorized": false
+    }
+  },
+  "observed_blob_comparisons": [
+    {
+      "subject": "Direction D product index vs D+ product index",
+      "left": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "right": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "result": "BYTE_IDENTICAL"
+    },
+    {
+      "subject": "D+ product index vs Mining-reference branch production index",
+      "left": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "right": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "result": "BYTE_IDENTICAL"
+    },
+    {
+      "subject": "Wallet candidate mining.js vs canonical mining.js",
+      "left": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "right": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "result": "BYTE_IDENTICAL"
+    },
+    {
+      "subject": "Wallet vault at older D+ reconciliation vs current Wallet head",
+      "left": "9e594dbd97317b39bd4e29743cef606393dbd384",
+      "right": "9e594dbd97317b39bd4e29743cef606393dbd384",
+      "result": "BYTE_IDENTICAL"
+    }
+  ],
+  "semantic_surface_observations": {
+    "direction_d_plus_product_source": {
+      "has_orange_white_blue": true,
+      "still_contains_hero": true,
+      "still_contains_public_testnet": true,
+      "still_contains_test_coins": true,
+      "has_block_height_label": false,
+      "has_mining_overview": false,
+      "has_devices_telemetry": false,
+      "has_authored_current_work_rate": false
+    },
+    "wallet_current_product_source": {
+      "has_orange_white_blue": true,
+      "still_contains_hero": true,
+      "still_contains_public_testnet": true,
+      "still_contains_test_coins": true,
+      "has_block_height_label": false,
+      "has_mining_overview": false,
+      "has_devices_telemetry": false,
+      "has_authored_current_work_rate": false
+    },
+    "approved_mining_reference": {
+      "still_contains_hero": false,
+      "still_contains_public_testnet": false,
+      "still_contains_test_coins": false,
+      "has_block_height_label": true,
+      "has_mining_overview": true,
+      "has_devices_telemetry": true,
+      "has_authored_current_work_rate": true,
+      "has_green_accepted_event_semantics": true
+    }
+  },
+  "ci_observations": {
+    "pr265": "ALL_OBSERVED_EXACT_HEAD_GATES_GREEN",
+    "pr266": "ALL_OBSERVED_EXACT_HEAD_GATES_GREEN",
+    "pr268": {
+      "visual_language_lab": "GREEN",
+      "canonical_source": "GREEN",
+      "public_code_security": "GREEN",
+      "codeql": "GREEN",
+      "cross_lab": "FAIL_AT_LATEST_MAIN_CONTAINMENT_BEFORE_COMBINED_VERIFICATION"
+    },
+    "cii_pr21": "VERIFY_CII_FAILS_BEFORE_STEPS_MATERIALIZE"
+  },
+  "readiness_result": {
+    "drift_analysis": "CLOSED",
+    "target_surface_inventory": "CLOSED",
+    "propagation_order": "DEFINED",
+    "dependency_graph": "DEFINED",
+    "invariants": "DEFINED",
+    "anti_patterns": "DEFINED",
+    "integration_boundaries": "DEFINED",
+    "regression_requirements": "DEFINED",
+    "candidate_strategy": "DEFINED_NOT_EXECUTED"
+  },
+  "gates": {
+    "cii_external_ci": "UNRESOLVED",
+    "propagation_authority": false,
+    "explorer_source_write_authority": false
+  },
+  "terminal_state": "READINESS_TECHNICALLY_CLOSED__NO_TARGET_WRITES"
+}
