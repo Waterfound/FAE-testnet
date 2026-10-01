@@ -1,8 +1,25 @@
 # Element 58 — Sovereign Standalone Mining
 
-Status: **PLANNED / NOT STARTED**
+Status: **INTEGRATED IN MAIN / TECHNICALLY VERIFIED / NOT RELEASED OR ACTIVATED**
 
 Class: **Mainnet-critical product sovereignty capability**
+
+## Current canonical disposition
+
+Element 58 reached candidate-level technical closure on 2026-09-30 with terminal verdict **SOVEREIGN_STANDALONE_MINING_READY** and was subsequently integrated into canonical `main` under explicit Waterfound authority.
+
+Evidence-bound identities:
+
+- planning revision: `1efc495ab1c5b3c0439b519a401d89371eb188c7`;
+- verified executable candidate: `305e4ff670649b6c86dafc2bde7d3a74a63c0172`;
+- evidence-only technical closure commit: `ba7c98cb2f1a6f382d79412e03386dd50d898fcd`;
+- PR #269 registration merge: `ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67`;
+- PR #270 integration merge: `785c742dd574936a2460e083e7022eeae5879fdc`;
+- verified canonical merge tree: `7c2fc1841268e3f03306f06b945037cf4781b40a`.
+
+Post-merge canonical verification passed for the integrated source, including canonical verify, CodeQL, PSR15/16/17/18, recurring security and cross-lab integration. The standalone executable/test/workflow blobs remained byte-identical to the verified candidate.
+
+This is **repository integration + technical verification only**. It does not imply release, deployment, activation height, mainnet activation, consensus/economic/mining-algorithm changes, DP6/DP7 changes, Wallet/address/transaction-semantics changes, or paid infrastructure authority.
 
 ## Purpose
 
@@ -75,9 +92,9 @@ Current FAE source already contains:
 
 Therefore this Element is not a new consensus design. It is the productization and hardening of an already-supported sovereign architecture.
 
-## Main implementation gaps
+## Completion criteria
 
-The Element is complete only when the project has evidence for, at minimum:
+Candidate-level technical closure requires evidence for, at minimum:
 
 - a first-class standalone/headless miner entry point;
 - selectable node endpoint;
@@ -123,6 +140,8 @@ Suggested workstream title:
 
 **FAE — Sovereign Standalone Mining**
 
-The workstream should begin only when portfolio capacity is available under the existing Active / Secondary / Passive discipline.
+The implementation and repository-integration workstream is technically closed at canonical-source level.
 
-Until then, this Element remains **PLANNED / NOT STARTED** and should not displace currently active mainnet-readiness work.
+Current canonical disposition: **SOVEREIGN_STANDALONE_MINING_INTEGRATED_MAIN_VERIFIED**.
+
+No further integration work is required for Element 58 inside this scope. Release, deployment, activation height and mainnet remain separate authority boundaries.
