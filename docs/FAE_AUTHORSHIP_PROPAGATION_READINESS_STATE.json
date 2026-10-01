@@ -1,0 +1,238 @@
+{
+  "schema": "FAE_AUTHORSHIP_PROPAGATION_READINESS_V1",
+  "recorded_at": "2026-10-01",
+  "authority_owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "evidence_branch": "docs/fae-authorship-propagation-readiness-20261001",
+  "evidence_base_main": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+  "mission": "Prepare evidence-first authorship-grammar propagation readiness without target-surface propagation.",
+  "thesis": "FAE must feel like a living instrument of computation.",
+  "principles": {
+    "intent_before_identity": true,
+    "visible_elements_intentional_not_generated": true,
+    "mining": "movement",
+    "wallet": "rest",
+    "blue": "computation/activity",
+    "green": "confirmed/received/safe",
+    "orange": "identity/energy"
+  },
+  "reconstructed_state": {
+    "direction_d": {
+      "pr": 265,
+      "state": "OPEN_DRAFT_MERGEABLE",
+      "head": "2ffa8dbbd4ed9b32d5593e6462f7c3486e18603c",
+      "index_blob": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "exact_head_gates": "GREEN",
+      "explorer_in_candidate": false
+    },
+    "direction_d_plus": {
+      "branch": "design/fae-direction-d-plus-approval",
+      "revision": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+      "product_index_blob": "a643c1d6cf6ec8b4d483516c14cbdeb7506598ec",
+      "product_source_newer_than_direction_d": false,
+      "role": "OPERATIONAL_VISUAL_SOURCE_AUTHORITY_FOR_DOWNSTREAM_CANDIDATE_REFERENCE_WORK",
+      "final_main_or_public_promotion_authority": false,
+      "authority_artifact_note": "approval-candidate artifact still records final canonical promotion pending"
+    },
+    "mining_authored_reference": {
+      "pr": 268,
+      "state": "OPEN_DRAFT_MERGEABLE",
+      "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+      "reference_blob": "6aa1fa3711700874c2440d59d28b4005549775db",
+      "final_approval_commit": "2633c90e7c5b3cd3eb85198d049d1cb038eb9016",
+      "approved_candidate_before_receipt": "82af546d8e108333bf01d4d80110c7080eeb3983",
+      "completed_frontiers": [
+        "MAR-00",
+        "MAR-01",
+        "MAR-02",
+        "MAR-03",
+        "MAR-04",
+        "MAR-05",
+        "MAR-06",
+        "MAR-07"
+      ],
+      "propagation_authority": false,
+      "production_authority": false,
+      "main_merge_authority": false,
+      "ci": {
+        "visual_language_lab": "GREEN",
+        "canonical_source": "GREEN",
+        "public_code_security": "GREEN",
+        "codeql": "GREEN",
+        "cross_lab": {
+          "state": "RED",
+          "first_failure": "Require candidate to contain latest canonical main",
+          "candidate_runtime_failure_proven": false
+        }
+      }
+    },
+    "cii_authorship_grammar": {
+      "repository": "Waterfound/Continuous-Improvement-Intelligence-CII",
+      "pr": 21,
+      "state": "OPEN_DRAFT_MERGEABLE",
+      "head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
+      "extraction": "EXTRACTED_ADVISORY_ONLY",
+      "preservation_status": "READY_FOR_SYSTEM_PRESERVATION",
+      "automatic_target_write": false,
+      "automatic_production_change": false,
+      "gate": "EXTRACTION_MATERIALIZED__EXTERNAL_CI_GATE",
+      "verify_run": 36666757776,
+      "verify_observation": "Node 22 and Node 24 jobs fail before workflow steps materialize; no checkout/tests/demo; candidate failure not proven"
+    },
+    "wallet": {
+      "pr": 266,
+      "state": "OPEN_DRAFT_MERGEABLE",
+      "head": "8708b03866f42cf84ba2d01908caec4238928e70",
+      "technical_state": "FAE_WALLET_PERSISTENT_VAULT_READY",
+      "blobs": {
+        "index_html": "bdf23653b7f59a5608f2a3167ff7b50932d38ce6",
+        "wallet_js": "6ef6532eb6b20b4c84b90c030e74288641a0c0ef",
+        "wallet_vault_js": "9e594dbd97317b39bd4e29743cef606393dbd384",
+        "wallet_signing_intent_js": "66e24d5a3b9f6fb415322a4e0de9e0e323b1724d",
+        "wallet_transactions_js": "1e9c9f72f6d8e9c8e338d3acbf418f832cd826d2",
+        "wallet_crypto_js": "184d207b6017976b32e650f4ca184d3f06a2c8b4",
+        "mining_js": "fb98057341adca6f1f53b681e1094ef6fcb97e1f"
+      },
+      "current_exact_head_gates": "GREEN",
+      "older_reconciliation_head": "6e202d285316a89e733ee301fe5429bad5e8a38e",
+      "post_reconciliation_drift": "signing-intent hardening changed index.html and wallet.js; wallet-vault.js and mining.js unchanged"
+    },
+    "main_surface": {
+      "revision": "3ae59d0d013af0ee518f3cfb73c5fcb08394b075",
+      "index_blob": "23148e9fbbcf5a4eea82f7277a267ab5e40f1838",
+      "visual_state": "PRE_DIRECTION_D_CANONICAL_PRODUCT"
+    },
+    "explorer": {
+      "index_blob": "5130efd7e3625e81e52517fb9a834697ebf6fc1f",
+      "explorer_application_write_authorized": false,
+      "source_writes_frozen": true,
+      "propagation_implementation_admissible": false
+    }
+  },
+  "surface_readiness": {
+    "shared_shell_network": {
+      "needs_authorship_absorption": true,
+      "priority": "P0_STRUCTURAL_PREREQUISITE"
+    },
+    "wallet": {
+      "needs_authorship_absorption": true,
+      "priority": "P1_FIRST_CROSS_SURFACE_TRANSLATION"
+    },
+    "mining_product": {
+      "needs_authorship_absorption": true,
+      "priority": "P2_REFERENCE_TO_PRODUCT_INTEGRATION"
+    },
+    "network_circulation": {
+      "needs_authorship_absorption": true,
+      "priority": "P3_CROSS_MODE_REFINEMENT"
+    },
+    "explorer": {
+      "needs_authorship_absorption": true,
+      "priority": "P4_AFTER_SEPARATE_AUTHORITY",
+      "blocked": true
+    }
+  },
+  "dependencies": [
+    "Direction D selection -> PR #265",
+    "PR #265 -> D+ authority source 6719a825...",
+    "D+ -> approved Mining authored reference",
+    "Mining approval -> CII grammar extraction",
+    "CII extraction -> unresolved external CI/system-preservation gate",
+    "target writes require explicit propagation authority",
+    "shared index.html state must be serialized",
+    "Wallet translation must bind the then-current Wallet functional head",
+    "Mining product translation must preserve mining runtime authority",
+    "Explorer translation requires separate Explorer source-write authority"
+  ],
+  "invariants": [
+    "instrument/object/system, not website template",
+    "every prominent element has semantic reason",
+    "identity survives logo/name removal",
+    "silence is designed state",
+    "activity is state-derived",
+    "shared grammar does not mean repeated layout",
+    "orange identity; blue live computation; green confirmed positive event; white/neutral quiet stability",
+    "motion follows causality and settles with state",
+    "reward ETA / percent-to-block fiction prohibited",
+    "security-critical Wallet actions outrank branding"
+  ],
+  "exact_integration_boundaries": {
+    "shared_state": [
+      "index.html"
+    ],
+    "wallet_owned_protected": [
+      "wallet-crypto.js",
+      "wallet-vault.js",
+      "wallet-signing-intent.js",
+      "wallet-transactions.js"
+    ],
+    "mining_owned_protected": [
+      "mining.js"
+    ],
+    "explorer_write_scope": "CLOSED",
+    "protocol_consensus_security_scope": "CLOSED"
+  },
+  "regression_requirements": {
+    "common": [
+      "Visual Language contract",
+      "recognition test",
+      "anti-pattern scan",
+      "contrast",
+      "keyboard focus",
+      "non-color-only state",
+      "reduced motion",
+      "mobile legibility",
+      "cross-lab integration",
+      "canonical-source verification",
+      "public-code security",
+      "CodeQL where applicable"
+    ],
+    "wallet": [
+      "wallet persistent vault candidate",
+      "Chromium/WebKit persistence and restart",
+      "24-word re-entry",
+      "multi-wallet add/switch/remove",
+      "legacy migration fail closed",
+      "ciphertext/wrapping-key adversarial cases",
+      "Wallet Transaction UX / full TXID history",
+      "signing-intent substitution regression",
+      "reviewed intent -> signed payload binding",
+      "no secret/backend or plaintext persistence regressions"
+    ],
+    "mining": [
+      "exact miner runtime binding",
+      "start/pause/resume/stop causality",
+      "no deterministic reward progress",
+      "accepted-work discrete confirmation",
+      "stable paused/empty/error geometry",
+      "reduced motion",
+      "existing mining/runtime regression bank"
+    ],
+    "explorer": [
+      "Block Explorer Lab",
+      "read-only identity",
+      "network mismatch fail closed",
+      "mutation methods rejected",
+      "no Wallet/mining/signing/send controls"
+    ]
+  },
+  "future_branch_strategy": {
+    "execute_now": false,
+    "serialized_shared_state": true,
+    "candidates": [
+      "design/fae-authorship-shell-001",
+      "design/fae-authorship-wallet-001",
+      "design/fae-authorship-mining-product-001",
+      "design/fae-authorship-network-001"
+    ],
+    "explorer_candidate": "DEFER_UNTIL_EXPLORER_AUTHORITY",
+    "main_merge_authority": false,
+    "production_authority": false
+  },
+  "gates": {
+    "cii_external_ci": "UNRESOLVED",
+    "propagation_authority": false,
+    "explorer_source_authority": false
+  },
+  "terminal_state": "READINESS_TECHNICALLY_CLOSED__CII_EXTERNAL_GATE_UNRESOLVED__PROPAGATION_AUTHORITY_FALSE__EXPLORER_AUTHORITY_FROZEN"
+}
