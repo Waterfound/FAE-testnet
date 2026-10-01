@@ -1,15 +1,38 @@
 {
   "schema": "FAE_SOVEREIGN_STANDALONE_MINING_DURABLE_STATE_V1",
-  "updated_at": "2026-09-30T17:43:00Z",
+  "updated_at": "2026-10-01T14:02:00-03:00",
   "repository": "Waterfound/FAE-testnet",
   "branch": "build-colony/fae-sovereign-standalone-mining-001",
   "planning_revision": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
   "executable_candidate_revision": "305e4ff670649b6c86dafc2bde7d3a74a63c0172",
+  "technical_closure_revision": "ba7c98cb2f1a6f382d79412e03386dd50d898fcd",
+  "integration_readiness_revision": "df46ad311d7f98ae0f730fc081ea23d0174465dc",
+  "post_retarget_ancestry_revision": "1cdbb72bc4b63b4be15683d53469e9ebb4b97fa3",
+  "post_retarget_tree": "0ae6b7dd1be8a371db8eeeabfa96ed237305faa9",
   "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
   "general_execution_revision": "ff510496136c0c35fa377f6962750f1fdfb84b8e",
   "mode": "DURABLE_EXECUTION",
-  "status": "DONE_TECHNICAL",
-  "checkpoint": "TERMINAL_RECONCILIATION_COMPLETE",
+  "status": "CONDITION_WAIT",
+  "checkpoint": "PR270_POST_RETARGET_GREEN_AWAITING_MERGE_AUTHORITY",
+  "technical_verdict": "SOVEREIGN_STANDALONE_MINING_READY",
+  "integration_state": "PR270_POST_RETARGET_GREEN_AWAITING_MERGE_AUTHORITY",
+  "canonical_main": {
+    "sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "tree": "471f50b3800ee7d0ed43d4144c5ce2b2cbe72996",
+    "pr269_merged": true,
+    "pr269_merge_sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67"
+  },
+  "pr270": {
+    "number": 270,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "base": "main",
+    "base_sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "head_sha": "1cdbb72bc4b63b4be15683d53469e9ebb4b97fa3",
+    "mergeable": true,
+    "ancestry_contains_latest_main": true
+  },
   "frontier": {
     "SSM-00-boundary-and-source-freeze": {
       "state": "GREEN"
@@ -18,93 +41,123 @@
       "state": "GREEN"
     },
     "SSM-02-canonical-standalone-mining-core": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone/mining-core.mjs",
-        "canonical verify run 36752867795 attempt 2"
-      ]
+      "state": "GREEN"
     },
     "SSM-03-cli-headless-product": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone/fae-miner.mjs",
-        "standalone/package.json"
-      ]
+      "state": "GREEN"
     },
     "SSM-04-secret-free-config-and-authored-operational-states": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone-miner-behavior.test.mjs",
-        "standalone-miner-process-restart.test.mjs"
-      ]
+      "state": "GREEN"
     },
     "SSM-05-independent-node-integration": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone-miner-independent-node.test.mjs",
-        "verify step 26 success"
-      ]
+      "state": "GREEN"
     },
     "SSM-06-stale-reconnect-restart-shutdown": {
       "state": "GREEN"
     },
     "SSM-07-browser-standalone-parity-vectors": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone-mining-core.test.mjs",
-        "Forge snapshot verification success"
-      ]
+      "state": "GREEN"
     },
     "SSM-08-security-no-secret-audit": {
-      "state": "GREEN",
-      "evidence": [
-        "security review",
-        "CodeQL 36752868064 success",
-        "recurring assurance 36752868047 success"
-      ]
+      "state": "GREEN"
     },
     "SSM-09-canonical-verification-integration": {
-      "state": "GREEN",
-      "evidence": [
-        "verify-canonical-source 36752867795 attempt 2 success"
-      ]
+      "state": "GREEN"
     },
     "SSM-10-independent-operator-documentation": {
-      "state": "GREEN",
-      "evidence": [
-        "standalone/README.md"
-      ]
+      "state": "GREEN"
     },
     "SSM-11-terminal-reconciliation": {
+      "state": "GREEN"
+    },
+    "SSM-12-pr269-canonical-integration": {
       "state": "GREEN",
       "evidence": [
-        "terminal report",
-        "evidence manifest"
+        "PR #269 merged as ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+        "main tree 471f50b3800ee7d0ed43d4144c5ce2b2cbe72996"
+      ]
+    },
+    "SSM-13-pr270-retarget-and-source-binding": {
+      "state": "GREEN",
+      "evidence": [
+        "PR #270 base=main",
+        "candidate ancestry includes ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+        "tree unchanged at 0ae6b7dd1be8a371db8eeeabfa96ed237305faa9"
+      ]
+    },
+    "SSM-14-post-retarget-assurance": {
+      "state": "GREEN",
+      "evidence": [
+        "verify-canonical-source 36895567657 attempt 4 success",
+        "codeql-security 36895567776 success",
+        "psr15-project-assurance 36895567598 attempt 2 success",
+        "psr16-finding-closure 36895567673 success",
+        "psr17-full-security-baseline 36895567936 success",
+        "psr18-security-verdict 36895567970 success",
+        "public-code-security-recurring-assurance 36895567771 success",
+        "cross-lab-integration-gate 36895567920 success"
       ]
     }
   },
-  "transient_verifier_event": {
-    "run_id": 36752867795,
-    "attempt_1": "partition recovery UND_ERR_SOCKET after standalone gates passed",
-    "attempt_2": "complete canonical verifier success",
-    "disposition": "PRESERVED_AS_TRANSIENT_RUNTIME_EVIDENCE"
+  "executable_blob_binding": {
+    "standalone/fae-miner.mjs": "b918a306643d83f1d832c72f3b4f0a32d395c5eb",
+    "standalone/mining-core.mjs": "42c392ad54a3e3c2f446ab79f67948d30b82a73e",
+    "standalone/package.json": "b106d025ed45bebbcae090eef0be3e29ec56006e",
+    "standalone/package-lock.json": "6d2bbd954afdf35a67810bb7a0ea8965309677fe",
+    "tests/standalone-mining-core.test.mjs": "42cec633bfc9a095b93077f80d81edb10b6be257",
+    "tests/standalone-miner-behavior.test.mjs": "d9d024e73cce3d7e57d085279b1913401a8f2f58",
+    "tests/standalone-miner-independent-node.test.mjs": "26e345870303818aae7be06e68d507ae7c3d3a7a",
+    "tests/standalone-miner-process-restart.test.mjs": "fc62830d67e64884f3efabd8a896d023f51a2b5b",
+    ".github/workflows/verify.yml": "9d0a2ae4ec112a3734809001f0c5d458c2a72c54"
   },
-  "terminal_verdict": "SOVEREIGN_STANDALONE_MINING_READY",
-  "next_action": "No further technical work is required inside Element 58 authority. Canonical main integration requires separate merge authority; release/deployment/mainnet remain outside this workstream.",
+  "preserved_transient_evidence": [
+    {
+      "run_id": 36895567657,
+      "attempt": 1,
+      "failure": "partition-recovery-3node.mjs fetch failed / UND_ERR_SOCKET",
+      "disposition": "TRANSIENT_NO_SOURCE_CHANGE"
+    },
+    {
+      "run_id": 36895567657,
+      "attempt": 2,
+      "failure": "authoritative-p2p-v6-integration.mjs fetch failed",
+      "disposition": "TRANSIENT_NO_SOURCE_CHANGE"
+    },
+    {
+      "run_id": 36895567657,
+      "attempt": 3,
+      "failure": "authoritative-p2p-v6-integration.mjs fetch failed",
+      "disposition": "TRANSIENT_NO_SOURCE_CHANGE"
+    },
+    {
+      "run_id": 36895567598,
+      "attempt": 1,
+      "failure": "PSR15 WB-09 and WB-13 runtime campaign failures with target_unchanged=true",
+      "disposition": "TRANSIENT_SAME_TREE__ATTEMPT_2_SUCCESS"
+    }
+  ],
+  "next_action": "Await explicit Waterfound authority for PR #270 merge. Before any future merge, re-resolve current main, PR #270 head/base, mergeability, exact blob binding and required checks. Do not infer release/deployment/activation/mainnet authority.",
   "authority_consumed": [
-    "isolated candidate branch writes",
-    "draft pull request",
-    "software-only verification"
+    "merge PR #269 registration into main",
+    "retarget PR #270 to main",
+    "ancestry-only merge of latest main into PR #270 candidate branch with unchanged tree",
+    "post-retarget CI/security/integration reruns",
+    "documentation/evidence reconciliation"
   ],
   "authority_not_consumed": [
+    "PR #270 merge",
+    "PR #270 ready-for-review transition",
     "consensus",
     "economics",
     "mining algorithm",
+    "DP6/DP7",
     "wallet cryptography",
+    "address format",
+    "transaction semantics",
     "release",
     "deployment",
+    "activation height",
     "mainnet",
-    "paid infrastructure",
-    "main merge"
+    "paid infrastructure"
   ]
 }
