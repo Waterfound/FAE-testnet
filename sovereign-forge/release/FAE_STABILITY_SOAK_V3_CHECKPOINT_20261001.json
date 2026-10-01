@@ -1,0 +1,252 @@
+{
+  "schema": "FAE_STABILITY_SOAK_V3_CHECKPOINT_20261001_V1",
+  "checkpoint_id": "fae-stability-soak-v3-checkpoint-20261001-provider-branch-gate",
+  "recorded_at": "2026-10-01T16:41:25Z",
+  "source_of_truth": "GitHub repository state + live Render connector evidence. Chat memory is non-authoritative.",
+  "terminal_classification": "EXTERNAL_PROVIDER_GATE",
+  "run_id": "FAE-STABILITY-SOAK-V3-20261001-001",
+  "run_started": false,
+  "frozen_operational_commit": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+  "frozen_tree": "f990a694b3c4f5a8ac27c76168b29dd0d2c640c7",
+  "dedicated_operational_ref": {
+    "branch": "freeze/stability-soak-v3-operational-8e061f81-20261001",
+    "head": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+    "tree": "f990a694b3c4f5a8ac27c76168b29dd0d2c640c7",
+    "compare_to_frozen": {
+      "status": "identical",
+      "ahead_by": 0,
+      "behind_by": 0,
+      "total_commits": 0
+    }
+  },
+  "frozen_source_preflight": {
+    "control_branch": "preflight/stability-soak-v3-frozen-8e-20261001",
+    "workflow_control_commit": "b49d3ea005be7845ade83ed89de0eab0653e0003",
+    "github_actions_run": 36893657646,
+    "conclusion": "success",
+    "checkout_sha": "8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3",
+    "checkout_tree": "f990a694b3c4f5a8ac27c76168b29dd0d2c640c7",
+    "passed": [
+      "exact SHA/tree binding",
+      "syntax/config validation",
+      "fresh bootstrap recovery",
+      "96h-sized chain recovery under frozen bound",
+      "zero-cost quota/authority invariant tests",
+      "evidence analyzer tests",
+      "fail-closed prestart tests",
+      "node/controller/observer harness smoke",
+      "no-launch source preservation"
+    ]
+  },
+  "provider": {
+    "workspace_id": "tea-daicggp594qs7386ck00",
+    "provider": "Render",
+    "workspace_service_inventory": {
+      "total_services": 10,
+      "free_services": 10,
+      "nonfree_services": 0
+    },
+    "reactivation_window_utc": "2026-10-01T00:31:29.865103Z..2026-10-01T00:31:30.275709Z",
+    "required_services": [
+      {
+        "role": "node-a",
+        "service_id": "srv-daicporm8hqs73cauong",
+        "name": "fae-wan-a-oregon",
+        "region": "oregon",
+        "plan": "free",
+        "suspended": false,
+        "auto_deploy": false,
+        "configured_branch": "render-wan-lab",
+        "url": "https://fae-wan-a-oregon.onrender.com",
+        "current_live_deploy_commit": "0513006f24eb4c3249aa6a2c47240200de99bb66",
+        "frozen_source_admissible": false
+      },
+      {
+        "role": "node-b",
+        "service_id": "srv-daicps3m8hqs73cav78g",
+        "name": "fae-wan-b-frankfurt",
+        "region": "frankfurt",
+        "plan": "free",
+        "suspended": false,
+        "auto_deploy": false,
+        "configured_branch": "render-wan-lab",
+        "url": "https://fae-wan-b-frankfurt.onrender.com",
+        "current_live_deploy_commit": "0513006f24eb4c3249aa6a2c47240200de99bb66",
+        "frozen_source_admissible": false
+      },
+      {
+        "role": "node-c",
+        "service_id": "srv-daicpu0ae00c73dvigm0",
+        "name": "fae-wan-c-singapore",
+        "region": "singapore",
+        "plan": "free",
+        "suspended": false,
+        "auto_deploy": false,
+        "configured_branch": "render-wan-lab",
+        "url": "https://fae-wan-c-singapore.onrender.com",
+        "current_live_deploy_commit": "0513006f24eb4c3249aa6a2c47240200de99bb66",
+        "frozen_source_admissible": false
+      },
+      {
+        "role": "controller",
+        "service_id": "srv-daideq95efls73d2mn40",
+        "name": "fae-stability-soak-96h",
+        "region": "virginia",
+        "plan": "free",
+        "suspended": false,
+        "auto_deploy": false,
+        "configured_branch": "render-wan-lab",
+        "url": "https://fae-stability-soak-96h.onrender.com",
+        "current_live_deploy_commit": "d84399c7eaa25fea5bdad0a32146e14c8b9c7645",
+        "frozen_source_admissible": false
+      },
+      {
+        "role": "observer",
+        "service_id": "srv-daicrhp5efls73d0fv8g",
+        "name": "fae-wan-result-logger",
+        "region": "ohio",
+        "plan": "free",
+        "suspended": false,
+        "auto_deploy": false,
+        "configured_branch": "render-wan-lab",
+        "url": "https://fae-wan-result-logger.onrender.com",
+        "current_live_deploy_commit": "8a2a9ead7730521c86900210dd87ed91f686d504",
+        "frozen_source_admissible": false
+      }
+    ],
+    "configured_branch_head": {
+      "branch": "render-wan-lab",
+      "head": "ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d",
+      "equals_frozen": false
+    }
+  },
+  "zero_cost_capacity_evidence": {
+    "frozen_contract_monthly_free_instance_hours": 750,
+    "required_five_service_envelope_hours": 540,
+    "basis": "sovereign-forge/release/stability-soak-v3-zero-cost-candidate.json at frozen operational commit",
+    "observation_at": "2026-10-01T16:41:25Z",
+    "conservative_method": "Assume every one of the 10 currently returned free web services consumed continuously from the earliest observed 2026-10-01 reactivation timestamp.",
+    "elapsed_hours_since_earliest_reactivation": 16.1653152492,
+    "worst_case_workspace_hours_consumed_since_reactivation": 161.6531524917,
+    "conservative_remaining_free_hours_lower_bound": 588.3468475083,
+    "required_hours": 540,
+    "conservative_headroom_hours": 48.3468475083,
+    "checkpoint_capacity_gate": "PASS_AT_OBSERVATION",
+    "launch_requirement": "RECHECK_IMMEDIATELY_BEFORE_DEPLOY_AND_T0 because this is not an exclusive reservation and other free services can consume the shared quota."
+  },
+  "prepared_topology": {
+    "node_a": {
+      "url": "https://fae-wan-a-oregon.onrender.com",
+      "peers": [
+        "https://fae-wan-b-frankfurt.onrender.com",
+        "https://fae-wan-c-singapore.onrender.com"
+      ],
+      "monitor_urls": [
+        "https://fae-stability-soak-96h.onrender.com",
+        "https://fae-wan-result-logger.onrender.com"
+      ],
+      "peer_count_required": 2
+    },
+    "node_b": {
+      "url": "https://fae-wan-b-frankfurt.onrender.com",
+      "peers": [
+        "https://fae-wan-a-oregon.onrender.com",
+        "https://fae-wan-c-singapore.onrender.com"
+      ],
+      "monitor_urls": [
+        "https://fae-stability-soak-96h.onrender.com",
+        "https://fae-wan-result-logger.onrender.com"
+      ],
+      "peer_count_required": 2
+    },
+    "node_c": {
+      "url": "https://fae-wan-c-singapore.onrender.com",
+      "peers": [
+        "https://fae-wan-a-oregon.onrender.com",
+        "https://fae-wan-b-frankfurt.onrender.com"
+      ],
+      "monitor_urls": [
+        "https://fae-stability-soak-96h.onrender.com",
+        "https://fae-wan-result-logger.onrender.com"
+      ],
+      "peer_count_required": 2
+    },
+    "controller": {
+      "url": "https://fae-stability-soak-96h.onrender.com",
+      "nodes": {
+        "node_a": "https://fae-wan-a-oregon.onrender.com",
+        "node_b": "https://fae-wan-b-frankfurt.onrender.com",
+        "node_c": "https://fae-wan-c-singapore.onrender.com"
+      },
+      "peer_monitor_url": "https://fae-wan-result-logger.onrender.com"
+    },
+    "observer": {
+      "url": "https://fae-wan-result-logger.onrender.com",
+      "nodes": {
+        "node_a": "https://fae-wan-a-oregon.onrender.com",
+        "node_b": "https://fae-wan-b-frankfurt.onrender.com",
+        "node_c": "https://fae-wan-c-singapore.onrender.com"
+      },
+      "peer_monitor_url": "https://fae-stability-soak-96h.onrender.com"
+    }
+  },
+  "prepared_prestart_configuration": {
+    "common_run_id": "FAE-STABILITY-SOAK-V3-20261001-001",
+    "t0_present": false,
+    "run_started": false,
+    "node_env_template": {
+      "FAE_V3_RUN_ID": "FAE-STABILITY-SOAK-V3-20261001-001",
+      "FAE_PEERS": "role-specific two-peer URL list from prepared_topology",
+      "FAE_V3_MONITOR_URLS": "https://fae-stability-soak-96h.onrender.com,https://fae-wan-result-logger.onrender.com",
+      "identity_requirement": "Exactly one stable per-node provider-managed identity via FAE_IDENTITY_FILE or FAE_NODE_IDENTITY_JSON_B64; must be distinct across node-a/node-b/node-c."
+    },
+    "controller_env_template": {
+      "FAE_V3_RUN_ID": "FAE-STABILITY-SOAK-V3-20261001-001",
+      "FAE_V3_NODE_A": "https://fae-wan-a-oregon.onrender.com",
+      "FAE_V3_NODE_B": "https://fae-wan-b-frankfurt.onrender.com",
+      "FAE_V3_NODE_C": "https://fae-wan-c-singapore.onrender.com",
+      "FAE_V3_PEER_MONITOR_URL": "https://fae-wan-result-logger.onrender.com",
+      "FAE_V3_T0_UTC": "ABSENT_DURING_PRESTART",
+      "FAE_V3_START_HEIGHT": "ABSENT_DURING_PRESTART",
+      "FAE_V3_MINER_ADDRESS": "ABSENT_DURING_PRESTART"
+    },
+    "observer_env_template": {
+      "FAE_V3_RUN_ID": "FAE-STABILITY-SOAK-V3-20261001-001",
+      "FAE_V3_NODE_A": "https://fae-wan-a-oregon.onrender.com",
+      "FAE_V3_NODE_B": "https://fae-wan-b-frankfurt.onrender.com",
+      "FAE_V3_NODE_C": "https://fae-wan-c-singapore.onrender.com",
+      "FAE_V3_PEER_MONITOR_URL": "https://fae-stability-soak-96h.onrender.com",
+      "FAE_V3_T0_UTC": "ABSENT_DURING_PRESTART"
+    }
+  },
+  "prestart_status": {
+    "source_binding": "READY_ON_DEDICATED_GIT_REF_NOT_YET_BOUND_IN_RENDER",
+    "five_services_free": "PASS",
+    "services_unsuspended": "PASS",
+    "checkpoint_capacity": "PASS_AT_OBSERVATION",
+    "exact_frozen_runtime_deployed": "FAIL_NOT_YET_DEPLOYED",
+    "identities": "PENDING_POST_FROZEN_DEPLOY_VERIFICATION",
+    "topology_urls": "PREPARED",
+    "peers_per_node": "PREPARED_CONFIG_NOT_RUNTIME_VERIFIED",
+    "monitor_controller_observer_urls": "PREPARED",
+    "run_started_false": "PRESERVED_NO_V3_T0_NO_V3_DEPLOY",
+    "launch_admission": false
+  },
+  "genuine_gate": {
+    "code": "RENDER_SERVICE_BRANCH_REF_MUTATION_REQUIRED",
+    "detail": "All five required services are configured to branch render-wan-lab, whose HEAD is ef8f6ca3838abf6ef0e882c10a31bc70a2ae6e9d. The connected Render capability exposes deploy and environment-variable mutation but no service branch/ref mutation, and no authenticated Render Dashboard browser profile is available. A deploy must not be triggered until each of the five services is explicitly bound to freeze/stability-soak-v3-operational-8e061f81-20261001 (or another Render-visible ref whose HEAD is exactly 8e061f81d0c9ec06e10f518a9dc3a9761cf7dfb3).",
+    "next_action": "In Render, change the branch for node-a, node-b, node-c, controller, and observer from render-wan-lab to freeze/stability-soak-v3-operational-8e061f81-20261001. Do not deploy from render-wan-lab. Once branch binding is visible through the connector, machine execution can set/verify prestart env, trigger zero-cost deploys, verify exact RENDER_GIT_COMMIT, identities, >=2 peers/node, health/topology, capacity, and run_started=false before any T0 admission."
+  },
+  "authority_boundary": {
+    "paid_fallback": false,
+    "new_spend": false,
+    "consensus_changes": false,
+    "economics_changes": false,
+    "dp6_changes": false,
+    "release": false,
+    "activation_height": false,
+    "mainnet": false,
+    "deploy_triggered": false,
+    "render_env_mutated": false
+  }
+}
