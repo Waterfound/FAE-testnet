@@ -1,0 +1,126 @@
+{
+  "schema": "FAE_SOVEREIGN_STANDALONE_MINING_INTEGRATION_HANDOFF_V1",
+  "generated_at": "2026-10-01T14:02:00-03:00",
+  "disposition": "PR270_POST_RETARGET_GREEN_AWAITING_MERGE_AUTHORITY",
+  "repository": "Waterfound/FAE-testnet",
+  "main": {
+    "sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "tree": "471f50b3800ee7d0ed43d4144c5ce2b2cbe72996",
+    "element58_registration_integrated": true,
+    "source_of_change": "PR #269 only"
+  },
+  "pr269": {
+    "number": 269,
+    "state": "closed",
+    "merged": true,
+    "head_sha": "1efc495ab1c5b3c0439b519a401d89371eb188c7",
+    "merge_sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "merge_tree": "471f50b3800ee7d0ed43d4144c5ce2b2cbe72996",
+    "scope": "Element 58 registration/documentation only"
+  },
+  "pr270": {
+    "number": 270,
+    "state": "open",
+    "draft": true,
+    "merged": false,
+    "base": "main",
+    "base_sha": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "verified_executable_sha": "305e4ff670649b6c86dafc2bde7d3a74a63c0172",
+    "technical_closure_sha": "ba7c98cb2f1a6f382d79412e03386dd50d898fcd",
+    "pre_retarget_handoff_sha": "df46ad311d7f98ae0f730fc081ea23d0174465dc",
+    "post_retarget_ancestry_sha": "1cdbb72bc4b63b4be15683d53469e9ebb4b97fa3",
+    "tree": "0ae6b7dd1be8a371db8eeeabfa96ed237305faa9",
+    "mergeable": true,
+    "latest_main_ancestor": true,
+    "exact_source_equivalence": true
+  },
+  "ancestry_reconciliation": {
+    "reason": "cross-lab post-retarget gate required candidate to contain latest canonical main",
+    "method": "merge latest main into candidate branch without content transformation",
+    "commit": "1cdbb72bc4b63b4be15683d53469e9ebb4b97fa3",
+    "parents": [
+      "df46ad311d7f98ae0f730fc081ea23d0174465dc",
+      "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67"
+    ],
+    "tree_before": "0ae6b7dd1be8a371db8eeeabfa96ed237305faa9",
+    "tree_after": "0ae6b7dd1be8a371db8eeeabfa96ed237305faa9",
+    "content_changed": false
+  },
+  "executable_test_workflow_blob_binding": {
+    "standalone/fae-miner.mjs": "b918a306643d83f1d832c72f3b4f0a32d395c5eb",
+    "standalone/mining-core.mjs": "42c392ad54a3e3c2f446ab79f67948d30b82a73e",
+    "standalone/package.json": "b106d025ed45bebbcae090eef0be3e29ec56006e",
+    "standalone/package-lock.json": "6d2bbd954afdf35a67810bb7a0ea8965309677fe",
+    "tests/standalone-mining-core.test.mjs": "42cec633bfc9a095b93077f80d81edb10b6be257",
+    "tests/standalone-miner-behavior.test.mjs": "d9d024e73cce3d7e57d085279b1913401a8f2f58",
+    "tests/standalone-miner-independent-node.test.mjs": "26e345870303818aae7be06e68d507ae7c3d3a7a",
+    "tests/standalone-miner-process-restart.test.mjs": "fc62830d67e64884f3efabd8a896d023f51a2b5b",
+    ".github/workflows/verify.yml": "9d0a2ae4ec112a3734809001f0c5d458c2a72c54"
+  },
+  "post_retarget_verification": {
+    "canonical_verify": {
+      "run_id": 36895567657,
+      "successful_attempt": 4,
+      "conclusion": "success"
+    },
+    "codeql": {
+      "run_id": 36895567776,
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "psr15": {
+      "run_id": 36895567598,
+      "successful_attempt": 2,
+      "conclusion": "success"
+    },
+    "psr16": {
+      "run_id": 36895567673,
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "psr17": {
+      "run_id": 36895567936,
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "psr18": {
+      "run_id": 36895567970,
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "recurring_security": {
+      "run_id": 36895567771,
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "cross_lab": {
+      "run_id": 36895567920,
+      "attempt": 1,
+      "conclusion": "success"
+    }
+  },
+  "preserved_failed_attempts": [
+    "canonical run 36895567657 attempt 1: partition recovery fetch failed / UND_ERR_SOCKET",
+    "canonical run 36895567657 attempt 2: Protocol 6 integration fetch failed",
+    "canonical run 36895567657 attempt 3: Protocol 6 integration fetch failed",
+    "PSR15 run 36895567598 attempt 1: WB-09 and WB-13 failed with target_unchanged=true"
+  ],
+  "merge_method_guidance": "Prefer merge commit to preserve direct candidate ancestry. Re-resolve current main at future merge time; if main advances, repeat ancestry/source/CI reconciliation.",
+  "authority": {
+    "pr270_merge": false,
+    "pr270_ready_for_review_transition": false,
+    "release": false,
+    "deployment": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "mining_algorithm_change": false,
+    "dp6_dp7_change": false,
+    "wallet_change": false,
+    "address_format_change": false,
+    "transaction_semantics_change": false,
+    "activation_height": false,
+    "mainnet": false,
+    "paid_infrastructure": false
+  },
+  "terminal_gate": "WATERFOUND_PR270_MERGE_AUTHORITY"
+}

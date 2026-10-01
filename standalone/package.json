@@ -1,0 +1,16 @@
+{
+  "name": "@fairyelf/fae-miner",
+  "version": "0.1.0",
+  "description": "FAE sovereign standalone/headless miner candidate",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "fae-miner": "./fae-miner.mjs"
+  },
+  "scripts": {
+    "check": "node --check mining-core.mjs && node --check fae-miner.mjs"
+  }
+}
