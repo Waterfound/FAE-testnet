@@ -1,0 +1,136 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_DURABLE_EXECUTION_V1",
+  "recorded_at": "2026-09-28T21:03:00Z",
+  "visual_candidate_revision": "c221f307415ee01346bc04791cf91172b22f1216",
+  "runtime_repository": "Waterfound/General-Execution",
+  "runtime_branch": "runtime/durable-asp-control",
+  "persistent_runtime_source": "a27a558d4ed0e28d96c3fec408212353d0077060",
+  "bootstrap": {
+    "event_id": "fae-visual-language-vl05-bootstrap-001",
+    "workflow_run": "https://github.com/Waterfound/General-Execution/actions/runs/36460513395",
+    "status": "SUCCESS",
+    "generation": 0,
+    "state_digest": "sha256:9154d48d88ac278606b9fc00c78e7b90c591e4c83a7d4c4c3cebe7a18b6c7854"
+  },
+  "transition": {
+    "event_id": "fae-visual-language-vl05-verified-001",
+    "workflow_run": "https://github.com/Waterfound/General-Execution/actions/runs/36460735106",
+    "status": "SUCCESS",
+    "disposition": "committed",
+    "pre_generation": 0,
+    "post_generation": 1,
+    "post_state_digest": "sha256:a3717ab32a95539064f41e7f85233fcb2e5c384941295806b2f125b36c0750ee",
+    "checkpoint_digest": "sha256:cd6baf8f9f536a614874ea2800e6c4be251b2695d4d5d883300828a301a4d039",
+    "human_required": true,
+    "requested_action_ref": "authority://fae-visual-language/select-art-direction"
+  },
+  "machine_frontier_disposition": {
+    "completed_and_admitted": [
+      "VL-00",
+      "VL-01",
+      "VL-02",
+      "VL-03",
+      "VL-04",
+      "VL-05",
+      "VL-06",
+      "VL-07",
+      "VL-08",
+      "VL-09",
+      "VL-10",
+      "VL-12",
+      "VL-13"
+    ],
+    "superseded_for_integration": [
+      "VL-11"
+    ],
+    "current": "VL-14_CANONICAL_INTEGRATION_CANDIDATE_AUTHORITY_CORRECTED",
+    "next": "VL-15_PUBLIC_TESTNET_SITE_DEPLOYMENT",
+    "next_status": "REQUIRES_PUBLIC_REBRAND_AUTHORITY_BEFORE_MAIN_MERGE_OR_PRODUCTION_DEPLOY"
+  },
+  "safety": {
+    "branch_merged": false,
+    "production_changed": false,
+    "consensus_changed": false,
+    "network_identity_changed": false,
+    "logo_or_symbol_frozen": false,
+    "public_rebrand_authorized": false,
+    "authority_created_by_runtime": false,
+    "explorer_source_changed": false,
+    "authority_conflict_fail_closed": true,
+    "mining_runtime_changed": false,
+    "mining_authority_conflict_fail_closed": true
+  },
+  "direction_d_resume": {
+    "authority_event": "fae-visual-language-direction-d-authority-001",
+    "authority_consumed_commit": "bb2eb435ca8db59835ef8de0153fcc0e73da31e0",
+    "generation_after_authority": 2
+  },
+  "direction_d_transitions": [
+    {
+      "frontier": "VL-07",
+      "event": "fae-visual-language-vl07-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 3,
+      "admission_status": "ADMITTED"
+    },
+    {
+      "frontier": "VL-08",
+      "event": "fae-visual-language-vl08-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 4,
+      "admission_status": "ADMITTED"
+    },
+    {
+      "frontier": "VL-09",
+      "event": "fae-visual-language-vl09-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 5,
+      "admission_status": "ADMITTED"
+    },
+    {
+      "frontier": "VL-10",
+      "event": "fae-visual-language-vl10-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 6,
+      "admission_status": "ADMITTED"
+    },
+    {
+      "frontier": "VL-11",
+      "event": "fae-visual-language-vl11-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 7,
+      "admission_status": "SUPERSEDED_FOR_INTEGRATION_AFTER_BLOCK_EXPLORER_AUTHORITY_CONFLICT"
+    },
+    {
+      "frontier": "VL-12",
+      "event": "fae-visual-language-vl12-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 8,
+      "admission_status": "VALID_FOR_HOMEPAGE_WALLET_MINING_SUBSET"
+    },
+    {
+      "frontier": "VL-13",
+      "event": "fae-visual-language-vl13-complete-001",
+      "result": "SUCCESS",
+      "post_generation": 9,
+      "admission_status": "VALID_FOR_HOMEPAGE_WALLET_MINING_SUBSET"
+    }
+  ],
+  "authority_correction": {
+    "trigger": "PR #265 Block Explorer Lab boundary guard exposed frozen Explorer source-write authority.",
+    "authority_source": "lab/block-explorer/authority.json",
+    "explorer_application_write_authorized": false,
+    "explorer_source_writes_frozen": true,
+    "action": "Reverted explorer/index.html and explorer/styles.css exactly to current main; visual Explorer prototype remains non-admitted evidence.",
+    "correction_commit": "fddcd86d8fe97946a316ccda63432b3bb0f7fe87",
+    "requires_new_waterfound_authority_for_explorer": true
+  },
+  "mining_authority_correction": {
+    "trigger": "PR #265 cross-lab integration gate exposed MTS-08 frozen root miner bytes.",
+    "authority_source": "lab/mining-tip-sync/boundary-guard.mjs",
+    "action": "Revert mining.js exactly to main; implement activity-state presentation in index.html CSS by observing existing #stop disabled state.",
+    "runtime_semantics": "UNCHANGED",
+    "requires_new_mining_authority": false,
+    "rationale": "No miner-source write is needed to satisfy the selected visual direction."
+  }
+}

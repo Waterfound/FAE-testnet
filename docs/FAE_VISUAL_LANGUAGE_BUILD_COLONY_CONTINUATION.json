@@ -1,0 +1,123 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION_V1",
+  "run_kind": "REAL_BUILD_COLONY_CONTINUATION",
+  "run_date": "2026-09-28",
+  "source_visual_revision": "18833d3f4d013e9077d4f0b18a42a86018376056",
+  "reconciled_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+  "authority": {
+    "event": "fae-visual-language-direction-d-authority-001",
+    "durable_consumed": true,
+    "post_generation": 2,
+    "post_state_digest": "sha256:ed0347800ee59dfedbd84f9737aa3ffed2e1f8f204c3b85fb68e0b74fab96ec4",
+    "selected_direction": "D — Orange Top / White Field / Blue Circulation"
+  },
+  "concurrency": {
+    "active_preserved": "FAE Research — 180s Economic + Block-Time Validation",
+    "this_workstream": "SECONDARY",
+    "policy": "Parallelize independence. Serialize shared state.",
+    "shared_state_policy": "Do not mutate docs/FAE_CANONICAL_STATE.md from the visual branch unless integration is serialized after verification."
+  },
+  "frontiers": [
+    {
+      "id": "VL-06A",
+      "name": "Direction D authority binding",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-07",
+      "name": "Freeze Direction D brand thesis and visual grammar",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-07R",
+      "name": "Reconcile visual branch against newest main",
+      "state": "DONE",
+      "main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503"
+    },
+    {
+      "id": "VL-08",
+      "name": "Homepage vertical slice",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-09",
+      "name": "Wallet vertical slice",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-10",
+      "name": "Mining vertical slice",
+      "state": "DONE"
+    },
+    {
+      "id": "VL-11",
+      "name": "Explorer specialization",
+      "state": "BLOCKED_BY_BLOCK_EXPLORER_SOURCE_AUTHORITY",
+      "note": "Earlier VL-11 visual evidence is exploratory only and is not admitted for integration because Block Explorer authority keeps explorer_application_write_authorized=false and source_writes_frozen=true."
+    },
+    {
+      "id": "VL-12",
+      "name": "Responsive/browser/accessibility QA",
+      "state": "DONE_FOR_ADMITTED_SURFACES"
+    },
+    {
+      "id": "VL-13",
+      "name": "Reference gallery/system extraction",
+      "state": "DONE_FOR_ADMITTED_SURFACES"
+    },
+    {
+      "id": "VL-14",
+      "name": "Canonical integration candidate",
+      "state": "CANDIDATE_PREPARING_AUTHORITY_CORRECTED"
+    },
+    {
+      "id": "VL-15",
+      "name": "Public testnet/site deployment",
+      "state": "BLOCKED_BY_PUBLIC_REBRAND_AUTHORITY"
+    }
+  ],
+  "acceptance_boundary": {
+    "final_logo_symbol": "RESERVED_TO_WATERFOUND",
+    "public_rebrand": "RESERVED_TO_WATERFOUND",
+    "consensus": "OUT_OF_SCOPE",
+    "economics": "OUT_OF_SCOPE",
+    "protocol_identity": "OUT_OF_SCOPE"
+  },
+  "latest_execution": {
+    "visual_basis_revision": "c221f307415ee01346bc04791cf91172b22f1216",
+    "durable_generation": 9,
+    "durable_state_digest": "sha256:8f76ceb02b4b71a6249b64672bdb829eafc3ffdf43b96caa4b2e264ff9ae5f48",
+    "admitted_verified_frontiers": [
+      "VL-07",
+      "VL-08",
+      "VL-09",
+      "VL-10",
+      "VL-12",
+      "VL-13"
+    ],
+    "superseded_or_gated_frontiers": [
+      "VL-11"
+    ],
+    "next_frontier": "VL-14",
+    "production_unchanged": true
+  },
+  "authority_conflict_correction": {
+    "discovered_at": "2026-09-28T21:06:21Z",
+    "source": "lab/block-explorer/authority.json",
+    "finding": "Block Explorer source writes are frozen: explorer_application_write_authorized=false and be05_authority.source_writes_frozen=true.",
+    "disposition": "FAIL_CLOSED",
+    "explorer_candidate": "EXPLORATORY_NOT_ADMITTED",
+    "explorer_files_reverted_to_main": true,
+    "prior_vl11_durable_evidence": "SUPERSEDED_FOR_INTEGRATION",
+    "required_future_authority": "Explicit Block Explorer source-write authority compatible with the visual workstream."
+  },
+  "mining_authority_correction": {
+    "discovered_at": "2026-09-28T21:11:10Z",
+    "source": "lab/mining-tip-sync/boundary-guard.mjs",
+    "finding": "MTS-08 freezes root mining.js bytes; the earlier UI-only setMiningActivity hook was not authority-admissible.",
+    "disposition": "FAIL_CLOSED",
+    "mining_runtime_candidate": "UNCHANGED_FROM_MAIN",
+    "remediation": "Revert mining.js exactly to main and derive the blue activity rail from the existing Stop-button enabled state using CSS :has(), preserving mining logic byte-for-byte.",
+    "prior_vl10_visual_semantics": "PRESERVED_WITHOUT_MINER_SOURCE_WRITE"
+  }
+}
