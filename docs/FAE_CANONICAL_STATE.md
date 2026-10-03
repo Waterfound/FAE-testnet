@@ -310,6 +310,16 @@ Evidence:
 
 The publication receipt records successful canonical verification, cross-Lab verification, recurring security assurance, CodeQL, a READY production deployment, and exact served-file matching for the integrated Wallet Transaction UX. This closes the bounded TXID visibility/copyability + transaction-history discoverability workstream. It does not create Explorer, consensus, backend, key-material, or mainnet authority.
 
+## Mining design note — memory economics
+
+FAE's mining design intent is to shift specialization pressure away from pure compute density and toward the economics of memory systems.
+
+> **FAE tenta transformar mineração de uma corrida por compute density em uma corrida por memory economics.**
+
+This is not a claim that electricity ceases to matter. Memory capacity, dependent/random access, bandwidth, controllers, PHYs, packaging and data movement all consume energy and capital. The intended economic effect is that additional specialized compute should increasingly require proportionate investment in the memory system that feeds it, making simple replication of cheap arithmetic logic less decisive.
+
+This note is architectural intent, not proof that DP6 has already bounded specialist advantage. The current DP6 evidence still requires the memory-system/package/economic bound before a robust ASIC-resistance claim can be made.
+
 ## ASIC resistance / F2 external state
 
 The ASIC/F2 workstream is not integrated into current FAE `main`; its evidence remains Lab/Durable state and must not be represented as canonical protocol completion.
