@@ -56,6 +56,7 @@ Primary references:
 
 Waterfound-authoritative economic design decision recorded on 2026-10-04:
 
+- initial subsidy: **7 FAE/block**;
 - subsidy reduction per era: **45%**;
 - retained subsidy per era: **55%**;
 - target era duration: **6 calendar years**;
@@ -65,15 +66,14 @@ Waterfound-authoritative economic design decision recorded on 2026-10-04:
 
 Compact rule:
 
-`R(n+1) = floor(R(n) × 55 / 100)` in consensus base units once the final reward and block-count implementation are frozen.
+`R(0) = 7 FAE` and `R(n+1) = floor(R(n) × 55 / 100)` in consensus base units. Only the final block-count implementation remains to be derived after the final block target is selected.
 
-This decision is authoritative for the **shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
+This decision is authoritative for the **starting reward, shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
 
 ### Parameters intentionally still open
 
 The following are not frozen by the 2026-10-04 authority decision:
 
-- initial subsidy: **7 FAE/block remains the current candidate, not yet authoritative**;
 - final monetary supply / hard ceiling: **not yet frozen**;
 - final block target: **not yet frozen**; 300 seconds remains the current research incumbent;
 - exact era block count: **not yet frozen**;
@@ -85,7 +85,7 @@ The six-year rule is a **calendar-economic intent**. Final consensus must transl
 
 ### Current reference scenario
 
-For comparison only, if the current 300-second research block-time incumbent and the current 7 FAE initial-reward candidate are both retained:
+For comparison only, if the current 300-second research block-time incumbent is retained together with the authoritative **7 FAE/block** starting reward:
 
 - reference blocks/year: **105,192**;
 - reference blocks/6-year era: **631,152**;
@@ -122,7 +122,7 @@ Primary authority/evidence references:
 
 Authority status:
 
-- tokenomics design authority: **YES — 6 years / -45%**;
+- tokenomics design authority: **YES — 7 FAE initial reward / 6 years / -45%**;
 - active public-testnet consensus changed: **false**;
 - economics activated: **false**;
 - activation height selected: **false**;
