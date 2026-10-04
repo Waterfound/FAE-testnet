@@ -76,6 +76,8 @@ const requireGate = (id, expectedState) => {
 
 requireGate("research_180s_validation", "ACTIVE");
 requireGate("mainnet_readiness_reconciliation", "SECONDARY");
+requireGate("preferred_future_economic_candidate", "CLOSED");
+requireGate("authoritative_future_tokenomics_design", "DONE");
 requireGate("wallet_transaction_ux", "DONE");
 requireGate("stability_soak_v3", "SCHEDULED");
 requireGate("block_explorer_independent_binding", "HUMAN_GATE");
@@ -100,8 +102,32 @@ if (
   future?.initial_subsidy_fae !== 14 ||
   future?.halving_era_blocks !== 430000 ||
   future?.authority !== "RESEARCH_ONLY" ||
-  future?.activation_height !== null
-) fail("future economic candidate authority drift");
+  future?.activation_height !== null ||
+  future?.status !== "SUPERSEDED_AS_FUTURE_TOKENOMICS_PACKAGE__PRESERVED_AS_HISTORICAL_RESEARCH"
+) fail("superseded future economic research package drift");
+
+const tokenomics = state.authority_snapshot?.authoritative_future_tokenomics_design;
+if (
+  state.authority_snapshot?.tokenomics_design_authoritative !== true ||
+  tokenomics?.subsidy_reduction_per_era_pct !== 45 ||
+  tokenomics?.subsidy_retention_per_era_pct !== 55 ||
+  tokenomics?.era_duration_calendar_years !== 6 ||
+  tokenomics?.issuance_shape !== "FINITE_GEOMETRIC" ||
+  tokenomics?.perpetual_tail_inflation !== false ||
+  tokenomics?.initial_subsidy_fae?.current_candidate !== 7 ||
+  tokenomics?.initial_subsidy_fae?.authoritative !== false ||
+  tokenomics?.final_supply_fae?.authoritative !== false ||
+  tokenomics?.final_block_target_seconds?.current_research_incumbent !== 300 ||
+  tokenomics?.final_block_target_seconds?.authoritative !== false ||
+  tokenomics?.reference_300s_7fae?.era_blocks !== 631152 ||
+  tokenomics?.reference_300s_7fae?.atom_exact_scheduled_issuance_fae !== "9817919.80083648" ||
+  tokenomics?.authority !== "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS" ||
+  tokenomics?.authority_ref !== "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json"
+) fail("authoritative tokenomics design drift");
+
+if (state.tokenomics_authority_updated_at !== "2026-10-04") {
+  fail("tokenomics authority update timestamp drift");
+}
 
 if (state.authority_snapshot?.consensus_change_authorized !== false) fail("consensus authority must remain false");
 if (state.authority_snapshot?.economic_candidate_promoted !== false) fail("economic candidate promotion must remain false");
@@ -146,6 +172,17 @@ for (const literal of [
   "maximum supply: 12,000,000 FAE"
 ]) {
   if (!registry.includes(literal)) fail(`canonical registry lost live authority literal: ${literal}`);
+}
+
+for (const literal of [
+  "## Authoritative future tokenomics design",
+  "subsidy reduction per era: **45%**",
+  "retained subsidy per era: **55%**",
+  "target era duration: **6 calendar years**",
+  "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
+  "Tokenomics authority updated: 2026-10-04"
+]) {
+  if (!registry.includes(literal)) fail(`canonical registry lost tokenomics authority literal: ${literal}`);
 }
 
 if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
