@@ -1,7 +1,8 @@
 # FAE Canonical State
 
 Status: living context registry for FAE engineering work  
-Last reviewed: 2026-10-04  
+Last reviewed: 2026-09-28  
+Tokenomics authority updated: 2026-10-04  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
