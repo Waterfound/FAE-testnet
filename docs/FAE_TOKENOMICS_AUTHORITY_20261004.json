@@ -80,7 +80,9 @@
   "evidence": {
     "comparison_model": "lab/economics/issuance-era-final-comparison.mjs",
     "run_receipt": "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
-    "final_verdict": "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md"
+    "final_verdict": "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md",
+    "authoritative_10fae_14p026m_derivation": "lab/economics/tokenomics-authoritative-10fae-14p026m.mjs",
+    "comparison_model_note": "The 5y-vs-6y comparison used 7 FAE as a normalization; the era-duration conclusion remains structurally applicable, while the current authoritative starting reward is 10 FAE."
   },
   "authority_boundaries": {
     "public_testnet_consensus_changed": false,
