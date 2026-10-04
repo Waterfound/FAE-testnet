@@ -4,8 +4,8 @@
   "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
   "workstream_role": "SECONDARY",
   "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
-  "last_reconciled_at": "2026-09-28",
-  "reconciliation_status": "CANONICAL_STATE_RECONCILED",
+  "last_reconciled_at": "2026-10-04",
+  "reconciliation_status": "CANONICAL_STATE_RECONCILED_WITH_TOKENOMICS_AUTHORITY",
   "source_precedence": [
     "authoritative_or_frozen_source_artifact",
     "current_canonical_repository_state",
@@ -55,12 +55,37 @@
       "exact_scheduled_issuance_fae": "12039999.94840000",
       "coinbase_maturity_blocks": 200,
       "authority": "RESEARCH_ONLY",
-      "activation_height": null
+      "activation_height": null,
+      "status": "SUPERSEDED_AS_FUTURE_TOKENOMICS_PACKAGE__PRESERVED_AS_HISTORICAL_RESEARCH"
     },
     "consensus_change_authorized": false,
     "economic_candidate_promoted": false,
     "mainnet_launch_authorized": false,
-    "mainnet_ready_claimed": false
+    "mainnet_ready_claimed": false,
+    "tokenomics_design_authoritative": true,
+    "authoritative_future_tokenomics_design": {
+      "subsidy_reduction_per_era_pct": 45,
+      "subsidy_retention_per_era_pct": 55,
+      "era_duration_calendar_years": 6,
+      "issuance_shape": "FINITE_GEOMETRIC",
+      "initial_subsidy_fae": {
+        "current_candidate": 7,
+        "authoritative": false
+      },
+      "final_supply_fae": {
+        "authoritative": false
+      },
+      "final_block_target_seconds": {
+        "current_research_incumbent": 300,
+        "authoritative": false
+      },
+      "reference_300s_7fae": {
+        "era_blocks": 631152,
+        "atom_exact_scheduled_issuance_fae": "9817919.80083648"
+      },
+      "authority": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
+      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json"
+    }
   },
   "cross_lab_hierarchy": [
     "LAB_VERIFIED",
@@ -124,8 +149,8 @@
     {
       "gate_id": "preferred_future_economic_candidate",
       "area": "Consensus / protocol",
-      "description": "300s / 14 FAE / 430000-block research incumbent remains non-authoritative.",
-      "state": "RESEARCH_ONLY",
+      "description": "The prior 300s / 14 FAE / 430000-block / 50% package is superseded as the future tokenomics package by the Waterfound-authoritative 6-year / -45% design decision. Its historical evidence remains frozen.",
+      "state": "CLOSED",
       "authority_class": "RESEARCH_ONLY",
       "evidence_refs": [
         "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md",
@@ -134,8 +159,27 @@
       "dependency_refs": [
         "research_180s_validation"
       ],
-      "next_action": "Research may continue; do not activate or select an activation height here.",
-      "wake_condition": "Research evidence and a separate explicit authority gate would be required for any promotion.",
+      "next_action": "Do not promote the superseded package. Preserve it as historical research evidence; use the authoritative tokenomics-design gate for future economic work.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "authoritative_future_tokenomics_design",
+      "area": "Economics / tokenomics",
+      "description": "Waterfound-authoritative future tokenomics design: 45% subsidy reduction per era, 55% retained, six-year calendar era. Initial reward, terminal supply, exact era block count and activation remain separately unresolved.",
+      "state": "DONE",
+      "authority_class": "HUMAN_AUTHORITY",
+      "evidence_refs": [
+        "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
+        "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
+        "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md",
+        "lab/economics/issuance-era-final-comparison.mjs"
+      ],
+      "dependency_refs": [],
+      "next_action": "Preserve 6y/-45% as authoritative design. Separately resolve initial reward, final supply, final block target, atom-exact era block count, fee/security budget, maturity and activation without changing the live public testnet.",
+      "wake_condition": "A remaining tokenomics parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
       "human_action_required": false,
       "mainnet_critical": true,
       "can_auto_advance": true
