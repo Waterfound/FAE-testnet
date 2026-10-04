@@ -114,8 +114,8 @@ if (
   tokenomics?.era_duration_calendar_years !== 6 ||
   tokenomics?.issuance_shape !== "FINITE_GEOMETRIC" ||
   tokenomics?.perpetual_tail_inflation !== false ||
-  tokenomics?.initial_subsidy_fae?.current_candidate !== 7 ||
-  tokenomics?.initial_subsidy_fae?.authoritative !== false ||
+  tokenomics?.initial_subsidy_fae?.value !== 7 ||
+  tokenomics?.initial_subsidy_fae?.authoritative !== true ||
   tokenomics?.final_supply_fae?.authoritative !== false ||
   tokenomics?.final_block_target_seconds?.current_research_incumbent !== 300 ||
   tokenomics?.final_block_target_seconds?.authoritative !== false ||
@@ -178,6 +178,7 @@ for (const literal of [
   "## Authoritative future tokenomics design",
   "subsidy reduction per era: **45%**",
   "retained subsidy per era: **55%**",
+  "initial subsidy: **7 FAE/block**",
   "target era duration: **6 calendar years**",
   "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
   "Tokenomics authority updated: 2026-10-04"
