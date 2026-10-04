@@ -75,14 +75,23 @@ The design should not depend on discretionary wall-clock intervention. If the fi
 
 The authoritative decision here is:
 
+- **7 FAE initial reward**;
 - **45% subsidy reduction per era**;
 - **6-year era duration**.
 
-The current **7 FAE initial reward** remains a candidate, not yet frozen by this authority decision. Therefore the approximately **9.818M FAE** terminal issuance obtained under the 300-second reference scenario is informative, not yet authoritative.
+The starting reward is therefore no longer a calibration knob. The approximately **9.818M FAE** terminal issuance obtained under the 300-second reference scenario remains informative rather than fully authoritative because the final block target and exact era block count are still open.
 
 This separation is intentional:
 
-> **First choose the shape of distribution. Then calibrate the starting reward and terminal supply against the security budget and final block-time package.**
+> **The starting reward is fixed. Final supply must emerge from the authoritative reward curve together with the finally selected block-time and atom-exact era length, rather than by retuning the 7 FAE start after the fact.**
+
+## Note — Why 7 FAE is fixed
+
+> **FAE starts at 7 FAE per block. That starting point is authoritative.**
+
+The initial subsidy is part of the monetary identity of FAE, not a placeholder to be adjusted later merely to hit a preferred round-number supply. Future work may determine the exact terminal supply implied by the final block-time package, but it should not back-solve by changing the 7 FAE starting reward.
+
+This preserves a simple monetary story: a modest starting reward, a slower six-year cadence, and a 45% reduction that leaves meaningful issuance available across future generations.
 
 ## Related mining doctrine
 

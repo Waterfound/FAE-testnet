@@ -70,8 +70,8 @@
       "issuance_shape": "FINITE_GEOMETRIC",
       "perpetual_tail_inflation": false,
       "initial_subsidy_fae": {
-        "current_candidate": 7,
-        "authoritative": false
+        "value": 7,
+        "authoritative": true
       },
       "final_supply_fae": {
         "authoritative": false
@@ -169,7 +169,7 @@
     {
       "gate_id": "authoritative_future_tokenomics_design",
       "area": "Economics / tokenomics",
-      "description": "Authoritative future tokenomics design: 45% subsidy reduction per era, 55% retained, six-year calendar era. Initial reward, terminal supply, exact era block count, final block target and activation remain separately unresolved.",
+      "description": "Authoritative future tokenomics design: 7 FAE initial subsidy, 45% subsidy reduction per era, 55% retained, six-year calendar era. Terminal supply, exact era block count, final block target and activation remain separately unresolved.",
       "state": "DONE",
       "authority_class": "HUMAN_AUTHORITY",
       "evidence_refs": [
@@ -179,7 +179,7 @@
         "lab/economics/issuance-era-final-comparison.mjs"
       ],
       "dependency_refs": [],
-      "next_action": "Preserve 6y/-45% as authoritative design and separately resolve initial reward, final supply, final block target, atom-exact era block count, fee/security budget, maturity and activation.",
+      "next_action": "Preserve 7 FAE / 6y / -45% as authoritative design and separately resolve final supply, final block target, atom-exact era block count, fee/security budget, maturity and activation.",
       "wake_condition": "A remaining tokenomics parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
       "human_action_required": false,
       "mainnet_critical": true,
