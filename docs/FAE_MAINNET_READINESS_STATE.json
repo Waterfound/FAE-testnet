@@ -70,22 +70,28 @@
       "issuance_shape": "FINITE_GEOMETRIC",
       "perpetual_tail_inflation": false,
       "initial_subsidy_fae": {
-        "value": 7,
+        "value": 10,
         "authoritative": true
       },
       "final_supply_fae": {
-        "authoritative": false
+        "value": 14026000,
+        "authoritative": true,
+        "kind": "HARD_MONETARY_CEILING"
       },
       "final_block_target_seconds": {
         "current_research_incumbent": 300,
         "authoritative": false
       },
-      "reference_300s_7fae": {
-        "era_blocks": 631152,
-        "atom_exact_scheduled_issuance_fae": "9817919.80083648"
-      },
       "authority": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
-      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json"
+      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
+      "derived_300s_alignment_candidate": {
+        "strict_six_year_blocks_per_era": 631152,
+        "strict_six_year_scheduled_issuance_fae": "14025599.85343248",
+        "cap_aligned_blocks_per_era": 631170,
+        "cap_aligned_scheduled_issuance_fae": "14025999.85342830",
+        "cap_aligned_unissued_remainder_fae": "0.14657170",
+        "authority": "DERIVED_CANDIDATE_NOT_ACTIVE_CONSENSUS"
+      }
     }
   },
   "cross_lab_hierarchy": [
@@ -169,17 +175,18 @@
     {
       "gate_id": "authoritative_future_tokenomics_design",
       "area": "Economics / tokenomics",
-      "description": "Authoritative future tokenomics design: 7 FAE initial subsidy, 45% subsidy reduction per era, 55% retained, six-year calendar era. Terminal supply, exact era block count, final block target and activation remain separately unresolved.",
+      "description": "Authoritative future tokenomics design: 10 FAE initial subsidy, 14,026,000 FAE hard monetary ceiling, 45% subsidy reduction per era, 55% retained, six-year calendar era. Exact era block count, final block target and activation remain separately unresolved.",
       "state": "DONE",
       "authority_class": "HUMAN_AUTHORITY",
       "evidence_refs": [
         "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
         "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
         "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md",
-        "lab/economics/issuance-era-final-comparison.mjs"
+        "lab/economics/issuance-era-final-comparison.mjs",
+        "lab/economics/tokenomics-authoritative-10fae-14p026m.mjs"
       ],
       "dependency_refs": [],
-      "next_action": "Preserve 7 FAE / 6y / -45% as authoritative design and separately resolve final supply, final block target, atom-exact era block count, fee/security budget, maturity and activation.",
+      "next_action": "Preserve 10 FAE / 14.026M ceiling / 6y / -45% as authoritative design and separately resolve final block target, atom-exact era block count, fee/security budget, maturity and activation.",
       "wake_condition": "A remaining tokenomics parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
       "human_action_required": false,
       "mainnet_critical": true,

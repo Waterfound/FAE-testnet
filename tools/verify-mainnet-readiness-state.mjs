@@ -114,13 +114,18 @@ if (
   tokenomics?.era_duration_calendar_years !== 6 ||
   tokenomics?.issuance_shape !== "FINITE_GEOMETRIC" ||
   tokenomics?.perpetual_tail_inflation !== false ||
-  tokenomics?.initial_subsidy_fae?.value !== 7 ||
+  tokenomics?.initial_subsidy_fae?.value !== 10 ||
   tokenomics?.initial_subsidy_fae?.authoritative !== true ||
-  tokenomics?.final_supply_fae?.authoritative !== false ||
+  tokenomics?.final_supply_fae?.value !== 14026000 ||
+  tokenomics?.final_supply_fae?.authoritative !== true ||
+  tokenomics?.final_supply_fae?.kind !== "HARD_MONETARY_CEILING" ||
   tokenomics?.final_block_target_seconds?.current_research_incumbent !== 300 ||
   tokenomics?.final_block_target_seconds?.authoritative !== false ||
-  tokenomics?.reference_300s_7fae?.era_blocks !== 631152 ||
-  tokenomics?.reference_300s_7fae?.atom_exact_scheduled_issuance_fae !== "9817919.80083648" ||
+  tokenomics?.derived_300s_alignment_candidate?.strict_six_year_blocks_per_era !== 631152 ||
+  tokenomics?.derived_300s_alignment_candidate?.strict_six_year_scheduled_issuance_fae !== "14025599.85343248" ||
+  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_blocks_per_era !== 631170 ||
+  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_scheduled_issuance_fae !== "14025999.85342830" ||
+  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_unissued_remainder_fae !== "0.14657170" ||
   tokenomics?.authority !== "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS" ||
   tokenomics?.authority_ref !== "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json"
 ) fail("authoritative tokenomics design drift");
@@ -178,7 +183,8 @@ for (const literal of [
   "## Authoritative future tokenomics design",
   "subsidy reduction per era: **45%**",
   "retained subsidy per era: **55%**",
-  "initial subsidy: **7 FAE/block**",
+  "initial subsidy: **10 FAE/block**",
+  "monetary ceiling is **14,026,000 FAE**",
   "target era duration: **6 calendar years**",
   "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
   "Tokenomics authority updated: 2026-10-04"
