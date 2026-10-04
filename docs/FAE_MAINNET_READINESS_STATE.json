@@ -182,7 +182,8 @@
         "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
         "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
         "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md",
-        "lab/economics/issuance-era-final-comparison.mjs"
+        "lab/economics/issuance-era-final-comparison.mjs",
+        "lab/economics/tokenomics-authoritative-10fae-14p026m.mjs"
       ],
       "dependency_refs": [],
       "next_action": "Preserve 10 FAE / 14.026M ceiling / 6y / -45% as authoritative design and separately resolve final block target, atom-exact era block count, fee/security budget, maturity and activation.",
