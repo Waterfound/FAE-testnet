@@ -56,7 +56,7 @@ Primary references:
 
 Waterfound-authoritative economic design decision recorded on 2026-10-04:
 
-- initial subsidy: **7 FAE/block**;
+- initial subsidy: **10 FAE/block**;
 - subsidy reduction per era: **45%**;
 - retained subsidy per era: **55%**;
 - target era duration: **6 calendar years**;
@@ -66,15 +66,14 @@ Waterfound-authoritative economic design decision recorded on 2026-10-04:
 
 Compact rule:
 
-`R(0) = 7 FAE` and `R(n+1) = floor(R(n) × 55 / 100)` in consensus base units. Only the final block-count implementation remains to be derived after the final block target is selected.
+`R(0) = 10 FAE` and `R(n+1) = floor(R(n) × 55 / 100)` in consensus base units. The monetary ceiling is **14,026,000 FAE**. The final block-count implementation remains to be derived after the final block target is selected.
 
-This decision is authoritative for the **starting reward, shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
+This decision is authoritative for the **starting reward, monetary ceiling, shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
 
 ### Parameters intentionally still open
 
 The following are not frozen by the 2026-10-04 authority decision:
 
-- final monetary supply / hard ceiling: **not yet frozen**;
 - final block target: **not yet frozen**; 300 seconds remains the current research incumbent;
 - exact era block count: **not yet frozen**;
 - coinbase maturity: **not yet frozen by this tokenomics decision**;
@@ -83,17 +82,21 @@ The following are not frozen by the 2026-10-04 authority decision:
 
 The six-year rule is a **calendar-economic intent**. Final consensus must translate it into a deterministic integer block interval only after the final target block time is selected. A later block-time change must not silently stretch or compress the six-year issuance cadence.
 
-### Current reference scenario
+### Current derived alignment scenario
 
-For comparison only, if the current 300-second research block-time incumbent is retained together with the authoritative **7 FAE/block** starting reward:
+The following is derived evidence, not a block-time activation decision.
 
-- reference blocks/year: **105,192**;
-- reference blocks/6-year era: **631,152**;
-- atom-exact terminal scheduled issuance under recursive 55% atom-flooring: **9,817,919.80083648 FAE**;
-- non-zero reward eras: **34**;
-- terminal era boundary: approximately **204 years**.
+With the authoritative **10 FAE/block** starting reward, **14,026,000 FAE** hard monetary ceiling, six-year era intent and 55% reward retention:
 
-These values are **reference evidence, not a frozen supply or activation package**.
+- a strict 6.000-year reference at 300 seconds gives **631,152 blocks/era** and atom-exact scheduled issuance of **14,025,599.85343248 FAE**, leaving **400.14656752 FAE** permanently unissued below the ceiling;
+- the largest constant integer era length at the 300-second candidate that remains below the authoritative ceiling is **631,170 blocks/era**;
+- that cap-aligned candidate schedules **14,025,999.85342830 FAE**, leaving only **0.14657170 FAE** permanently unissued;
+- at 300 seconds, 631,170 blocks correspond to approximately **6.000171 years**;
+- conversely, making 631,170 blocks equal exactly six reference years implies approximately **299.99144446 seconds/block**.
+
+This is why the new economics strongly align with the existing ~300-second block-time research incumbent without silently making 300 seconds authoritative.
+
+The authoritative hard ceiling is **14,026,000 FAE**. Atom-flooring is allowed to leave a small permanently unissued remainder below that ceiling; the schedule must never exceed it.
 
 ### Supersession
 
@@ -122,7 +125,7 @@ Primary authority/evidence references:
 
 Authority status:
 
-- tokenomics design authority: **YES — 7 FAE initial reward / 6 years / -45%**;
+- tokenomics design authority: **YES — 10 FAE initial reward / 14,026,000 FAE ceiling / 6 years / -45%**;
 - active public-testnet consensus changed: **false**;
 - economics activated: **false**;
 - activation height selected: **false**;
