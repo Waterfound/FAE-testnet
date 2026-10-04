@@ -1,0 +1,85 @@
+{
+  "schema": "FAE_TOKENOMICS_AUTHORITY_V1",
+  "recorded_at": "2026-10-04",
+  "repository": "Waterfound/FAE-testnet",
+  "authority_source": "Explicit Waterfound tokenomics decision",
+  "status": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
+  "authoritative_now": {
+    "subsidy_reduction_per_era_pct": 45,
+    "subsidy_retention_per_era_pct": 55,
+    "era_duration_calendar_years": 6,
+    "issuance_shape": "FINITE_GEOMETRIC",
+    "perpetual_tail_inflation": false
+  },
+  "open_parameters_not_authorized_by_this_decision": {
+    "initial_reward_fae": {
+      "current_candidate": 7,
+      "authoritative": false
+    },
+    "final_supply_fae": {
+      "authoritative": false
+    },
+    "final_block_target_seconds": {
+      "current_research_incumbent": 300,
+      "authoritative": false
+    },
+    "era_block_count": {
+      "authoritative": false,
+      "rule": "derive an atom-exact integer block interval from the finally selected block target so the consensus implementation approximates the authoritative six-year calendar intent"
+    },
+    "coinbase_maturity": {
+      "authoritative": false
+    },
+    "fee_security_budget_model": {
+      "authoritative": false
+    },
+    "activation_height": null
+  },
+  "reference_scenario_only": {
+    "assumptions": {
+      "initial_reward_fae": 7,
+      "block_target_seconds": 300,
+      "days_per_reference_year": 365.25
+    },
+    "blocks_per_era": 631152,
+    "atom_exact_terminal_scheduled_issuance_fae": "9817919.80083648",
+    "nonzero_reward_eras": 34,
+    "terminal_era_boundary_years_approx": 204,
+    "authority": "REFERENCE_ONLY_NOT_FROZEN_SUPPLY"
+  },
+  "supersession": {
+    "five_year_era": "CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY",
+    "prior_14_fae_430000_block_50pct_package": "SUPERSEDED_AS_FUTURE_TOKENOMICS_PACKAGE",
+    "historical_evidence_must_remain_frozen": true,
+    "prior_300s_block_time_research": "NOT_SUPERSEDED_BY_THIS_TOKENOMICS_DECISION"
+  },
+  "live_network_boundary": {
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_subsidy_fae": 10,
+    "halving_era_blocks": 600000,
+    "maximum_supply_fae": 12000000,
+    "changed_by_this_decision": false
+  },
+  "manifesto_principles": [
+    "FAE orients with Bitcoin; it does not mechanically imitate it.",
+    "If general-purpose hardware should remain relevant across generations, primary issuance should remain materially available across generations.",
+    "Scarcity should be preserved without concentrating the monetary opportunity excessively near genesis.",
+    "Subsidy reductions are security-budget events, not only scarcity events.",
+    "A 45% reduction preserves a strong geometric scarcity signal while softening each discontinuity relative to a 50% halving.",
+    "A six-year cadence extends the issuance opportunity across more generations of general-purpose hardware while reducing subsidy-event frequency relative to five years.",
+    "Calendar intent should be translated into deterministic integer-block consensus rules only after the final block target is selected."
+  ],
+  "evidence": {
+    "comparison_model": "lab/economics/issuance-era-final-comparison.mjs",
+    "run_receipt": "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
+    "final_verdict": "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md"
+  },
+  "authority_boundaries": {
+    "public_testnet_consensus_changed": false,
+    "economics_activated": false,
+    "release_authority_created": false,
+    "production_authority_created": false,
+    "mainnet_authority_created": false
+  }
+}

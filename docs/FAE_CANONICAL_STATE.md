@@ -2,6 +2,7 @@
 
 Status: living context registry for FAE engineering work  
 Last reviewed: 2026-09-28  
+Tokenomics authority updated: 2026-10-04  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
@@ -51,44 +52,81 @@ Primary references:
 - `sovereign-forge/release/software-only-ceiling-freeze.json`
 - `sovereign-forge/node/authoritative/fae-v4-core.mjs`
 
-## Preferred future economic candidate
+## Authoritative future tokenomics design
 
-Current preferred research candidate:
+Waterfound-authoritative economic design decision recorded on 2026-10-04:
 
-- target block interval: 300 seconds
-- initial subsidy: 14 FAE/block
-- halving era: 430,000 blocks
-- hard monetary ceiling / theoretical geometric maximum: 12,040,000 FAE
-- base unit: 100,000,000 atoms = 1 FAE
-- coinbase maturity: 200 blocks = 16h40m at 300 seconds
+- subsidy reduction per era: **45%**;
+- retained subsidy per era: **55%**;
+- target era duration: **6 calendar years**;
+- issuance shape: **finite geometric decline**;
+- perpetual tail inflation: **none**;
+- premine / treasury / administrative mint: **none**.
 
-Atom-exact Pure Halving arithmetic from 14 FAE and 430,000-block eras yields:
+Compact rule:
 
-- exact maximum scheduled issuance: 12,039,999.94840000 FAE
-- permanently unissued remainder under the 12,040,000 FAE hard ceiling: 0.05160000 FAE = 5,160,000 atoms
+`R(n+1) = floor(R(n) × 55 / 100)` in consensus base units once the final reward and block-count implementation are frozen.
+
+This decision is authoritative for the **shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
+
+### Parameters intentionally still open
+
+The following are not frozen by the 2026-10-04 authority decision:
+
+- initial subsidy: **7 FAE/block remains the current candidate, not yet authoritative**;
+- final monetary supply / hard ceiling: **not yet frozen**;
+- final block target: **not yet frozen**; 300 seconds remains the current research incumbent;
+- exact era block count: **not yet frozen**;
+- coinbase maturity: **not yet frozen by this tokenomics decision**;
+- fee/security-budget model: **still unresolved**;
+- activation height: **not selected**.
+
+The six-year rule is a **calendar-economic intent**. Final consensus must translate it into a deterministic integer block interval only after the final target block time is selected. A later block-time change must not silently stretch or compress the six-year issuance cadence.
+
+### Current reference scenario
+
+For comparison only, if the current 300-second research block-time incumbent and the current 7 FAE initial-reward candidate are both retained:
+
+- reference blocks/year: **105,192**;
+- reference blocks/6-year era: **631,152**;
+- atom-exact terminal scheduled issuance under recursive 55% atom-flooring: **9,817,919.80083648 FAE**;
+- non-zero reward eras: **34**;
+- terminal era boundary: approximately **204 years**.
+
+These values are **reference evidence, not a frozen supply or activation package**.
+
+### Supersession
+
+The prior future-economic package:
+
+- 14 FAE/block;
+- 430,000-block 50% halvings;
+- approximately 4.09-year eras;
+- ~12.04M FAE theoretical supply;
+
+is now **superseded as the preferred future tokenomics package**. Historical artifacts that studied that package remain frozen evidence and must not be rewritten.
+
+The 300-second block-time research itself is not superseded by this tokenomics decision; block-time remains a separate parameter frontier.
+
+The 5-year / -45% candidate is:
+
+`CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY`
+
+Primary authority/evidence references:
+
+- `docs/FAE_TOKENOMICS_AUTHORITY_20261004.json`
+- `docs/FAE_TOKENOMICS_MANIFESTO_NOTES.md`
+- `docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json`
+- `docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md`
+- `lab/economics/issuance-era-final-comparison.mjs`
 
 Authority status:
 
-- research incumbent / preferred future candidate
-- not active public consensus
-- candidate selection does not equal activation
-- activation height: not selected
-- candidate -> authoritative: false
-- mainnet launch authorized: false
-- public consensus changed: false
-- Focused Red Team L3 required before any activation package can advance
-
-Block-time research disposition:
-
-- 300s: GREEN research incumbent
-- 600s: YELLOW challenger, not selected
-- 900s: CLOSED for the current branch
-
-Primary references:
-
-- `sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md`
-- `sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md`
-- `sovereign-forge/release/software-only-ceiling-freeze.json`
+- tokenomics design authority: **YES — 6 years / -45%**;
+- active public-testnet consensus changed: **false**;
+- economics activated: **false**;
+- activation height selected: **false**;
+- mainnet launch authorized: **false**.
 
 ## Software ceiling
 
