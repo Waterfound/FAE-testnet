@@ -90,7 +90,7 @@ This is a structural alignment, not a claim about any specific vendor release ca
 
 **Tie on magnitude; 6 years wins on frequency.**
 
-Each transition cuts subsidy by the same **45%**. Six years does not make an individual transition softer than five years. It makes that shock **20% less frequent**.
+Each transition cuts subsidy by the same **45%**. Six years does not make an individual transition softer than five years. It makes the **interval 20% longer** and the **event frequency 16.67% lower** (1/6 vs 1/5 per year).
 
 For a young network with an immature fee market, less frequent subsidy shocks reduce the cadence of abrupt security-budget repricing.
 
