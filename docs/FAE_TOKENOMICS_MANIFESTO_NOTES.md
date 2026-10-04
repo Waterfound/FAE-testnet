@@ -57,7 +57,7 @@ Relative to a five-year era:
 - the same 45% shock occurs less often;
 - later cohorts retain materially more primary issuance.
 
-Under the 7 FAE / 300-second reference scenario, remaining issuance is approximately:
+Under the six-year / -45% curve, the fraction of issuance remaining is approximately:
 
 - year 20: 14.14% under six years versus 9.15% under five;
 - year 30: 5.03% versus 2.77%;
