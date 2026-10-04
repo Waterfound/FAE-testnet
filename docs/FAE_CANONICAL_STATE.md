@@ -122,6 +122,7 @@ Primary authority/evidence references:
 - `docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json`
 - `docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md`
 - `lab/economics/issuance-era-final-comparison.mjs`
+- `lab/economics/tokenomics-authoritative-10fae-14p026m.mjs`
 
 Authority status:
 
