@@ -75,23 +75,32 @@ The design should not depend on discretionary wall-clock intervention. If the fi
 
 The authoritative decision here is:
 
-- **7 FAE initial reward**;
+- **10 FAE initial reward**;
+- **14,026,000 FAE hard monetary ceiling**;
 - **45% subsidy reduction per era**;
 - **6-year era duration**.
 
-The starting reward is therefore no longer a calibration knob. The approximately **9.818M FAE** terminal issuance obtained under the 300-second reference scenario remains informative rather than fully authoritative because the final block target and exact era block count are still open.
+The starting reward and monetary ceiling are therefore no longer calibration knobs. The remaining implementation problem is to translate the six-year calendar intent into an atom-exact integer block interval once the final block target is frozen.
 
-This separation is intentional:
+> **The reward curve is fixed first: 10 FAE at genesis, -45% every six-year era, never exceeding 14.026M FAE. Implementation must fit the curve; the curve must not be retuned to fit implementation.**
 
-> **The starting reward is fixed. Final supply must emerge from the authoritative reward curve together with the finally selected block-time and atom-exact era length, rather than by retuning the 7 FAE start after the fact.**
+## Note — Why 10 FAE is fixed
 
-## Note — Why 7 FAE is fixed
+> **FAE starts at 10 FAE per block. That starting point is authoritative.**
 
-> **FAE starts at 7 FAE per block. That starting point is authoritative.**
+The initial subsidy is part of the monetary identity of FAE, not a placeholder to be adjusted later. The authoritative starting reward is 10 FAE per block.
 
-The initial subsidy is part of the monetary identity of FAE, not a placeholder to be adjusted later merely to hit a preferred round-number supply. Future work may determine the exact terminal supply implied by the final block-time package, but it should not back-solve by changing the 7 FAE starting reward.
+This preserves a simple monetary story: a 10 FAE starting reward, a six-year cadence, and a 45% reduction that leaves meaningful issuance available across future generations.
 
-This preserves a simple monetary story: a modest starting reward, a slower six-year cadence, and a 45% reduction that leaves meaningful issuance available across future generations.
+## Note — Hard ceiling versus scheduled issuance
+
+> **14,026,000 FAE is the authoritative maximum, not a requirement that the final atom-exact schedule mint the last fraction of an FAE.**
+
+Recursive flooring to whole atoms may leave a small permanently unissued remainder. That is preferable to exceeding the monetary ceiling.
+
+Under the cap-aligned 300-second candidate translation, 631,170 blocks per era would schedule approximately **14,025,999.85342830 FAE**, leaving **0.14657170 FAE** permanently unissued below the cap.
+
+This is a Bitcoin-oriented property: the ceiling is an upper bound; deterministic integer arithmetic may finish slightly below it.
 
 ## Related mining doctrine
 
