@@ -2,7 +2,7 @@
   "schema": "FAE_TOKENOMICS_AUTHORITY_V1",
   "recorded_at": "2026-10-04",
   "repository": "Waterfound/FAE-testnet",
-  "authority_source": "Explicit Waterfound tokenomics decision and correction",
+  "authority_source": "Explicit Waterfound tokenomics decisions and corrections",
   "status": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
   "authoritative_now": {
     "subsidy_reduction_per_era_pct": 45,
@@ -10,12 +10,10 @@
     "era_duration_calendar_years": 6,
     "issuance_shape": "FINITE_GEOMETRIC",
     "perpetual_tail_inflation": false,
-    "initial_reward_fae": 7
+    "initial_reward_fae": 10,
+    "maximum_supply_fae": 14026000
   },
   "open_parameters_not_authorized_by_this_decision": {
-    "final_supply_fae": {
-      "authoritative": false
-    },
     "final_block_target_seconds": {
       "current_research_incumbent": 300,
       "authoritative": false
@@ -34,16 +32,25 @@
   },
   "reference_scenario_only": {
     "assumptions": {
-      "initial_reward_fae": 7,
-      "block_target_seconds": 300,
-      "days_per_reference_year": 365.25,
-      "initial_reward_authority": "AUTHORITATIVE"
+      "initial_reward_fae": 10,
+      "maximum_supply_fae": 14026000,
+      "subsidy_retention_per_era_pct": 55,
+      "block_target_seconds_candidate": 300,
+      "days_per_reference_year": 365.25
     },
-    "blocks_per_era": 631152,
-    "atom_exact_terminal_scheduled_issuance_fae": "9817919.80083648",
-    "nonzero_reward_eras": 34,
-    "terminal_era_boundary_years_approx": 204,
-    "authority": "REFERENCE_ONLY_NOT_FROZEN_SUPPLY"
+    "strict_six_year_at_300s": {
+      "blocks_per_era": 631152,
+      "atom_exact_terminal_scheduled_issuance_fae": "14025599.85343248",
+      "unissued_below_authoritative_ceiling_fae": "400.14656752"
+    },
+    "cap_aligned_constant_era_candidate_at_300s": {
+      "blocks_per_era": 631170,
+      "atom_exact_terminal_scheduled_issuance_fae": "14025999.85342830",
+      "unissued_below_authoritative_ceiling_fae": "0.14657170",
+      "nominal_era_years": 6.0001711156741955,
+      "exact_six_year_implied_block_target_seconds": 299.99144446028805,
+      "authority": "DERIVED_CANDIDATE_NOT_ACTIVE_CONSENSUS"
+    }
   },
   "supersession": {
     "five_year_era": "CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY",
@@ -67,7 +74,8 @@
     "A 45% reduction preserves a strong geometric scarcity signal while softening each discontinuity relative to a 50% halving.",
     "A six-year cadence extends the issuance opportunity across more generations of general-purpose hardware while reducing subsidy-event frequency relative to five years.",
     "Calendar intent should be translated into deterministic integer-block consensus rules only after the final block target is selected.",
-    "The initial subsidy is authoritatively fixed at 7 FAE per block; future supply calibration must respect that starting point rather than retune it."
+    "The initial subsidy is authoritatively fixed at 10 FAE per block; future implementation must preserve that starting point.",
+    "The monetary ceiling is authoritatively fixed at 14,026,000 FAE; atom-flooring may leave a small permanently unissued remainder below that ceiling."
   ],
   "evidence": {
     "comparison_model": "lab/economics/issuance-era-final-comparison.mjs",
@@ -89,6 +97,22 @@
       "corrected_to": 7,
       "authoritative": true,
       "source": "Explicit Waterfound correction in conversation"
+    },
+    {
+      "recorded_at": "2026-10-04",
+      "field": "initial_reward_fae",
+      "corrected_from": 7,
+      "corrected_to": 10,
+      "authoritative": true,
+      "source": "Explicit Waterfound tokenomics decision"
+    },
+    {
+      "recorded_at": "2026-10-04",
+      "field": "maximum_supply_fae",
+      "corrected_from": "unfrozen",
+      "corrected_to": 14026000,
+      "authoritative": true,
+      "source": "Explicit Waterfound tokenomics decision"
     }
   ]
 }
