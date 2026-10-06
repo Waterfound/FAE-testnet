@@ -34,7 +34,7 @@ assert.match(valid.stdout, /FAE_SYSTEM_PRESERVATION_CONTRACT_PASS/);
 {
   const m = structuredClone(source);
   const u = m.surfaces.find(s => s.classification === 'UNKNOWN');
-  u.action = 'PROVEN_CLOSED';
+  u.action = 'CLOSED';
   assert.notEqual(run(m).status, 0);
 }
 {
