@@ -1,0 +1,218 @@
+{
+  "schema_version": "fae.system-preservation-exposure-matrix.v1",
+  "bound_source_revision": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+  "status": "CANDIDATE_READ_ONLY",
+  "doctrine": "System Preservation / Low-Exposure Architecture",
+  "classification_enum": [
+    "MINIMAL",
+    "BOUNDED",
+    "ELEVATED",
+    "UNKNOWN",
+    "FROZEN_WAIT"
+  ],
+  "invariants": [
+    "public_knowledge_does_not_equal_authority",
+    "external_quietness_does_not_reduce_internal_observability",
+    "secrets_never_become_cross_system_evidence",
+    "exposure_reduction_must_not_weaken_consensus_or_provenance",
+    "recovery_must_not_depend_on_chat_memory"
+  ],
+  "surfaces": [
+    {
+      "id": "FAE-SP-01",
+      "surface": "public_source_code",
+      "evidence_refs": [
+        "SECURITY.md",
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "HIGH",
+      "reachability": "N/A",
+      "authority_if_reached": "NONE_BY_SOURCE_KNOWLEDGE",
+      "reusable_protected_material": "NONE",
+      "provider_coupling": "LOW",
+      "operator_coupling": "LOW",
+      "recovery_concentration": "LOW",
+      "classification": "MINIMAL",
+      "action": "PRESERVE_WHITE_BOX_MODEL",
+      "gate": null
+    },
+    {
+      "id": "FAE-SP-02",
+      "surface": "browser_default_public_node_endpoint",
+      "evidence_refs": [
+        "sovereign-forge/browser/node-config.js"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "HIGH",
+      "reachability": "PUBLIC_HTTPS",
+      "authority_if_reached": "UNTRUSTED_ENDPOINT_INPUT_ONLY; protocol/backend identity is not authority",
+      "reusable_protected_material": "NONE_IN_CONFIG",
+      "provider_coupling": "ELEVATED_DEFAULT",
+      "operator_coupling": "LOW",
+      "recovery_concentration": "BOUNDED_BY_NODE_OVERRIDE",
+      "classification": "ELEVATED",
+      "action": "DOCUMENT_PROVIDER_ESCAPE_AND_EVALUATE_DEFAULT_CONCENTRATION_AFTER_FROZEN_TESTS",
+      "gate": "NO_LIVE_ENDPOINT_CHANGE_IN_CURRENT_PROGRAM"
+    },
+    {
+      "id": "FAE-SP-03",
+      "surface": "browser_node_override",
+      "evidence_refs": [
+        "sovereign-forge/browser/node-config.js",
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "USER_SELECTED",
+      "reachability": "SELECTED_HTTP_OR_HTTPS_ENDPOINT",
+      "authority_if_reached": "NETWORK_STRING_CHECK_ONLY_DOES_NOT_CREATE_PROTOCOL_AUTHORITY",
+      "reusable_protected_material": "NONE; URL credentials rejected",
+      "provider_coupling": "REDUCED_BY_OVERRIDE",
+      "operator_coupling": "LOW",
+      "recovery_concentration": "LOW",
+      "classification": "BOUNDED",
+      "action": "RETAIN_PROVIDER_ESCAPE; DO_NOT_TREAT_ENDPOINT_VERIFICATION_AS_AUTHORITY",
+      "gate": null
+    },
+    {
+      "id": "FAE-SP-04",
+      "surface": "dedicated_share_coordinator_public_ingress",
+      "evidence_refs": [
+        "sovereign-forge/deploy/coordinator-dedicated/README.md",
+        "sovereign-forge/deploy/coordinator-dedicated/.env.example"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "PUBLIC_DNS_AND_TLS",
+      "reachability": "TCP_80_443_AND_UDP_443",
+      "authority_if_reached": "NO_PAYOUT_PRIVATE_KEY; NO_CONSENSUS_AUTHORITY",
+      "reusable_protected_material": "PERSISTENT_ED25519_IDENTITY_IN_COORDINATOR_DATA_VOLUME",
+      "provider_coupling": "DEPLOYMENT_PROVIDER_NEUTRAL",
+      "operator_coupling": "BOUNDED",
+      "recovery_concentration": "IDENTITY_VOLUME_REQUIRES_EXPLICIT_RECOVERY_EVIDENCE",
+      "classification": "BOUNDED",
+      "action": "KEEP_INTERNAL_PORT_NON_PUBLIC; DESIGN_IDENTITY_MIGRATION_REHEARSAL",
+      "gate": "DO_NOT_EXPORT_PROTECTED_IDENTITY_IN_EVIDENCE"
+    },
+    {
+      "id": "FAE-SP-05",
+      "surface": "coordinator_persistent_identity",
+      "evidence_refs": [
+        "sovereign-forge/deploy/coordinator-dedicated/README.md"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "PUBLIC_IDENTITY_EXPECTED",
+      "reachability": "THROUGH_COORDINATOR",
+      "authority_if_reached": "IDENTITY_CONTINUITY_ONLY; NOT CONSENSUS_OR_PAYOUT_AUTHORITY",
+      "reusable_protected_material": "YES; protected private identity material implied by persistent Ed25519 identity",
+      "provider_coupling": "LOW_IF_VOLUME_CAN_BE_MIGRATED; NOT_PROVEN_HERE",
+      "operator_coupling": "BOUNDED",
+      "recovery_concentration": "ELEVATED_UNTIL_REHEARSED",
+      "classification": "ELEVATED",
+      "action": "PROVE_PROTECTED_MIGRATION_AND_RECONSTRUCTION_WITHOUT_PUBLISHING_KEY_MATERIAL",
+      "gate": "EXTERNAL_OR_ISOLATED_RECOVERY_EVIDENCE_REQUIRED"
+    },
+    {
+      "id": "FAE-SP-06",
+      "surface": "sovereign_standalone_miner",
+      "evidence_refs": [
+        "standalone/README.md"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "SELECTED_NODE_PLUS_PUBLIC_REWARD_ADDRESS",
+      "reachability": "OUTBOUND_TO_SELECTED_NODE",
+      "authority_if_reached": "NO_WALLET_OR_SIGNING_AUTHORITY",
+      "reusable_protected_material": "NONE_BY_DESIGN",
+      "provider_coupling": "LOW",
+      "operator_coupling": "LOW",
+      "recovery_concentration": "LOW",
+      "classification": "MINIMAL",
+      "action": "PRESERVE_SECRET_FREE_AND_BROWSER_INDEPENDENT_BOUNDARY",
+      "gate": null
+    },
+    {
+      "id": "FAE-SP-07",
+      "surface": "source_ci_release_provider_boundary",
+      "evidence_refs": [
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.md"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "PUBLIC_OR_PROVIDER_VISIBLE",
+      "reachability": "PROVIDER_CONTROL_PLANES",
+      "authority_if_reached": "PROVIDER_IDENTITY_ALONE_IS_NOT_PROTOCOL_AUTHORITY",
+      "reusable_protected_material": "PROVIDER_MANAGED_OUTSIDE_REPOSITORY",
+      "provider_coupling": "BOUNDED_BY_PROVENANCE_AND_REPRODUCIBILITY",
+      "operator_coupling": "BOUNDED",
+      "recovery_concentration": "NOT_FULLY_PROVEN_SYSTEM_WIDE",
+      "classification": "BOUNDED",
+      "action": "KEEP_EXACT_SOURCE_PROVENANCE_AND_ADD_PROVIDER_ESCAPE_RECONSTRUCTION_EVIDENCE",
+      "gate": null
+    },
+    {
+      "id": "FAE-SP-08",
+      "surface": "stability_soak_v3_five_service_topology",
+      "evidence_refs": [
+        "sovereign-forge/release/stability-soak-v3-fallbacks.json",
+        "General-Execution checkpoint fae-stability-soak-v3-durable-prestart-identity-gate-20261001"
+      ],
+      "necessary_exposure": true,
+      "external_observability": "TEST_TOPOLOGY_VISIBLE_TO_PROVIDER_AND_MONITORS",
+      "reachability": "REQUIRED_FOR_SOAK",
+      "authority_if_reached": "TESTNET_TEST_HARNESS_ONLY",
+      "reusable_protected_material": "NODE_IDENTITIES_INCLUDE_PROTECTED_PRIVATE_MATERIAL",
+      "provider_coupling": "INTENTIONAL_FOR_CURRENT_SOAK",
+      "operator_coupling": "CURRENT_HUMAN_GATE_FOR_NODE_B_NODE_C_IDENTITY",
+      "recovery_concentration": "FROZEN_TEST_CONTRACT",
+      "classification": "FROZEN_WAIT",
+      "action": "DO_NOT_MUTATE_FROM_SYSTEM_PRESERVATION_WORK",
+      "gate": "NODE_B_C_STABLE_IDENTITY_HUMAN_GATE_AND_FROZEN_SOAK_CONTRACT"
+    },
+    {
+      "id": "FAE-SP-09",
+      "surface": "operator_and_chat_continuity",
+      "evidence_refs": [
+        "Waterfound/General-Execution Durable Execution architecture"
+      ],
+      "necessary_exposure": false,
+      "external_observability": "LOW",
+      "reachability": "N/A",
+      "authority_if_reached": "CHAT_DOES_NOT_CREATE_PROJECT_AUTHORITY",
+      "reusable_protected_material": "NONE_REQUIRED_FOR_CHAT_CONTINUITY",
+      "provider_coupling": "DURABLE_STATE_OUTSIDE_CHAT",
+      "operator_coupling": "BOUNDED_TO_GENUINE_HUMAN_GATES",
+      "recovery_concentration": "LOWERED_BY_DURABLE_EXECUTION",
+      "classification": "BOUNDED",
+      "action": "CONTINUE_RESUME_WITHOUT_CHAT_MEMORY",
+      "gate": null
+    },
+    {
+      "id": "FAE-SP-10",
+      "surface": "whole_system_provider_loss_reconstruction",
+      "evidence_refs": [
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md",
+        "release/provenance/container-inputs-v1.json"
+      ],
+      "necessary_exposure": false,
+      "external_observability": "N/A",
+      "reachability": "N/A",
+      "authority_if_reached": "N/A",
+      "reusable_protected_material": "MIXED_BY_COMPONENT",
+      "provider_coupling": "UNKNOWN_AS_END_TO_END_PROPERTY",
+      "operator_coupling": "UNKNOWN_AS_END_TO_END_PROPERTY",
+      "recovery_concentration": "UNKNOWN",
+      "classification": "UNKNOWN",
+      "action": "DESIGN_BOUNDED_PROVIDER_ESCAPE_AND_RECONSTRUCTION_DRILL",
+      "gate": "EVIDENCE_REQUIRED_BEFORE_CLAIMING_SYSTEM_WIDE_PROVIDER_INDEPENDENCE"
+    }
+  ],
+  "authority_boundary": {
+    "consensus": false,
+    "economics": false,
+    "release": false,
+    "mainnet": false,
+    "new_spend": false,
+    "provider_mutation": false,
+    "credential_mutation": false,
+    "soak_v3_mutation": false
+  }
+}
