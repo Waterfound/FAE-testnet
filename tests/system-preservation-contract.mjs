@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 
-const root = path.resolve(new URL('..', import.meta.url).pathname, '..');
+const root = path.resolve(new URL('..', import.meta.url).pathname);
 const validator = path.join(root, 'scripts/system-preservation-contract.mjs');
 const sourceMatrixPath = path.join(root, 'docs/system-preservation/FAE_EXPOSURE_MATRIX_V1.json');
 const source = JSON.parse(fs.readFileSync(sourceMatrixPath, 'utf8'));
