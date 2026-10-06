@@ -1,0 +1,59 @@
+{
+  "schema_version": "fae.system-preservation-verification.v1",
+  "evidence_id": "FAE-SYSTEM-PRESERVATION-VERIFICATION-001",
+  "bound_candidate_revision": "6750b7245c1f4fc815cec7ebd99fa7e679e326c1",
+  "base_revision": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+  "workflow_run": {
+    "id": 37531948729,
+    "conclusion": "success",
+    "job_id": 112503252716,
+    "node": "24.21.0",
+    "contract_verdict": "FAE_SYSTEM_PRESERVATION_CONTRACT_PASS",
+    "negative_tests": "PASS_6_OF_6",
+    "surfaces": 10,
+    "classifications": {
+      "MINIMAL": 2,
+      "BOUNDED": 4,
+      "ELEVATED": 2,
+      "UNKNOWN": 1,
+      "FROZEN_WAIT": 1
+    }
+  },
+  "historical_failed_attempts": [
+    {
+      "run_id": 37531610106,
+      "revision": "0c344fb56250d4ce12aed9458d193db2dc37e9a7",
+      "disposition": "FAIL_TEST_HARNESS_ROOT_PATH",
+      "production_contract": "PASS"
+    },
+    {
+      "run_id": 37531843289,
+      "revision": "669f1eea30ceb3412b9fadbb95d4c24b926387c3",
+      "disposition": "FAIL_NEGATIVE_TEST_SENTINEL",
+      "production_contract": "PASS"
+    }
+  ],
+  "main_compare": {
+    "status": "ahead",
+    "ahead_by": 10,
+    "behind_by": 0,
+    "merge_base": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+    "changed_paths": [
+      ".github/workflows/system-preservation-contract.yml",
+      "docs/system-preservation/FAE_EXPOSURE_MATRIX_V1.json",
+      "docs/system-preservation/FAE_HARDENING_BACKLOG_V1.md",
+      "docs/system-preservation/FAE_PROVIDER_ESCAPE_INVENTORY_V1.md",
+      "docs/system-preservation/FAE_STABLE_IDENTITY_RECOVERY_REHEARSAL_V1.md",
+      "docs/system-preservation/FAE_SYSTEM_PRESERVATION_BASELINE_V1.md",
+      "scripts/system-preservation-contract.mjs",
+      "tests/system-preservation-contract.mjs"
+    ],
+    "live_behavior_paths_changed": false,
+    "consensus_paths_changed": false,
+    "economics_paths_changed": false,
+    "soak_v3_paths_changed": false
+  },
+  "verdict": "VERIFIED_BOUNDED_PRESERVATION_CANDIDATE",
+  "authority_created": false,
+  "canonical_merge_authorized": false
+}
