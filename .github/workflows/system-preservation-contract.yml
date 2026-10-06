@@ -26,3 +26,5 @@ jobs:
         run: node scripts/system-preservation-contract.mjs
       - name: Run fail-closed preservation tests
         run: node tests/system-preservation-contract.mjs
+      - name: Rehearse protected stable-identity recovery
+        run: node tests/system-preservation-identity-recovery.mjs
