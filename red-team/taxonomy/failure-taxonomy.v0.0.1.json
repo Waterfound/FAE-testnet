@@ -1,0 +1,21 @@
+{
+  "schema_version": "fae.red-team.taxonomy.v0.0.1",
+  "taxonomy_id": "fae-failure-taxonomy-v0.0.1",
+  "classes": [
+    {"id": "CONSENSUS_INVALID_ACCEPT", "domain": "consensus", "default_severity": "critical"},
+    {"id": "CONSENSUS_VALID_REJECT", "domain": "consensus", "default_severity": "high"},
+    {"id": "FORK_CHOICE_DIVERGENCE", "domain": "consensus", "default_severity": "critical"},
+    {"id": "ACTIVATION_BOUNDARY_CONFUSION", "domain": "activation", "default_severity": "critical"},
+    {"id": "P2P_IDENTITY_SUBSTITUTION", "domain": "p2p", "default_severity": "critical"},
+    {"id": "P2P_REPLAY_OR_DOWNGRADE", "domain": "p2p", "default_severity": "high"},
+    {"id": "P2P_ECLIPSE_OR_SYBIL", "domain": "p2p", "default_severity": "critical"},
+    {"id": "DAA_TARGET_DIVERGENCE", "domain": "difficulty_timestamp", "default_severity": "critical"},
+    {"id": "TIMESTAMP_MANIPULATION", "domain": "difficulty_timestamp", "default_severity": "high"},
+    {"id": "STATE_ROLLBACK_OR_CORRUPTION", "domain": "persistence", "default_severity": "critical"},
+    {"id": "COORDINATOR_FORGERY_OR_REPLAY", "domain": "coordinator", "default_severity": "critical"},
+    {"id": "WALLET_AUTHORIZATION_BYPASS", "domain": "wallet_client", "default_severity": "critical"},
+    {"id": "RELEASE_OR_EVIDENCE_TAMPERING", "domain": "release_integrity", "default_severity": "high"},
+    {"id": "RESOURCE_EXHAUSTION", "domain": "availability", "default_severity": "high"},
+    {"id": "RED_TEAM_PROCESS_FAILURE", "domain": "meta", "default_severity": "critical"}
+  ]
+}
