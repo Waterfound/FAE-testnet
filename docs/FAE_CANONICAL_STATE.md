@@ -20,13 +20,13 @@ Machine-readable readiness registry:
 - `docs/FAE_MAINNET_READINESS_STATE.json`
 - schema: `FAE_MAINNET_READINESS_STATE_V1`
 - generated from canonical `main` revision `48ba1df01075f7e6714d2e98d5ce8df827d1e5f2`
-- reconciliation workstream role: `SECONDARY`
+- reconciliation workstream role: `PASSIVE / DONE`
 - authority: documentation/evidence state only; this registry does not create protocol or mainnet authority
 
 Current portfolio disposition relevant to this registry checkpoint:
 
 - `PASSIVE / CONDITION_WAIT`: FAE Research — 180s Economic + Block-Time Validation. Software-admissible frontiers are exhausted; F180-12 closed with `INSUFFICIENT_EVIDENCE`, and F180-13 is a genuine external-evidence gate. Reopen only when fresh directly comparable evidence satisfies the frozen admission requirements.
-- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation.
+- `PASSIVE / DONE`: FAE — Mainnet Readiness & Canonical State Reconciliation. MR-00 through MR-09 are complete; reopen only on a material accepted canonical-state change.
 - global `ACTIVE` slot: not asserted by this FAE living registry; current cross-system slot ownership is determined by the Total Systems Steward.
 - rule: **Parallelize independence. Serialize shared state.**
 
