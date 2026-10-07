@@ -142,6 +142,25 @@ if (
   tokenomicsAuthority?.derived_atom_exact_schedule?.permanently_unissued_below_ceiling_fae !== "0.18900000"
 ) fail("authoritative tokenomics artifact drift");
 
+{
+  const atomsPerFAE = 100000000n;
+  const eraBlocks = 630000n;
+  const capAtoms = 12600000n * atomsPerFAE;
+  let rewardAtoms = 9n * atomsPerFAE;
+  let scheduledAtoms = 0n;
+  let nonzeroEras = 0;
+  while (rewardAtoms > 0n) {
+    scheduledAtoms += rewardAtoms * eraBlocks;
+    rewardAtoms = rewardAtoms * 55n / 100n;
+    nonzeroEras += 1;
+  }
+  if (scheduledAtoms !== 1259999981100000n) fail("atom-exact authoritative supply derivation drift");
+  if (capAtoms - scheduledAtoms !== 18900000n) fail("authoritative supply remainder drift");
+  if (nonzeroEras !== 34) fail("authoritative nonzero subsidy era count drift");
+  if (nonzeroEras * Number(eraBlocks) !== 21420000) fail("authoritative subsidized block count drift");
+  if (9 * 630000 / 0.45 !== 12600000) fail("theoretical geometric cap drift");
+}
+
 if (state.tokenomics_authority_updated_at !== "2026-10-06") {
   fail("tokenomics authority update timestamp drift");
 }
