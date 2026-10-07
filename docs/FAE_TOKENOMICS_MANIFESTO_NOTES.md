@@ -1,6 +1,6 @@
 # FAE Tokenomics — Manifesto / Documentation Notes
 
-Status: useful doctrine notes derived from the authoritative tokenomics decision of 2026-10-04.  
+Status: useful doctrine notes derived from the current authoritative tokenomics decision of 2026-10-06.  
 These notes guide design and documentation; they do not activate consensus.
 
 ## Note — Orient with Bitcoin, do not mechanically imitate it
@@ -71,36 +71,45 @@ These figures are reference evidence for the era-duration choice, not a frozen f
 
 The design should not depend on discretionary wall-clock intervention. If the final target block interval changes, the block count must be recomputed rather than silently stretching or compressing the six-year monetary cadence.
 
-## Note — Reward and supply remain separate knobs
+## Note — Exact block cadence
 
-The authoritative decision here is:
+> **FAE's monetary clock is measured in blocks.**
 
-- **10 FAE initial reward**;
-- **14,026,000 FAE hard monetary ceiling**;
-- **45% subsidy reduction per era**;
-- **6-year era duration**.
+The authoritative subsidy era is **630,000 blocks**. This is preferable to encoding an approximate calendar duration into consensus.
 
-The starting reward and monetary ceiling are therefore no longer calibration knobs. The remaining implementation problem is to translate the six-year calendar intent into an atom-exact integer block interval once the final block target is frozen.
+At the current 300-second research incumbent, 630,000 blocks are approximately **5.989 years**, only four days short of six reference years. The economic intuition remains ~six-year eras, while the protocol rule is exact and deterministic.
 
-> **The reward curve is fixed first: 10 FAE at genesis, -45% every six-year era, never exceeding 14.026M FAE. Implementation must fit the curve; the curve must not be retuned to fit implementation.**
+## Note — Why 9 FAE and 630,000 blocks fit together
 
-## Note — Why 10 FAE is fixed
+> **9 FAE × 630,000 blocks × the 45% first-era share = a natural 12.6M monetary scale.**
 
-> **FAE starts at 10 FAE per block. That starting point is authoritative.**
+The first era emits:
 
-The initial subsidy is part of the monetary identity of FAE, not a placeholder to be adjusted later. The authoritative starting reward is 10 FAE per block.
+`9 × 630,000 = 5,670,000 FAE`
 
-This preserves a simple monetary story: a 10 FAE starting reward, a six-year cadence, and a 45% reduction that leaves meaningful issuance available across future generations.
+Because the first era represents 45% of the theoretical geometric supply:
 
-## Note — Hard ceiling versus scheduled issuance
+`5,670,000 / 0.45 = 12,600,000 FAE`
 
-> **14,026,000 FAE is the authoritative maximum, not a requirement that the final atom-exact schedule mint the last fraction of an FAE.**
+This is not a round-number supply chosen first and reverse-engineered afterward. It emerges directly from the starting reward, era length and retention ratio.
 
-Recursive flooring to whole atoms may leave a small permanently unissued remainder. That is preferable to exceeding the monetary ceiling.
+> **The parameters explain the supply, rather than the supply forcing the parameters.**
 
-Under the cap-aligned 300-second candidate translation, 631,170 blocks per era would schedule approximately **14,025,999.85342830 FAE**, leaving **0.14657170 FAE** permanently unissued below the cap.
+## Note — Hard ceiling versus atom-exact issuance
 
-This is a Bitcoin-oriented property: the ceiling is an upper bound; deterministic integer arithmetic may finish slightly below it.
+> **12,600,000 FAE is the authoritative hard ceiling.**
+
+Recursive flooring to whole atoms produces an atom-exact terminal schedule of **12,599,999.81100000 FAE**, leaving **0.18900000 FAE** permanently unissued.
+
+The protocol should never mint upward merely to hit the display ceiling exactly. Deterministic integer arithmetic finishing infinitesimally below the cap is preferable to exceeding it.
+
+## Note — The compact monetary identity
+
+The current authoritative monetary identity can be stated in one line:
+
+> **9 FAE genesis subsidy → 630,000-block eras → -45% per era → 12.6M FAE maximum.**
+
+This compactness is useful for users, implementers and independent verifiers. The economic rule can be explained without hidden calibration constants.
 
 ## Related mining doctrine
 

@@ -2,7 +2,7 @@
 
 Status: living context registry for FAE engineering work  
 Last reviewed: 2026-09-28  
-Tokenomics authority updated: 2026-10-04  
+Tokenomics authority updated: 2026-10-06  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
@@ -54,79 +54,89 @@ Primary references:
 
 ## Authoritative future tokenomics design
 
-Waterfound-authoritative economic design decision recorded on 2026-10-04:
+Waterfound-authoritative economic design decision recorded on 2026-10-06:
 
-- initial subsidy: **10 FAE/block**;
+- initial subsidy: **9 FAE/block**;
 - subsidy reduction per era: **45%**;
 - retained subsidy per era: **55%**;
-- target era duration: **6 calendar years**;
+- subsidy era: **630,000 blocks**;
+- hard monetary ceiling: **12,600,000 FAE**;
 - issuance shape: **finite geometric decline**;
 - perpetual tail inflation: **none**;
 - premine / treasury / administrative mint: **none**.
 
 Compact rule:
 
-`R(0) = 10 FAE` and `R(n+1) = floor(R(n) × 55 / 100)` in consensus base units. The monetary ceiling is **14,026,000 FAE**. The final block-count implementation remains to be derived after the final block target is selected.
+`R(0) = 9 FAE`
 
-This decision is authoritative for the **starting reward, monetary ceiling, shape and calendar cadence of future FAE tokenomics**. It does **not** activate economics on the public testnet and does not create mainnet authority.
+`R(n+1) = floor(R(n) × 55 / 100)` in consensus base units, with each reward level lasting exactly **630,000 blocks**.
+
+The theoretical geometric supply is exactly:
+
+`9 × 630,000 / (1 - 0.55) = 12,600,000 FAE`
+
+With recursive atom-flooring, the deterministic terminal scheduled issuance is **12,599,999.81100000 FAE**, leaving **0.18900000 FAE** permanently unissued below the ceiling.
+
+This decision is authoritative for the **starting reward, reduction ratio, exact block-era length and monetary ceiling** of future FAE tokenomics. It does **not** activate economics on the current public testnet and does not create mainnet authority.
 
 ### Parameters intentionally still open
 
-The following are not frozen by the 2026-10-04 authority decision:
+The following remain unresolved:
 
 - final block target: **not yet frozen**; 300 seconds remains the current research incumbent;
-- exact era block count: **not yet frozen**;
 - coinbase maturity: **not yet frozen by this tokenomics decision**;
 - fee/security-budget model: **still unresolved**;
 - activation height: **not selected**.
 
-The six-year rule is a **calendar-economic intent**. Final consensus must translate it into a deterministic integer block interval only after the final target block time is selected. A later block-time change must not silently stretch or compress the six-year issuance cadence.
+The monetary cadence is now defined exactly in **blocks**, not wall-clock years. At the current 300-second research incumbent:
 
-### Current derived alignment scenario
+- 630,000 blocks = **2,187.5 days**;
+- ≈ **5.98905 years**;
+- approximately **4 days shorter than six reference years**.
 
-The following is derived evidence, not a block-time activation decision.
+Thus the new exact block rule preserves the intended ~six-year cadence while removing calendar-to-consensus ambiguity. If the final block target differs from 300 seconds, the calendar duration changes; the authoritative 630,000-block monetary cadence does not.
 
-With the authoritative **10 FAE/block** starting reward, **14,026,000 FAE** hard monetary ceiling, six-year era intent and 55% reward retention:
+### Distribution properties
 
-- a strict 6.000-year reference at 300 seconds gives **631,152 blocks/era** and atom-exact scheduled issuance of **14,025,599.85343248 FAE**, leaving **400.14656752 FAE** permanently unissued below the ceiling;
-- the largest constant integer era length at the 300-second candidate that remains below the authoritative ceiling is **631,170 blocks/era**;
-- that cap-aligned candidate schedules **14,025,999.85342830 FAE**, leaving only **0.14657170 FAE** permanently unissued;
-- at 300 seconds, 631,170 blocks correspond to approximately **6.000171 years**;
-- conversely, making 631,170 blocks equal exactly six reference years implies approximately **299.99144446 seconds/block**.
+The first era emits exactly **5,670,000 FAE**, equal to **45%** of the theoretical supply.
 
-This is why the new economics strongly align with the existing ~300-second block-time research incumbent without silently making 300 seconds authoritative.
+The remaining unissued fraction after complete eras is:
 
-The authoritative hard ceiling is **14,026,000 FAE**. Atom-flooring is allowed to leave a small permanently unissued remainder below that ceiling; the schedule must never exceed it.
+- after era 1: **55.0000%**;
+- after era 2: **30.2500%**;
+- after era 3: **16.6375%**;
+- after era 4: **9.150625%**;
+- after era 5: **5.03284375%**.
+
+The atom-exact reward remains non-zero for **34 eras**, corresponding to **21,420,000 subsidized blocks**.
 
 ### Supersession
 
-The prior future-economic package:
+The immediately prior future tokenomics authority:
 
-- 14 FAE/block;
-- 430,000-block 50% halvings;
-- approximately 4.09-year eras;
-- ~12.04M FAE theoretical supply;
+- 10 FAE/block;
+- 6-year calendar-era intent;
+- 45% reductions;
+- 14,026,000 FAE hard ceiling;
 
-is now **superseded as the preferred future tokenomics package**. Historical artifacts that studied that package remain frozen evidence and must not be rewritten.
+is now **superseded** by the authoritative **9 FAE / 630,000 blocks / -45% / 12.6M** package. Its authority artifact remains immutable historical evidence at `docs/FAE_TOKENOMICS_AUTHORITY_20261004.json`.
 
-The 300-second block-time research itself is not superseded by this tokenomics decision; block-time remains a separate parameter frontier.
+Earlier 7 FAE and 14 FAE / 430,000 / 50% candidates remain historical superseded evidence.
 
-The 5-year / -45% candidate is:
+The 5-year / -45% candidate remains:
 
 `CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY`
 
 Primary authority/evidence references:
 
-- `docs/FAE_TOKENOMICS_AUTHORITY_20261004.json`
+- `docs/FAE_TOKENOMICS_AUTHORITY_20261006.json`
+- `docs/research/FAE_TOKENOMICS_9FAE_630K_12P6M_20261006.md`
+- `lab/economics/tokenomics-authoritative-9fae-630k-12p6m.mjs`
 - `docs/FAE_TOKENOMICS_MANIFESTO_NOTES.md`
-- `docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json`
-- `docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md`
-- `lab/economics/issuance-era-final-comparison.mjs`
-- `lab/economics/tokenomics-authoritative-10fae-14p026m.mjs`
 
 Authority status:
 
-- tokenomics design authority: **YES — 10 FAE initial reward / 14,026,000 FAE ceiling / 6 years / -45%**;
+- tokenomics design authority: **YES — 9 FAE initial reward / 630,000-block eras / -45% / 12,600,000 FAE ceiling**;
 - active public-testnet consensus changed: **false**;
 - economics activated: **false**;
 - activation height selected: **false**;

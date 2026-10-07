@@ -66,32 +66,33 @@
     "authoritative_future_tokenomics_design": {
       "subsidy_reduction_per_era_pct": 45,
       "subsidy_retention_per_era_pct": 55,
-      "era_duration_calendar_years": 6,
+      "era_blocks": 630000,
       "issuance_shape": "FINITE_GEOMETRIC",
       "perpetual_tail_inflation": false,
       "initial_subsidy_fae": {
-        "value": 10,
+        "value": 9,
         "authoritative": true
       },
       "final_supply_fae": {
-        "value": 14026000,
+        "value": 12600000,
         "authoritative": true,
         "kind": "HARD_MONETARY_CEILING"
       },
+      "atom_exact_scheduled_supply_fae": "12599999.81100000",
+      "permanently_unissued_remainder_fae": "0.18900000",
+      "nonzero_reward_eras": 34,
+      "total_subsidized_blocks": 21420000,
       "final_block_target_seconds": {
         "current_research_incumbent": 300,
         "authoritative": false
       },
+      "calendar_context_at_300s": {
+        "era_days": 2187.5,
+        "era_years": 5.989048596851472,
+        "authority": "DERIVED_CONTEXT_ONLY"
+      },
       "authority": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
-      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
-      "derived_300s_alignment_candidate": {
-        "strict_six_year_blocks_per_era": 631152,
-        "strict_six_year_scheduled_issuance_fae": "14025599.85343248",
-        "cap_aligned_blocks_per_era": 631170,
-        "cap_aligned_scheduled_issuance_fae": "14025999.85342830",
-        "cap_aligned_unissued_remainder_fae": "0.14657170",
-        "authority": "DERIVED_CANDIDATE_NOT_ACTIVE_CONSENSUS"
-      }
+      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json"
     }
   },
   "cross_lab_hierarchy": [
@@ -175,19 +176,17 @@
     {
       "gate_id": "authoritative_future_tokenomics_design",
       "area": "Economics / tokenomics",
-      "description": "Authoritative future tokenomics design: 10 FAE initial subsidy, 14,026,000 FAE hard monetary ceiling, 45% subsidy reduction per era, 55% retained, six-year calendar era. Exact era block count, final block target and activation remain separately unresolved.",
+      "description": "Authoritative future tokenomics design: 9 FAE initial subsidy, 630,000-block subsidy eras, 45% reduction per era, 55% retained, and 12,600,000 FAE hard monetary ceiling. Final block target, fee/security budget, maturity and activation remain separately unresolved.",
       "state": "DONE",
       "authority_class": "HUMAN_AUTHORITY",
       "evidence_refs": [
-        "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
-        "docs/research/FAE_ISSUANCE_ERA_FINAL_RUN_20261004.json",
-        "docs/research/FAE_ISSUANCE_ERA_FINAL_VERDICT_20261004.md",
-        "lab/economics/issuance-era-final-comparison.mjs",
-        "lab/economics/tokenomics-authoritative-10fae-14p026m.mjs"
+        "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+        "docs/research/FAE_TOKENOMICS_9FAE_630K_12P6M_20261006.md",
+        "lab/economics/tokenomics-authoritative-9fae-630k-12p6m.mjs"
       ],
       "dependency_refs": [],
-      "next_action": "Preserve 10 FAE / 14.026M ceiling / 6y / -45% as authoritative design and separately resolve final block target, atom-exact era block count, fee/security budget, maturity and activation.",
-      "wake_condition": "A remaining tokenomics parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
+      "next_action": "Preserve 9 FAE / 630,000 blocks / -45% / 12.6M as authoritative tokenomics and separately resolve final block target, fee/security budget, maturity and activation.",
+      "wake_condition": "A remaining tokenomics-adjacent parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
       "human_action_required": false,
       "mainnet_critical": true,
       "can_auto_advance": true
@@ -556,5 +555,5 @@
   ],
   "historical_evidence_policy": "append_only_no_retroactive_rewrite",
   "reconciliation_verdict": "CANONICAL_STATE_RECONCILED",
-  "tokenomics_authority_updated_at": "2026-10-04"
+  "tokenomics_authority_updated_at": "2026-10-06"
 }

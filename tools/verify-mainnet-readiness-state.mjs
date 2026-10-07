@@ -18,6 +18,7 @@ const pq = readJson("lab/post-quantum-signatures/gate-status.json");
 const security = readJson("docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json");
 const soak = readJson("sovereign-forge/release/stability-soak-v3-fallbacks.json");
 const mining = readJson("lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json");
+const tokenomicsAuthority = readJson("docs/FAE_TOKENOMICS_AUTHORITY_20261006.json");
 
 const expectedStates = [
   "DONE","ACTIVE","SECONDARY","CONDITION_WAIT","SCHEDULED","HUMAN_GATE",
@@ -111,26 +112,56 @@ if (
   state.authority_snapshot?.tokenomics_design_authoritative !== true ||
   tokenomics?.subsidy_reduction_per_era_pct !== 45 ||
   tokenomics?.subsidy_retention_per_era_pct !== 55 ||
-  tokenomics?.era_duration_calendar_years !== 6 ||
+  tokenomics?.era_blocks !== 630000 ||
   tokenomics?.issuance_shape !== "FINITE_GEOMETRIC" ||
   tokenomics?.perpetual_tail_inflation !== false ||
-  tokenomics?.initial_subsidy_fae?.value !== 10 ||
+  tokenomics?.initial_subsidy_fae?.value !== 9 ||
   tokenomics?.initial_subsidy_fae?.authoritative !== true ||
-  tokenomics?.final_supply_fae?.value !== 14026000 ||
+  tokenomics?.final_supply_fae?.value !== 12600000 ||
   tokenomics?.final_supply_fae?.authoritative !== true ||
   tokenomics?.final_supply_fae?.kind !== "HARD_MONETARY_CEILING" ||
+  tokenomics?.atom_exact_scheduled_supply_fae !== "12599999.81100000" ||
+  tokenomics?.permanently_unissued_remainder_fae !== "0.18900000" ||
+  tokenomics?.nonzero_reward_eras !== 34 ||
+  tokenomics?.total_subsidized_blocks !== 21420000 ||
   tokenomics?.final_block_target_seconds?.current_research_incumbent !== 300 ||
   tokenomics?.final_block_target_seconds?.authoritative !== false ||
-  tokenomics?.derived_300s_alignment_candidate?.strict_six_year_blocks_per_era !== 631152 ||
-  tokenomics?.derived_300s_alignment_candidate?.strict_six_year_scheduled_issuance_fae !== "14025599.85343248" ||
-  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_blocks_per_era !== 631170 ||
-  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_scheduled_issuance_fae !== "14025999.85342830" ||
-  tokenomics?.derived_300s_alignment_candidate?.cap_aligned_unissued_remainder_fae !== "0.14657170" ||
+  tokenomics?.calendar_context_at_300s?.era_days !== 2187.5 ||
+  tokenomics?.calendar_context_at_300s?.authority !== "DERIVED_CONTEXT_ONLY" ||
   tokenomics?.authority !== "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS" ||
-  tokenomics?.authority_ref !== "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json"
+  tokenomics?.authority_ref !== "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json"
 ) fail("authoritative tokenomics design drift");
 
-if (state.tokenomics_authority_updated_at !== "2026-10-04") {
+if (
+  tokenomicsAuthority?.schema !== "FAE_TOKENOMICS_AUTHORITY_V2" ||
+  tokenomicsAuthority?.authoritative_now?.initial_reward_fae !== 9 ||
+  tokenomicsAuthority?.authoritative_now?.era_blocks !== 630000 ||
+  tokenomicsAuthority?.authoritative_now?.maximum_supply_fae !== 12600000 ||
+  tokenomicsAuthority?.authoritative_now?.subsidy_reduction_per_era_pct !== 45 ||
+  tokenomicsAuthority?.derived_atom_exact_schedule?.terminal_scheduled_issuance_fae !== "12599999.81100000" ||
+  tokenomicsAuthority?.derived_atom_exact_schedule?.permanently_unissued_below_ceiling_fae !== "0.18900000"
+) fail("authoritative tokenomics artifact drift");
+
+{
+  const atomsPerFAE = 100000000n;
+  const eraBlocks = 630000n;
+  const capAtoms = 12600000n * atomsPerFAE;
+  let rewardAtoms = 9n * atomsPerFAE;
+  let scheduledAtoms = 0n;
+  let nonzeroEras = 0;
+  while (rewardAtoms > 0n) {
+    scheduledAtoms += rewardAtoms * eraBlocks;
+    rewardAtoms = rewardAtoms * 55n / 100n;
+    nonzeroEras += 1;
+  }
+  if (scheduledAtoms !== 1259999981100000n) fail("atom-exact authoritative supply derivation drift");
+  if (capAtoms - scheduledAtoms !== 18900000n) fail("authoritative supply remainder drift");
+  if (nonzeroEras !== 34) fail("authoritative nonzero subsidy era count drift");
+  if (nonzeroEras * Number(eraBlocks) !== 21420000) fail("authoritative subsidized block count drift");
+  if (9 * 630000 / 0.45 !== 12600000) fail("theoretical geometric cap drift");
+}
+
+if (state.tokenomics_authority_updated_at !== "2026-10-06") {
   fail("tokenomics authority update timestamp drift");
 }
 
@@ -181,13 +212,13 @@ for (const literal of [
 
 for (const literal of [
   "## Authoritative future tokenomics design",
+  "initial subsidy: **9 FAE/block**",
   "subsidy reduction per era: **45%**",
   "retained subsidy per era: **55%**",
-  "initial subsidy: **10 FAE/block**",
-  "monetary ceiling is **14,026,000 FAE**",
-  "target era duration: **6 calendar years**",
-  "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
-  "Tokenomics authority updated: 2026-10-04"
+  "subsidy era: **630,000 blocks**",
+  "hard monetary ceiling: **12,600,000 FAE**",
+  "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+  "Tokenomics authority updated: 2026-10-06"
 ]) {
   if (!registry.includes(literal)) fail(`canonical registry lost tokenomics authority literal: ${literal}`);
 }
