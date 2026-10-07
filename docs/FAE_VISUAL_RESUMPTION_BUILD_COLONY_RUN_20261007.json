@@ -12,7 +12,10 @@
     "divergence_before_resumption": {
       "candidate_ahead_by": 62,
       "candidate_behind_by": 61
-    }
+    },
+    "current_candidate_head_after_resync": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "current_main_sync_pr": 284,
+    "current_main_sync_merge": "720d8e208037797b9d954b3f511930a848d3ee8e"
   },
   "evidence_first_drift_analysis": {
     "main_delta_from_prior_sync_commits": 61,
@@ -73,32 +76,32 @@
     {
       "id": "VR-02",
       "name": "Candidate ancestry resync to latest main",
-      "state": "ACTIVE"
+      "state": "DONE"
     },
     {
       "id": "VR-03",
       "name": "Exact-head visual/browser/wallet/security verification",
-      "state": "WAITING_ON_VR-02"
+      "state": "DONE"
     },
     {
       "id": "VR-04",
       "name": "Durable state truth reconciliation",
-      "state": "WAITING_ON_VR-03"
+      "state": "DONE"
     },
     {
       "id": "VR-05",
       "name": "Adversarial authored-surface regression review",
-      "state": "WAITING_ON_VR-03"
+      "state": "DONE"
     },
     {
       "id": "VR-06",
       "name": "Terminal candidate evidence binding",
-      "state": "WAITING_ON_VR-04_VR-05"
+      "state": "DONE"
     },
     {
       "id": "VR-07",
       "name": "Unattended drift watch and machine-admissible continuation",
-      "state": "ARM_AFTER_TERMINAL_CANDIDATE"
+      "state": "ARMED"
     }
   ],
   "integration_rule": "Parallelize independent verification. Serialize candidate shared state. Never merge to main without explicit integration authority.",
@@ -111,5 +114,29 @@
     "release",
     "canonical main merge",
     "consensus/economics/DP6/address-format/transaction-semantics/activation/mainnet changes"
-  ]
+  ],
+  "verification_summary": {
+    "verified_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "all_current_required_checks_green": true,
+    "visual_language_lab": "SUCCESS",
+    "authored_product_wallet_browser": "SUCCESS",
+    "wallet_persistent_vault": "SUCCESS",
+    "project_assurance": "SUCCESS",
+    "cross_lab": "SUCCESS",
+    "canonical_verification": "SUCCESS",
+    "codeql": "SUCCESS",
+    "psr17_note": "Initial full-baseline attempt failed at R17-01/R17-02; exact-head standalone PSR-15/16 were green; full PSR-17 workflow rerun was green. Prior failure preserved; root cause not claimed.",
+    "terminal_disposition": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED"
+  },
+  "unattended": {
+    "armed": true,
+    "purpose": "Watch canonical main drift and continue only machine-admissible visual reconciliation/verification under existing authority.",
+    "fail_closed_on": [
+      "protected product surface drift",
+      "Mining authored reference drift",
+      "Wallet functional invariant drift",
+      "new failing security or browser evidence",
+      "need for main merge/public deployment/release authority"
+    ]
+  }
 }
