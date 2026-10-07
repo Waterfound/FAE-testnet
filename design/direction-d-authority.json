@@ -1,0 +1,38 @@
+{
+  "schema": "FAE_VISUAL_DIRECTION_AUTHORITY_V1",
+  "authority_owner": "Waterfound",
+  "admitted_at": "2026-09-28T18:14:08Z",
+  "durable_authority_event": "fae-visual-language-direction-d-authority-001",
+  "durable_authority_commit": "81551ee4d11a93b95c4d1573e953a515fba1369d",
+  "durable_consumption_commit": "bb2eb435ca8db59835ef8de0153fcc0e73da31e0",
+  "prior_directions": {
+    "A": "REJECTED_AS_FINAL",
+    "B": "REJECTED_AS_FINAL",
+    "C": "REJECTED_AS_FINAL"
+  },
+  "selected_direction": {
+    "id": "D",
+    "name": "Orange Top / White Field / Blue Circulation",
+    "status": "CANONICAL_FOR_VISUAL_IMPLEMENTATION",
+    "principles": [
+      "orange topper is the high-recognition identity and broadcast layer",
+      "white is the dominant product field and clarity surface",
+      "blue represents live activity, computational flow, focus, progress feedback and circulating state",
+      "network facts move horizontally in the orange topper rather than occupying large fixed metric cards",
+      "mining may use a psychologically useful blue activity bar only when it is explicitly non-deterministic and never implies guaranteed progress toward a reward"
+    ]
+  },
+  "reserved_authority": [
+    "final logo or symbol",
+    "radical change to the selected Direction D thesis",
+    "final public rebrand authorization",
+    "protocol or network identity changes"
+  ],
+  "non_authority_effects": [
+    "does not change consensus",
+    "does not change economics",
+    "does not change address formats or cryptography",
+    "does not change transaction semantics",
+    "does not change mining correctness"
+  ]
+}

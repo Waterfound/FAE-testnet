@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FAE Direction A — Veil & Instrument</title>
+<style>
+:root{color-scheme:dark;--bg:#06100b;--fog:#dff5e5;--muted:#87a393;--line:#244532;--signal:#baf6c8;--ember:#e9c87f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 68% -10%,#21432d 0,transparent 36%),var(--bg);color:var(--fog);font:15px/1.5 ui-sans-serif,system-ui,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 0 49.8%,rgba(186,246,200,.035) 50%,transparent 50.2%)}
+main{max-width:1120px;margin:auto;padding:28px 22px 80px}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
+.mark{font:700 13px ui-monospace,monospace;letter-spacing:.22em}.state{font:12px ui-monospace,monospace;color:var(--signal)}
+.hero{min-height:430px;display:grid;grid-template-columns:1.25fr .75fr;align-items:center;gap:40px;border-bottom:1px solid var(--line)}
+.kicker{font:12px ui-monospace,monospace;color:var(--signal);letter-spacing:.18em;text-transform:uppercase}
+h1{font:500 clamp(48px,8vw,94px)/.9 Georgia,"Times New Roman",serif;letter-spacing:-.055em;margin:14px 0 24px;max-width:780px}
+.lede{font-size:18px;max-width:610px;color:#aec3b5}.sigil{aspect-ratio:1;border:1px solid var(--line);border-radius:50%;position:relative;display:grid;place-items:center;box-shadow:0 0 70px rgba(186,246,200,.06)}
+.sigil:before,.sigil:after{content:"";position:absolute;background:var(--line)}.sigil:before{width:1px;height:120%}.sigil:after{height:1px;width:120%}.sigil b{font:400 56px Georgia,serif;color:var(--signal)}
+.section{padding:42px 0}.eyebrow{font:11px ui-monospace,monospace;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}.rail{display:grid;grid-template-columns:180px 1fr;gap:30px;border-top:1px solid var(--line);padding:22px 0}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line)}.metric{padding:18px;border-right:1px solid var(--line)}.metric:last-child{border:0}.metric b{font:500 28px Georgia,serif;display:block}
+.panel{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line)}.pane{padding:26px;min-height:240px}.pane+.pane{border-left:1px solid var(--line)}button{background:var(--signal);color:#07130c;border:0;border-radius:2px;padding:12px 16px;font-weight:800}button.alt{background:transparent;color:var(--fog);border:1px solid var(--line)}
+code{font:12px ui-monospace,monospace;color:var(--signal)}.progress{height:2px;background:#183020;margin:26px 0}.progress i{display:block;width:62%;height:100%;background:var(--signal);box-shadow:0 0 12px var(--signal)}
+@media(max-width:760px){.hero{grid-template-columns:1fr;min-height:auto;padding:60px 0}.sigil{max-width:220px}.rail{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.panel{grid-template-columns:1fr}.pane+.pane{border-left:0;border-top:1px solid var(--line)}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><main>
+<header class="top"><span class="mark">FAE // TESTNET</span><span class="state">● NETWORK ONLINE</span></header>
+<section class="hero"><div><div class="kicker">Sovereign computation / open participation</div><h1>Mine from the machine already in your hands.</h1><p class="lede">A proof-of-work network designed around ordinary devices, local ownership and public verification.</p></div><div class="sigil"><b>ƒ</b></div></section>
+<section class="section"><div class="eyebrow">Network instrument</div><div class="metrics"><div class="metric"><span>Blocks</span><b>496</b></div><div class="metric"><span>Supply</span><b>4,960</b></div><div class="metric"><span>Reward</span><b>10 FAE</b></div><div class="metric"><span>Difficulty</span><b>17.42</b></div></div></section>
+<section class="section"><div class="rail"><div><div class="eyebrow">Wallet / ownership</div></div><div class="panel"><div class="pane"><h2>0 FAE</h2><p>Keys remain on this device. Recovery material is yours alone.</p><code>faet1q7…r9m2</code></div><div class="pane"><h3>Send with full traceability</h3><p>Every transfer exposes its complete transaction identity and network state.</p><button>Prepare transfer</button></div></div></div>
+<div class="rail"><div><div class="eyebrow">Mining / participation</div></div><div class="panel"><div class="pane"><h2>Device contribution</h2><p>Computation is presented as participation, not reward spectacle.</p><div class="progress"><i></i></div><code>work epoch 00496 / local</code></div><div class="pane"><h3>Reward destination</h3><p><code>faet1q7…r9m2</code></p><button>Start mining</button> <button class="alt">Use another address</button></div></div></div></section>
+</main></body></html>
