@@ -1,0 +1,63 @@
+{
+  "schema": "FAE_VISUAL_RESUMPTION_TERMINAL_EVIDENCE_V1",
+  "recorded_at": "2026-10-07",
+  "authority_owner": "Waterfound",
+  "branch": "design/fae-authorship-product-wallet-001",
+  "pr": 272,
+  "canonical_main_reconciled": "c30ea5c5dc94c8d5db599da9bafb666c1ec9d006",
+  "verified_product_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
+  "terminal_disposition": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
+  "product_scope": [
+    "Product Shell",
+    "Wallet"
+  ],
+  "frozen_reference": {
+    "mining_pr": 268,
+    "mining_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "redesigned": false
+  },
+  "regression_guarantees": {
+    "no_implicit_wallet_creation": true,
+    "mining_reference_unchanged": true,
+    "explorer_untouched": true,
+    "network_semantics_unchanged": true,
+    "public_deployment_performed": false,
+    "canonical_main_merge_performed": false,
+    "release_performed": false
+  },
+  "exact_head_checks": {
+    "Visual Language Lab": "SUCCESS",
+    "Authored Product Wallet Browser": "SUCCESS",
+    "Wallet Persistent Vault candidate": "SUCCESS",
+    "cross-lab-integration-gate": "SUCCESS",
+    "verify-canonical-source": "SUCCESS",
+    "codeql-security": "SUCCESS",
+    "psr15-project-assurance": "SUCCESS",
+    "psr16-finding-closure": "SUCCESS",
+    "psr17-full-security-baseline": "SUCCESS_AFTER_WHOLE_WORKFLOW_RERUN",
+    "psr18-security-verdict": "SUCCESS",
+    "public-code-security-recurring-assurance": "SUCCESS",
+    "Mainnet Readiness State": "SUCCESS",
+    "Representative Device Evidence Readiness": "SUCCESS"
+  },
+  "psr17_evidence_boundary": {
+    "run_id": 37691035182,
+    "initial_failure_preserved": true,
+    "initial_failed_components": [
+      "R17-01",
+      "R17-02"
+    ],
+    "rerun_scope": "ENTIRE_SINGLE_JOB_PSR17_WORKFLOW",
+    "rerun_success": true,
+    "standalone_psr15_success": true,
+    "standalone_psr16_success": true,
+    "cause_proven": false,
+    "security_finding_proven": false
+  },
+  "remaining_authority_gates": [
+    "canonical main merge",
+    "public deployment",
+    "release"
+  ],
+  "unattended_next": "Monitor main drift and machine-admissible evidence. Reconcile automatically when safe; fail closed at authority or material-drift gates."
+}
