@@ -1,0 +1,115 @@
+{
+  "schema": "FAE_VISUAL_RESUMPTION_BUILD_COLONY_RUN_V1",
+  "recorded_at": "2026-10-07",
+  "authority_owner": "Waterfound",
+  "mission": "Resume the FAE authored visual front, reconcile Product Shell + Wallet propagation against current canonical main, execute all machine-admissible verification and durable closure work, then leave the front unattended-resumable.",
+  "source_state": {
+    "candidate_branch": "design/fae-authorship-product-wallet-001",
+    "candidate_pr": 272,
+    "candidate_head_before_resumption": "d54340750e119fc409ec52e6c2a1314b2859b84e",
+    "latest_main": "c30ea5c5dc94c8d5db599da9bafb666c1ec9d006",
+    "prior_main_sync": "bbcef7fe72693544f9c73e4aaa6b77751aa2c462",
+    "divergence_before_resumption": {
+      "candidate_ahead_by": 62,
+      "candidate_behind_by": 61
+    }
+  },
+  "evidence_first_drift_analysis": {
+    "main_delta_from_prior_sync_commits": 61,
+    "protected_product_surface_touched_by_main_delta": false,
+    "observed_relevant_main_delta_files": [
+      ".github/workflows/system-preservation-contract.yml",
+      "tests/system-preservation-contract.mjs",
+      "tests/system-preservation-identity-recovery.mjs"
+    ],
+    "protected_surfaces_checked": [
+      "index.html",
+      "wallet.js",
+      "wallet-vault.js",
+      "wallet-crypto.js",
+      "wallet-signing-intent.js",
+      "wallet-transactions.js",
+      "mining.js",
+      "core.js",
+      "tests/visual-language-contract.mjs",
+      "tests/authored-product-wallet-native-browser.mjs"
+    ],
+    "disposition": "CANONICAL_ANCESTRY_RESYNC_ADMISSIBLE__NO_PRODUCT_SURFACE_COLLISION_OBSERVED"
+  },
+  "frozen_visual_authority": {
+    "mining_reference_pr": 268,
+    "mining_reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "redesign_authorized": false,
+    "product_wallet_propagation_authorized": true,
+    "explorer_propagation_authorized": false,
+    "network_visual_semantic_change_authorized": false,
+    "public_deployment_authorized": false,
+    "release_authorized": false,
+    "main_merge_authorized": false
+  },
+  "principles": [
+    "FAE must feel like a living instrument of computation.",
+    "Every visible element must feel intentional, not generated.",
+    "Intent before identity.",
+    "Mining = movement.",
+    "Wallet = rest.",
+    "Blue = computation/activity.",
+    "Green = confirmed/received/safe.",
+    "Orange = identity/energy.",
+    "NO IMPLICIT WALLET CREATION.",
+    "Mining authored reference is frozen; propagation must translate, not redesign."
+  ],
+  "frontiers": [
+    {
+      "id": "VR-00",
+      "name": "Authority and evidence reconstruction",
+      "state": "DONE"
+    },
+    {
+      "id": "VR-01",
+      "name": "Current-main drift analysis",
+      "state": "DONE"
+    },
+    {
+      "id": "VR-02",
+      "name": "Candidate ancestry resync to latest main",
+      "state": "ACTIVE"
+    },
+    {
+      "id": "VR-03",
+      "name": "Exact-head visual/browser/wallet/security verification",
+      "state": "WAITING_ON_VR-02"
+    },
+    {
+      "id": "VR-04",
+      "name": "Durable state truth reconciliation",
+      "state": "WAITING_ON_VR-03"
+    },
+    {
+      "id": "VR-05",
+      "name": "Adversarial authored-surface regression review",
+      "state": "WAITING_ON_VR-03"
+    },
+    {
+      "id": "VR-06",
+      "name": "Terminal candidate evidence binding",
+      "state": "WAITING_ON_VR-04_VR-05"
+    },
+    {
+      "id": "VR-07",
+      "name": "Unattended drift watch and machine-admissible continuation",
+      "state": "ARM_AFTER_TERMINAL_CANDIDATE"
+    }
+  ],
+  "integration_rule": "Parallelize independent verification. Serialize candidate shared state. Never merge to main without explicit integration authority.",
+  "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
+  "forbidden": [
+    "redesign Mining authored reference",
+    "Explorer propagation",
+    "Network semantic changes",
+    "public deployment",
+    "release",
+    "canonical main merge",
+    "consensus/economics/DP6/address-format/transaction-semantics/activation/mainnet changes"
+  ]
+}
