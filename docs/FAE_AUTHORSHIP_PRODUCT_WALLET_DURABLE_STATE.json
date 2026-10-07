@@ -4,8 +4,8 @@
   "authority_owner": "Waterfound",
   "repository": "Waterfound/FAE-testnet",
   "branch": "design/fae-authorship-product-wallet-001",
-  "current_frontier": "APW-05_BROWSER_RESPONSIVE_VALIDATION",
-  "state": "CANDIDATE_IMPLEMENTED__VALIDATION_PENDING",
+  "current_frontier": "VR-07_UNATTENDED_DRIFT_WATCH",
+  "state": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
   "source_bindings": {
     "wallet_functional_head": "8708b03866f42cf84ba2d01908caec4238928e70",
     "current_main_merged_into_candidate_via_pr": 271,
@@ -14,21 +14,33 @@
     "mining_reference_blob": "6aa1fa3711700874c2440d59d28b4005549775db",
     "mining_reference_final_approval": "2633c90e7c5b3cd3eb85198d049d1cb038eb9016",
     "cii_pr21_head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
-    "cii_gate": "EXTERNAL_CI_GATE"
+    "cii_gate": "EXTERNAL_CI_GATE",
+    "current_main_at_resumption": "c30ea5c5dc94c8d5db599da9bafb666c1ec9d006",
+    "current_main_sync_pr": 284,
+    "current_main_sync_merge": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "verified_candidate_head": "720d8e208037797b9d954b3f511930a848d3ee8e"
   },
   "completed_frontiers": [
     "APW-00",
     "APW-01",
     "APW-02",
     "APW-03",
-    "APW-04"
-  ],
-  "pending_frontiers": [
+    "APW-04",
     "APW-05",
     "APW-06",
     "APW-07",
     "APW-08",
-    "APW-09"
+    "APW-09",
+    "VR-00",
+    "VR-01",
+    "VR-02",
+    "VR-03",
+    "VR-04",
+    "VR-05",
+    "VR-06"
+  ],
+  "pending_frontiers": [
+    "VR-07"
   ],
   "candidate_changes": {
     "product": [
@@ -62,8 +74,41 @@
     "cii_external_gate_unresolved": true,
     "main_merge_authority": false,
     "public_deployment_authority": false,
-    "release_authority": false
+    "release_authority": false,
+    "current_main_reconciled": true,
+    "current_main_delta_touched_protected_product_surface": false,
+    "exact_head_ci_green": true
   },
-  "next_transition": "Open isolated candidate PR and consume exact-head CI evidence.",
-  "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY"
+  "next_transition": "Keep candidate aligned with canonical main under unattended drift watch. If main changes a protected product surface, fail closed and reconcile evidence-first. Canonical main integration and public deployment remain separate authority gates.",
+  "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
+  "verification": {
+    "exact_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "all_current_required_checks_green": true,
+    "checks": {
+      "Visual Language Lab": "SUCCESS",
+      "Authored Product Wallet Browser": "SUCCESS",
+      "Wallet Persistent Vault candidate": "SUCCESS",
+      "cross-lab-integration-gate": "SUCCESS",
+      "verify-canonical-source": "SUCCESS",
+      "codeql-security": "SUCCESS",
+      "psr15-project-assurance": "SUCCESS",
+      "psr16-finding-closure": "SUCCESS",
+      "psr17-full-security-baseline": "SUCCESS_ON_WHOLE_WORKFLOW_RERUN",
+      "psr18-security-verdict": "SUCCESS",
+      "public-code-security-recurring-assurance": "SUCCESS",
+      "Mainnet Readiness State": "SUCCESS",
+      "Representative Device Evidence Readiness": "SUCCESS"
+    },
+    "psr17_history": {
+      "run_id": 37691035182,
+      "first_attempt": "FAILED_R17_01_R17_02",
+      "first_attempt_preserved": true,
+      "cause_proven": false,
+      "exact_head_standalone_psr15": "SUCCESS_17_OF_17_ZERO_FINDINGS",
+      "exact_head_standalone_psr16": "SUCCESS_ZERO_FINDING_CLOSURE",
+      "whole_workflow_rerun": "SUCCESS",
+      "selective_substep_retry": false,
+      "disposition": "NON_PERSISTENT_BASELINE_REPLAY_FAILURE_OBSERVED__NO_SECURITY_FINDING_PROVEN__PRIOR_FAILURE_PRESERVED"
+    }
+  }
 }
