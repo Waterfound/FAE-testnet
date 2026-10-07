@@ -2,7 +2,7 @@
   "schema": "FAE_MAINNET_READINESS_STATE_V1",
   "schema_version": 1,
   "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
-  "workstream_role": "SECONDARY",
+  "workstream_role": "PASSIVE",
   "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
   "last_reconciled_at": "2026-10-06",
   "reconciliation_status": "CANONICAL_STATE_RECONCILED",
@@ -141,19 +141,19 @@
     {
       "gate_id": "mainnet_readiness_reconciliation",
       "area": "Documentation / orchestration",
-      "description": "Evidence-bound canonical-state reconciliation and machine-readable readiness registry.",
-      "state": "SECONDARY",
+      "description": "Canonical-state reconciliation is complete through MR-09; the machine-readable readiness registry remains a living evidence ledger and reopens only on material canonical-state change.",
+      "state": "DONE",
       "authority_class": "DOCUMENTATION_ONLY",
       "evidence_refs": [
         "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json",
         "docs/FAE_MAINNET_READINESS_STATE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Advance MR-04 through MR-09 on an isolated branch and serialize canonical shared-state integration.",
-      "wake_condition": null,
+      "next_action": "Keep closed at the current reconciliation ceiling. Reopen only when a material accepted parameter, evidence gate, authority state, or canonical artifact changes.",
+      "wake_condition": "A material accepted FAE parameter, evidence gate, authority state, or canonical artifact changes.",
       "human_action_required": false,
       "mainnet_critical": false,
-      "can_auto_advance": true
+      "can_auto_advance": false
     },
     {
       "gate_id": "preferred_future_economic_candidate",
