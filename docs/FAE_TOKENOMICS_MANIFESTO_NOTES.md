@@ -3,6 +3,8 @@
 Status: useful doctrine notes derived from the current authoritative tokenomics decision of 2026-10-06.  
 These notes guide design and documentation; they do not activate consensus.
 
+Public-facing Manifesto language derived from these notes MUST follow `docs/FAE_MANIFESTO_EDITORIAL_CHARTER.md`.
+
 ## Note — Orient with Bitcoin, do not mechanically imitate it
 
 > **FAE orients with Bitcoin; it does not mechanically imitate it.**
