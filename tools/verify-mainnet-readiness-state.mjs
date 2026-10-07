@@ -18,6 +18,7 @@ const pq = readJson("lab/post-quantum-signatures/gate-status.json");
 const security = readJson("docs/security/FAE_PSR19_BOUNDED_PROJECT_CLOSEOUT_V1.json");
 const soak = readJson("sovereign-forge/release/stability-soak-v3-fallbacks.json");
 const mining = readJson("lab/mining-tip-sync/evidence/mts-12-physical-attempt-003.json");
+const tokenomicsAuthority = readJson("docs/FAE_TOKENOMICS_AUTHORITY_20261006.json");
 
 const expectedStates = [
   "DONE","ACTIVE","SECONDARY","CONDITION_WAIT","SCHEDULED","HUMAN_GATE",
@@ -74,8 +75,10 @@ const requireGate = (id, expectedState) => {
   return gate;
 };
 
-requireGate("research_180s_validation", "ACTIVE");
+requireGate("research_180s_validation", "CONDITION_WAIT");
 requireGate("mainnet_readiness_reconciliation", "SECONDARY");
+requireGate("preferred_future_economic_candidate", "CLOSED");
+requireGate("authoritative_future_tokenomics_design", "DONE");
 requireGate("wallet_transaction_ux", "DONE");
 requireGate("stability_soak_v3", "SCHEDULED");
 requireGate("block_explorer_independent_binding", "HUMAN_GATE");
@@ -100,8 +103,67 @@ if (
   future?.initial_subsidy_fae !== 14 ||
   future?.halving_era_blocks !== 430000 ||
   future?.authority !== "RESEARCH_ONLY" ||
-  future?.activation_height !== null
-) fail("future economic candidate authority drift");
+  future?.activation_height !== null ||
+  future?.status !== "SUPERSEDED_AS_FUTURE_TOKENOMICS_PACKAGE__PRESERVED_AS_HISTORICAL_RESEARCH"
+) fail("superseded future economic research package drift");
+
+const tokenomics = state.authority_snapshot?.authoritative_future_tokenomics_design;
+if (
+  state.authority_snapshot?.tokenomics_design_authoritative !== true ||
+  tokenomics?.subsidy_reduction_per_era_pct !== 45 ||
+  tokenomics?.subsidy_retention_per_era_pct !== 55 ||
+  tokenomics?.era_blocks !== 630000 ||
+  tokenomics?.issuance_shape !== "FINITE_GEOMETRIC" ||
+  tokenomics?.perpetual_tail_inflation !== false ||
+  tokenomics?.initial_subsidy_fae?.value !== 9 ||
+  tokenomics?.initial_subsidy_fae?.authoritative !== true ||
+  tokenomics?.final_supply_fae?.value !== 12600000 ||
+  tokenomics?.final_supply_fae?.authoritative !== true ||
+  tokenomics?.final_supply_fae?.kind !== "HARD_MONETARY_CEILING" ||
+  tokenomics?.atom_exact_scheduled_supply_fae !== "12599999.81100000" ||
+  tokenomics?.permanently_unissued_remainder_fae !== "0.18900000" ||
+  tokenomics?.nonzero_reward_eras !== 34 ||
+  tokenomics?.total_subsidized_blocks !== 21420000 ||
+  tokenomics?.final_block_target_seconds?.current_research_incumbent !== 300 ||
+  tokenomics?.final_block_target_seconds?.authoritative !== false ||
+  tokenomics?.calendar_context_at_300s?.era_days !== 2187.5 ||
+  tokenomics?.calendar_context_at_300s?.authority !== "DERIVED_CONTEXT_ONLY" ||
+  tokenomics?.authority !== "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS" ||
+  tokenomics?.authority_ref !== "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json"
+) fail("authoritative tokenomics design drift");
+
+if (
+  tokenomicsAuthority?.schema !== "FAE_TOKENOMICS_AUTHORITY_V2" ||
+  tokenomicsAuthority?.authoritative_now?.initial_reward_fae !== 9 ||
+  tokenomicsAuthority?.authoritative_now?.era_blocks !== 630000 ||
+  tokenomicsAuthority?.authoritative_now?.maximum_supply_fae !== 12600000 ||
+  tokenomicsAuthority?.authoritative_now?.subsidy_reduction_per_era_pct !== 45 ||
+  tokenomicsAuthority?.derived_atom_exact_schedule?.terminal_scheduled_issuance_fae !== "12599999.81100000" ||
+  tokenomicsAuthority?.derived_atom_exact_schedule?.permanently_unissued_below_ceiling_fae !== "0.18900000"
+) fail("authoritative tokenomics artifact drift");
+
+{
+  const atomsPerFAE = 100000000n;
+  const eraBlocks = 630000n;
+  const capAtoms = 12600000n * atomsPerFAE;
+  let rewardAtoms = 9n * atomsPerFAE;
+  let scheduledAtoms = 0n;
+  let nonzeroEras = 0;
+  while (rewardAtoms > 0n) {
+    scheduledAtoms += rewardAtoms * eraBlocks;
+    rewardAtoms = rewardAtoms * 55n / 100n;
+    nonzeroEras += 1;
+  }
+  if (scheduledAtoms !== 1259999981100000n) fail("atom-exact authoritative supply derivation drift");
+  if (capAtoms - scheduledAtoms !== 18900000n) fail("authoritative supply remainder drift");
+  if (nonzeroEras !== 34) fail("authoritative nonzero subsidy era count drift");
+  if (nonzeroEras * Number(eraBlocks) !== 21420000) fail("authoritative subsidized block count drift");
+  if (9 * 630000 / 0.45 !== 12600000) fail("theoretical geometric cap drift");
+}
+
+if (state.tokenomics_authority_updated_at !== "2026-10-06") {
+  fail("tokenomics authority update timestamp drift");
+}
 
 if (state.authority_snapshot?.consensus_change_authorized !== false) fail("consensus authority must remain false");
 if (state.authority_snapshot?.economic_candidate_promoted !== false) fail("economic candidate promotion must remain false");
@@ -148,9 +210,22 @@ for (const literal of [
   if (!registry.includes(literal)) fail(`canonical registry lost live authority literal: ${literal}`);
 }
 
+for (const literal of [
+  "## Authoritative future tokenomics design",
+  "initial subsidy: **9 FAE/block**",
+  "subsidy reduction per era: **45%**",
+  "retained subsidy per era: **55%**",
+  "subsidy era: **630,000 blocks**",
+  "hard monetary ceiling: **12,600,000 FAE**",
+  "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+  "Tokenomics authority updated: 2026-10-06"
+]) {
+  if (!registry.includes(literal)) fail(`canonical registry lost tokenomics authority literal: ${literal}`);
+}
+
 if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
   if (state.reconciliation_verdict !== "CANONICAL_STATE_RECONCILED") fail("reconciled state lacks matching verdict");
-  if (!registry.includes("Last reviewed: 2026-09-28")) fail("reconciled registry review date missing");
+  if (!registry.includes("Last reviewed: 2026-10-06")) fail("reconciled registry review date missing");
   if (!registry.includes("docs/FAE_MAINNET_READINESS_STATE.json")) fail("registry does not reference readiness state");
   if (!registry.includes("Wallet Transaction UX")) fail("registry does not record Wallet Transaction UX");
 } else if (state.reconciliation_status !== "CANDIDATE") {

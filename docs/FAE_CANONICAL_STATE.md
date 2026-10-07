@@ -1,7 +1,8 @@
 # FAE Canonical State
 
 Status: living context registry for FAE engineering work  
-Last reviewed: 2026-09-28  
+Last reviewed: 2026-10-06  
+Tokenomics authority updated: 2026-10-06  
 Repository: `Waterfound/FAE-testnet`
 
 ## Purpose
@@ -22,13 +23,19 @@ Machine-readable readiness registry:
 - reconciliation workstream role: `SECONDARY`
 - authority: documentation/evidence state only; this registry does not create protocol or mainnet authority
 
-Current portfolio ordering at this reconciliation checkpoint:
+Current portfolio disposition relevant to this registry checkpoint:
 
-- `ACTIVE`: FAE Research — 180s Economic + Block-Time Validation
-- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation
+- `PASSIVE / CONDITION_WAIT`: FAE Research — 180s Economic + Block-Time Validation. Software-admissible frontiers are exhausted; F180-12 closed with `INSUFFICIENT_EVIDENCE`, and F180-13 is a genuine external-evidence gate. Reopen only when fresh directly comparable evidence satisfies the frozen admission requirements.
+- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation.
+- global `ACTIVE` slot: not asserted by this FAE living registry; current cross-system slot ownership is determined by the Total Systems Steward.
 - rule: **Parallelize independence. Serialize shared state.**
 
-The 180s Research workstream is isolated on `colony/fae-180s-economic-block-time-validation-001`. At the MR-05 serialization check on 2026-09-28 it was strictly ahead of `main` and did not modify this registry. Any later integration must re-resolve both `main` and the Research branch before mutating shared canonical state.
+The 180s Research workstream remains isolated on `colony/fae-180s-economic-block-time-validation-001` and is non-canonical research evidence. Its software-only execution reached terminal research closure without selecting or activating a block-time parameter. Any future reopening or integration must re-resolve current `main` and the Research branch before mutating shared canonical state.
+
+Primary 180s terminal references:
+
+- `sovereign-forge/research/180s/F180_12_TERMINAL_VERDICT.json`
+- `sovereign-forge/research/180s/F180_13_EXTERNAL_EVIDENCE_GATE.json`
 
 Readiness state names are frozen in the machine-readable registry. In particular, `HUMAN_GATE` means the *next admissible* advancement requires a physical, account-bound, or authority-bound Waterfound action. Mere incompleteness or machine-executable waiting is not a human gate.
 
@@ -51,44 +58,95 @@ Primary references:
 - `sovereign-forge/release/software-only-ceiling-freeze.json`
 - `sovereign-forge/node/authoritative/fae-v4-core.mjs`
 
-## Preferred future economic candidate
+## Authoritative future tokenomics design
 
-Current preferred research candidate:
+Waterfound-authoritative economic design decision recorded on 2026-10-06:
 
-- target block interval: 300 seconds
-- initial subsidy: 14 FAE/block
-- halving era: 430,000 blocks
-- hard monetary ceiling / theoretical geometric maximum: 12,040,000 FAE
-- base unit: 100,000,000 atoms = 1 FAE
-- coinbase maturity: 200 blocks = 16h40m at 300 seconds
+- initial subsidy: **9 FAE/block**;
+- subsidy reduction per era: **45%**;
+- retained subsidy per era: **55%**;
+- subsidy era: **630,000 blocks**;
+- hard monetary ceiling: **12,600,000 FAE**;
+- issuance shape: **finite geometric decline**;
+- perpetual tail inflation: **none**;
+- premine / treasury / administrative mint: **none**.
 
-Atom-exact Pure Halving arithmetic from 14 FAE and 430,000-block eras yields:
+Compact rule:
 
-- exact maximum scheduled issuance: 12,039,999.94840000 FAE
-- permanently unissued remainder under the 12,040,000 FAE hard ceiling: 0.05160000 FAE = 5,160,000 atoms
+`R(0) = 9 FAE`
+
+`R(n+1) = floor(R(n) × 55 / 100)` in consensus base units, with each reward level lasting exactly **630,000 blocks**.
+
+The theoretical geometric supply is exactly:
+
+`9 × 630,000 / (1 - 0.55) = 12,600,000 FAE`
+
+With recursive atom-flooring, the deterministic terminal scheduled issuance is **12,599,999.81100000 FAE**, leaving **0.18900000 FAE** permanently unissued below the ceiling.
+
+This decision is authoritative for the **starting reward, reduction ratio, exact block-era length and monetary ceiling** of future FAE tokenomics. It does **not** activate economics on the current public testnet and does not create mainnet authority.
+
+### Parameters intentionally still open
+
+The following remain unresolved:
+
+- final block target: **not yet frozen**; 300 seconds remains the current research incumbent;
+- coinbase maturity: **not yet frozen by this tokenomics decision**;
+- fee/security-budget model: **still unresolved**;
+- activation height: **not selected**.
+
+The monetary cadence is now defined exactly in **blocks**, not wall-clock years. At the current 300-second research incumbent:
+
+- 630,000 blocks = **2,187.5 days**;
+- ≈ **5.98905 years**;
+- approximately **4 days shorter than six reference years**.
+
+Thus the new exact block rule preserves the intended ~six-year cadence while removing calendar-to-consensus ambiguity. If the final block target differs from 300 seconds, the calendar duration changes; the authoritative 630,000-block monetary cadence does not.
+
+### Distribution properties
+
+The first era emits exactly **5,670,000 FAE**, equal to **45%** of the theoretical supply.
+
+The remaining unissued fraction after complete eras is:
+
+- after era 1: **55.0000%**;
+- after era 2: **30.2500%**;
+- after era 3: **16.6375%**;
+- after era 4: **9.150625%**;
+- after era 5: **5.03284375%**.
+
+The atom-exact reward remains non-zero for **34 eras**, corresponding to **21,420,000 subsidized blocks**.
+
+### Supersession
+
+The immediately prior future tokenomics authority:
+
+- 10 FAE/block;
+- 6-year calendar-era intent;
+- 45% reductions;
+- 14,026,000 FAE hard ceiling;
+
+is now **superseded** by the authoritative **9 FAE / 630,000 blocks / -45% / 12.6M** package. Its authority artifact remains immutable historical evidence at `docs/FAE_TOKENOMICS_AUTHORITY_20261004.json`.
+
+Earlier 7 FAE and 14 FAE / 430,000 / 50% candidates remain historical superseded evidence.
+
+The 5-year / -45% candidate remains:
+
+`CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY`
+
+Primary authority/evidence references:
+
+- `docs/FAE_TOKENOMICS_AUTHORITY_20261006.json`
+- `docs/research/FAE_TOKENOMICS_9FAE_630K_12P6M_20261006.md`
+- `lab/economics/tokenomics-authoritative-9fae-630k-12p6m.mjs`
+- `docs/FAE_TOKENOMICS_MANIFESTO_NOTES.md`
 
 Authority status:
 
-- research incumbent / preferred future candidate
-- not active public consensus
-- candidate selection does not equal activation
-- activation height: not selected
-- candidate -> authoritative: false
-- mainnet launch authorized: false
-- public consensus changed: false
-- Focused Red Team L3 required before any activation package can advance
-
-Block-time research disposition:
-
-- 300s: GREEN research incumbent
-- 600s: YELLOW challenger, not selected
-- 900s: CLOSED for the current branch
-
-Primary references:
-
-- `sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md`
-- `sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md`
-- `sovereign-forge/release/software-only-ceiling-freeze.json`
+- tokenomics design authority: **YES — 9 FAE initial reward / 630,000-block eras / -45% / 12,600,000 FAE ceiling**;
+- active public-testnet consensus changed: **false**;
+- economics activated: **false**;
+- activation height selected: **false**;
+- mainnet launch authorized: **false**.
 
 ## Software ceiling
 

@@ -4,7 +4,7 @@
   "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
   "workstream_role": "SECONDARY",
   "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
-  "last_reconciled_at": "2026-09-28",
+  "last_reconciled_at": "2026-10-06",
   "reconciliation_status": "CANONICAL_STATE_RECONCILED",
   "source_precedence": [
     "authoritative_or_frozen_source_artifact",
@@ -55,12 +55,45 @@
       "exact_scheduled_issuance_fae": "12039999.94840000",
       "coinbase_maturity_blocks": 200,
       "authority": "RESEARCH_ONLY",
-      "activation_height": null
+      "activation_height": null,
+      "status": "SUPERSEDED_AS_FUTURE_TOKENOMICS_PACKAGE__PRESERVED_AS_HISTORICAL_RESEARCH"
     },
     "consensus_change_authorized": false,
     "economic_candidate_promoted": false,
     "mainnet_launch_authorized": false,
-    "mainnet_ready_claimed": false
+    "mainnet_ready_claimed": false,
+    "tokenomics_design_authoritative": true,
+    "authoritative_future_tokenomics_design": {
+      "subsidy_reduction_per_era_pct": 45,
+      "subsidy_retention_per_era_pct": 55,
+      "era_blocks": 630000,
+      "issuance_shape": "FINITE_GEOMETRIC",
+      "perpetual_tail_inflation": false,
+      "initial_subsidy_fae": {
+        "value": 9,
+        "authoritative": true
+      },
+      "final_supply_fae": {
+        "value": 12600000,
+        "authoritative": true,
+        "kind": "HARD_MONETARY_CEILING"
+      },
+      "atom_exact_scheduled_supply_fae": "12599999.81100000",
+      "permanently_unissued_remainder_fae": "0.18900000",
+      "nonzero_reward_eras": 34,
+      "total_subsidized_blocks": 21420000,
+      "final_block_target_seconds": {
+        "current_research_incumbent": 300,
+        "authoritative": false
+      },
+      "calendar_context_at_300s": {
+        "era_days": 2187.5,
+        "era_years": 5.989048596851472,
+        "authority": "DERIVED_CONTEXT_ONLY"
+      },
+      "authority": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
+      "authority_ref": "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json"
+    }
   },
   "cross_lab_hierarchy": [
     "LAB_VERIFIED",
@@ -90,19 +123,20 @@
     {
       "gate_id": "research_180s_validation",
       "area": "Consensus / protocol",
-      "description": "Direct falsification-oriented validation of the actually active 180-second parameter.",
-      "state": "ACTIVE",
+      "description": "The software-admissible 180-second falsification-oriented research run is complete. F180-12 concluded INSUFFICIENT_EVIDENCE and F180-13 resolved to a genuine external-evidence gate; no block-time selection or activation follows.",
+      "state": "CONDITION_WAIT",
       "authority_class": "RESEARCH_ONLY",
       "evidence_refs": [
         "branch:colony/fae-180s-economic-block-time-validation-001",
-        "docs/FAE_180S_ECONOMIC_BLOCK_TIME_VALIDATION_BUILD_COLONY_RUN.json"
+        "branch:colony/fae-180s-economic-block-time-validation-001:sovereign-forge/research/180s/F180_12_TERMINAL_VERDICT.json",
+        "branch:colony/fae-180s-economic-block-time-validation-001:sovereign-forge/research/180s/F180_13_EXTERNAL_EVIDENCE_GATE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Continue under its own Durable Execution portfolio; this secondary workstream must not race its shared state.",
-      "wake_condition": null,
+      "next_action": "Keep the software-only research closed. Reopen only when fresh directly comparable 180s WAN/physical/natural-event evidence satisfies the frozen admission gates; do not infer selection or activation.",
+      "wake_condition": "Fresh directly comparable 180s external evidence satisfying the frozen F180 admission requirements becomes available.",
       "human_action_required": false,
       "mainnet_critical": true,
-      "can_auto_advance": true
+      "can_auto_advance": false
     },
     {
       "gate_id": "mainnet_readiness_reconciliation",
@@ -124,8 +158,8 @@
     {
       "gate_id": "preferred_future_economic_candidate",
       "area": "Consensus / protocol",
-      "description": "300s / 14 FAE / 430000-block research incumbent remains non-authoritative.",
-      "state": "RESEARCH_ONLY",
+      "description": "The prior 300s / 14 FAE / 430000-block / 50% package is superseded as the future tokenomics package. Its 300s block-time research remains separately relevant and historical evidence stays frozen.",
+      "state": "CLOSED",
       "authority_class": "RESEARCH_ONLY",
       "evidence_refs": [
         "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_LAB.md",
@@ -134,8 +168,26 @@
       "dependency_refs": [
         "research_180s_validation"
       ],
-      "next_action": "Research may continue; do not activate or select an activation height here.",
-      "wake_condition": "Research evidence and a separate explicit authority gate would be required for any promotion.",
+      "next_action": "Preserve as historical research only; do not promote this superseded tokenomics package.",
+      "wake_condition": null,
+      "human_action_required": false,
+      "mainnet_critical": true,
+      "can_auto_advance": false
+    },
+    {
+      "gate_id": "authoritative_future_tokenomics_design",
+      "area": "Economics / tokenomics",
+      "description": "Authoritative future tokenomics design: 9 FAE initial subsidy, 630,000-block subsidy eras, 45% reduction per era, 55% retained, and 12,600,000 FAE hard monetary ceiling. Final block target, fee/security budget, maturity and activation remain separately unresolved.",
+      "state": "DONE",
+      "authority_class": "HUMAN_AUTHORITY",
+      "evidence_refs": [
+        "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+        "docs/research/FAE_TOKENOMICS_9FAE_630K_12P6M_20261006.md",
+        "lab/economics/tokenomics-authoritative-9fae-630k-12p6m.mjs"
+      ],
+      "dependency_refs": [],
+      "next_action": "Preserve 9 FAE / 630,000 blocks / -45% / 12.6M as authoritative tokenomics and separately resolve final block target, fee/security budget, maturity and activation.",
+      "wake_condition": "A remaining tokenomics-adjacent parameter is explicitly selected or new evidence materially falsifies an assumption underlying the authoritative design.",
       "human_action_required": false,
       "mainnet_critical": true,
       "can_auto_advance": true
@@ -503,5 +555,6 @@
     "bootstrap_nodes"
   ],
   "historical_evidence_policy": "append_only_no_retroactive_rewrite",
-  "reconciliation_verdict": "CANONICAL_STATE_RECONCILED"
+  "reconciliation_verdict": "CANONICAL_STATE_RECONCILED",
+  "tokenomics_authority_updated_at": "2026-10-06"
 }
