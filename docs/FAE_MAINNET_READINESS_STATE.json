@@ -141,19 +141,19 @@
     {
       "gate_id": "mainnet_readiness_reconciliation",
       "area": "Documentation / orchestration",
-      "description": "Evidence-bound canonical-state reconciliation and machine-readable readiness registry.",
-      "state": "SECONDARY",
+      "description": "Canonical-state reconciliation and machine-readable readiness registry are reconciled to the admitted evidence checkpoint; reopen only on material canonical drift.",
+      "state": "DONE",
       "authority_class": "DOCUMENTATION_ONLY",
       "evidence_refs": [
         "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json",
         "docs/FAE_MAINNET_READINESS_STATE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Advance MR-04 through MR-09 on an isolated branch and serialize canonical shared-state integration.",
-      "wake_condition": null,
+      "next_action": "Keep closed unless material canonical evidence changes or the readiness registry drifts from authoritative/frozen sources.",
+      "wake_condition": "Material canonical evidence changes or a readiness-registry drift is detected.",
       "human_action_required": false,
       "mainnet_critical": false,
-      "can_auto_advance": true
+      "can_auto_advance": false
     },
     {
       "gate_id": "preferred_future_economic_candidate",
