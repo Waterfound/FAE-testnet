@@ -1,0 +1,30 @@
+name: FAE System Preservation Contract
+
+on:
+  push:
+    branches:
+      - colony/fae-system-preservation-audit-001
+    paths:
+      - "docs/system-preservation/**"
+      - "scripts/system-preservation-contract.mjs"
+      - "tests/system-preservation-contract.mjs"
+      - ".github/workflows/system-preservation-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  preservation-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Verify exposure matrix contract
+        run: node scripts/system-preservation-contract.mjs
+      - name: Run fail-closed preservation tests
+        run: node tests/system-preservation-contract.mjs
+      - name: Rehearse protected stable-identity recovery
+        run: node tests/system-preservation-identity-recovery.mjs

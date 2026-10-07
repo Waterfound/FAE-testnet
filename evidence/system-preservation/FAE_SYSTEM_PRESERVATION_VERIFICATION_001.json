@@ -1,0 +1,80 @@
+{
+  "schema_version": "fae.system-preservation-verification.v1",
+  "evidence_id": "FAE-SYSTEM-PRESERVATION-VERIFICATION-001",
+  "bound_candidate_revision": "799dafcda97003b8d49a91cc098d370a2692bfc0",
+  "base_revision": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+  "final_workflow_run": {
+    "id": 37532498425,
+    "conclusion": "success",
+    "job_id": 112505118365,
+    "contract_verdict": "FAE_SYSTEM_PRESERVATION_CONTRACT_PASS",
+    "fail_closed_contract_tests": "PASS_6_OF_6",
+    "identity_recovery_verdict": "FAE_SYSTEM_PRESERVATION_IDENTITY_RECOVERY_PASS",
+    "identity_continuity": true,
+    "negative_identity_substitution_rejected": true,
+    "retained_private_material": false,
+    "test_only_ephemeral_identity": true,
+    "surfaces": 10,
+    "classifications": {
+      "MINIMAL": 2,
+      "BOUNDED": 4,
+      "ELEVATED": 2,
+      "UNKNOWN": 1,
+      "FROZEN_WAIT": 1
+    }
+  },
+  "prior_runs": [
+    {
+      "run_id": 37531610106,
+      "revision": "0c344fb56250d4ce12aed9458d193db2dc37e9a7",
+      "conclusion": "failure",
+      "first_divergence": "test harness repository root",
+      "production_contract": "PASS"
+    },
+    {
+      "run_id": 37531843289,
+      "revision": "669f1eea30ceb3412b9fadbb95d4c24b926387c3",
+      "conclusion": "failure",
+      "first_divergence": "negative-test sentinel did not cross regex word boundary",
+      "production_contract": "PASS"
+    },
+    {
+      "run_id": 37531948729,
+      "revision": "6750b7245c1f4fc815cec7ebd99fa7e679e326c1",
+      "conclusion": "success",
+      "scope": "contract and 6/6 fail-closed tests before identity-recovery rehearsal was added"
+    }
+  ],
+  "main_compare": {
+    "status": "ahead",
+    "ahead_by": 13,
+    "behind_by": 0,
+    "merge_base": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+    "changed_paths": [
+      ".github/workflows/system-preservation-contract.yml",
+      "docs/system-preservation/FAE_EXPOSURE_MATRIX_V1.json",
+      "docs/system-preservation/FAE_HARDENING_BACKLOG_V1.md",
+      "docs/system-preservation/FAE_PROVIDER_ESCAPE_INVENTORY_V1.md",
+      "docs/system-preservation/FAE_STABLE_IDENTITY_RECOVERY_REHEARSAL_V1.md",
+      "docs/system-preservation/FAE_SYSTEM_PRESERVATION_BASELINE_V1.md",
+      "evidence/system-preservation/FAE_SYSTEM_PRESERVATION_VERIFICATION_001.json",
+      "scripts/system-preservation-contract.mjs",
+      "tests/system-preservation-contract.mjs",
+      "tests/system-preservation-identity-recovery.mjs"
+    ],
+    "live_behavior_paths_changed": false,
+    "consensus_paths_changed": false,
+    "economics_paths_changed": false,
+    "wallet_runtime_paths_changed": false,
+    "active_endpoint_paths_changed": false,
+    "soak_v3_paths_changed": false
+  },
+  "verdict": "VERIFIED_BOUNDED_PRESERVATION_CANDIDATE__SOFTWARE_CEILING_REACHED",
+  "open_gates": [
+    "real cross-provider reconstruction evidence",
+    "post-Soak default-endpoint concentration review",
+    "canonical integration authority"
+  ],
+  "authority_created": false,
+  "canonical_merge_authorized": false
+}
