@@ -4,7 +4,7 @@
   "workstream": "FAE — Mainnet Readiness & Canonical State Reconciliation",
   "workstream_role": "SECONDARY",
   "generated_from_revision": "48ba1df01075f7e6714d2e98d5ce8df827d1e5f2",
-  "last_reconciled_at": "2026-09-28",
+  "last_reconciled_at": "2026-10-06",
   "reconciliation_status": "CANONICAL_STATE_RECONCILED",
   "source_precedence": [
     "authoritative_or_frozen_source_artifact",
@@ -123,19 +123,20 @@
     {
       "gate_id": "research_180s_validation",
       "area": "Consensus / protocol",
-      "description": "Direct falsification-oriented validation of the actually active 180-second parameter.",
-      "state": "ACTIVE",
+      "description": "The software-admissible 180-second falsification-oriented research run is complete. F180-12 concluded INSUFFICIENT_EVIDENCE and F180-13 resolved to a genuine external-evidence gate; no block-time selection or activation follows.",
+      "state": "CONDITION_WAIT",
       "authority_class": "RESEARCH_ONLY",
       "evidence_refs": [
         "branch:colony/fae-180s-economic-block-time-validation-001",
-        "docs/FAE_180S_ECONOMIC_BLOCK_TIME_VALIDATION_BUILD_COLONY_RUN.json"
+        "branch:colony/fae-180s-economic-block-time-validation-001:sovereign-forge/research/180s/F180_12_TERMINAL_VERDICT.json",
+        "branch:colony/fae-180s-economic-block-time-validation-001:sovereign-forge/research/180s/F180_13_EXTERNAL_EVIDENCE_GATE.json"
       ],
       "dependency_refs": [],
-      "next_action": "Continue under its own Durable Execution portfolio; this secondary workstream must not race its shared state.",
-      "wake_condition": null,
+      "next_action": "Keep the software-only research closed. Reopen only when fresh directly comparable 180s WAN/physical/natural-event evidence satisfies the frozen admission gates; do not infer selection or activation.",
+      "wake_condition": "Fresh directly comparable 180s external evidence satisfying the frozen F180 admission requirements becomes available.",
       "human_action_required": false,
       "mainnet_critical": true,
-      "can_auto_advance": true
+      "can_auto_advance": false
     },
     {
       "gate_id": "mainnet_readiness_reconciliation",

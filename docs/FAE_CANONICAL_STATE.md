@@ -1,7 +1,7 @@
 # FAE Canonical State
 
 Status: living context registry for FAE engineering work  
-Last reviewed: 2026-09-28  
+Last reviewed: 2026-10-06  
 Tokenomics authority updated: 2026-10-06  
 Repository: `Waterfound/FAE-testnet`
 
@@ -23,13 +23,19 @@ Machine-readable readiness registry:
 - reconciliation workstream role: `SECONDARY`
 - authority: documentation/evidence state only; this registry does not create protocol or mainnet authority
 
-Current portfolio ordering at this reconciliation checkpoint:
+Current portfolio disposition relevant to this registry checkpoint:
 
-- `ACTIVE`: FAE Research — 180s Economic + Block-Time Validation
-- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation
+- `PASSIVE / CONDITION_WAIT`: FAE Research — 180s Economic + Block-Time Validation. Software-admissible frontiers are exhausted; F180-12 closed with `INSUFFICIENT_EVIDENCE`, and F180-13 is a genuine external-evidence gate. Reopen only when fresh directly comparable evidence satisfies the frozen admission requirements.
+- `SECONDARY`: FAE — Mainnet Readiness & Canonical State Reconciliation.
+- global `ACTIVE` slot: not asserted by this FAE living registry; current cross-system slot ownership is determined by the Total Systems Steward.
 - rule: **Parallelize independence. Serialize shared state.**
 
-The 180s Research workstream is isolated on `colony/fae-180s-economic-block-time-validation-001`. At the MR-05 serialization check on 2026-09-28 it was strictly ahead of `main` and did not modify this registry. Any later integration must re-resolve both `main` and the Research branch before mutating shared canonical state.
+The 180s Research workstream remains isolated on `colony/fae-180s-economic-block-time-validation-001` and is non-canonical research evidence. Its software-only execution reached terminal research closure without selecting or activating a block-time parameter. Any future reopening or integration must re-resolve current `main` and the Research branch before mutating shared canonical state.
+
+Primary 180s terminal references:
+
+- `sovereign-forge/research/180s/F180_12_TERMINAL_VERDICT.json`
+- `sovereign-forge/research/180s/F180_13_EXTERNAL_EVIDENCE_GATE.json`
 
 Readiness state names are frozen in the machine-readable registry. In particular, `HUMAN_GATE` means the *next admissible* advancement requires a physical, account-bound, or authority-bound Waterfound action. Mere incompleteness or machine-executable waiting is not a human gate.
 
