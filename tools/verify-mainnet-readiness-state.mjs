@@ -75,7 +75,7 @@ const requireGate = (id, expectedState) => {
   return gate;
 };
 
-requireGate("research_180s_validation", "ACTIVE");
+requireGate("research_180s_validation", "CONDITION_WAIT");
 requireGate("mainnet_readiness_reconciliation", "SECONDARY");
 requireGate("preferred_future_economic_candidate", "CLOSED");
 requireGate("authoritative_future_tokenomics_design", "DONE");
@@ -225,7 +225,7 @@ for (const literal of [
 
 if (state.reconciliation_status === "CANONICAL_STATE_RECONCILED") {
   if (state.reconciliation_verdict !== "CANONICAL_STATE_RECONCILED") fail("reconciled state lacks matching verdict");
-  if (!registry.includes("Last reviewed: 2026-09-28")) fail("reconciled registry review date missing");
+  if (!registry.includes("Last reviewed: 2026-10-06")) fail("reconciled registry review date missing");
   if (!registry.includes("docs/FAE_MAINNET_READINESS_STATE.json")) fail("registry does not reference readiness state");
   if (!registry.includes("Wallet Transaction UX")) fail("registry does not record Wallet Transaction UX");
 } else if (state.reconciliation_status !== "CANDIDATE") {
