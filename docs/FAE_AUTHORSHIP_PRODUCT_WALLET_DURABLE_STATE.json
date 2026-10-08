@@ -77,9 +77,10 @@
     "release_authority": false,
     "current_main_reconciled": true,
     "current_main_delta_touched_protected_product_surface": false,
-    "exact_head_ci_green": true
+    "exact_head_ci_green": true,
+    "all_feature_surfaces_must_derive_from_mining_authored_identity": true
   },
-  "next_transition": "Keep candidate aligned with canonical main under unattended drift watch. If main changes a protected product surface, fail closed and reconcile evidence-first. Canonical main integration and public deployment remain separate authority gates.",
+  "next_transition": "Keep candidate aligned with canonical main and the authoritative Mining Authored Reference identity under unattended drift watch. Any new FAE feature or visual surface must derive from this identity; earlier Direction D/D+/VL-08 artifacts are lineage evidence only. Fail closed on material visual drift or authority gates.",
   "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
   "verification": {
     "exact_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
@@ -110,5 +111,14 @@
       "selective_substep_retry": false,
       "disposition": "NON_PERSISTENT_BASELINE_REPLAY_FAILURE_OBSERVED__NO_SECURITY_FINDING_PROVEN__PRIOR_FAILURE_PRESERVED"
     }
+  },
+  "visual_identity_authority": {
+    "file": "docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json",
+    "status": "AUTHORITATIVE_VISUAL_IDENTITY",
+    "canonical_reference": "FAE Mining Authored Reference",
+    "canonical_reference_pr": 268,
+    "canonical_reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "studio": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "prior_directions": "HISTORICAL_LINEAGE_ONLY"
   }
 }
