@@ -9,6 +9,8 @@ const required = [
   "design/anti-pattern-registry.json",
   "design/quality-gates.md",
   "design/direction-d-authority.json",
+  "docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json",
+  "docs/FAE_AUTHORSHIP_PRODUCT_WALLET_DURABLE_STATE.json",
   "design/direction-d-visual-grammar.md",
   "design/explorations/index.html",
   "design/explorations/a-veil-instrument.html",
@@ -21,10 +23,44 @@ const required = [
 for (const file of required) assert.ok(fs.existsSync(path.join(root,file)), "missing "+file);
 
 const authority = JSON.parse(fs.readFileSync(path.join(root,"design/direction-d-authority.json"),"utf8"));
+// Earlier Direction D records are immutable provenance, not current design authority.
 assert.equal(authority.authority_owner,"Waterfound");
 assert.equal(authority.selected_direction.id,"D");
-assert.equal(authority.selected_direction.status,"CANONICAL_FOR_VISUAL_IMPLEMENTATION");
 assert.ok(authority.selected_direction.principles.some(x=>/probabilistic|non-deterministic/i.test(x)));
+
+const authoredAuthority=JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json"),"utf8"));
+assert.equal(authoredAuthority.authority_owner,"Waterfound");
+assert.equal(authoredAuthority.status,"AUTHORITATIVE_VISUAL_IDENTITY");
+assert.equal(authoredAuthority.canonical_reference.name,"FAE Mining Authored Reference");
+assert.equal(authoredAuthority.canonical_reference.pr,268);
+assert.equal(authoredAuthority.canonical_reference.head,"a949e913990e13a0b907891a729b5c7b2086547b");
+assert.equal(authoredAuthority.canonical_reference.role,"SINGLE_AUTHORITATIVE_ARTISTIC_REFERENCE_FOR_ALL_FAE_FEATURE_SURFACES");
+assert.equal(authoredAuthority.prior_visual_states["Direction D"],"HISTORICAL_LINEAGE_ONLY");
+assert.equal(authoredAuthority.prior_visual_states["Direction D+"],"HISTORICAL_LINEAGE_ONLY");
+assert.equal(authoredAuthority.prior_visual_states["VL-08"],"HISTORICAL_LINEAGE_ONLY");
+assert.equal(authoredAuthority.implementation_effects.all_future_features_must_conform,true);
+assert.equal(authoredAuthority.implementation_effects.mining_reference_redesign_authorized,false);
+assert.equal(authoredAuthority.implementation_effects.explorer_source_write_authority_created,false);
+assert.equal(authoredAuthority.implementation_effects.public_deployment_authority_created,false);
+assert.equal(authoredAuthority.implementation_effects.canonical_main_merge_authority_created,false);
+for (const semantic of ["Mining = movement","Wallet = rest","Intent before identity","quiet-active contrast","product-first, not marketing-first"]) {
+  assert.ok(authoredAuthority.propagation_rule.preserve.includes(semantic),"missing authored identity semantic: "+semantic);
+}
+const authoredDurable=JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_AUTHORSHIP_PRODUCT_WALLET_DURABLE_STATE.json"),"utf8"));
+assert.equal(authoredDurable.visual_identity_authority.file,"docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json");
+assert.equal(authoredDurable.visual_identity_authority.canonical_reference_head,authoredAuthority.canonical_reference.head);
+assert.equal(authoredDurable.guarantees.all_feature_surfaces_must_derive_from_mining_authored_identity,true);
+assert.equal(authoredDurable.guarantees.no_implicit_wallet_creation,true);
+assert.equal(authoredDurable.guarantees.mining_reference_frozen,true);
+assert.equal(authoredDurable.guarantees.explorer_untouched,true);
+assert.equal(authoredDurable.guarantees.main_merge_authority,false);
+assert.equal(authoredDurable.guarantees.public_deployment_authority,false);
+const designReadme=fs.readFileSync(path.join(root,"design/README.md"),"utf8");
+assert.match(designReadme,/single authoritative artistic identity.*FAE Mining Authored Reference/i);
+assert.match(designReadme,/historical lineage.*not.*implementation targets/i);
+const visualQuality=fs.readFileSync(path.join(root,"design/quality-gates.md"),"utf8");
+assert.match(visualQuality,/Mining Authored Reference/);
+assert.match(visualQuality,/no implicit wallet generation/i);
 
 const continuation = JSON.parse(fs.readFileSync(path.join(root,"docs/FAE_VISUAL_LANGUAGE_BUILD_COLONY_CONTINUATION.json"),"utf8"));
 assert.equal(continuation.authority.durable_consumed,true);
