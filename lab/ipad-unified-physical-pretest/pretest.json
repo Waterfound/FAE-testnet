@@ -1,0 +1,270 @@
+{
+  "schema": "FAE_IPAD_UNIFIED_PRETEST_MI_V1",
+  "date": "2026-10-08",
+  "authority": "CANDIDATE_PRETEST_ONLY_NO_PHYSICAL_DISPATCH",
+  "source_refs": {
+    "rde_contract": "FAE-RDE-ACCEPTANCE-V1-20260928",
+    "rde_autopilot": "FAE-RDE-PHYSICAL-AUTOPILOT-V1-20260928",
+    "tested_source_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+    "tested_miner_blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+    "dp6_frozen_source_sha256": "fd9ecbb67b2d679ddb9737ec98c8073fede1d0d7dd5b0c1d19b7b4d02265ae78",
+    "dp6_wasm_sha256": "26139b84f5e45a2217c1105569ff85d39a3f07cdd7e4fd3bd87b1eefcf5c92ea",
+    "mts_protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c"
+  },
+  "links": {
+    "hfb_asic_lab": "https://fairyelf-fae-asic-lab.vercel.app/",
+    "rde_autopilot": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/?deviceClass=mobile_tablet_arm&manufacturer=Apple&mode=PHYSICAL_EVIDENCE",
+    "mts_v3_protected_preview": "https://fae-mts-12-ipad-v3-preview-3mt41omtg-waterfound.vercel.app/",
+    "public_testnet_status": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4/status"
+  },
+  "readiness": {
+    "hfb_public_page_observed": true,
+    "rde_public_page_observed": true,
+    "network_public_status_observed": true,
+    "mts_v3_public_access_verified": false,
+    "mts_v3_residual_only_ready": false,
+    "rde_capture_session_checkpointing_verified": false,
+    "all_three_one_click_ready": false,
+    "operator_session_prepared": true,
+    "live_hardware_measurements_performed": false
+  },
+  "maximum_inference": {
+    "schema": "FAE_PRE_EMPIRICAL_SUBPILLAR_MI_V1",
+    "robust_premise_owners_necessity": true,
+    "at_least_two_distinct_paths": true,
+    "substrate_refs": [
+      "pse://predictive-precomputation",
+      "pse://independent-verification-twin"
+    ],
+    "common_assumptions": [
+      "original frozen source/algorithm bindings unchanged",
+      "physical iPad Safari runs in foreground during timed phases",
+      "no unmeasured energy source promoted into physical watts",
+      "ordinary cooling/no overclock",
+      "no contamination between independent workloads"
+    ],
+    "targets": [
+      {
+        "id": "HFB-DP6",
+        "test_ref": "physical://fae/ipad/dp6-hfb-external-watts",
+        "target_uncertainty": "DP6 work per true device-wall watt on iPad near full and stable charging",
+        "evidence_predicate": "exact WASM parity, >=1800 seconds uninterrupted foreground DP6, matching interval integrated Wh, raw JSON and meter evidence",
+        "model_paths": [
+          "historical iPad 2347.012s 9872 works baseline",
+          "conservative power-boundary analytic model: total whole-device AC input, no idle subtraction"
+        ],
+        "prediction_bands": [
+          {
+            "metric": "DP6 work_per_second",
+            "low": 2.1,
+            "nominal": 4.206199,
+            "high": 6.4,
+            "unit": "work/s",
+            "confidence": "uncalibrated sensitivity interval around previous real battery-only observation; NOT a PASS criterion"
+          }
+        ],
+        "sensitivity_factors": [
+          "near-full charging stability",
+          "ambient",
+          "Safari scheduling",
+          "thermal throttling",
+          "meter integration quality"
+        ],
+        "counterfactuals": [
+          "throughput stays near prior baseline but wall watts increase",
+          "throughput changes under charging",
+          "valid throughput with invalid/incomplete Wh"
+        ],
+        "failure_signatures": [
+          "parity mismatch",
+          "hidden event or timing gap",
+          "unstable battery charging energy bias",
+          "unmatched HFB power interval"
+        ],
+        "discriminating_measurements": [
+          "WASM hash + parity",
+          "foreground run elapsed seconds",
+          "completed work",
+          "start/end meter Wh",
+          "start/end battery charging state"
+        ],
+        "reality_gap": [
+          "no existing paired measured wall Wh on iPad for DP6"
+        ],
+        "material_reality_gap": true,
+        "disposition": "PHYSICAL_TEST_REMAINS_JUSTIFIED"
+      },
+      {
+        "id": "RDE-MOBILE-ARM",
+        "test_ref": "physical://fae/ipad/rde-mobile-arm",
+        "target_uncertainty": "real six-run mining retention, coexistence latency, lifecycle events on actual device",
+        "evidence_predicate": "three sustained 600+1200s, three coexistence 60+300+900s, five real visibility cycles; exact locked device source/network, independent verifier",
+        "model_paths": [
+          "formal frozen RDE contract & duration arithmetic",
+          "browser worker/event timing with adversarial failure-case reasoning"
+        ],
+        "prediction_bands": [
+          {
+            "metric": "timed_protocol_seconds",
+            "low": 9180,
+            "nominal": 9180,
+            "high": 9180,
+            "unit": "s",
+            "confidence": "deterministic contract-duration prediction, excluding lifecycle"
+          }
+        ],
+        "sensitivity_factors": [
+          "Safari page reload",
+          "tab hidden scheduling",
+          "thermal/power mode",
+          "interaction baseline",
+          "live tip freshness"
+        ],
+        "counterfactuals": [
+          "one exceptional burst but two poor sustained repetitions",
+          "coexistence exceeds p95 2x despite high hashrate",
+          "iPad reload destroys in-memory captures",
+          "synthetic visibility transitions incorrectly counted"
+        ],
+        "failure_signatures": [
+          "fewer than three valid repetitions",
+          "throughput retention below 0.7",
+          "failed interaction or p95 ratio above 2",
+          "fewer than five true visibility events",
+          "captured evidence lost after page reload"
+        ],
+        "discriminating_measurements": [
+          "attempt deltas",
+          "first and last windows",
+          "interaction p95 baseline and mining",
+          "true visibility event counts",
+          "exported FAE_RDE_BROWSER_PORTFOLIO_V1"
+        ],
+        "reality_gap": [
+          "real-device long-run performance and app lifecycle cannot be inferred"
+        ],
+        "material_reality_gap": true,
+        "disposition": "PHYSICAL_TEST_REMAINS_JUSTIFIED"
+      },
+      {
+        "id": "MTS12-V3-RESIDUAL",
+        "test_ref": "physical://fae/ipad/mts12-foreground-status-start",
+        "target_uncertainty": "local delay from real Miner A foreground event to authoritative /status REQUEST START, excluding WAN response",
+        "evidence_predicate": "physical Safari local_start_ms <=1500, http_status 200, genuine visibility transition, no manual restart or stale submission",
+        "model_paths": [
+          "MTS-12 V2 WAN-contaminated historical attempts A 1860 / B 2000 ms",
+          "V3 instrumented performance timestamps around native fetch request start"
+        ],
+        "prediction_bands": [
+          {
+            "metric": "local_foreground_to_status_start",
+            "low": 0,
+            "nominal": 750,
+            "high": 3000,
+            "unit": "ms",
+            "confidence": "exploratory uncalibrated range; pass rule is <=1500ms, no prior valid local observation"
+          }
+        ],
+        "sensitivity_factors": [
+          "Safari lifecycle scheduling",
+          "tab suspension/reload",
+          "V3 preview protection",
+          "status request instrumentation",
+          "network RTT excluded from local gate"
+        ],
+        "counterfactuals": [
+          "WAN slow but local start <=1500ms",
+          "WAN quick but local start >1500ms",
+          "V3 host inaccessible",
+          "harness needlessly forces previously passed tip test"
+        ],
+        "failure_signatures": [
+          "V3 local metric unavailable",
+          "local_start_ms > 1500",
+          "no real return visibility event",
+          "HTTP error",
+          "previously passed tip test demanded again"
+        ],
+        "discriminating_measurements": [
+          "visibility perf timestamp",
+          "status fetch start perf timestamp",
+          "network response time separately",
+          "HTTP status",
+          "manual restart boolean"
+        ],
+        "reality_gap": [
+          "actual iPad Safari foreground event scheduling"
+        ],
+        "material_reality_gap": true,
+        "disposition": "PHYSICAL_TEST_REMAINS_JUSTIFIED__HARNESS_GATE"
+      }
+    ],
+    "interpretation_rules": [
+      {
+        "id": "HFB-VALID",
+        "rule": "HFB official only when exact parity + >=1800s uninterrupted and matched integrated wall energy; otherwise throughput-only or invalid"
+      },
+      {
+        "id": "HFB-NO-UNSUPPORTED-COLLAPSE",
+        "rule": "HFB WARN requires >=3x BOTH work/W and work/$; COLLAPSE requires >=5x BOTH; without economics do not claim"
+      },
+      {
+        "id": "RDE-ADMIT",
+        "rule": "For each timed workload >=3 valid runs; sustained retention >=0.7, normal-use p95 ratio <=2, zero failed interactions; five real lifecycle transitions; final portfolio gate separate"
+      },
+      {
+        "id": "MTS-RESIDUAL",
+        "rule": "PASS only if local foreground-to-/status request-start <=1500ms; RTT separately; existing tip PASS is historical reference and must not be silently re-certified"
+      },
+      {
+        "id": "MTS-BLOCK",
+        "rule": "If V3 preview is authentication-protected or residual-only harness unavailable, mark NOT_RUN (do not use V2 preview or re-run tip to launder full PASS)"
+      },
+      {
+        "id": "NO-CROSS-LAUNDERING",
+        "rule": "DP6/HFB work/s and testnet RDE H/s are distinct; RDE cycles cannot satisfy MTS lifecycle; MTS old evidence cannot satisfy RDE"
+      }
+    ],
+    "simulation_evidence_only": true,
+    "empirical_validation_claimed": false,
+    "authority_created": false,
+    "execution_triggered": false
+  },
+  "campaign": {
+    "mode": "SINGLE_OPERATOR_SESSION_SEQUENTIAL_INDEPENDENT_WORKLOADS",
+    "device_selection": "Predeclare one exact iPad Pro M4 commercial model and dimensions before any results; prefer same physical unit as historical baseline if confidently identifiable",
+    "rde_timed_seconds": 9180,
+    "hfb_official_min_seconds": 1800,
+    "hfb_preferred_seconds": 2100,
+    "mts_residual_gate_ms": 1500,
+    "nominal_nonoverlap_seconds": 11280,
+    "nominal_nonoverlap_human": "3h08m excluding preparation, stabilizing charge, lifecycle and unpredictable MTS real-tip requirement",
+    "required_external_input": [
+      "wall meter model and integrated Wh",
+      "physical iPad charged near full/stable",
+      "public FAE reward address (not wallet secret)",
+      "RDE exact model declaration before lock",
+      "five real Safari lifecycle cycles"
+    ],
+    "stages": [
+      "preflight_check_all_links_and_mts_v3_access_before_start",
+      "hfb_dp6_exact_hash_parity_then_35m_uninterrupted_metered_foreground",
+      "export_hfb_raw_json_and_record_integrated_wh_and_meter_photo",
+      "rde_physical_device_lock_then_3_sustained_and_3_coexistence",
+      "five_genuine_rde_hidden_visible_cycles_then_export_captures_immediately",
+      "mts12_v3_residual_only_if_host_public_or_authorized_and_no_redundant_tip_gate",
+      "transfer_capture_files_for_offdevice_node22_verifier"
+    ],
+    "forbidden": [
+      "simulated physical evidence",
+      "overlapping HFB and RDE workloads",
+      "backgrounding HFB",
+      "reloading RDE Safari page before export",
+      "using V2 MTS WAN RTT as V3 gate",
+      "repeating old MTS tip-gate just to unlock residual",
+      "exposing seed or key",
+      "runtime deploy or production mutation",
+      "new paid spend"
+    ]
+  }
+}
