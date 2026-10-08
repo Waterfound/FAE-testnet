@@ -1,8 +1,20 @@
 # FAE Visual Language
 
-Canonical exploration/implementation direction: **Direction D — Orange Top / White Field / Blue Circulation**.
+## Current authoritative identity — Mining Authored Reference
 
-Waterfound selected Direction D after rejecting A/B/C as final directions. A/B/C remain historical exploration evidence only.
+**The single authoritative artistic identity for all FAE feature surfaces is the FAE Mining Authored Reference**, frozen at PR #268, head `a949e913990e13a0b907891a729b5c7b2086547b`.
+
+Reference Studio: https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/
+
+Machine-readable authority: `docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json`.
+
+All current and future FAE features must derive their authored identity from this reference while adapting layout, hierarchy, density and motion to each feature's actual task. Do not mechanically duplicate Mining. Preserve the functional boundaries: Mining = movement, Wallet = rest; orange = identity/energy, white = clarity/rest, blue = computation/activity, green = confirmed/received/safe. Keep the experience product-first, intentional, accessible and semantically honest. **NO IMPLICIT WALLET CREATION.**
+
+Direction D, Direction D+, VL-08 and exploratory studies are historical lineage, **not** current implementation targets. The older authority records are retained as historical evidence and must not override this newer explicit Waterfound selection.
+
+## Historical structural thesis — Direction D
+
+Waterfound previously selected Direction D after rejecting A/B/C as final directions. These records document the evolution toward the authored Mining identity.
 
 ## Structural thesis
 
@@ -45,9 +57,9 @@ They remain inside FAE until another real product demonstrates reusable value.
 
 The Direction D Explorer prototype is **not part of the current integration candidate**. Block Explorer authority currently freezes Explorer source writes. Explorer files have been restored to `main`; the prior visual prototype remains evidence-only until a compatible source-write authority is explicitly granted.
 
-## Direction D+ — current authoritative approval candidate
+## Direction D+ — historical approval study
 
-The latest visual candidate is **D+**, derived from Direction D and preserving the already-authoritative structure. It is **not yet the final canonical visual direction** until Waterfound explicitly approves it.
+D+ was an earlier approval candidate derived from Direction D. It is now historical lineage only and **must not** supersede the frozen Mining Authored Reference identity.
 
 Approval Studio:
 - https://fae-direction-d-approval-studio-txbjsu.v2.appdeploy.ai/
@@ -65,4 +77,4 @@ Key refinements:
 - Mobile Preview remains at the bottom;
 - GitHub and GitBook entry points remain at the bottom.
 
-This D+ branch exists only for approval and must not supersede the verified integration candidate or public-rebrand authority gate until Waterfound approves it.
+This historical D+ Studio is preserved for provenance, not as an implementation target. The current Mining Authored Reference authority does not grant canonical merge, public deployment, Explorer source writes, release or protocol changes.
