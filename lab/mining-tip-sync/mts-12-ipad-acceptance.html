@@ -74,13 +74,9 @@ const API='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-test
 const CONTROL_CHANNEL='fae-mts12-control-v2';
 const TIP_GATE_MS=3500;
 const RESUME_GATE_MS=1500;
-// Isolated candidate mode: prior tip PASS remains historical; never certify a fresh tip PASS.
-// This mode changes only the acceptance harness, not the miner, chain, or network.
-const RESIDUAL_ONLY=new URLSearchParams(location.search).get('residualOnly')==='1';
-const HISTORICAL_TIP_EVIDENCE_SHA256='0684b529fc38eec3c75f06653dcb9dd88ebf338811f8dc929fb375fa34bb97be';
 const events=[];
 const childWindows={a:null,b:null};
-const state={role:'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,resumeTargetRole:'a',resumeMetric:'foreground_event_to_authoritative_status_request_start',tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleResponses:0,staleSubmissions:0,raceLostResponses:0,unclassifiedStaleResponses:0,manualRestartUsed:false,verdict:null,residualOnly:RESIDUAL_ONLY,priorTipReference:RESIDUAL_ONLY?{source_artifact_sha256:HISTORICAL_TIP_EVIDENCE_SHA256,classification:'HISTORICAL_REFERENCE__NOT_RETESTED',historical_tip_gate:'PASS'}:null};
+const state={role:'controller',startedAt:new Date().toISOString(),minerSha:null,device:null,primitives:null,tipArmed:false,resumeArmed:false,resumeTargetRole:'a',resumeMetric:'foreground_event_to_authoritative_status_request_start',tipBaseline:null,tipTarget:null,firstObservedNewTipAt:null,contexts:{a:{},b:{}},staleResponses:0,staleSubmissions:0,raceLostResponses:0,unclassifiedStaleResponses:0,manualRestartUsed:false,verdict:null};
 const $=id=>document.getElementById(id);
 const now=()=>performance.timeOrigin+performance.now();
 function emit(kind,data={}){const event={at_ms:Date.now(),perf_ms:now(),kind,...data};events.push(event);renderLog();return event}
@@ -352,8 +348,8 @@ function armTip(){
   setText('tip-result','Armed · waiting for next real tip','warn');startControllerPoll();emit('tip_acceptance_armed');
 }
 function armResume(){
-  if(RESIDUAL_ONLY?!Boolean(state.contexts.a.miningStartedAt):!bothMinersRunning()){setText('resume-result','Waiting · open required miner tabs first','warn');emit('resume_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
-  if(!RESIDUAL_ONLY&&!state.tipVerdict?.pass){setText('resume-result','Waiting · real-tip gate must PASS first','warn');emit('resume_arm_blocked',{reason:'TIP_GATE_NOT_PASS'});return}
+  if(!bothMinersRunning()){setText('resume-result','Waiting · open A and B first','warn');emit('resume_arm_blocked',{reason:'MINERS_NOT_RUNNING'});return}
+  if(!state.tipVerdict?.pass){setText('resume-result','Waiting · real-tip gate must PASS first','warn');emit('resume_arm_blocked',{reason:'TIP_GATE_NOT_PASS'});return}
   const role=state.resumeTargetRole;
   state.resumeArmed=true;state.resumeVerdict=null;
   const ctx=state.contexts[role];
@@ -369,9 +365,8 @@ document.addEventListener('visibilitychange',()=>{
 });
 function exportEvidence(){
   state.completedAt=new Date().toISOString();
-  const residualPass=state.resumeVerdict?.pass&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed;
-  state.verdict=RESIDUAL_ONLY?(residualPass?'RESIDUAL_PASS__HISTORICAL_TIP_NOT_RETESTED':'RESIDUAL_INCOMPLETE_OR_FAIL'):(state.tipVerdict?.pass&&residualPass?'PASS':'INCOMPLETE_OR_FAIL');
-  const payload={schema:RESIDUAL_ONLY?'FAE_MTS_12_PHYSICAL_IPAD_RESIDUAL_V3':'FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V3',state,events};
+  state.verdict=state.tipVerdict?.pass&&state.resumeVerdict?.pass&&state.staleSubmissions===0&&state.unclassifiedStaleResponses===0&&!state.manualRestartUsed?'PASS':'INCOMPLETE_OR_FAIL';
+  const payload={schema:'FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V3',state,events};
   const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fae-mts-12-ipad-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
 }
@@ -380,15 +375,6 @@ $('open-b').addEventListener('click',()=>openChild('b'));
 $('arm-tip').addEventListener('click',armTip);
 $('arm-resume').addEventListener('click',armResume);
 $('export').addEventListener('click',exportEvidence);
-if(RESIDUAL_ONLY){
-  $('open-b').disabled=true;
-  $('arm-tip').disabled=true;
-  $('open-a').textContent='1 · Open Miner A (residual only)';
-  $('arm-resume').textContent='2 · Arm V3 foreground residual';
-  $('instruction').textContent='Residual-only V3: open Miner A once. Arm foreground, switch to Miner A, background Safari for 30–60 s, return DIRECTLY to Miner A, then controller. Historical tip PASS is referenced, not repeated or re-certified. Export local JSON.';
-  setText('tip-result','Historical PASS referenced · not retested','warn');
-  emit('residual_only_mode',{historical_tip_artifact_sha256:HISTORICAL_TIP_EVIDENCE_SHA256,metric:state.resumeMetric,gate_ms:RESUME_GATE_MS});
-}
 preflight().then(()=>{startControllerPoll();renderLog()});
 </script>
 </body>

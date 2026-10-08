@@ -29,7 +29,8 @@
     "live_hardware_measurements_performed": false,
     "mts_v3_residual_only_candidate_proposed": true,
     "mts_v3_residual_only_candidate_deployed": false,
-    "mts_v3_residual_only_candidate_physical_pass": false
+    "mts_v3_residual_only_candidate_physical_pass": false,
+    "mts_v3_residual_only_candidate_pr": 288
   },
   "maximum_inference": {
     "schema": "FAE_PRE_EMPIRICAL_SUBPILLAR_MI_V1",
