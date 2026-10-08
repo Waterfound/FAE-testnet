@@ -26,7 +26,10 @@
     "rde_capture_session_checkpointing_verified": false,
     "all_three_one_click_ready": false,
     "operator_session_prepared": true,
-    "live_hardware_measurements_performed": false
+    "live_hardware_measurements_performed": false,
+    "mts_v3_residual_only_candidate_proposed": true,
+    "mts_v3_residual_only_candidate_deployed": false,
+    "mts_v3_residual_only_candidate_physical_pass": false
   },
   "maximum_inference": {
     "schema": "FAE_PRE_EMPIRICAL_SUBPILLAR_MI_V1",
@@ -252,7 +255,7 @@
       "export_hfb_raw_json_and_record_integrated_wh_and_meter_photo",
       "rde_physical_device_lock_then_3_sustained_and_3_coexistence",
       "five_genuine_rde_hidden_visible_cycles_then_export_captures_immediately",
-      "mts12_v3_residual_only_if_host_public_or_authorized_and_no_redundant_tip_gate",
+      "mts12_v3_residual_only_if_candidate_deployed_and_verified_no_redundant_tip_gate",
       "transfer_capture_files_for_offdevice_node22_verifier"
     ],
     "forbidden": [

@@ -5,12 +5,12 @@
 ## Result / irreducible information
 - **HFB DP6:** historical iPad evidence (2347.012 s / 9872 works / 4.206199 work/s) measures throughput, **not wall energy**. Official work/W needs integrated external Wh over the *same* uninterrupted DP6 run; 30m minimum, 35m preferred. No idle subtraction. WAN/testnet has no role in DP6.
 - **RDE mobile ARM:** independent testnet miner workload (SHA256), with 3× (10m warmup + 20m measured), 3× (1m no-mining baseline + 5m warmup + 15m measured), and five genuine Safari background→foreground cycles. Exactly **9180s (2h33m)** before lifecycle. No reuse of HFB work/s for RDE H/s.
-- **MTS-12 V3:** **only residual** from physical iPad real foreground to start of authoritative `/status` request <=1500ms. Network RTT is informational, *not included* in local gate. Previous real tip PASS must remain historical; **do not repeat the tip campaign**. Current V3 GitHub harness nevertheless requires a *new* tip PASS before arming resume; protected Vercel preview failed anonymous access. Until a residual-only V3 execution route is verified, **MTS is NOT_RUN**, not GREEN.
+- **MTS-12 V3:** **only residual** from physical iPad real foreground to start of authoritative `/status` request <=1500ms. Network RTT is informational, *not included* in local gate. Previous real tip PASS must remain historical; **do not repeat the tip campaign**. Canonical V3 harness originally required a *new* tip PASS to arm resume; this candidate PR adds opt-in `?residualOnly=1` with real Miner A foreground measurement and an explicit historical tip reference. **It is not yet deployed**. The existing protected Vercel preview failed anonymous access. Until a residual-only V3 host is verified on iPad Safari, **MTS is NOT_RUN**, not GREEN.
 
 ## Preflight — perform before allocating the long iPad session
 1. Check [HFB ASIC Lab](https://fairyelf-fae-asic-lab.vercel.app/) displays **DP6 v0.7, v0.8.4.2**, frozen source hash `fd9ecbb6...`, WASM `26139b84...`; do not hit Start yet.
 2. Check [RDE Physical Autopilot](https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/?deviceClass=mobile_tablet_arm&manufacturer=Apple&mode=PHYSICAL_EVIDENCE). It is public and independent of Vercel auth. `PHYSICAL_EVIDENCE` must remain selected; enter **exact physical model** + public `faet1...` address. Neither private key nor seed. Do not select or lock based on favorable performance.
-3. Check [MTS V3 preview](https://fae-mts-12-ipad-v3-preview-3mt41omtg-waterfound.vercel.app/) in the *actual iPad Safari*. Automated anonymous fetch returned `login_required`: do not infer iPad accessibility. The older AppDeploy preview #2 is V2/WAN-based; **not a valid substitute**. V3 main harness also currently forces a duplicate real-tip test; avoid redundant execution.
+3. Check [MTS V3 preview](https://fae-mts-12-ipad-v3-preview-3mt41omtg-waterfound.vercel.app/) in the *actual iPad Safari*. Automated anonymous fetch returned `login_required`: do not infer iPad accessibility. The older AppDeploy preview #2 is V2/WAN-based; **not a valid substitute**. Existing V3 production/old previews force a duplicate real-tip test. The PR candidate supports `?residualOnly=1` with one Miner A, but has not been deployed or physically qualified.
 4. Confirm [v4 testnet /status](https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4/status) has `ok:true`, `network: fairyelf-public-testnet-v4`, valid height/tip. Avoid starting RDE if unavailable.
 5. Prepare the one selected iPad: ordinary cooling, stable ambient, near-full charge; connect original charger via **AC wall wattmeter**. Photograph meter model and initial integrated Wh. Do not assume its remaining energy counter was reset.
 
@@ -27,7 +27,7 @@
 5. Transfer JSON to a Node 22+ host (Mac can do this later), run `node lab/representative-device-physical-autopilot/import-browser-portfolio.mjs --file ./fae-rde-physical-captures.json --out ./.rde-imported`. Record verifier output. RDE `energy: UNAVAILABLE` remains admissible for participation only; do not attach HFB watts to SHA256 runs.
 
 ## Stage MTS V3 — residual only; currently blocked by harness/access
-Only after a **real V3 residual-only** preview is accessible and verifiably bound to the protected miner SHA `e75a0640...`, run genuine foreground→`/status` *request start* evidence; require <=1500ms and HTTP 200, zero manual restart/stale. Preserve V3 JSON and separate RTT. **Do not run legacy V2** (measured WAN completion, not local start), and **do not redo the already-PASS real-tip campaign** just to unlock the existing V3 UI.
+Only after the PR candidate **V3 `?residualOnly=1`** is deployed in a real accessible same-origin iPad preview and verified bound to the protected miner SHA `e75a0640...`, run genuine foreground→`/status` *request start* evidence; require <=1500ms and HTTP 200, zero manual restart/stale. Preserve V3 JSON and separate RTT. **Do not run legacy V2** (measured WAN completion, not local start), and **do not redo the already-PASS real-tip campaign** just to unlock the existing V3 UI.
 
 ## Abort / interpretation (precommitted)
 - If parity/hash mismatch → HFB invalid, no benchmark; if hidden/timing-gap event during HFB → official sustained eligibility blocked.
@@ -40,7 +40,7 @@ Only after a **real V3 residual-only** preview is accessible and verifiably boun
 ## Remaining machine work and current limitations
 - Remote no-login fetch of HFB and RDE succeeded; v4 `/status` responded `ok:true`. This verifies page/API **reachability**, not real Safari performance.
 - Existing RDE deployed app is READY with zero reported errors; prior software REHEARSAL_ONLY was PASS. Physical evidence remains uncollected.
-- **MTS V3 is not genuinely residual-only on the current harness** and protected preview cannot be preflighted anonymously; separate safe candidate fix or session access proof remains necessary.
+- **MTS V3 residual-only candidate is implemented in this draft PR**, with separate `FAE_MTS_12_PHYSICAL_IPAD_RESIDUAL_V3` evidence, historical real-tip PASS reference, one Miner A only, and original full V3 behavior unchanged when the query flag is absent. Actual deployment/access and physical qualification remain OPEN.
 - No production Vercel/Supabase mutation, no consensus/economics/mainnet changes and no new paid spend authorized or performed.
 
 Run: `node lab/ipad-unified-physical-pretest/verify-pretest.mjs`; CI independently verifies this declaration against the frozen RDE/autopilot contracts.
