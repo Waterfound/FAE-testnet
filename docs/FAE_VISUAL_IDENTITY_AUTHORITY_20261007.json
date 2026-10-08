@@ -1,0 +1,56 @@
+{
+  "schema": "FAE_VISUAL_IDENTITY_AUTHORITY_V1",
+  "recorded_at": "2026-10-07",
+  "authority_owner": "Waterfound",
+  "status": "AUTHORITATIVE_VISUAL_IDENTITY",
+  "canonical_reference": {
+    "name": "FAE Mining Authored Reference",
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "studio": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "role": "SINGLE_AUTHORITATIVE_ARTISTIC_REFERENCE_FOR_ALL_FAE_FEATURE_SURFACES"
+  },
+  "authority_statement": "All FAE features and product surfaces must be designed around the Mining Authored Reference identity. Earlier Direction D, Direction D+, VL-08 and exploratory studies remain historical/provenance evidence only; they are not implementation targets.",
+  "propagation_rule": {
+    "required": true,
+    "principle": "Translate the authored identity to each feature's function; do not clone Mining layout mechanically.",
+    "preserve": [
+      "authored intentional composition rather than generic SaaS/crypto-dashboard patterns",
+      "orange as identity/energy",
+      "white as dominant clarity/rest field",
+      "blue as computation/activity/circulation",
+      "green only for confirmed/received/safe semantic state",
+      "Mining = movement",
+      "Wallet = rest",
+      "Intent before identity",
+      "quiet-active contrast",
+      "product-first, not marketing-first",
+      "every visible element must feel intentional, not generated"
+    ],
+    "feature_specific_adaptation": "Each feature may change density, hierarchy, motion and controls to match its function, but must remain recognizably authored by the same visual system."
+  },
+  "prior_visual_states": {
+    "Direction A": "HISTORICAL_REJECTED",
+    "Direction B": "HISTORICAL_REJECTED",
+    "Direction C": "HISTORICAL_REJECTED",
+    "Direction D": "HISTORICAL_LINEAGE_ONLY",
+    "Direction D+": "HISTORICAL_LINEAGE_ONLY",
+    "VL-08": "HISTORICAL_LINEAGE_ONLY",
+    "Art Direction Study": "HISTORICAL_LINEAGE_ONLY"
+  },
+  "implementation_effects": {
+    "current_product_wallet_candidate_must_conform": true,
+    "all_future_features_must_conform": true,
+    "mining_reference_redesign_authorized": false,
+    "explorer_source_write_authority_created": false,
+    "public_deployment_authority_created": false,
+    "canonical_main_merge_authority_created": false,
+    "release_authority_created": false
+  },
+  "non_effects": [
+    "does not alter consensus/economics/protocol identity",
+    "does not alter wallet cryptography/address formats/transaction semantics",
+    "does not authorize public deployment or release",
+    "does not authorize canonical main merge"
+  ]
+}
