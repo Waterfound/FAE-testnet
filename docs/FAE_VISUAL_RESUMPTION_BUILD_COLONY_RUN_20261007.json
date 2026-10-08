@@ -136,7 +136,16 @@
       "Mining authored reference drift",
       "Wallet functional invariant drift",
       "new failing security or browser evidence",
-      "need for main merge/public deployment/release authority"
+      "need for main merge/public deployment/release authority",
+      "new feature surface not recognizably derived from Mining Authored Reference identity"
     ]
+  },
+  "canonical_visual_identity": {
+    "authority_file": "docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json",
+    "reference": "FAE Mining Authored Reference",
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "studio": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "rule": "All current and future feature surfaces must be authored around this identity. Earlier directions are historical lineage only."
   }
 }
