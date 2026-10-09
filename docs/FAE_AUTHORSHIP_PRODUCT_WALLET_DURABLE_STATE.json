@@ -4,8 +4,8 @@
   "authority_owner": "Waterfound",
   "repository": "Waterfound/FAE-testnet",
   "branch": "design/fae-authorship-product-wallet-001",
-  "current_frontier": "VR-07_UNATTENDED_DRIFT_WATCH",
-  "state": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
+  "current_frontier": "VR-08_HUMAN_VISUAL_REVIEW__PRODUCT_WALLET_STUDIO",
+  "state": "AUTHORED_PRODUCT_WALLET_STUDIO_READY__HUMAN_VISUAL_REVIEW",
   "source_bindings": {
     "wallet_functional_head": "8708b03866f42cf84ba2d01908caec4238928e70",
     "current_main_merged_into_candidate_via_pr": 271,
@@ -40,6 +40,7 @@
     "VR-06"
   ],
   "pending_frontiers": [
+    "VR-08",
     "VR-07"
   ],
   "candidate_changes": {
@@ -80,7 +81,7 @@
     "exact_head_ci_green": true,
     "all_feature_surfaces_must_derive_from_mining_authored_identity": true
   },
-  "next_transition": "Keep candidate aligned with canonical main and the authoritative Mining Authored Reference identity under unattended drift watch. Any new FAE feature or visual surface must derive from this identity; earlier Direction D/D+/VL-08 artifacts are lineage evidence only. Fail closed on material visual drift or authority gates.",
+  "next_transition": "Await Waterfound visual review of the isolated Product Shell + Wallet Studio. Unattended may continue drift reconciliation and evidence maintenance, but must not propagate to new feature families if the Product+Wallet authored translation is rejected or materially revised.",
   "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
   "verification": {
     "exact_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
@@ -120,5 +121,19 @@
     "canonical_reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
     "studio": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
     "prior_directions": "HISTORICAL_LINEAGE_ONLY"
+  },
+  "studio": {
+    "status": "READY",
+    "app_id": "fae-authored-product-wallet-studio-6cku5x",
+    "url": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "evidence": "docs/FAE_AUTHORED_PRODUCT_WALLET_STUDIO_20261009.json",
+    "scope": [
+      "Product Shell",
+      "Wallet empty",
+      "Wallet active",
+      "Wallet recovery",
+      "mobile"
+    ],
+    "production_connection": false
   }
 }
