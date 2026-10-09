@@ -1,0 +1,43 @@
+{
+  "schema": "FAE_AUTHORED_PRODUCT_WALLET_STUDIO_V1",
+  "recorded_at": "2026-10-09",
+  "authority_owner": "Waterfound",
+  "status": "DEPLOYED_READY",
+  "purpose": "Isolated non-production read-only visual Studio for the authored Product Shell + Wallet propagation.",
+  "visual_authority": {
+    "reference": "FAE Mining Authored Reference",
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b"
+  },
+  "product_candidate": {
+    "pr": 272,
+    "branch": "design/fae-authorship-product-wallet-001",
+    "source_head_at_studio_materialization": "0214faeab989a715e97e16a4e0b9dfdfec200674"
+  },
+  "appdeploy": {
+    "app_id": "fae-authored-product-wallet-studio-6cku5x",
+    "url": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "status": "READY",
+    "qa_frontend_errors": 0,
+    "qa_network_errors": 0
+  },
+  "surfaces": [
+    "Product Shell",
+    "Wallet empty state",
+    "Wallet active state",
+    "Wallet recovery state",
+    "responsive mobile composition"
+  ],
+  "guardrails": {
+    "backend": false,
+    "wallet_keys": false,
+    "wallet_state": false,
+    "rpc": false,
+    "signing": false,
+    "mining": false,
+    "persistence": false,
+    "production_connection": false,
+    "canonical_main_merge": false
+  },
+  "next_human_review": "Evaluate whether Product Shell + Wallet feels authored by the same visual system as the Mining Authored Reference before propagating to additional feature families."
+}
