@@ -21,6 +21,22 @@ DEST_URL="file://$target" FAE_SOURCE_URL="$SOURCE_URL" bash "$bootstrap"
 
 git --git-dir="$target" show-ref --verify --quiet refs/heads/backup-control
 
+set +e
+second_bootstrap_output="$(
+  DEST_URL="file://$target" FAE_SOURCE_URL="$SOURCE_URL" bash "$bootstrap" 2>&1
+)"
+second_bootstrap_rc=$?
+set -e
+if [ "$second_bootstrap_rc" -ne 43 ]; then
+  echo "ERROR: repeated bootstrap did not fail closed with rc=43" >&2
+  echo "$second_bootstrap_output" >&2
+  exit 55
+fi
+if ! grep -Fq "control branch already exists; refusing destructive bootstrap" <<<"$second_bootstrap_output"; then
+  echo "ERROR: repeated bootstrap did not report destructive-bootstrap refusal" >&2
+  exit 56
+fi
+
 git clone -q --branch backup-control "file://$target" "$control_checkout"
 
 test -f "$control_checkout/.gitlab-ci.yml"
@@ -61,6 +77,7 @@ if ! grep -Fq "$EXPECTED_COMMIT $EXPECTED_REF" "$manifest"; then
   exit 54
 fi
 
+printf 'NONDESTRUCTIVE_BOOTSTRAP_GREEN\n'
 printf 'GITLAB_CONTROL_SELFTEST_GREEN\n'
 printf 'expected_ref=%s\n' "$EXPECTED_REF"
 printf 'expected_commit=%s\n' "$EXPECTED_COMMIT"
