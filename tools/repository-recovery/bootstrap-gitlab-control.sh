@@ -25,6 +25,11 @@ source_url=$FAE_SOURCE_URL
 package_revision=1
 EOF
 
+if git ls-remote --exit-code "$DEST_URL" "refs/heads/$control_branch" >/dev/null 2>&1; then
+  echo "ERROR: control branch already exists; refusing destructive bootstrap" >&2
+  exit 43
+fi
+
 git init -q "$control_repo"
 git -C "$control_repo" config user.name "FAE Repository Recovery"
 git -C "$control_repo" config user.email "repository-recovery@invalid.local"
@@ -32,7 +37,7 @@ git -C "$control_repo" add .gitlab-ci.yml control RECOVERY-CONTROL.txt
 git -C "$control_repo" commit -q -m "Install FAE repository recovery controller"
 git -C "$control_repo" branch -M "$control_branch"
 git -C "$control_repo" remote add backup "$DEST_URL"
-git -C "$control_repo" push --force backup "$control_branch:$control_branch"
+git -C "$control_repo" push backup "$control_branch:$control_branch"
 
 printf 'CONTROL_BOOTSTRAP_GREEN\n'
 printf 'control_branch=%s\n' "$control_branch"
