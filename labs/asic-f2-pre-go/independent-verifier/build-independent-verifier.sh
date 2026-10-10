@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 SRC="$ROOT/labs/asic-f2-pre-go/independent-verifier/dp6-independent-verifier.cpp"
 ARGON2_COMMIT="f57e61e19229e23c4445b85494dbf7c07de721cb"
-if [ -n "$FAE_DP6_ARGON2_DIR" ]; then
+if [ -n "${FAE_DP6_ARGON2_DIR:-}" ]; then
   ARGON_DIR="$FAE_DP6_ARGON2_DIR"
 else
   ARGON_DIR="/tmp/fae-dp6-argon2-$ARGON2_COMMIT"
