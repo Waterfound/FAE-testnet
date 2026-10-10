@@ -83,9 +83,11 @@
         "2,000,000-event selfish-mining sensitivity cells",
         "classic profitability threshold reproduced",
         "lexicographic equal-work grinding surface identified",
-        "strict-greater-only tie rule exercised as non-persistent viable counterfactual"
+        "strict-greater-only tie rule exercised as non-persistent viable counterfactual",
+        "BWH/FAW pool-infiltration sensitivity executed across 140 cells",
+        "positive-attacker-extra-revenue surface observed in 28/28 BWH and 112/112 FAW parameter cells of the bounded sweep"
       ],
-      "residual": "Final tie policy, propagation/timing assumptions, BWH/FAW/EFAW and final pool semantics remain open."
+      "residual": "Final tie policy, exact propagation/timing assumptions, exact FAE PPLNS window/stale-share/fork semantics, costs and EFAW/multi-pool interaction remain open; replay after those semantics freeze."
     },
     {
       "id": "HP-07",
