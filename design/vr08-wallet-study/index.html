@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f47a20"><title>FAE · Wallet — VR-08</title><link rel="stylesheet" href="./style.css"></head>
+<body><div class="shell">
+<header class="topper"><b>FAE</b><span>WALLET · VISUAL STUDY</span></header>
+<div class="ticker"><strong>Wallet</strong><i></i>Local custody<i></i>Disconnected visual study</div>
+<nav class="nav"><b>Wallet</b><span>Wallet <em> / </em> Mining</span></nav>
+<main>
+<section id="activeStage">
+<div class="intro"><div><span class="overline">Your wallet</span><h1 id="walletName">Primary</h1></div><small>● Local ownership</small></div>
+<div class="instrument">
+<div class="primary">
+<span class="overline">Available balance</span><div class="balance"><strong id="balance">1,284.80</strong><span>FAE</span></div>
+<div class="flow" role="img" aria-label="Illustrative activity trace, not live"><svg viewBox="0 0 700 60" preserveAspectRatio="none"><path class="under" d="M0 30 H700"/><path class="signal" d="M0 30 H130 C150 30 156 9 180 9 H240 C264 9 268 30 292 30 H440 C460 30 467 50 489 50 H535 C559 50 563 30 590 30 H700"/><circle class="confirmed" cx="180" cy="9" r="4"/><circle cx="440" cy="30" r="3.5"/><circle class="quiet" cx="590" cy="30" r="3.5"/></svg></div>
+<div class="flow-labels"><span>Received</span><span>Transferred</span><span>Pending</span></div>
+<div class="address"><span class="overline">Address · <span id="addressNumber">01</span></span><p id="address">faet1… · illustrative only</p></div>
+<div class="actions"><button class="blue" data-action="send">Send ↗</button><button data-action="receive">Receive ↙</button></div>
+</div>
+<aside class="wallets"><div class="wallets-head"><b>Wallets</b><small>03 · illustrative</small></div><div id="walletChoices"></div><p>One active wallet at a time.</p></aside>
+</div>
+<section class="ledger"><div class="ledger-head"><h2>Activity</h2><small>Illustrative, not live</small></div><div id="transactions"></div></section>
+</section>
+<section id="emptyStage" class="empty-stage" hidden><span class="overline">Wallet</span><h2>Yours, when<br>you choose.</h2><div class="empty-line"></div><p>No wallet is created automatically.</p><div class="actions"><button class="blue" data-action="create">New Wallet ↗</button><button data-state="recovery">Recover Wallet</button></div></section>
+<section id="recoveryStage" class="recovery-stage" hidden><span class="overline">Wallet · Recovery</span><h2>Restore ownership.</h2><p>This visual study does not accept recovery words.</p><div class="recovery-step"><b>01 / Recovery phrase</b><small>Secure local entry is available only in the real wallet.</small></div><div class="recovery-placeholder">24 words · secure entry in product only</div><div class="actions"><button data-state="empty">Back</button><button class="blue" disabled>Continue</button></div></section>
+<footer>FAE · Mining Authored Reference lineage <span>VR-08 candidate · disconnected · no network, keys or signing</span></footer>
+</main></div>
+<div class="review" role="group" aria-label="Studio review states"><span>STUDIO</span><button data-state="active" aria-pressed="true">Active</button><button data-state="empty" aria-pressed="false">Empty</button><button data-state="recovery" aria-pressed="false">Recovery</button></div>
+<div id="dialog" class="overlay" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle"><span class="overline">Disconnected visual study</span><h2 id="dialogTitle">Wallet</h2><p id="dialogMessage">No wallet operation is available.</p><button id="closeDialog">Close</button></div></div>
+<script src="./main.js"></script>
+</body></html>
