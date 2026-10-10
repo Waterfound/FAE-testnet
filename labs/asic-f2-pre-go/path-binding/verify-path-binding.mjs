@@ -62,6 +62,7 @@ check('DP6_NO_BRANCH_BYPASS',!/\b(if|switch|while)\s*\(/.test(run),'top-level DP
 check('DP6_MH3_SALT_BINDING',run.includes('h3("FAE-DP6-MH3-SALT",prev,32,hb,8,task,32,saltfull)'),'MH3 salt must bind prev,height,task');
 check('DP6_MH3_INPUT_BINDING',run.includes('h3("FAE-DP6-MH3-INPUT",hdr,32,nb,8,task,32,pwd)'),'MH3 input must bind header,nonce,task');
 check('DP6_FINAL_BINDING',run.includes('h6("FAE-DP6-FINAL",hdr,32,nb,8,task,32,mh,32,tr,32,regbytes,64,inner)'),'final digest must bind header,nonce,task,MH3,RW5 transcript,register state');
+check('DP6_OUTPUT_FINAL_BOUND',run.includes('fae_memcpy(out+128,final,32)'),'public DP6 result must expose the bound final digest');
 check('RW5_SEED_BINDING',rw5.includes('h4("FAE-RW5-SEED",mh,32,hdr,32,nb,8,task,32,base)'),'RW5 seed must bind MH3,header,nonce,task');
 check('RW5_PROGRAM_COUNT',rw5.includes('for(uint32_t pidx=0;pidx<PROGRAMS;pidx++)'),'all frozen RW5 programs must execute');
 check('RW5_STEP_COUNT',rw5.includes('for(uint32_t step=0;step<STEPS;step++)'),'all frozen RW5 steps must execute per program');
