@@ -29,7 +29,22 @@ static inline unsigned ctz(uint64_t x){return x?__builtin_ctzll(x):64;}
 static inline uint64_t bswap(uint64_t x){return __builtin_bswap64(x);}
 
 using Bytes32=std::array<uint8_t,32>;
-¶»§q«^ bn,const uint8_t*c,size_t cn,const uint8_t*e,size_t en){return domain_hash(d,{{a,an},{b,bn},{c,cn},{e,en}});}
+static Bytes32 sha256(const uint8_t*p,size_t n){
+  Bytes32 out{}; SHA256(p,n,out.data()); return out;
+}
+static Bytes32 shad(const uint8_t*p,size_t n){
+  auto a=sha256(p,n); return sha256(a.data(),a.size());
+}
+static Bytes32 domain_hash(const char*domain,const std::vector<std::pair<const uint8_t*,size_t>>&parts){
+  SHA256_CTX c; SHA256_Init(&c);
+  size_t dl=std::strlen(domain); uint8_t l2[2]={uint8_t(dl),uint8_t(dl>>8)};
+  SHA256_Update(&c,l2,2); SHA256_Update(&c,domain,dl);
+  for(auto [p,n]:parts){uint8_t nb[8];wr64(nb,n);SHA256_Update(&c,nb,8);if(n)SHA256_Update(&c,p,n);}
+  Bytes32 out{}; SHA256_Final(out.data(),&c); return out;
+}
+static Bytes32 h2(const char*d,const uint8_t*a,size_t an,const uint8_t*b,size_t bn){return domain_hash(d,{{a,an},{b,bn}});}
+static Bytes32 h3(const char*d,const uint8_t*a,size_t an,const uint8_t*b,size_t bn,const uint8_t*c,size_t cn){return domain_hash(d,{{a,an},{b,bn},{c,cn}});}
+static Bytes32 h4(const char*d,const uint8_t*a,size_t an,const uint8_t*b,size_t bn,const uint8_t*c,size_t cn,const uint8_t*e,size_t en){return domain_hash(d,{{a,an},{b,bn},{c,cn},{e,en}});}
 static Bytes32 h6(const char*d,const uint8_t*a,size_t an,const uint8_t*b,size_t bn,const uint8_t*c,size_t cn,const uint8_t*e,size_t en,const uint8_t*f,size_t fn,const uint8_t*g,size_t gn){return domain_hash(d,{{a,an},{b,bn},{c,cn},{e,en},{f,fn},{g,gn}});}
 
 static std::array<Instr,PROGRAM_SIZE> expand_program(const Bytes32&seed){
@@ -51,7 +66,22 @@ static void rw5(const Bytes32&mh,const uint8_t hdr[32],uint64_t nonce,const uint
   auto*s=reinterpret_cast<uint64_t*>(M); const uint64_t mask=QWORDS-1;
   for(int i=0;i<8;i++){uint8_t tmp[8]={0};int st=i*4,n=32-st;if(n>8)n=8;if(n>0)std::memcpy(tmp,base.data()+st,n);r[i]=rd64(tmp);}
   tr=base; uint64_t chain=rd64(mh.data())^rd64(base.data()+8)^nonce^0xA0761D6478BD642FULL;
-  for(uint32_t pidx=0;pidx¶»§q«^
+  for(uint32_t pidx=0;pidx<PROGRAMS;pidx++){
+    uint8_t pi[4];wr32(pi,pidx);auto pseed=h3("FAE-RW5-CHAIN",tr.data(),32,pi,4,mh.data(),32);
+    auto prog=expand_program(pseed);uint32_t pc=rd32(pseed.data())%PROGRAM_SIZE;
+    for(uint32_t step=0;step<STEPS;step++){
+      const Instr q=prog[pc];uint8_t op=q.op,dst=q.dst,src=q.src,src2=q.src2;uint64_t imm=q.imm,a=r[src],b=r[src2];uint32_t nxt=(pc+1)%PROGRAM_SIZE;
+      switch(op){
+        case 0:r[dst]+=a+imm;break;
+        case 1:r[dst]^=a^imm;break;
+        case 2:r[dst]-=a+imm;break;
+        case 3:r[dst]=(r[dst]|1ULL)*(a|1ULL)+imm;break;
+        case 4:r[dst]=mulhi(r[dst]^imm,a|1ULL)+b;break;
+        case 5:r[dst]=rol(r[dst]^a,(b^imm)&63);break;
+        case 6:r[dst]=ror(r[dst]+a,(b+imm)&63);break;
+        case 7:{uint64_t den=(a^b^imm)|1ULL,orig=r[dst];r[dst]=(orig/den)^(orig%den)^b;break;}
+        case 8:{uint64_t i=(a^rol(b,17)^imm^r[dst])&mask;r[dst]+=s[i];break;}
+        case 9:{uint64_t i=(r[dst]^a^(imm*0x9E3779B1ULL))&mask;s[i]^=b^rol(r[dst],11);break;}
         case 10:{uint64_t i1=(a^imm^r[dst])&mask,x=s[i1],i2=(x^b^rol(a,9))&mask;r[dst]+=x+s[i2];break;}
         case 11:{uint64_t i=(a^mulhi(b|1ULL,imm|1ULL)^r[dst])&mask;r[dst]^=s[i]*(b|1ULL);break;}
         case 12:{uint64_t i1=(a^r[dst]^imm)&mask,i2=(s[i1]^b)&mask;s[i2]=(s[i2]+r[dst])^rol(a,23);break;}
@@ -70,7 +100,22 @@ static void rw5(const Bytes32&mh,const uint8_t hdr[32],uint64_t nonce,const uint
         case 25:if(((r[dst]^b^imm)&7)==0)nxt=(pc+1+((a^imm)&0x3F))%PROGRAM_SIZE;r[dst]+=step+rol(a,7);break;
         case 26:if(((a^b^r[dst])&15)==0)nxt=(pc+1+((r[src2]^imm)&0x7F))%PROGRAM_SIZE;r[dst]^=rol(b,19);break;
         case 27:{uint64_t bi=(a^b^imm^r[dst])&mask,bx=s[bi];if((bx&3)==0)nxt=(pc+1+((bx>>8)&0x3F))%PROGRAM_SIZE;r[dst]+=bx;break;}
-        case 28:{uint64_t old=r[dst],sum=old+a,carry=sum<old;r[dst]=¶»§q«^ix]);}
+        case 28:{uint64_t old=r[dst],sum=old+a,carry=sum<old;r[dst]=old+a+imm+carry+(b&1);break;}
+        case 29:{uint64_t x=r[dst]^a^imm;x=(x^(x>>29))*0x9FB21C651E98DF25ULL;r[dst]=rol(x,unsigned((b>>58)+1))^b;break;}
+        case 30:{uint64_t i1=(a^imm^r[dst])&mask,x1=s[i1],i2=(x1^b^rol(a,13))&mask,x2=s[i2],i3=(x2^r[src2]^rol(x1,21))&mask;r[dst]+=x1+x2+s[i3];break;}
+        default:if((a^b^imm)&1)r[dst]=mulhi(r[dst]|1ULL,a|1ULL)^rol(b,17);else r[dst]=(r[dst]+a)^ror(b+imm,23);break;
+      }
+      uint64_t mi=(chain^r[dst]^rol(r[src],17)^(uint64_t(step)*0xD6E8FEB86659FD93ULL))&mask;
+      uint64_t mv=s[mi];
+      chain=rol(chain^mv^r[src2]^imm,unsigned(((mv>>58)+5)&63));
+      chain=chain*0x9E3779B97F4A7C15ULL+(uint64_t(pidx)<<32)+step;
+      r[src2]^=mv^chain;
+      r[dst]+=mulhi(chain|1ULL,mv|1ULL);
+      s[mi]=rol(mv+r[dst]+chain+step,unsigned(((chain>>59)+1)&63));
+      pc=nxt;
+    }
+    r[7]^=chain;
+    uint8_t state[64],samples[64];for(int i=0;i<8;i++)wr64(state+8*i,r[i]);for(int i=0;i<8;i++){uint64_t ix=(r[i]^r[(i+3)&7])&mask;wr64(samples+8*i,s[ix]);}
     auto inner=h4("FAE-RW5-TRANSCRIPT",tr.data(),32,state,64,samples,64,pseed.data(),32);
     tr=shad(inner.data(),32);
   }
@@ -90,7 +135,19 @@ static std::array<uint8_t,160> dp6(const uint8_t in[112]){
   const uint8_t*hdr=in;uint64_t nonce=rd64(in+32);const uint8_t*task=in+40,*prev=in+72;uint64_t height=rd64(in+104);
   uint8_t hb[8],nb[8];wr64(hb,height);wr64(nb,nonce);
   auto saltfull=h3("FAE-DP6-MH3-SALT",prev,32,hb,8,task,32);
- ¶»§q«^main(int argc,char**argv){
+  auto pwd=h3("FAE-DP6-MH3-INPUT",hdr,32,nb,8,task,32);
+  Bytes32 mh{},tr{};block*M=nullptr;argon2_context ctx{};
+  if(!argon_matrix(pwd,saltfull.data(),mh,M,ctx)){std::fprintf(stderr,"argon failed\n");std::exit(3);}
+  std::array<uint64_t,8> regs{};rw5(mh,hdr,nonce,task,tr,regs,M);
+  uint8_t rb[64];for(int i=0;i<8;i++)wr64(rb+8*i,regs[i]);
+  auto inner=h6("FAE-DP6-FINAL",hdr,32,nb,8,task,32,mh.data(),32,tr.data(),32,rb,64);auto final=shad(inner.data(),32);
+  std::array<uint8_t,160> out{};std::memcpy(out.data(),mh.data(),32);std::memcpy(out.data()+32,tr.data(),32);std::memcpy(out.data()+64,rb,64);std::memcpy(out.data()+128,final.data(),32);
+  free_memory(&ctx,reinterpret_cast<uint8_t*>(M),262144,sizeof(block));return out;
+}
+static bool hex(const char*s,uint8_t*out,size_t n){for(size_t i=0;i<n;i++){unsigned v;if(std::sscanf(s+2*i,"%2x",&v)!=1)return false;out[i]=uint8_t(v);}return true;}
+static void printhex(const uint8_t*p,size_t n){for(size_t i=0;i<n;i++)std::printf("%02x",p[i]);}
+
+int main(int argc,char**argv){
   uint64_t nonce=argc>1?std::strtoull(argv[1],nullptr,10):1200;
   uint8_t in[112]={0};hex("83e1528c63f3fad31188c5e266aaf33c5f560c84b1a19b5e68b6ffd7b7bf0da7",in,32);wr64(in+32,nonce);
   hex("d54aeba77470ebde700d3a0a862d839006339587194e2f054f2ce666c4610a10",in+40,32);std::memset(in+72,0x11,32);wr64(in+104,1001);
