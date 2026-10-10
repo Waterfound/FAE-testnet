@@ -1,0 +1,144 @@
+{
+  "schema": "FAE_HISTORICAL_POW_CLOSURE_MATRIX_V1",
+  "date": "2026-10-10",
+  "purpose": "Track the eight historical-PoW-derived mainnet assurance gaps inside their existing Elements without creating new Elements.",
+  "rows": [
+    {
+      "id": "HP-01",
+      "area": "DP6 Path Binding + independent verifier soundness",
+      "element": 10,
+      "candidate_status": "GREEN",
+      "mainnet_status": "CONDITION_WAIT",
+      "evidence": [
+        "PR #296 assurance/dp6-path-binding-20261010",
+        "path binding 28/28",
+        "structural bypass mutants 10/10 rejected",
+        "independent semantic verifier 16/16",
+        "negative proofs 6/6 rejected",
+        "interface negatives 4/4 rejected"
+      ],
+      "residual": "Replay against exact frozen production DP6 verifier wiring and network/height/version activation selectors."
+    },
+    {
+      "id": "HP-02",
+      "area": "DAA / timestamp final mainnet design",
+      "element": 2,
+      "candidate_status": "GREEN_CANDIDATE",
+      "mainnet_status": "CONDITION_WAIT",
+      "evidence": [
+        "difficulty/timestamp hardened candidate",
+        "13/13 runtime tests GREEN",
+        "integer full-target vectors",
+        "MTP/future-drift/timewarp-oriented adversarial cases"
+      ],
+      "residual": "Final block target, DAA parameters, activation anchor and exact production wiring are not frozen."
+    },
+    {
+      "id": "HP-03",
+      "area": "Valid-mempool / resource brownout boundedness",
+      "element": 8,
+      "candidate_status": "GREEN",
+      "mainnet_status": "FINAL_REPLAY_REQUIRED",
+      "evidence": [
+        "4096 transaction global cap candidate",
+        "16 KiB normalized transaction ceiling",
+        "live-node saturation + block acceptance + restart recovery",
+        "mempool bounds regressions 2/2"
+      ],
+      "residual": "Fee-aware anti-pinning/admission economics is separate Element 2 work; current full-pool pinning is reproducible."
+    },
+    {
+      "id": "HP-04",
+      "area": "Genesis/bootstrap zero-hidden-issuance proof",
+      "element": 3,
+      "candidate_status": "VERIFIER_GREEN",
+      "mainnet_status": "CONDITION_WAIT",
+      "evidence": [
+        "machine-readable genesis contract",
+        "verifier regressions 7/7"
+      ],
+      "residual": "Exact production genesis bytes/hash and final monetary-rules digest do not yet exist; replay them when frozen."
+    },
+    {
+      "id": "HP-05",
+      "area": "Majority-work / fee-security-budget economics",
+      "element": 2,
+      "candidate_status": "MODEL_GREEN",
+      "mainnet_status": "OPEN",
+      "evidence": [
+        "authoritative 9 FAE / 630k / 55% schedule replayed exactly",
+        "34 nonzero reward eras",
+        "terminal issuance 12,599,999.811 FAE exact match",
+        "coin-denominated fee-backfill envelope generated"
+      ],
+      "residual": "Future fee demand, FAE price, honest hash participation, electricity/miner economics, specialization/rental liquidity and confirmation/reorg policy are reality/economic inputs not yet frozen."
+    },
+    {
+      "id": "HP-06",
+      "area": "Strategic mining + pool incentives",
+      "element": 2,
+      "candidate_status": "PARTIAL",
+      "mainnet_status": "OPEN",
+      "evidence": [
+        "2,000,000-event selfish-mining sensitivity cells",
+        "classic profitability threshold reproduced",
+        "lexicographic equal-work grinding surface identified",
+        "strict-greater-only tie rule exercised as non-persistent viable counterfactual"
+      ],
+      "residual": "Final tie policy, propagation/timing assumptions, BWH/FAW/EFAW and final pool semantics remain open."
+    },
+    {
+      "id": "HP-07",
+      "area": "Same-ID / different-body poisoning",
+      "element": 10,
+      "candidate_status": "GREEN",
+      "mainnet_status": "FINAL_REPLAY_REQUIRED",
+      "evidence": [
+        "transaction/object identity regressions 3/3",
+        "full-target header/body poisoning regressions 5/5",
+        "valid object remains admissible after hostile variant",
+        "no persistent rejection cache observed in tested path"
+      ],
+      "residual": "Replay on exact launch-state block/body/cache implementation after final consensus freeze."
+    },
+    {
+      "id": "HP-08",
+      "area": "Production routing / partition evidence",
+      "element": 4,
+      "candidate_status": "STRONG_EVIDENCE",
+      "mainnet_status": "CONDITION_WAIT",
+      "evidence": [
+        "peer identity/diversity hardening",
+        "real-WAN isolation/eclipsing Gate 3 evidence",
+        "three-node partition/reorg recovery"
+      ],
+      "residual": "Production bootstrap topology/provider/AS distribution is not yet frozen, so production-equivalent routing evidence cannot yet be terminal."
+    }
+  ],
+  "aggregate": {
+    "candidate_green_or_equivalent": [
+      "HP-01",
+      "HP-02",
+      "HP-03",
+      "HP-04",
+      "HP-05",
+      "HP-07"
+    ],
+    "partial": [
+      "HP-06"
+    ],
+    "topology_wait": [
+      "HP-08"
+    ],
+    "mainnet_terminal_green_count": 0,
+    "reason": "Several terminal proofs are intentionally impossible before final consensus/economics/genesis/topology artifacts exist."
+  },
+  "authority": {
+    "documentation_and_assurance_only": true,
+    "new_element_created": false,
+    "merge_authority": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "mainnet": false
+  }
+}
