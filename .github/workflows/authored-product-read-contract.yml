@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '22'
       - name: Confirm adapter syntax
-        run: node --check product-data/explorer-read-adapter.mjs
+        run: |
+          node --check product-data/explorer-read-adapter.mjs
+          node --check product-data/explorer-view-model.mjs
       - name: Run read-only adapter regression tests
-        run: node --test product-data/explorer-read-adapter.test.mjs
+        run: node --test product-data/*.test.mjs
