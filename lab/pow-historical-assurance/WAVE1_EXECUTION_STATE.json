@@ -1,0 +1,55 @@
+{
+  "schema": "FAE_HISTORICAL_POW_ASSURANCE_WAVE1_STATE_V1",
+  "date": "2026-10-10",
+  "status": "WAVE1_ADVANCED__NO_MERGE_AUTHORITY",
+  "branches": {
+    "historical_main": "assurance/pow-historical-main-20261010",
+    "dp6_path_binding": "assurance/dp6-path-binding-20261010"
+  },
+  "elements": {
+    "2": {
+      "daa_timestamp": "STRONG_CANDIDATE_EVIDENCE__FINAL_FREEZE_OPEN",
+      "majority_security_budget": "OPEN_FINAL_ECONOMIC_GATE",
+      "strategic_mining": "TIEBREAK_GRINDING_SURFACE_CONFIRMED__FULL_PROFITABILITY_MODEL_OPEN",
+      "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__ROUTED_HERE"
+    },
+    "3": {
+      "genesis_zero_hidden_issuance": "VERIFIER_PREPARED__FINAL_GENESIS_NOT_YET_AVAILABLE"
+    },
+    "4": {
+      "production_routing_partition": "EXISTING_REAL_WAN_STRONG__FINAL_PRODUCTION_TOPOLOGY_OPEN"
+    },
+    "8": {
+      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE",
+      "long_duration_production_soak": "OPEN_EXTERNAL_OPERATIONAL_EVIDENCE"
+    },
+    "10": {
+      "dp6_path_binding": "IMPLEMENTATION_LOCAL_PASS__PRODUCTION_BINDING_OPEN",
+      "independent_dp6_verifier": "OPEN",
+      "same_id_different_body": "RUNTIME_3_OF_3_PASS__FINAL_MAINNET_REPLAY_OPEN",
+      "historical_regression_corpus": "PARTIAL_ACTIVE"
+    }
+  },
+  "newly_discovered": {
+    "mempool_pinning": {
+      "status": "REPRODUCED",
+      "cause": "full-mempool check rejects even unrelated higher-fee valid transaction before fee-aware admission/eviction",
+      "routing": "Element 2 fee/security-budget + admission economics",
+      "mainnet_disposition": "MUST_NOT_REMAIN_UNRESOLVED"
+    },
+    "equal_work_tiebreak_grinding": {
+      "status": "STRUCTURAL_SURFACE_CONFIRMED",
+      "cause": "lexicographically smallest equal-work tip can be selected with additional valid candidate search",
+      "profitability": "UNRESOLVED",
+      "routing": "Element 2 strategic mining"
+    }
+  },
+  "authority": {
+    "merge": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "activation": false,
+    "release": false,
+    "mainnet": false
+  }
+}
