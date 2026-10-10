@@ -1,0 +1,52 @@
+{
+  "schema": "FAE_MEMPOOL_ADMISSION_POLICY_COUNTERFACTUAL_RESULT_V1",
+  "status": "ISOLATED_POLICY_CANDIDATE_PASS__PRODUCTION_PATH_UNCHANGED",
+  "checks": {
+    "passed": 9,
+    "total": 9,
+    "ids": [
+      "zero_fee_chain_exposes_admission",
+      "no_dangling_dependencies",
+      "equal_fee_rejected",
+      "lower_fee_rejected",
+      "higher_fee_in",
+      "preserve_incoming_ancestor",
+      "descendant_package_aggregate",
+      "oversized_rejected_before_eviction",
+      "missing_parent_rejected_before_eviction"
+    ]
+  },
+  "example": {
+    "scenario": "4096 zero-fee dependent transactions vs unrelated higher-fee signed transaction",
+    "baseline": "mempool_full (reproduced in node diagnostic)",
+    "candidate": {
+      "status": "admitted",
+      "evicted": [
+        "z4095"
+      ],
+      "size": 4096,
+      "evictionFeeAtoms": "0"
+    }
+  },
+  "source_semantics": {
+    "max_pending_transactions": 4096,
+    "max_normalized_transaction_bytes": 16384,
+    "fee_recorded_as_input_minus_outputs": true,
+    "actual_node_blocks_full_pool_before_validation": true
+  },
+  "limitations": [
+    "Counterfactual only; no node, mempool, mining-template, networking or consensus mutations.",
+    "Records are abstract validated inputs; no signature verification, atom-exact production replay, adversarial hash/fanout benchmark, or P2P relay test.",
+    "Eviction requires atomic update of mempoolSpends, mempoolOutputs and transaction records plus reorg/restart deterministic replay; not implemented.",
+    "Fee priority for block template (currently FIFO) and incremental relay-fee pricing are unresolved.",
+    "Higher-fee admission is not economically final until fee/security-budget policy freeze."
+  ],
+  "authority": {
+    "research_only": true,
+    "merge": false,
+    "consensus_change": false,
+    "fee_policy_activated": false,
+    "release": false,
+    "mainnet": false
+  }
+}
