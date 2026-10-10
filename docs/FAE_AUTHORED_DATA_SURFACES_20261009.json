@@ -1,0 +1,57 @@
+{
+  "schema": "FAE_AUTHORED_DATA_SURFACES_V1",
+  "date": "2026-10-09",
+  "owner": "Waterfound",
+  "mode": "CANDIDATE_REAL_RUN__NO_CANONICAL_ADOPTION",
+  "mining": {
+    "visual": "PASS_3_FINISH",
+    "pr": 268,
+    "referenceHead": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "data": "validated_node+local_worker"
+  },
+  "wallet": {
+    "visual": "APPROVED_DIRECTION",
+    "sourceCandidatePr": 272,
+    "vaultCandidatePr": 266,
+    "data": "local_encrypted_vault+validated_node_public"
+  },
+  "explorer": {
+    "visual": "APPROVED_DIRECTION",
+    "studio": "fae-block-explorer-authored-studio-enul9d",
+    "issue": 292,
+    "data": "validated_node_read_only"
+  },
+  "api": {
+    "status": "/explorer/status",
+    "blocks": "/explorer/blocks",
+    "block": "/explorer/block",
+    "transaction": "/explorer/transaction",
+    "address": "/explorer/address",
+    "search": "/explorer/search"
+  },
+  "unsupported": [
+    "global_tx_ledger",
+    "public_pending_transactions_list",
+    "real_chain_live_studio_binding",
+    "node_telemetry_energy",
+    "unattended_execution"
+  ],
+  "failClosed": [
+    "tip_changed_retry",
+    "network_mismatch",
+    "invalid_atoms",
+    "stale_tip",
+    "offline",
+    "locked_wallet",
+    "pending_unconfirmed"
+  ],
+  "prohibitions": [
+    "production_mock_fallback",
+    "wallet_secrets_to_node",
+    "unauthorized_merge",
+    "consensus_change",
+    "paid_provider_mutation",
+    "mainnet_activation"
+  ],
+  "nextGate": "ISOLATED_NODE_INTEGRATION_EVIDENCE_FIRST"
+}
