@@ -1,0 +1,93 @@
+{
+  "schema": "FAE_FINITE_PPLNS_WINDOW_ASSURANCE_RESULT_V1",
+  "status": "EXACT_WINDOW_ACCOUNTING_COUNTERFACTUAL_PASS__BWH_FAW_EFAW_FINAL_ECONOMICS_OPEN",
+  "checks": {
+    "passed": 7,
+    "total": 7,
+    "ids": [
+      "2048_exact_last_N",
+      "initial_512_attacker_weight",
+      "withheld_block_does_not_change_share_ledger",
+      "share_window_displaces_old_attacker",
+      "full_window_rolloff_eliminates_old_shares",
+      "integer_coinbase_conservation",
+      "different_jobs_distinct_commitment_identifiers"
+    ]
+  },
+  "candidate_constants": {
+    "share_window": 2048,
+    "share_target_delta_bits": 6,
+    "job_ttl_ms": 300000,
+    "max_live_jobs": 1024
+  },
+  "payout_fraction": {
+    "initial": {
+      "windowShares": 2048,
+      "weights": {
+        "honest": 1536,
+        "infiltrator": 512
+      },
+      "fraction": {
+        "infiltrator": 0.25,
+        "honest": 0.75
+      }
+    },
+    "after_512_honest_shares": {
+      "windowShares": 2048,
+      "weights": {
+        "honest": 1664,
+        "infiltrator": 384
+      },
+      "fraction": {
+        "infiltrator": 0.1875,
+        "honest": 0.8125
+      }
+    },
+    "after_2048_more_honest_shares": {
+      "windowShares": 2048,
+      "weights": {
+        "honest": 2048
+      },
+      "fraction": {
+        "honest": 1
+      }
+    }
+  },
+  "withheld_full_solution": {
+    "submitted_to_coordinator": false,
+    "job_ttl_ms": 300000
+  },
+  "example_integer_distribution": {
+    "outputs": [
+      {
+        "name": "honest",
+        "atoms": "750002"
+      },
+      {
+        "name": "infiltrator",
+        "atoms": "250001"
+      }
+    ],
+    "total": "1000003",
+    "conserved": true
+  },
+  "interpretation": [
+    "The PPLNS candidate uses counts of last 2048 admitted share records, not proportional-hash long-run payout in a single block.",
+    "A coordinator cannot infer a worker's undisclosed full-difficulty block from lower-difficulty accepted shares; the pay-weight ledger by itself does not prevent BWH.",
+    "Payout weight after withholding a full block can persist while old shares remain in the 2048-window; actual realized pool revenue, attack costs and propagation races are outside this toy experiment.",
+    "Different precommitted job templates are not mutually transferable by copying the same proof; this does not eliminate coordinated multi-pool withholding/release games.",
+    "The final EFAW/BWH/FAW model requires share arrival timing, stales, job renewal, block race probability, final tie policy and actual miner opportunity costs."
+  ],
+  "limitations": [
+    "This is exact rolling-window accounting only, not a full live ShareCoordinator or Monte Carlo fork simulation.",
+    "All shares are assumed valid, accepted, and equally weighted; cryptographic validation is separately covered by coordinator tests.",
+    "No fee policy, pool activation, network architecture or consensus choice was changed."
+  ],
+  "authority": {
+    "research_only": true,
+    "consensus_change": false,
+    "pool_activation": false,
+    "fee_policy_selected": false,
+    "mainnet": false
+  }
+}
