@@ -1,0 +1,284 @@
+{
+  "schema": "FAE_AUTHORED_ELEMENT_PRODUCT_GATE_BRIDGE_V1",
+  "created_utc": "2026-10-10",
+  "owner": "Waterfound",
+  "admission": "CANDIDATE_ONLY",
+  "canonical_main_at_decomposition": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+  "mainnet_ready": false,
+  "production_wiring_authorized": false,
+  "merge_authorized": false,
+  "note": "A gate is not DONE simply because it has a visual destination. Visual approval of an isolated Studio is not merge or production approval.",
+  "visual_authority": {
+    "mining": "Mining Authored Reference — PASS 3 FINISH, PR #268 frozen composition",
+    "wallet": "Waterfound-approved authored Wallet Studio direction; source PRs #266/#272 remain separately gated",
+    "explorer": "Waterfound-approved authored Explorer direction; Studio example ledger is demonstrative, not validated chain data",
+    "rules": [
+      "quiet white space and visual hierarchy",
+      "flowing blue for observed activity, not fabricated proof",
+      "orange accents only with intended meaning",
+      "event-driven confirmation state",
+      "reduced-motion equivalence",
+      "no generic dashboard filler or decorative sample data in connected mode"
+    ]
+  },
+  "owned_elements": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14
+  ],
+  "source_issues": [
+    "https://github.com/Waterfound/FAE-testnet/issues/295",
+    "https://github.com/Waterfound/FAE-testnet/issues/290",
+    "https://github.com/Waterfound/FAE-testnet/issues/293"
+  ],
+  "non_product_crosswalk": {
+    "2": "Final consensus/DAA, fee-security and strategic mining depend on policy freeze; do not copy Studio numbers",
+    "3": "Genesis issuance and exact production chain identity required for validated chain display",
+    "4": "Verified network topology/peer identity required for reliable selected-tip/network status",
+    "6": "Dry-run and non-activating rehearsal is an operations/readiness surface, not a product launch",
+    "7": "Reproducible release is evidenced as a technical provenance/about surface, not decorative marketing",
+    "8": "Resource/mempool boundedness and observation origin must be reflected in pending/error views",
+    "9": "Physical PoW evidence is not inferred from a render; only measured device evidence qualifies",
+    "10": "Final verifier and identity binding required for trustworthy mining/explorer claims",
+    "12": "Activation/incident/recovery protocols map to operational state and calm fail-closed communication",
+    "13": "User/operator documentation maps to product-context help without unnecessary on-screen text",
+    "14": "Final launch freeze remains explicit HUMAN_GATE and is never implied by a visually complete product"
+  },
+  "surfaces": [
+    "mining",
+    "wallet",
+    "explorer",
+    "operations"
+  ],
+  "gates": [
+    {
+      "id": "M-01",
+      "surface": "mining",
+      "elements": [
+        5,
+        9
+      ],
+      "source": "local miner attempts and measured time window",
+      "meaning": "Device-local measured work rate, never global hash rate or percentage-to-block",
+      "missing": "unknown measurement; keep layout quiet",
+      "evidence": "Measured local attempts/time and mobile/desktop coexistence regression",
+      "dependency": "physical evidence still open",
+      "status": "CONDITION_WAIT"
+    },
+    {
+      "id": "M-02",
+      "surface": "mining",
+      "elements": [
+        2,
+        4,
+        10
+      ],
+      "source": "independently verified selected-chain tip and network",
+      "meaning": "Accepted tip height/hash distinct from next possible candidate height",
+      "missing": "disconnected/stale last observed; never a confirmed candidate",
+      "evidence": "selected-tip/reorg/wrong-network replay under final verifier",
+      "dependency": "final protocol and production wiring pending",
+      "status": "CONDITION_WAIT"
+    },
+    {
+      "id": "M-03",
+      "surface": "mining",
+      "elements": [
+        5,
+        10
+      ],
+      "source": "local watch-only mining address and worker/coordinator state",
+      "meaning": "Reward address is not an unlocked spending Wallet; switching during mining requires explicit safe state",
+      "missing": "offline/miner stopped is explicit, never guessed activity",
+      "evidence": "PR #266 mining guard plus exact authored-product integration replay",
+      "dependency": "functional vault and authored product candidates not canonically integrated",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "W-01",
+      "surface": "wallet",
+      "elements": [
+        5,
+        10
+      ],
+      "source": "local encrypted persistent multi-wallet vault",
+      "meaning": "No wallets, zero-balance, locked vault and corrupt-vault are four different user states; last active identity persists",
+      "missing": "never silently create a new wallet or hide corruption",
+      "evidence": "PR #266 browser bank plus VR-09 W01-W29 replay on exact integrated source",
+      "dependency": "VR-09 integration and physical Safari gates pending",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "W-02",
+      "surface": "wallet",
+      "elements": [
+        5,
+        8,
+        10
+      ],
+      "source": "node-verified tip-bound address ledger, active wallet identity",
+      "meaning": "Confirmations, spendable/immature, pending and precise atom-string balances follow selected identity atomically",
+      "missing": "unknown/stale balance must not render as zero or cross-wallet value",
+      "evidence": "PR #294 read contract; async-switch/tip-change/reorg replay",
+      "dependency": "real node and integrated Wallet response invalidation pending",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "W-03",
+      "surface": "wallet",
+      "elements": [
+        5,
+        10
+      ],
+      "source": "local vault cryptographic PIN gate only when configured",
+      "meaning": "Optional PIN must cryptographically restrict secret use; funded-without-PIN affordance only with confirmed known positive balance",
+      "missing": "unknown balance cannot trigger funded warning; locked cannot sign",
+      "evidence": "VR-09 W28/W29 KDF/wrapping review, tamper and restart tests",
+      "dependency": "actual PIN cryptographic design and implementation open",
+      "status": "CONDITION_WAIT"
+    },
+    {
+      "id": "E-01",
+      "surface": "explorer",
+      "elements": [
+        2,
+        3,
+        4,
+        10
+      ],
+      "source": "validated selected tip, genesis/network identity, actual block data",
+      "meaning": "Monumental search; confirmed history grows on validated events; ice/blue candidate is unconfirmed height+1 only",
+      "missing": "offline state shows last observation with timestamp; never moving fake blocks",
+      "evidence": "PR #294 read contract, final genesis/DP6 and multi-tip reorg integration",
+      "dependency": "final genesis, verifier path, product read binding open",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "E-02",
+      "surface": "explorer",
+      "elements": [
+        5,
+        8
+      ],
+      "source": "node-local mempool observation with source-node identity",
+      "meaning": "Pending is node-local observed, not global census; inclusion green only after verified block",
+      "missing": "pending unknown; do not infer reorg return to mempool",
+      "evidence": "PR #297 resource bounds, PR #294 live-node provenance and observed-event replay",
+      "dependency": "actual pending listing not yet implemented",
+      "status": "CONDITION_WAIT"
+    },
+    {
+      "id": "E-03",
+      "surface": "explorer",
+      "elements": [
+        5,
+        10
+      ],
+      "source": "validated block/transaction/address index from one selected tip",
+      "meaning": "Search, pagination, details and amounts use exact public node records, not Studio sample ledger",
+      "missing": "typed 404/503/tip-change; never substitute fabricated tx/address",
+      "evidence": "PR #294 six read routes, real-node E2E and stable-cursor adversarial tests",
+      "dependency": "end-to-end actual read source and product integration open",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "E-04",
+      "surface": "explorer",
+      "elements": [
+        5,
+        8,
+        10
+      ],
+      "source": "independently checked chain selection and transaction status",
+      "meaning": "Confirmed, reorganized, dropped/unobserved and rejected remain distinct",
+      "missing": "no false guarantee of finality or mempool reinsertion",
+      "evidence": "node reorg and orphan-path replay on final network configuration",
+      "dependency": "end-to-end reorg-aware UI open",
+      "status": "CONDITION_WAIT"
+    },
+    {
+      "id": "O-01",
+      "surface": "operations",
+      "elements": [
+        4,
+        8,
+        12
+      ],
+      "source": "operator/readiness observation, not wallet secret",
+      "meaning": "quiet explicit available/stale/hold state with next useful recovery action",
+      "missing": "HOLD must never be colored as healthy or silently bypassed",
+      "evidence": "PR #63 separate node readiness, partition/restart/incident drills",
+      "dependency": "production topology and selected runtime pending",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "O-02",
+      "surface": "operations",
+      "elements": [
+        6,
+        7,
+        13
+      ],
+      "source": "reproducible artifact manifest and dry-run logs",
+      "meaning": "release provenance is verifiable and discoverable without adding visual clutter to normal Wallet/Mining",
+      "missing": "artifact not verified = candidate, never release-ready",
+      "evidence": "draft PRs #98/#100 exact-source reproducibility and rehearsal replay",
+      "dependency": "candidate branches and clean-room attestation not canonically closed",
+      "status": "CANDIDATE_EVIDENCE"
+    },
+    {
+      "id": "O-03",
+      "surface": "operations",
+      "elements": [
+        2,
+        6,
+        12,
+        14
+      ],
+      "source": "explicit approved activation record and release/incident runbook",
+      "meaning": "network launch/readiness displayed only from an authoritative approved state",
+      "missing": "mainnet HOLD until all final freeze + human authorization gates",
+      "evidence": "final consensus freeze, recovery rehearsal, exact launch artifact and explicit Waterfound approval",
+      "dependency": "human mainnet/merge/release authority not delegated",
+      "status": "HUMAN_GATE"
+    },
+    {
+      "id": "O-04",
+      "surface": "operations",
+      "elements": [
+        9,
+        13
+      ],
+      "source": "verified test-class evidence and user/operator instructions",
+      "meaning": "meaningful device and node statuses with accessible concise explanations, not status decoration",
+      "missing": "unknown hardware evidence must remain unclaimed",
+      "evidence": "iPad HFB/RDE/MTS plus thin-light, consumer dGPU and compact handheld representative evidence",
+      "dependency": "external physical-device coverage pending",
+      "status": "CONDITION_WAIT"
+    }
+  ],
+  "universal_guards": [
+    "CONNECTED_NO_DEMO_FALLBACK",
+    "SYNTHETIC_STUDIO_ONLY",
+    "NO_WALLET_SECRETS_TO_PUBLIC_NODE",
+    "NO_IMPLICIT_WALLET_CREATION",
+    "UNKNOWN_NOT_ZERO",
+    "PENDING_NOT_CONFIRMED",
+    "NEXT_HEIGHT_NOT_MINING_PROGRESS",
+    "TIP_BOUND_COHERENCE",
+    "EVENT_DRIVEN_MOTION",
+    "REDUCED_MOTION_PARITY",
+    "FROZEN_ART_AUTHORITY_DISTINCT_FROM_MERGE",
+    "NO_MAINNET_WITHOUT_EXPLICIT_APPROVAL"
+  ],
+  "candidate_verdict": "BRIDGE_CONTRACT_TESTABLE__PRODUCT_DATA_AND_FINAL_FREEZE_GATES_OPEN"
+}
