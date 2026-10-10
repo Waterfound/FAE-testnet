@@ -1,0 +1,29 @@
+{
+  "schema": "FAE_DP6_INDEPENDENT_VERIFIER_DEPENDENCIES_V1",
+  "date": "2026-10-10",
+  "verifier_implementation": "labs/asic-f2-pre-go/independent-verifier/dp6-independent-verifier.cpp",
+  "external_components": [
+    {
+      "project": "P-H-C/phc-winner-argon2",
+      "commit": "f57e61e19229e23c4445b85494dbf7c07de721cb",
+      "role": "independent reference Argon2d memory construction",
+      "license": "CC0-1.0-or-Apache-2.0 upstream"
+    },
+    {
+      "project": "OpenSSL",
+      "role": "SHA-256 primitive used by independently structured DP6 domain hashing",
+      "version_binding": "runtime/build environment"
+    }
+  ],
+  "independence_statement": [
+    "The verifier does not include or link the FAE HLS DP6 implementation.",
+    "Argon2 memory construction comes from the public PHC reference implementation.",
+    "RW5 and DP6 composition are independently structured C++ code using standard arithmetic and OpenSSL SHA-256.",
+    "The verifier is candidate assurance evidence, not a consensus implementation."
+  ],
+  "authority": {
+    "assurance_only": true,
+    "consensus_change": false,
+    "mainnet": false
+  }
+}
