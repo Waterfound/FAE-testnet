@@ -50,12 +50,34 @@
   "next": [
     "execute PF-07 node regressions on an admissible runtime",
     "execute valid-mempool brownout diagnostic to quantify RAM/disk/latency/template/restart impact",
-    "only after measurement, select the smallest deterministic mempool count/byte/admission/eviction policy needed for bounded liveness"
+    "only after measurement, select the smallest deterministic mempool count/byte/admission/eviction policy needed for bounded liveness",
+    "add hostile canonical-base64/oversized-encoding regression and verify final production transport response bounds"
   ],
   "authority": {
     "consensus_change": false,
     "economics_change": false,
     "production": false,
     "mainnet": false
+  },
+  "additional_findings": {
+    "canonical_encoding_surface": {
+      "status": "OPEN_HARDENING_QUESTION",
+      "observation": [
+        "transaction verification decodes SPKI and signature from base64",
+        "no explicit canonical base64 round-trip check was identified",
+        "no explicit encoded/decoded SPKI/signature length check was identified in the active v4 core"
+      ],
+      "risk": "non-canonical encodings can enlarge accepted transaction representations and create avoidable transaction-identity/resource surface even when decoded cryptographic material is equivalent",
+      "disposition": "add hostile regression first; any consensus-affecting canonical-encoding rule remains candidate-only until separately admitted"
+    },
+    "peer_feed_response_boundedness": {
+      "status": "OPEN_TRANSPORT_RESOURCE_QUESTION",
+      "observation": [
+        "independent node inbound request body is capped at 2 MB",
+        "candidate secure channel has an explicit message-size ceiling",
+        "legacy independent-node fetch path parses peer JSON responses directly and no explicit response-byte ceiling was identified"
+      ],
+      "disposition": "final production P2P path should carry explicit bounded message/body semantics; legacy HTTP feed path must not silently become mainnet authority"
+    }
   }
 }
