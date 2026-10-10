@@ -10,7 +10,7 @@
     "2": {
       "daa_timestamp": "RUNTIME_13_OF_13_GREEN_CANDIDATE__FINAL_MAINNET_PARAMETER_FREEZE_OPEN",
       "majority_security_budget": "OPEN_FINAL_ECONOMIC_GATE",
-      "strategic_mining": "SELFISH_MINING_SENSITIVITY_EXECUTED__LEXICOGRAPHIC_TIE_GRINDING_CONFIRMED__STRICT_GREATER_COUNTERFACTUAL_VIABLE__FINAL_SELECTION_OPEN",
+      "strategic_mining": "SELFISH_MINING_AND_BWH_FAW_SENSITIVITY_EXECUTED__LEXICOGRAPHIC_TIE_GRINDING_CONFIRMED__FINAL_FAE_POOL_TIMING_POLICY_OPEN",
       "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__FEE_AWARE_ADMISSION_POLICY_DEPENDS_FINAL_FEE_SECURITY_BUDGET",
       "majority_work_security_budget": "DETERMINISTIC_SUBSIDY_ENVELOPE_GREEN__MARKET_FEE_HASH_ECONOMICS_OPEN"
     },
@@ -53,7 +53,7 @@
     "release": false,
     "mainnet": false
   },
-  "last_reconciled_head": "022174dd844d5731ce95d0fc0a32d6a136d672f6",
+  "last_reconciled_head": "70ccf2159f2bb11e74a0cc577aa4956df49bcd6d",
   "runtime_evidence": {
     "pf07_object_identity": "3/3 PASS",
     "pf11_mempool_bounds": "2/2 PASS",
@@ -65,11 +65,12 @@
     "wave1_exact_head_reverify": "12/12 historical regressions + differential 2/2 + authoritative core 2/2 + DAA/timestamp 13/13; partition recovery passed isolated rerun after one transient socket failure",
     "tiebreak_counterfactual": "strict-greater-only local patch: differential 2/2 PASS; three logical partition/recovery PASSes with transient sandbox socket retries; no persistent source mutation",
     "full_target_body_poisoning": "5/5 PASS: altered tx body/header/hash and historical checkpoint body rejected; valid object remains admissible afterward",
-    "security_budget_envelope": "34 nonzero eras and 12,599,999.811 FAE terminal scheduled issuance replay exact; fee-backfill envelope generated"
+    "security_budget_envelope": "34 nonzero eras and 12,599,999.811 FAE terminal scheduled issuance replay exact; fee-backfill envelope generated",
+    "pool_infiltration": "140-cell BWH/FAW sensitivity executed; material infiltration surface confirmed; exact FAE PPLNS/cost/propagation replay remains open"
   },
   "next_admissible_frontiers": [
     "Fee/security-budget market/hash assumptions and confirmation/reorg policy — Element 2",
-    "Strategic mining: final tie policy and BWH/FAW/EFAW on frozen pool/timing semantics — Element 2",
+    "Strategic mining: exact FAE PPLNS/cost/propagation replay and final tie policy once pool/timing semantics freeze — Element 2",
     "Final DAA parameter selection after block-time evidence resolves — Element 2",
     "Final production genesis replay once exact genesis bytes/hash exist — Element 3",
     "Production routing/partition replay once production bootstrap topology exists — Element 4",
