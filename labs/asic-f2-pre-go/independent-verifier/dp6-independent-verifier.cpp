@@ -29,14 +29,4 @@ static inline unsigned ctz(uint64_t x){return x?__builtin_ctzll(x):64;}
 static inline uint64_t bswap(uint64_t x){return __builtin_bswap64(x);}
 
 using Bytes32=std::array<uint8_t,32>;
-static Bytes32 sha256(const uint8_t*p,size_t n){
-  Bytes32 out{}; SHA256(p,n,out.data()); return out;
-}
-static Bytes32 shad(const uint8_t*p,size_t n){
-  auto a=sha256(p,n); return sha256(a.data(),a.size());
-}
-static Bytes32 domain_hash(const char*domain,const std::vector<std::pair<const uint8_t*,size_t>>&parts){
-  SHA256_CTX c; SHA256_Init(&c);
-  size_t dl=std::strlen(domain); uint8_t l2[2]={uint8_t(dl),uint8_t(dl>>8)};
-  SHA256_Update(&c,l2,2); SHA256_Update(&c,domain,dl);
-  for(auto [p,n]:part...[truncated]
+¶»§q«^
