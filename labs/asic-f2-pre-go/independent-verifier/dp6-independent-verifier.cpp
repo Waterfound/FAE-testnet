@@ -148,14 +148,25 @@ static bool hex(const char*s,uint8_t*out,size_t n){for(size_t i=0;i<n;i++){unsig
 static void printhex(const uint8_t*p,size_t n){for(size_t i=0;i<n;i++)std::printf("%02x",p[i]);}
 
 int main(int argc,char**argv){
-  uint64_t nonce=argc>1?std::strtoull(argv[1],nullptr,10):1200;
-  uint8_t in[112]={0};hex("83e1528c63f3fad31188c5e266aaf33c5f560c84b1a19b5e68b6ffd7b7bf0da7",in,32);wr64(in+32,nonce);
-  hex("d54aeba77470ebde700d3a0a862d839006339587194e2f054f2ce666c4610a10",in+40,32);std::memset(in+72,0x11,32);wr64(in+104,1001);
+  uint8_t in[112]={0}; bool explicitInput=false; uint64_t nonce=1200;
+  if(argc>1 && std::strlen(argv[1])==224){
+    if(!hex(argv[1],in,112)){std::fprintf(stderr,"invalid_input_hex\n");return 2;}
+    explicitInput=true; nonce=rd64(in+32);
+  }else{
+    nonce=argc>1?std::strtoull(argv[1],nullptr,10):1200;
+    hex("83e1528c63f3fad31188c5e266aaf33c5f560c84b1a19b5e68b6ffd7b7bf0da7",in,32);wr64(in+32,nonce);
+    hex("d54aeba77470ebde700d3a0a862d839006339587194e2f054f2ce666c4610a10",in+40,32);std::memset(in+72,0x11,32);wr64(in+104,1001);
+  }
   auto out=dp6(in);
   std::printf("nonce=%llu\nmh=",(unsigned long long)nonce);printhex(out.data(),32);
   std::printf("\ntr=");printhex(out.data()+32,32);std::printf("\nregs=");printhex(out.data()+64,64);
   std::printf("\nfinal=");printhex(out.data()+128,32);std::printf("\n");
-  if(nonce==1200){
+  if(argc>2){
+    if(std::strlen(argv[2])!=64){std::fprintf(stderr,"invalid_expected_final_hex\n");return 2;}
+    uint8_t wantFinal[32];if(!hex(argv[2],wantFinal,32)){std::fprintf(stderr,"invalid_expected_final_hex\n");return 2;}
+    bool ok=std::memcmp(out.data()+128,wantFinal,32)==0;std::printf("verify=%s\n",ok?"PASS":"FAIL");return ok?0:1;
+  }
+  if(!explicitInput && nonce==1200){
     uint8_t want[160]={0};hex("5e863f7a72d0922c9e24583e2e9256104bdb0b390d0d779c84e716487d644211",want,32);
     hex("15cc8a8385b855d9a4cc1eea8ffe6b6fe470ea1680e5ade44414d505594662f4",want+32,32);
     uint64_t regs[8]={0x0cd21cc5fe20839eULL,0x36c782d357f08ec3ULL,0xc7ead5a8b8904395ULL,0xc15d8a47e6769f64ULL,0x1a22ad1cbcd709daULL,0x5824dc868e776b7dULL,0xa50f55a3e2455509ULL,0x385ffd011dd71d15ULL};for(int i=0;i<8;i++)wr64(want+64+8*i,regs[i]);
