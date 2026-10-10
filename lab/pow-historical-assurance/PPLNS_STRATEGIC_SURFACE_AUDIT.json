@@ -1,0 +1,75 @@
+{
+  "schema": "FAE_PPLNS_STRATEGIC_SURFACE_AUDIT_V1",
+  "date": "2026-10-10",
+  "source_branch": "assurance/pow-historical-main-20261010",
+  "purpose": "Characterize BWH/FAW-style strategic surfaces against the current inactive delayed-PPLNS candidate without selecting or activating pool economics.",
+  "exact_candidate_semantics": {
+    "share_window_default": 2048,
+    "share_difficulty_delta_bits_default": 6,
+    "work_job_ttl_ms": 300000,
+    "max_live_jobs": 1024,
+    "payout_binding": "weights -> payout outputs -> payoutCommitment/coinbase_root -> templateCommitment are fixed before a worker searches the returned candidate",
+    "share_admission": "coordinator recomputes candidate hash, verifies share target, rejects duplicate/stale jobs, then appends the share",
+    "full_block_submission": "when a submitted share also meets block difficulty, coordinator submits the already committed candidate and clears jobs",
+    "direct_pow_fallback": "protocol documentation requires direct mining to remain valid and independent of pool coordinator honesty",
+    "activation": "PPLNS_COINBASE_ACTIVATION_HEIGHT remains null; candidate is inactive"
+  },
+  "defensive_properties": [
+    "Coordinator cannot redirect a solved candidate after PoW because payout outputs are committed before mining.",
+    "Coordinator does not need miner payout private keys.",
+    "Share ledger is durable, duplicate-resistant and hash chained.",
+    "Coordinator rejects a submitted share after the upstream chain tip changes.",
+    "Pool use is optional; direct sovereign mining remains the required fallback."
+  ],
+  "unavoidable_or_open_surfaces": [
+    {
+      "id": "BWH",
+      "status": "STRUCTURAL_SURFACE_PRESENT_IF_POOL_USED",
+      "rationale": "A permissionless coordinator cannot distinguish a worker that never found a full-difficulty block from a worker that found one and deliberately withheld it. Submitted lower-difficulty shares can therefore coexist with withheld full blocks.",
+      "security_scope": "pool revenue/liveness and miner incentives; not direct consensus invalidity"
+    },
+    {
+      "id": "FAW",
+      "status": "MATERIALITY_MODELLED__FINAL_FAE_SEMANTICS_OPEN",
+      "rationale": "A withheld full candidate can in principle be used strategically around a competing block race. Coordinator stale-tip checks narrow the coordinator-mediated window, but final feasibility/profitability depends on production submission paths, propagation, fork-choice tie policy and frozen PPLNS semantics.",
+      "security_scope": "strategic fork creation / pool reward manipulation"
+    },
+    {
+      "id": "EFAW_MULTI_POOL",
+      "status": "CONDITION_WAIT",
+      "rationale": "Do not expand into multi-pool interaction until the final pool architecture preserves multiple independent coordinator targets and final timing/economic semantics are frozen."
+    }
+  ],
+  "quantitative_evidence": {
+    "model": "lab/pow-historical-assurance/pool-infiltration-sensitivity.mjs",
+    "result": "lab/pow-historical-assurance/POOL_INFILTRATION_SENSITIVITY_RESULT.json",
+    "bwh_positive_cells": 28,
+    "faw_positive_cells": 112,
+    "strongest_modelled_relative_extra_revenue_pct": 7.394978007684898,
+    "caveat": "Long-window proportional payout approximation; not an exact final FAE profitability claim."
+  },
+  "green_definition": {
+    "candidate_characterization": [
+      "structural BWH/FAW surface explicitly documented",
+      "coordinator payout and share integrity controls bound",
+      "direct sovereign fallback preserved",
+      "bounded sensitivity model executed"
+    ],
+    "final_mainnet_pool_green_requires": [
+      "exact frozen PPLNS window/share target/stale-job semantics",
+      "frozen fork-choice tie policy and propagation assumptions",
+      "exact FAE pool simulation including opportunity costs",
+      "BWH/FAW profitability/risk threshold either accepted and bounded or mitigated",
+      "pool remains optional and cannot become consensus authority"
+    ]
+  },
+  "verdict": "PPLNS_STRATEGIC_SURFACE_CHARACTERIZED__POOL_INTEGRITY_STRONG__BWH_FAW_FINAL_ECONOMIC_CLOSURE_OPEN",
+  "authority": {
+    "research_only": true,
+    "pool_activation": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "release": false,
+    "mainnet": false
+  }
+}
