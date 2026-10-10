@@ -1,17 +1,17 @@
 {
   "schema": "FAE_HISTORICAL_POW_ASSURANCE_WAVE1_STATE_V1",
   "date": "2026-10-10",
-  "status": "WAVE1_ADVANCED__NO_MERGE_AUTHORITY",
+  "status": "WAVE1_SOFTWARE_ADVANCED__BOUNDED_RESOURCE_FIX_VERIFIED__FINAL_PARAMETER_AND_EXTERNAL_GATES_REMAIN",
   "branches": {
     "historical_main": "assurance/pow-historical-main-20261010",
     "dp6_path_binding": "assurance/dp6-path-binding-20261010"
   },
   "elements": {
     "2": {
-      "daa_timestamp": "STRONG_CANDIDATE_EVIDENCE__FINAL_FREEZE_OPEN",
+      "daa_timestamp": "RUNTIME_13_OF_13_GREEN_CANDIDATE__FINAL_MAINNET_PARAMETER_FREEZE_OPEN",
       "majority_security_budget": "OPEN_FINAL_ECONOMIC_GATE",
-      "strategic_mining": "TIEBREAK_GRINDING_SURFACE_CONFIRMED__FULL_PROFITABILITY_MODEL_OPEN",
-      "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__ROUTED_HERE"
+      "strategic_mining": "SELFISH_MINING_SENSITIVITY_EXECUTED__TIEBREAK_GRINDING_SURFACE_CONFIRMED__FINAL_PARAMETER_AND_POOL_MODEL_OPEN",
+      "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__FEE_AWARE_ADMISSION_POLICY_DEPENDS_FINAL_FEE_SECURITY_BUDGET"
     },
     "3": {
       "genesis_zero_hidden_issuance": "VERIFIER_PREPARED__FINAL_GENESIS_NOT_YET_AVAILABLE"
@@ -20,7 +20,7 @@
       "production_routing_partition": "EXISTING_REAL_WAN_STRONG__FINAL_PRODUCTION_TOPOLOGY_OPEN"
     },
     "8": {
-      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE",
+      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE__4096_TX_16KIB_POLICY__LIVE_NODE_BLOCK_AND_RESTART_VERIFIED",
       "long_duration_production_soak": "OPEN_EXTERNAL_OPERATIONAL_EVIDENCE"
     },
     "10": {
@@ -51,5 +51,23 @@
     "activation": false,
     "release": false,
     "mainnet": false
-  }
+  },
+  "last_reconciled_head": "61461a135eef671eab081a7e5eb509d6e46816b5",
+  "runtime_evidence": {
+    "pf07_object_identity": "3/3 PASS",
+    "pf11_mempool_bounds": "2/2 PASS",
+    "historical_security_regressions": "PSR hostile 12/12 + differential 2/2 + authoritative core 2/2 + white-box 5/5 PASS",
+    "daa_timestamp": "hardening 8/8 + red-team 5/5 PASS",
+    "live_mempool": "4096 accepted then mempool_full; saturated 20-tx block accepted; restart recovered 4076 pending",
+    "selfish_mining": "2,000,000 discovery events per alpha/gamma cell; classic threshold sensitivity reproduced"
+  },
+  "next_admissible_frontiers": [
+    "Independent DP6 verifier implementation and reduced-work/path-confusion negative corpus",
+    "Strategic mining opportunity-cost model for equal-work tie grinding plus BWH/FAW after final pool semantics",
+    "Fee-aware mempool admission/template economics after fee/security-budget candidate is frozen",
+    "Final-mainnet DAA parameter selection after block-time evidence resolves",
+    "Final genesis replay once production genesis exists",
+    "Production routing/partition replay once production bootstrap topology exists"
+  ],
+  "no_routine_waterfound_action_required": true
 }
