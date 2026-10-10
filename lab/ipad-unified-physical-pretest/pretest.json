@@ -1,6 +1,6 @@
 {
   "schema": "FAE_IPAD_UNIFIED_PRETEST_MI_V1",
-  "date": "2026-10-08",
+  "date": "2026-10-09",
   "authority": "CANDIDATE_PRETEST_ONLY_NO_PHYSICAL_DISPATCH",
   "source_refs": {
     "rde_contract": "FAE-RDE-ACCEPTANCE-V1-20260928",
@@ -15,22 +15,24 @@
     "hfb_asic_lab": "https://fairyelf-fae-asic-lab.vercel.app/",
     "rde_autopilot": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/?deviceClass=mobile_tablet_arm&manufacturer=Apple&mode=PHYSICAL_EVIDENCE",
     "mts_v3_protected_preview": "https://fae-mts-12-ipad-v3-preview-3mt41omtg-waterfound.vercel.app/",
-    "public_testnet_status": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4/status"
+    "public_testnet_status": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4/status",
+    "mts_v3_residual_only_public": "https://fae-mts12-v3-residual-isolated-2026.vercel.app/lab/mining-tip-sync/mts-12-ipad-acceptance.html?residualOnly=1"
   },
   "readiness": {
     "hfb_public_page_observed": true,
     "rde_public_page_observed": true,
     "network_public_status_observed": true,
-    "mts_v3_public_access_verified": false,
-    "mts_v3_residual_only_ready": false,
+    "mts_v3_public_access_verified": true,
+    "mts_v3_residual_only_ready": true,
     "rde_capture_session_checkpointing_verified": false,
     "all_three_one_click_ready": false,
     "operator_session_prepared": true,
     "live_hardware_measurements_performed": false,
     "mts_v3_residual_only_candidate_proposed": true,
-    "mts_v3_residual_only_candidate_deployed": false,
+    "mts_v3_residual_only_candidate_deployed": true,
     "mts_v3_residual_only_candidate_physical_pass": false,
-    "mts_v3_residual_only_candidate_pr": 288
+    "mts_v3_residual_only_candidate_pr": 288,
+    "all_three_software_execution_accessible": true
   },
   "maximum_inference": {
     "schema": "FAE_PRE_EMPIRICAL_SUBPILLAR_MI_V1",
@@ -77,7 +79,9 @@
         "counterfactuals": [
           "throughput stays near prior baseline but wall watts increase",
           "throughput changes under charging",
-          "valid throughput with invalid/incomplete Wh"
+          "valid throughput with invalid/incomplete Wh",
+          "normal heavy no-mining workload maintains charge but plugged-in DP6 creates repeated negative SOC drift",
+          "80% charge limit naturally oscillates 80 to 75 to 80 without representing progressive depletion"
         ],
         "failure_signatures": [
           "parity mismatch",
@@ -90,7 +94,8 @@
           "foreground run elapsed seconds",
           "completed work",
           "start/end meter Wh",
-          "start/end battery charging state"
+          "start/end battery charging state",
+          "documented supply adequacy screening and battery percent time-series from passive second device"
         ],
         "reality_gap": [
           "no existing paired measured wall Wh on iPad for DP6"
@@ -227,6 +232,10 @@
       {
         "id": "NO-CROSS-LAUNDERING",
         "rule": "DP6/HFB work/s and testnet RDE H/s are distinct; RDE cycles cannot satisfy MTS lifecycle; MTS old evidence cannot satisfy RDE"
+      },
+      {
+        "id": "PLUGGED_POWER_SIDECAR",
+        "rule": "Advisory energy/battery observation only; do not alter frozen HFB or RDE contracts, and do not project 60-minute plateau into 24/7 certainty. RDE SHA256 is not DP6."
       }
     ],
     "simulation_evidence_only": true,
@@ -270,5 +279,15 @@
       "runtime deploy or production mutation",
       "new paid spend"
     ]
+  },
+  "power_residency_observation": {
+    "schema": "FAE_PLUGGED_SUSTAINED_POWER_EQUILIBRIUM_SIDECAR_V1",
+    "protocol_ref": "lab/ipad-unified-physical-pretest/residency-observation-v1.json",
+    "normal_use_baseline_minutes": 20,
+    "recommended_dp6_continuous_minutes": 60,
+    "rde_frozen_timed_seconds": 9180,
+    "nominal_total_minutes": 233,
+    "frozen_acceptance_unchanged": true,
+    "empirical_evidence_obtained": false
   }
 }
