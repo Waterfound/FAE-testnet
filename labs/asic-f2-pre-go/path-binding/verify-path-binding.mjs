@@ -73,6 +73,8 @@ check('RW5_MANDATORY_WRITE',rw5.includes('s[mi]=rotl64('),'every step must updat
 check('PUBLIC_ENTRYPOINT_SINGLE',count(source,'extern "C" void fae_dp6_hls')===1,'exactly one public HLS DP6 entrypoint is admitted in this source');
 check('ENTRYPOINT_CALLS_FROZEN_PATH_ONCE',count(entry,'dp6_run_bytes(')===1,'public HLS entrypoint must call the frozen DP6 path exactly once');
 check('ENTRYPOINT_NO_ALTERNATE_PATH',!/\b(if|switch)\s*\(/.test(entry),'public entrypoint must not choose an alternate/reduced work path');
+check('ENTRYPOINT_INPUT_COPY',entry.includes('for (uint32_t i=0;i<FAE_DP6_INPUT_BYTES;i++) in_local[i]=input[i]'),'public entrypoint must copy the complete fixed DP6 input');
+check('ENTRYPOINT_OUTPUT_COPY',entry.includes('for (uint32_t i=0;i<FAE_DP6_OUTPUT_BYTES;i++) output[i]=out_local[i]'),'public entrypoint must return the complete frozen DP6 result');
 
 const mandatorySteps=8*131072;
 check('MANDATORY_EDGE_COUNT',mandatorySteps===1048576,'8 programs x 131072 steps must equal 1,048,576 mandatory memory-carried steps');
