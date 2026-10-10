@@ -43,9 +43,10 @@
         "4096 transaction global cap candidate",
         "16 KiB normalized transaction ceiling",
         "live-node saturation + block acceptance + restart recovery",
-        "mempool bounds regressions 2/2"
+        "mempool bounds regressions 2/2",
+        "Element 2 abstract anti-pinning policy counterfactual 9/9; no production/node activation"
       ],
-      "residual": "Fee-aware anti-pinning/admission economics is separate Element 2 work; current full-pool pinning is reproducible."
+      "residual": "Element 8 resource bound candidate GREEN; separate Element 2 production fee-aware admission/eviction, template priority, restart/reorg required."
     },
     {
       "id": "HP-04",
@@ -69,7 +70,8 @@
         "authoritative 9 FAE / 630k / 55% schedule replayed exactly",
         "34 nonzero reward eras",
         "terminal issuance 12,599,999.811 FAE exact match",
-        "coin-denominated fee-backfill envelope generated"
+        "coin-denominated fee-backfill envelope generated",
+        "Isolated mempool fee-priority counterfactual 9/9 (NOT economic security proof)"
       ],
       "residual": "Future fee demand, FAE price, honest hash participation, electricity/miner economics, specialization/rental liquidity and confirmation/reorg policy are reality/economic inputs not yet frozen."
     },
@@ -77,7 +79,7 @@
       "id": "HP-06",
       "area": "Strategic mining + pool incentives",
       "element": 2,
-      "candidate_status": "PARTIAL",
+      "candidate_status": "BOUNDED_MODELS_ADVANCED__FINAL_PROFITABILITY_OPEN",
       "mainnet_status": "OPEN",
       "evidence": [
         "2,000,000-event selfish-mining sensitivity cells",
@@ -85,9 +87,10 @@
         "lexicographic equal-work grinding surface identified",
         "strict-greater-only tie rule exercised as non-persistent viable counterfactual",
         "BWH/FAW pool-infiltration sensitivity executed across 140 cells",
-        "positive-attacker-extra-revenue surface observed in 28/28 BWH and 112/112 FAW parameter cells of the bounded sweep"
+        "positive-attacker-extra-revenue surface observed in 28/28 BWH and 112/112 FAW parameter cells of the bounded sweep",
+        "Exact 2048-share-window accounting fixture 6/6, conditional tie grinding opportunity model 3/3"
       ],
-      "residual": "Final tie policy, exact propagation/timing assumptions, exact FAE PPLNS window/stale-share/fork semantics, costs and EFAW/multi-pool interaction remain open; replay after those semantics freeze."
+      "residual": "Live FAE PPLNS BWH/FAW/EFAW and stubborn/selfish profitability with timing, opportunity costs, propagation and tie policy remain OPEN."
     },
     {
       "id": "HP-07",
@@ -133,7 +136,12 @@
       "HP-08"
     ],
     "mainnet_terminal_green_count": 0,
-    "reason": "Several terminal proofs are intentionally impossible before final consensus/economics/genesis/topology artifacts exist."
+    "reason": "Abstract policies and analytical models advanced; zero live node/consensus/economic activation. Terminal production proofs still impossible without final artifacts.",
+    "wave2_candidate_evidence": [
+      "Mempool isolated fee-aware policy 9/9",
+      "Tie opportunity-cost model 3/3",
+      "PPLNS finite window 6/6"
+    ]
   },
   "authority": {
     "documentation_and_assurance_only": true,
@@ -142,5 +150,6 @@
     "consensus_change": false,
     "economics_change": false,
     "mainnet": false
-  }
+  },
+  "revision": "2026-10-10-wave2"
 }
