@@ -2,7 +2,7 @@
   "schema": "FAE_DP6_PATH_BINDING_RESULT_V1",
   "date": "2026-10-10",
   "branch": "assurance/dp6-path-binding-20261010",
-  "branch_head_before_result": "334e0884d9d4b6faba71c1ff6c22af039710d4e3",
+  "branch_head_before_result": "7cee73bb6dd344cf4366e38baabc43ca255007e4",
   "source": {
     "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
     "blob_sha1": "ea1ab21fbf359adc35955c42ea8e137707c37b6d"
@@ -12,13 +12,20 @@
     "blob_sha1": "cd69b7082ffeb85c0273ba58f94a45326ad87734"
   },
   "execution": {
-    "mode": "REAL_RUN_READ_ONLY_SOURCE_ASSURANCE",
-    "method": "deterministic source-structure reconciliation against exact GitHub blob",
-    "checks_passed": 25,
+    "mode": "REAL_RUN_VERCEL_SANDBOX_READ_ONLY_ASSURANCE",
+    "runtime": {
+      "region": "gru1",
+      "vcpus": 1,
+      "memory_mib": 2048,
+      "github_actions_consumed": 0,
+      "paid_spend_increment_usd": 0
+    },
+    "checks_passed": 28,
     "checks_failed": 0,
-    "github_actions_consumed": 0,
-    "target_mutation": false,
-    "note": "25 deterministic assertions: 7 frozen constants plus 18 path/binding/entrypoint checks."
+    "negative_structural_mutants": 10,
+    "negative_mutants_rejected": 10,
+    "baseline_negative_harness_passed": true,
+    "target_mutation": false
   },
   "findings": {
     "fixed_constants": true,
@@ -37,13 +44,15 @@
     "mandatory_state_write_each_step": true,
     "public_entrypoints": 1,
     "public_entrypoint_calls_frozen_path_once": true,
-    "entrypoint_alternate_selector_absent": true
+    "entrypoint_alternate_selector_absent": true,
+    "public_entrypoint_complete_input_copy": true,
+    "public_entrypoint_complete_output_copy": true
   },
-  "verdict": "IMPLEMENTATION_LOCAL_PATH_BINDING_PASS__PRODUCTION_VERIFIER_AND_INDEPENDENT_VERIFIER_OPEN",
+  "verdict": "IMPLEMENTATION_LOCAL_PATH_BINDING_AND_NEGATIVE_STRUCTURAL_CORPUS_PASS__INDEPENDENT_DP6_VERIFIER_OPEN",
   "residual": [
     "future production/mainnet verifier wiring is not yet frozen",
     "independent DP6 verifier implementation remains open",
-    "negative reduced-work/path-confusion proof corpus remains open",
+    "proof-level malformed/truncated/reused/path-confusion corpus requires that independent verifier",
     "cryptanalytic shortcut impossibility is not claimed"
   ],
   "authority": {
