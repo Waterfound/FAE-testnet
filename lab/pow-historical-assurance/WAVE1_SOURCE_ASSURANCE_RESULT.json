@@ -1,0 +1,61 @@
+{
+  "schema": "FAE_HISTORICAL_POW_WAVE1_SOURCE_ASSURANCE_RESULT_V1",
+  "date": "2026-10-10",
+  "branch": "assurance/pow-historical-main-20261010",
+  "branch_head_before_result": "91b81d45b4645e6d68729afe8cb02ea54323dc2f",
+  "source": {
+    "core": {
+      "path": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+      "blob_sha1": "2cf4e8a12f1cfcec7d2f14d8b742b814c09bbd5f"
+    },
+    "node": {
+      "path": "sovereign-forge/node/fae-node.mjs",
+      "blob_sha1": "2fdc2b279722e740c5b8c56f22490b30c9505762"
+    },
+    "object_identity_test": {
+      "path": "sovereign-forge/tests/historical-pow-object-identity.mjs",
+      "blob_sha1": "971ea23b8c1cfe37e59390de19e6ccfa135a9875"
+    },
+    "brownout_diagnostic": {
+      "path": "lab/pow-historical-assurance/mempool-brownout-diagnostic.mjs",
+      "blob_sha1": "d78f01e70ea3aefe063102745bcdf69ffd2b8de0"
+    }
+  },
+  "execution": {
+    "mode": "REAL_RUN_READ_ONLY_SOURCE_ASSURANCE",
+    "github_actions_consumed": 0,
+    "target_mutation": false
+  },
+  "checks": {
+    "duplicate_inputs_rejected": true,
+    "duplicate_txid_rejected": true,
+    "claimed_txid_recomputed_and_checked": true,
+    "txid_from_full_normalized_tx": true,
+    "block_duplicate_txids_rejected": true,
+    "tx_root_exact_ordered_list_bound": true,
+    "block_hash_recomputes_full_header_nonce": true,
+    "zero_fee_is_admitted": true,
+    "pending_output_chaining_is_admitted": true,
+    "mempool_order_grows_per_admission": true,
+    "mempool_outputs_grow_per_admission": true,
+    "http_body_ceiling_2mb": true,
+    "explicit_global_mempool_tx_limit": false,
+    "explicit_global_mempool_byte_limit": false
+  },
+  "conclusions": {
+    "pf07": "STRONG_STRUCTURAL_DEFENSE__DYNAMIC_REGRESSION_PREPARED_NOT_EXECUTED",
+    "valid_mempool_brownout": "STRUCTURAL_UNBOUNDED_ADMISSION_GAP_CONFIRMED__DYNAMIC_RESOURCE_IMPACT_PENDING",
+    "structural_unbounded_pending_chain": true
+  },
+  "next": [
+    "execute PF-07 node regressions on an admissible runtime",
+    "execute valid-mempool brownout diagnostic to quantify RAM/disk/latency/template/restart impact",
+    "only after measurement, select the smallest deterministic mempool count/byte/admission/eviction policy needed for bounded liveness"
+  ],
+  "authority": {
+    "consensus_change": false,
+    "economics_change": false,
+    "production": false,
+    "mainnet": false
+  }
+}
