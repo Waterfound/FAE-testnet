@@ -2,16 +2,15 @@
   "schema": "FAE_FINITE_PPLNS_WINDOW_ASSURANCE_RESULT_V1",
   "status": "EXACT_WINDOW_ACCOUNTING_COUNTERFACTUAL_PASS__BWH_FAW_EFAW_FINAL_ECONOMICS_OPEN",
   "checks": {
-    "passed": 7,
-    "total": 7,
+    "passed": 6,
+    "total": 6,
     "ids": [
       "2048_exact_last_N",
       "initial_512_attacker_weight",
       "withheld_block_does_not_change_share_ledger",
       "share_window_displaces_old_attacker",
       "full_window_rolloff_eliminates_old_shares",
-      "integer_coinbase_conservation",
-      "different_jobs_distinct_commitment_identifiers"
+      "integer_coinbase_conservation"
     ]
   },
   "candidate_constants": {
@@ -81,7 +80,8 @@
   "limitations": [
     "This is exact rolling-window accounting only, not a full live ShareCoordinator or Monte Carlo fork simulation.",
     "All shares are assumed valid, accepted, and equally weighted; cryptographic validation is separately covered by coordinator tests.",
-    "No fee policy, pool activation, network architecture or consensus choice was changed."
+    "No fee policy, pool activation, network architecture or consensus choice was changed.",
+    "Cross-coordinator proof nontransferability is NOT tested by this fixture; requires a real challenge/hash binding negative test."
   ],
   "authority": {
     "research_only": true,
