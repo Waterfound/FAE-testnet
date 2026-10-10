@@ -1,0 +1,59 @@
+{
+  "schema": "FAE_VR08_WALLET_COMPOSITION_STUDY_V1",
+  "date": "2026-10-10",
+  "authority_owner": "Waterfound",
+  "status": "CANDIDATE_SOURCE_CREATED__NOT_DEPLOYED__NOT_HUMAN_ACCEPTED",
+  "reference": {
+    "pr": 268,
+    "exact_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "role": "SOLE_AUTHORITATIVE_VISUAL_IDENTITY"
+  },
+  "candidate": {
+    "pr": 272,
+    "branch": "design/fae-authorship-product-wallet-001",
+    "source": "design/vr08-wallet-authored-composition-study.html",
+    "blob_sha": "59576fa99887df6956fa3e13dfe10469a2972d33",
+    "first_commit": "e6fdbae701af56503a5f254c20c851aa1b9c9ca3",
+    "refinement_commit": "a1c104c2cfd40c2df0e4a175b039b435c249f383"
+  },
+  "preserved_baseline": {
+    "app_id": "fae-authored-product-wallet-studio-6cku5x",
+    "url": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "status": "VR08_REJECTED__PRESERVE_UNCHANGED"
+  },
+  "design_contract": {
+    "empty": "Large intentional white space; explicit New Wallet and Recover Wallet; no implicit wallet creation",
+    "active": "Dominant balance, quiet address, ruled history, immediate Send/Receive, blue activity trace only driven by explicit review simulation",
+    "recovery": "Focused recovery entry, disabled sensitive input in isolated study; distinct New Wallet and Recover Wallet paths",
+    "motion": "No ambient animation; explicit receipt simulation only; reduced-motion support",
+    "studio_controls": "Separated from actual product composition"
+  },
+  "security_scope": {
+    "read_only": true,
+    "connected_to_production": false,
+    "network_access": false,
+    "keys_created": false,
+    "seed_phrase_accepted": false,
+    "transactions_sent": false,
+    "miner_started": false,
+    "consensus_or_economics_changed": false,
+    "protected_wallet_mining_source_changed": false
+  },
+  "verification": {
+    "source_created": true,
+    "source_blob_fetched_after_update": true,
+    "desktop_visual_qa": "PENDING",
+    "mobile_visual_qa": "PENDING",
+    "browser_functional_qa": "PENDING",
+    "exact_head_ci": "PENDING",
+    "human_visual_acceptance": "PENDING"
+  },
+  "gates": {
+    "canonical_main_merge": false,
+    "production_deployment": false,
+    "explorer_network_source_mutation": false,
+    "new_feature_family_propagation": false,
+    "release": false
+  },
+  "next": "Verify candidate visually against frozen Mining on desktop and mobile; preserve rejected Studio; produce isolated review preview only under applicable preview authority; request fresh Waterfound visual acceptance before propagation."
+}

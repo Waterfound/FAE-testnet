@@ -3,127 +3,200 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07100b">
-<title>Fairyelf FAE Public Testnet</title>
+<meta name="theme-color" content="#f47a20">
+<title>FAE Web Interface</title>
 <style>
-:root{color-scheme:dark;--bg:#07100b;--surface:#0e1a13;--surface-2:#07110b;--line:#294733;--line-strong:#527e5f;--text:#edf8ef;--muted:#9eb3a4;--accent:#b8ffc8;--accent-ink:#061108;--danger:#ff9d9d;--warning:#ffd58a;--focus:#70ff91}
+:root{color-scheme:light;--orange:#f47a20;--orange-deep:#bd4f08;--blue:#1769ff;--blue-soft:#eaf1ff;--blue-deep:#0c4cc4;--bg:#f6f7f9;--surface:#fff;--surface-2:#f4f6f8;--line:#d9dde3;--line-strong:#aeb6c2;--text:#17191d;--muted:#68707b;--danger:#b42318;--warning:#8a4b08;--success:#16794b;--focus:#1769ff}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:980px;margin:auto;padding:20px 15px 64px}
-h1{font-size:clamp(28px,5vw,42px);line-height:1.08;margin:18px 0 6px;letter-spacing:-.035em}
-h2{font-size:20px;margin:0 0 12px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.48 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.fae-topper{position:sticky;top:0;z-index:20;background:var(--orange);color:#1b130d;border-bottom:1px solid rgba(98,43,3,.22);box-shadow:0 5px 22px rgba(116,55,12,.12)}
+.topper-head{max-width:1080px;margin:auto;min-height:54px;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand-lockup{display:flex;align-items:baseline;gap:10px;font-weight:900;letter-spacing:-.02em}.brand-lockup b{font-size:20px}.brand-lockup span{font-size:11px;font-weight:750;letter-spacing:.09em;text-transform:uppercase}
+.topper-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ticker-viewport{border-top:1px solid rgba(92,40,0,.16);overflow:hidden;white-space:nowrap}
+.ticker-track{display:inline-flex;align-items:center;min-width:max-content;gap:30px;padding:8px 0 9px 100vw;font:720 11px/1.15 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.045em;text-transform:uppercase;animation:faeTicker 34s linear infinite}
+.ticker-track span{display:inline-flex;align-items:center;gap:7px}.ticker-track b{font-size:12px;color:#111;font-weight:900}.ticker-sep{opacity:.55}
+.ticker-viewport:hover .ticker-track,.ticker-viewport:focus-within .ticker-track{animation-play-state:paused}
+@keyframes faeTicker{to{transform:translateX(-62%)}}
+main{max-width:1080px;margin:auto;padding:30px 18px 72px}
+.fae-hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:34px;align-items:end;padding:22px 0 34px;border-bottom:1px solid var(--line)}
+.hero-kicker{font:800 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--orange-deep)}
+h1{font-size:clamp(38px,7vw,74px);line-height:.96;margin:9px 0 16px;letter-spacing:-.055em;max-width:760px}
+h2{font-size:20px;margin:0 0 12px;letter-spacing:-.015em}
 h3{font-size:16px;margin:0 0 7px}
-p{margin:7px 0 12px}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.network-status,.pill{display:inline-flex;align-items:center;gap:6px;background:#0d2114;color:#caffd5;border:1px solid #376947;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:750;line-height:1.2}
-.pill.warn{color:var(--warning);border-color:#685731;background:#1c180d}
-.network-status[data-state="connecting"]{color:var(--warning);border-color:#685731;background:#1c180d}
-.network-status[data-state="online"]{color:#caffd5;border-color:#376947;background:#0d2114}
-.network-status[data-state="offline"]{color:var(--danger);border-color:#674040;background:#261313}
-.network-dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor;animation:networkPulse 1.8s ease-out infinite}
-@keyframes networkPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.78)}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:17px;padding:16px}
-.metrics-card{margin:20px 0 14px}
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.metrics div,.status{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px}
-.metrics b{display:block;margin-top:2px}
-.status{margin-top:10px}
-.small{color:var(--muted);font-size:13px}
-.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
-.balance{font-size:clamp(29px,6vw,38px);font-weight:820;letter-spacing:-.03em;margin:4px 0}
-.ok{color:var(--accent)}
-.bad{color:var(--danger)}
-.warn{color:var(--warning)}
-.hidden,[hidden]{display:none!important}
-.environment-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0;padding:5px;background:#0a160f;border:1px solid var(--line);border-radius:15px;position:sticky;top:8px;z-index:5;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+p{margin:7px 0 12px}.hero-copy{font-size:18px;line-height:1.5;color:#4d5560;max-width:680px}
+.hero-principles{display:grid;gap:0;border-top:1px solid var(--line)}
+.hero-principles div{padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:18px}.hero-principles span{color:var(--muted);font-size:12px}.hero-principles b{font-size:12px;text-align:right}
+.network-status,.pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.78);color:#2f241a;border:1px solid rgba(80,37,4,.2);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;line-height:1.2}
+.pill.warn{color:#633306;border-color:rgba(99,51,6,.3);background:rgba(255,244,225,.78)}
+.network-status[data-state="connecting"]{color:#633306}.network-status[data-state="online"]{color:#0a5e3b}.network-status[data-state="offline"]{color:#9d1c14}
+.network-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px rgba(255,255,255,.34);animation:networkPulse 1.8s ease-out infinite}
+@keyframes networkPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.8)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 2px rgba(20,27,35,.025)}
+.product-intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:28px;align-items:end;padding:8px 0 22px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.product-intro h2{font-size:clamp(24px,4vw,36px);line-height:1.08;letter-spacing:-.035em;margin:7px 0 10px;max-width:690px}
+.product-intro p{color:#525c68;max-width:680px}.product-kicker{font:800 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-deep)}
+.trust-strip{display:grid;border-top:1px solid var(--line)}.trust-strip span{display:flex;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid var(--line)}.trust-strip b{font-size:12px}.trust-strip small{color:var(--muted);text-align:right}
+#panel-wallet .card{box-shadow:none}#panel-wallet .backup{border-left:4px solid #4e5967;background:#fbfbfc}#panel-wallet .backup h3{color:#242a31}
+#panel-wallet #lastsendtx{border-left:3px solid var(--blue)}#panel-wallet .transaction-details[open]{border-left:3px solid var(--blue)}
+.mining-activity{margin-top:12px;padding:13px 0 2px;border-top:1px solid var(--line)}
+.mining-activity-head{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}.mining-activity-head span{font-weight:780}.mining-activity-head strong{font:800 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.mining-activity-rail{height:7px;margin:9px 0 8px;background:#e2e8f2;border-radius:999px;overflow:hidden;position:relative}.mining-activity-fill{display:block;width:100%;height:100%;background:var(--blue);border-radius:inherit;transform:scaleX(.08);transform-origin:left center}
+.mining-active-label{display:none}.mining-activity p{margin:0;color:var(--muted);font-size:11px}
+#panel-mining:has(#stop:not(:disabled)) .mining-idle-label{display:none}
+#panel-mining:has(#stop:not(:disabled)) .mining-active-label{display:inline;color:var(--blue-deep)}
+#panel-mining:has(#stop:not(:disabled)) .mining-activity-fill{animation:miningActivityFill 4.8s cubic-bezier(.22,.72,.22,1) infinite}
+@keyframes miningActivityFill{0%{transform:scaleX(.06);opacity:.8}72%{transform:scaleX(.92);opacity:1}100%{transform:scaleX(1);opacity:.88}}
+
+.status{margin-top:10px;background:var(--surface-2);border-left:3px solid var(--blue);padding:10px 11px;border-radius:6px}
+.small{color:var(--muted);font-size:13px}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.balance{font-size:clamp(29px,6vw,40px);font-weight:850;letter-spacing:-.045em;margin:4px 0}.ok{color:var(--success)}.bad{color:var(--danger)}.warn{color:var(--warning)}.hidden,[hidden]{display:none!important}
+.environment-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:20px 0 15px;padding:4px;background:#eef1f5;border:1px solid var(--line);border-radius:10px;position:sticky;top:93px;z-index:10;box-shadow:0 8px 22px rgba(33,42,52,.08)}
 button,input,textarea{font:inherit}
-button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:var(--accent-ink);font-weight:760;cursor:pointer}
-button:hover:not(:disabled){filter:brightness(1.05)}
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-button.alt{background:#24392b;color:var(--text);border:1px solid #395744}
-button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
-button.danger{background:#3a2020;color:#ffd4d4;border:1px solid #674040}
-button:disabled{opacity:.45;cursor:not-allowed}
-.environment-tab{background:transparent;color:var(--muted);border:1px solid transparent;font-size:16px}
-.environment-tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
-.panel-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.95fr);gap:12px}
-.stack{display:grid;gap:12px}
-.wide{grid-column:1/-1}
-.actions{display:flex;flex-wrap:wrap;gap:7px}
-.actions button{margin:0}
-.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.wallet-action[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
-.action-panel{margin-top:12px;padding-top:14px;border-top:1px solid var(--line)}
-.field{display:block;margin:12px 0 5px;color:var(--muted);font-size:13px}
-textarea,input{width:100%;background:#06100a;border:1px solid #355942;border-radius:10px;color:var(--text);padding:11px}
-textarea{min-height:72px;resize:vertical}
-.seed{min-height:118px;line-height:1.65}
-.active-address{min-height:77px}
-.address-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.address-list{display:grid;gap:7px;margin-top:10px}
-.address-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;background:#0a150e;color:var(--text);border:1px solid var(--line);padding:10px}
-.address-row:hover{border-color:var(--line-strong)}
-.address-row[aria-pressed="true"]{border-color:var(--accent);background:#102319}
-.address-number{color:var(--muted);font-size:12px;white-space:nowrap}
-.address-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.active-mark{color:var(--accent);font-size:11px;font-weight:800;text-transform:uppercase}
-.notice{padding:11px 12px;border:1px solid #5d512e;background:#19170d;border-radius:11px;color:#ffe09d;font-size:13px}
-.backup{margin-top:12px;padding:13px;border:1px solid var(--line-strong);border-radius:13px;background:#0a1710}
-.transaction-list,.block-list{display:grid;gap:7px;margin-top:10px}
-.transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
-.transaction-row.transaction-details{display:block}
-.transaction-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer;list-style:none}
-.transaction-summary::-webkit-details-marker{display:none}
-.transaction-summary::marker{content:""}
-.transaction-details[open]{border-color:var(--line-strong)}
-.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:10px}
-.transaction-detail-field{display:grid;gap:5px;min-width:0}
-.transaction-detail-value{white-space:pre-wrap;overflow-wrap:anywhere}
-.txid-full{display:block;width:100%;min-height:58px;resize:vertical;overflow-wrap:anywhere;color:var(--text);font-size:12px}
-.transaction-copy{justify-self:start}
-.transaction-copy-feedback{min-height:1.2em}
-.txid-result{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
-.txid-result textarea{min-height:64px;margin-top:5px}
-.transaction-title{font-weight:720}
-.transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}
-.right{text-align:right}
-.empty{color:var(--muted);padding:12px 2px}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
-.section-head button{flex:0 0 auto}
-.divider{border:0;border-top:1px solid var(--line);margin:15px 0}
-.passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}
-.footer-note{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
-@media(max-width:760px){.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.metrics{grid-template-columns:1fr 1fr}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:5px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
-@media(max-width:420px){main{padding-inline:11px}.metrics{grid-template-columns:1fr 1fr}.card{padding:13px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}}
+button{border:1px solid transparent;border-radius:8px;padding:11px 13px;background:var(--blue);color:#fff;font-weight:780;cursor:pointer}
+button:hover:not(:disabled){background:var(--blue-deep)}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid rgba(23,105,255,.25);outline-offset:2px}
+button.alt{background:#fff;color:#28313c;border-color:var(--line-strong)}button.alt:hover:not(:disabled){background:#f5f7fa}
+button.ghost{background:transparent;color:#4f5965;border-color:var(--line)}button.ghost:hover:not(:disabled){background:#f4f6f8}
+button.danger{background:#fff2f0;color:var(--danger);border-color:#efb9b4}button:disabled{opacity:.45;cursor:not-allowed}
+.environment-tab{background:transparent;color:var(--muted);border:0;font-size:15px}.environment-tab:hover:not(:disabled){background:#e4e8ee}.environment-tab[aria-selected="true"]{background:#fff;color:var(--blue-deep);box-shadow:0 1px 3px rgba(26,34,45,.09)}
+.panel-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(290px,.95fr);gap:14px}.stack{display:grid;gap:14px}.wide{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{margin:0}.wallet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.wallet-action[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}\n.wallet-entry-buttons{display:grid;grid-template-columns:1fr;gap:9px;max-width:440px}.wallet-entry-buttons .wallet-action{text-align:left}.wallet-list{display:grid;gap:8px;margin:12px 0}.wallet-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}.wallet-row.active{border-color:var(--blue);background:var(--blue-soft)}.wallet-row-main{min-width:0}.wallet-row-label{font-weight:760}.wallet-row-address{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.advanced-recovery{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}.advanced-recovery summary{cursor:pointer;font-weight:700;color:var(--muted)}
+.action-panel{margin-top:14px;padding-top:16px;border-top:1px solid var(--line)}.field{display:block;margin:12px 0 5px;color:#535d69;font-size:13px;font-weight:650}
+textarea,input{width:100%;background:#fff;border:1px solid #cbd1d9;border-radius:8px;color:var(--text);padding:11px}textarea:read-only{background:#f7f8fa}textarea{min-height:72px;resize:vertical}.seed{min-height:118px;line-height:1.65}.active-address{min-height:77px}
+.address-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.address-list{display:grid;gap:7px;margin-top:10px}
+.address-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;color:var(--text);border:1px solid var(--line);padding:10px}.address-row:hover{border-color:#8d98a7}.address-row[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.address-number{color:var(--muted);font-size:12px;white-space:nowrap}.address-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.active-mark{color:var(--blue-deep);font-size:11px;font-weight:850;text-transform:uppercase}
+.notice{padding:11px 12px;border:1px solid #e3c79f;background:#fff7e9;border-radius:8px;color:#754313;font-size:13px}.backup{margin-top:12px;padding:14px;border:1px solid #c8ced7;border-radius:9px;background:#fafbfc}
+.transaction-list,.block-list{display:grid;gap:7px;margin-top:10px}.transaction-row,.block-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.transaction-row.transaction-details{display:block}.transaction-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;cursor:pointer;list-style:none}.transaction-summary::-webkit-details-marker{display:none}.transaction-summary::marker{content:""}.transaction-details[open]{border-color:#9aa5b3}.transaction-detail-body{border-top:1px solid var(--line);margin-top:9px;padding-top:9px;display:grid;gap:10px}.transaction-detail-field{display:grid;gap:5px;min-width:0}.transaction-detail-value{white-space:pre-wrap;overflow-wrap:anywhere}.txid-full{display:block;width:100%;min-height:58px;resize:vertical;overflow-wrap:anywhere;color:var(--text);font-size:12px}.transaction-copy{justify-self:start}.transaction-copy-feedback{min-height:1.2em}.txid-result{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fafbfc}.txid-result textarea{min-height:64px;margin-top:5px}.transaction-title{font-weight:760}.transaction-meta{color:var(--muted);font-size:12px;margin-top:2px}.right{text-align:right}.empty{color:var(--muted);padding:12px 2px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}.section-head button{flex:0 0 auto}.divider{border:0;border-top:1px solid var(--line);margin:17px 0}.passphrase-note{margin-top:7px;color:var(--warning);font-size:12px}.footer-note{margin-top:22px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:760px){.product-intro{grid-template-columns:1fr}.topper-head{align-items:flex-start}.brand-lockup span{display:none}.topper-status{max-width:66%}.ticker-track{animation-duration:28s}.fae-hero{grid-template-columns:1fr;gap:18px}.panel-grid{grid-template-columns:1fr}.wide{grid-column:auto}.wallet-actions{grid-template-columns:1fr}.environment-tabs{top:92px}.address-row{grid-template-columns:auto minmax(0,1fr)}.active-mark{grid-column:2}}
+@media(max-width:420px){main{padding-inline:12px}.card{padding:14px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}.topper-head{padding-inline:12px}.ticker-track{gap:22px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.network-dot{animation:none}.ticker-viewport{overflow-x:auto}.ticker-track{animation:none;padding-left:18px}#panel-mining:has(#stop:not(:disabled)) .mining-activity-fill{animation:none;transform:scaleX(.58)}}
+
+/* AUTHORED PRODUCT SHELL + WALLET — controlled propagation from approved Mining grammar. */
+html{font-variant-numeric:tabular-nums lining-nums}
+.fae-topper{box-shadow:none}
+.topper-head{min-height:39px;padding:6px 22px}
+.brand-lockup{align-items:center}.brand-lockup b{font-size:18px;letter-spacing:-.035em}
+.topper-status{flex-wrap:nowrap}
+.ticker-viewport{background:#fff;color:#24304c;border-top:1px solid rgba(92,40,0,.13);border-bottom:1px solid #edf0f3}
+.ticker-track{gap:26px;padding:8px 0 8px 100vw;font-size:10px;letter-spacing:.025em;text-transform:uppercase;animation-duration:40s}
+.ticker-track b{font-size:10px;color:#24304c}
+main{max-width:1180px;min-height:calc(100vh - 72px);padding:0 28px 64px;background:#fff;border-inline:1px solid #edf0f3}
+.product-shell-head{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line);padding:0 2px}
+.product-shell-title{display:flex;align-items:baseline;gap:12px}.product-shell-title>span{font-size:15px;font-weight:840;letter-spacing:-.02em}.product-shell-title small{font-size:11px;color:var(--muted)}
+.environment-tabs.authored-mode-switch{position:static;top:auto;z-index:auto;display:flex;grid-template-columns:none;gap:7px;margin:0;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.authored-mode-switch .environment-tab{min-height:32px;padding:0 13px;border:1px solid #dfe4ea;border-radius:5px;background:#fff;color:#616b77;font-size:12px;font-weight:780}
+.authored-mode-switch .environment-tab:hover:not(:disabled){background:#fafbfc;border-color:#c8d0da}
+.authored-mode-switch .environment-tab[aria-selected="true"]{background:#f7fbff;border-color:var(--blue);color:var(--blue-deep);box-shadow:none}
+#panel-mining{padding-top:30px}
+#panel-wallet{padding-top:34px}
+.wallet-stage-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,.42fr);gap:54px;align-items:start;margin-bottom:24px}
+.wallet-stage-copy{max-width:690px}.wallet-stage-head h1{font-size:32px;line-height:1;margin:6px 0 10px;letter-spacing:-.04em;font-weight:830}.wallet-stage-head p{max-width:650px;color:#67717e;margin:0}
+.wallet-presence{border-top:1px solid var(--text);padding-top:12px;display:grid;grid-template-columns:1fr auto;column-gap:20px;row-gap:5px;align-items:baseline}
+.wallet-presence .presence-label{font:760 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;text-transform:uppercase;letter-spacing:.08em;color:#7a8490}
+.wallet-presence strong{font-size:26px;line-height:1;letter-spacing:-.04em}.wallet-presence small{grid-column:1/-1;color:#737d89}
+.wallet-admission-rule{margin:0 0 30px;padding:12px 0;border-block:1px solid #edf0f3;color:#616b77;font-size:12px}
+.wallet-admission-rule strong{color:#242a31}
+#panel-wallet>.stack,#wallet-connected-state{gap:0}
+#panel-wallet .wallet-section{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:22px 0;box-shadow:none}
+#panel-wallet .wallet-entry-section{border-top-color:var(--text);max-width:780px;padding-top:18px}
+#panel-wallet .wallet-entry-buttons{max-width:420px;gap:8px}
+#panel-wallet .wallet-entry-buttons .wallet-action{text-align:left}
+#panel-wallet #wallet-connected-state>.wallet-section:first-child{border-top-color:var(--text)}
+#panel-wallet #wallet-connected-state>.panel-grid{grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:48px;border-top:1px solid var(--text)}
+#panel-wallet #wallet-connected-state>.panel-grid>.wallet-section{border-top:0;padding-top:22px}
+#panel-wallet .address-head{align-items:flex-start}
+#panel-wallet .balance{font-size:clamp(42px,6vw,64px);line-height:.92;font-weight:840;letter-spacing:-.055em;margin:0}
+#panel-wallet .wallet-list{gap:0;margin-top:8px}
+#panel-wallet .wallet-row{border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0;background:transparent}
+#panel-wallet .wallet-row:last-child{border-bottom:1px solid var(--line)}
+#panel-wallet .wallet-row.active{border-color:var(--blue);background:transparent;box-shadow:inset 3px 0 0 var(--blue);padding-left:11px}
+#panel-wallet .active-mark{color:var(--blue-deep)}
+#panel-wallet .status{background:transparent;border-top:1px solid #edf0f3;border-left:3px solid var(--blue);border-radius:0;padding:9px 0 9px 11px}
+#panel-wallet .status.ok{border-left-color:var(--success);color:#0c603b}
+#panel-wallet .status.bad{border-left-color:var(--danger)}
+#panel-wallet .backup{box-shadow:none;border-radius:5px}
+#panel-wallet .transaction-row,#panel-wallet .block-row{border-radius:4px;box-shadow:none}
+#panel-wallet .action-panel{border-top-color:#edf0f3}
+#panel-wallet .advanced-recovery{border-top-color:#edf0f3}
+#panel-wallet button{transition:border-color .16s ease,background-color .16s ease,color .16s ease,transform .12s ease}
+#panel-wallet button:active:not(:disabled){transform:translateY(1px)}
+#panel-wallet .notice{border-radius:5px}
+.footer-note{padding-top:18px;border-top:1px solid var(--line);text-align:left}
+@media(max-width:760px){
+  main{padding-inline:18px;border-inline:0}
+  .topper-head{padding-inline:18px}
+  .product-shell-head{min-height:58px;gap:14px}
+  .product-shell-title small{display:none}
+  .wallet-stage-head{grid-template-columns:1fr;gap:24px}
+  #panel-wallet #wallet-connected-state>.panel-grid{grid-template-columns:1fr;gap:0}
+  #panel-wallet #wallet-connected-state>.panel-grid>.wallet-section+ .wallet-section{border-top:1px solid var(--line)}
+  .wallet-presence{max-width:440px}
+}
+@media(max-width:420px){
+  main{padding-inline:12px}
+  .topper-head{padding-inline:12px}
+  .product-shell-head{align-items:center}
+  .product-shell-title>span{font-size:13px}
+  .authored-mode-switch .environment-tab{padding-inline:10px}
+  #panel-wallet{padding-top:27px}
+  .wallet-stage-head h1{font-size:28px}
+  #panel-wallet .balance{font-size:46px}
+}
+@media(prefers-reduced-motion:reduce){
+  #panel-wallet button{transition:none!important}
+  .ticker-track{animation:none!important;padding-left:18px}
+  .network-dot{animation:none!important}
+}
+
 </style>
 </head>
-<body>
-<main>
-  <div class="topbar">
-    <div id="netstatus" class="network-status is-connecting" data-state="connecting" role="status" aria-live="polite"><span class="network-dot" aria-hidden="true"></span><span data-network-label>Connecting…</span></div>
-    <span class="pill warn">Valueless testnet coins</span>
-  </div>
-  <h1>Fairyelf Public Testnet</h1>
-  <p class="small">Device-local browser PoW · public shared network · Ed25519 wallets</p>
-
-  <section class="card metrics-card" aria-label="Network status">
-    <div class="metrics">
-      <div><span class="small">Blocks</span><b id="height">—</b></div>
-      <div><span class="small">Supply</span><b id="issued">—</b></div>
-      <div><span class="small">Reward</span><b id="reward">—</b></div>
-      <div><span class="small">Difficulty</span><b id="difficulty">—</b></div>
+<body data-direction-d="true" data-authorship-propagation="product-wallet-v1">
+<header class="fae-topper" aria-label="FAE network broadcast">
+  <div class="topper-head">
+    <div class="brand-lockup"><b>FAE</b></div>
+    <div class="topper-status">
+      <div id="netstatus" class="network-status is-connecting" data-state="connecting" role="status" aria-live="polite"><span class="network-dot" aria-hidden="true"></span><span data-network-label>Connecting…</span></div>
     </div>
-    <div id="runtime" class="status">Connecting…</div>
-  </section>
-
-  <nav class="environment-tabs" role="tablist" aria-label="Testnet environments">
-    <button id="tab-mining" class="environment-tab" role="tab" aria-selected="false" aria-controls="panel-mining" tabindex="-1">Mining</button>
-    <button id="tab-wallet" class="environment-tab" role="tab" aria-selected="true" aria-controls="panel-wallet">Wallet</button>
-  </nav>
+  </div>
+  <div class="ticker-viewport" role="region" aria-label="Live network ticker" tabindex="0">
+    <div class="ticker-track">
+      <span>Block Height <b id="height">—</b></span><i class="ticker-sep">◆</i>
+      <span>Supply <b id="issued">—</b></span><i class="ticker-sep">◆</i>
+      <span>Reward <b id="reward">—</b></span><i class="ticker-sep">◆</i>
+      <span>Difficulty <b id="difficulty">—</b></span><i class="ticker-sep">◆</i>
+      <span id="runtime">Connecting…</span>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="product-shell-head">
+    <div class="product-shell-title">
+      <span>FAE Web Interface</span>
+      <small>Local ownership and computation</small>
+    </div>
+    <nav class="environment-tabs authored-mode-switch" role="tablist" aria-label="Product modes">
+      <button id="tab-wallet" class="environment-tab" role="tab" aria-selected="true" aria-controls="panel-wallet">Wallet</button>
+      <button id="tab-mining" class="environment-tab" role="tab" aria-selected="false" aria-controls="panel-mining" tabindex="-1">Mining</button>
+    </nav>
+  </div>
 
   <section id="panel-mining" role="tabpanel" aria-labelledby="tab-mining" hidden>
+    <section class="product-intro mining-intro" aria-labelledby="mining-surface-title">
+      <div>
+        <div class="product-kicker">Mining / live participation</div>
+        <h2 id="mining-surface-title">Computation in motion, not a countdown.</h2>
+        <p>Your device performs real proof-of-work. Blue circulation shows that work is active; it never represents guaranteed progress toward a reward.</p>
+      </div>
+      <div class="trust-strip" aria-label="Mining semantics">
+        <span><b>Local work</b><small>Runs on this device</small></span>
+        <span><b>Probabilistic</b><small>No guaranteed completion</small></span>
+        <span><b>Direct reward</b><small>To the selected FAE address</small></span>
+      </div>
+    </section>
     <div class="panel-grid">
       <section class="card">
         <div class="section-head">
@@ -142,6 +215,11 @@ textarea{min-height:72px;resize:vertical}
           <button id="openwallet" class="ghost">Open Wallet</button>
         </div>
         <div id="mstate" class="status">Select a reward address in Wallet, or insert a public address below.</div>
+        <div id="miningactivity" class="mining-activity" role="status" aria-live="polite">
+          <div class="mining-activity-head"><span>Proof-of-work activity</span><strong><span class="mining-idle-label">Idle</span><span class="mining-active-label">Device contributing</span></strong></div>
+          <div class="mining-activity-rail" aria-hidden="true"><i class="mining-activity-fill"></i></div>
+          <p>Blue motion represents ongoing device work, not progress toward a guaranteed reward. Block discovery is probabilistic.</p>
+        </div>
 
         <hr class="divider">
         <h3>Mine to a paper or cold wallet</h3>
@@ -172,135 +250,210 @@ textarea{min-height:72px;resize:vertical}
   </section>
 
   <section id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet">
+    <section class="wallet-stage-head" aria-labelledby="wallet-surface-title">
+      <div class="wallet-stage-copy">
+        <div class="product-kicker">Wallet / quiet ownership</div>
+        <h1 id="wallet-surface-title">Wallet</h1>
+        <p>Possession should feel quiet. Keys, signing and encrypted persistence stay on this device while the interface makes ownership explicit without ambient motion.</p>
+      </div>
+      <div class="wallet-presence" aria-label="Wallet ownership properties">
+        <span class="presence-label">Custody</span>
+        <strong>Local</strong>
+        <small>Persistent encrypted vault · local signing · explicit recovery</small>
+      </div>
+    </section>
+    <p class="wallet-admission-rule"><strong>No implicit Wallet creation.</strong> A Wallet exists here only after you choose New Wallet and verify the complete 24-word backup, or explicitly recover one.</p>
+
     <div class="stack">
-      <section class="card">
-        <h2>Wallet actions</h2>
-        <div class="wallet-actions" role="group" aria-label="Wallet actions">
-          <button id="action-create" class="wallet-action alt" aria-pressed="false">Create wallet</button>
-          <button id="action-recovery" class="wallet-action alt" aria-pressed="false">Recovery Wallet</button>
-          <button id="action-insert" class="wallet-action alt" aria-pressed="false">Insert Wallet</button>
+      <section id="wallet-entry-card" class="wallet-section wallet-entry-section">
+        <div class="section-head">
+          <div>
+            <h2 id="wallet-entry-title">Set up Wallet</h2>
+            <div id="wallet-entry-subtitle" class="small">Choose how you want to begin.</div>
+          </div>
         </div>
+        <div class="wallet-entry-buttons" role="group" aria-label="Wallet setup actions">
+          <button id="action-create" class="wallet-action">New Wallet</button>
+          <button id="action-recovery" class="wallet-action alt">Recovery Wallet</button>
+        </div>
+        <p id="wallet-empty-note" class="small">Your Wallet stays saved in this browser/profile until you remove it or browser/device storage is cleared. FAE does not keep a server backup.</p>
 
         <div id="create-panel" class="action-panel" hidden>
-          <h3>Create a new browser wallet</h3>
-          <p class="small">Generates 24 recovery words and five deterministic FAE addresses on this device.</p>
-          <button id="createwallet">Generate new wallet</button>
+          <h3>New Wallet</h3>
+          <p class="notice">FAE will generate 24 recovery words locally. Store them safely offline. Anyone with the words can recover the ordinary Wallet. FAE cannot restore them for you.</p>
+          <div id="new-wallet-start">
+            <button id="createwallet">Generate 24 recovery words</button>
+          </div>
+          <div id="new-wallet-backup" class="backup" hidden>
+            <h3>Back up these 24 words</h3>
+            <p class="small">Write every word offline in the exact order. This Wallet is temporary and is <strong>not yet saved</strong>.</p>
+            <label class="field" for="newseedwords">24-word recovery phrase</label>
+            <textarea id="newseedwords" class="mono seed" readonly autocomplete="off" spellcheck="false"></textarea>
+            <div class="actions">
+              <button id="copynewseed" class="alt">Copy 24 words</button>
+              <button id="readyconfirm">I saved them · verify backup</button>
+              <button id="cancelnewwallet" class="ghost">Cancel</button>
+            </div>
+          </div>
+          <div id="new-wallet-confirmation" class="backup" hidden>
+            <h3>Verify your backup</h3>
+            <p class="small">Re-enter all 24 words. The Wallet will not be admitted to persistent storage until the checksum and exact phrase match.</p>
+            <label class="field" for="confirmseed">Re-enter all 24 words</label>
+            <textarea id="confirmseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter all 24 words in order"></textarea>
+            <div class="actions">
+              <button id="confirmwallet">Verify & save Wallet</button>
+              <button id="backtonewseed" class="alt">Show words again</button>
+              <button id="cancelnewwalletconfirm" class="ghost">Cancel</button>
+            </div>
+          </div>
         </div>
 
         <div id="recovery-panel" class="action-panel" hidden>
-          <h3>Restore a recovery backup</h3>
-          <p class="small">Paste an FAE recovery JSON package, or choose one from this device. Legacy V1/V2 packages remain supported.</p>
-          <label class="field" for="recovery">Recovery package</label>
-          <textarea id="recovery" class="mono" placeholder="Paste the recovery JSON package"></textarea>
-          <label class="field" for="recoveryfile">Or choose a .json file</label>
-          <input id="recoveryfile" type="file" accept="application/json,.json">
-          <div class="actions"><button id="importwallet">Restore wallet</button></div>
-        </div>
+          <h3>Recovery Wallet</h3>
+          <p class="small">Enter the 24-word recovery phrase. Add the exact optional passphrase only when that Wallet originally used one.</p>
+          <label class="field" for="recoveryseed">24-word recovery phrase</label>
+          <textarea id="recoveryseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter the 24 recovery words in order"></textarea>
+          <label class="field" for="recoverypassphrase">Optional passphrase</label>
+          <input id="recoverypassphrase" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank for an ordinary Wallet">
+          <div class="passphrase-note">Every different passphrase can derive a different valid Wallet. FAE cannot know that a passphrase is “correct” unless you recognize the derived address.</div>
+          <div class="actions"><button id="verifyrecovery">Verify recovery</button></div>
 
-        <div id="insert-panel" class="action-panel" hidden>
-          <h3>Insert a wallet from its seed phrase</h3>
-          <label class="field" for="insertseed">24-word seed phrase</label>
-          <textarea id="insertseed" class="mono seed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Enter the 24 FAE recovery words in order"></textarea>
-          <label class="field" for="insertpassphrase">Passphrase <span class="small">(optional)</span></label>
-          <input id="insertpassphrase" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank for the ordinary wallet">
-          <div class="passphrase-note">Trezor-style behavior: every different passphrase opens a different valid wallet. A typo will not show an error. The passphrase is never saved.</div>
-          <p class="small">This changes FAE derivation only; it does not make this testnet wallet compatible with Trezor, and it does not encrypt keys saved in this browser.</p>
-          <button id="insertwallet">Insert wallet</button>
+          <div id="recoverypreview-wrap" class="backup" hidden>
+            <h3>Check the receiving address</h3>
+            <p class="small">Confirm this identifies the Wallet you intend to add before it is saved locally.</p>
+            <label class="field" for="recoverypreview">First receiving address</label>
+            <textarea id="recoverypreview" class="mono active-address" readonly></textarea>
+            <div class="actions">
+              <button id="admitrecovery">Add recovered Wallet</button>
+              <button id="cancelrecovery" class="ghost">Cancel</button>
+            </div>
+          </div>
+
+          <details class="advanced-recovery">
+            <summary>Advanced · legacy recovery JSON</summary>
+            <p class="small">For earlier FAE testnet recovery packages. Private-key packages are validated locally before migration.</p>
+            <label class="field" for="recovery">Legacy recovery package</label>
+            <textarea id="recovery" class="mono" placeholder="Paste the recovery JSON package"></textarea>
+            <label class="field" for="recoveryfile">Or choose a .json file</label>
+            <input id="recoveryfile" type="file" accept="application/json,.json">
+            <div class="actions"><button id="importwallet" class="alt">Restore legacy package</button></div>
+          </details>
         </div>
-        <div id="recoverystate" class="status">Wallet creation and recovery happen locally in this browser.</div>
+        <div id="recoverystate" class="status" role="status" aria-live="polite">Wallet creation and recovery happen locally in this browser.</div>
       </section>
 
-      <div class="panel-grid">
-        <section class="card">
-          <div class="address-head">
+      <div id="wallet-connected-state" class="stack" hidden>
+        <section class="wallet-section">
+          <div class="section-head">
             <div>
-              <h2>Active wallet</h2>
-              <span id="wallet-kind" class="pill">No wallet</span>
+              <h2>My Wallets</h2>
+              <div class="small">Independent Wallet identities are kept separately from their derived addresses.</div>
             </div>
-            <div id="bal" class="balance">0 FAE</div>
           </div>
-          <label class="field" for="addr">Active receiving address</label>
-          <textarea id="addr" class="mono active-address" readonly placeholder="No address selected"></textarea>
+          <div id="walletlist" class="wallet-list"><div class="empty">Loading local Wallets…</div></div>
           <div class="actions">
-            <button id="receive" disabled>Receive · copy address</button>
-            <button id="exportwallet" class="alt" disabled>Wallet backup</button>
-            <button id="refresh" class="ghost">Refresh</button>
+            <button id="removewallet" class="danger">Remove active Wallet</button>
           </div>
-          <div id="wstate" class="status">No wallet selected.</div>
-          <div id="ustate" class="small">Select or create a wallet.</div>
-
-          <div id="backup" class="backup" hidden>
-            <h3>Private recovery material</h3>
-            <p id="backupnote" class="small"></p>
-            <label class="field" for="seedwords">24-word FAE recovery phrase</label>
-            <textarea id="seedwords" class="mono seed" readonly></textarea>
+          <div id="remove-panel" class="backup" hidden>
+            <h3>Remove Wallet from this browser?</h3>
+            <p class="notice">Removing this Wallet from this device does not delete the Wallet or its funds. Make sure you have the 24-word recovery phrase and any required passphrase before continuing.</p>
             <div class="actions">
-              <button id="copyseed" class="alt">Copy 24 words</button>
-              <button id="downloadbackup" class="alt">Download recovery JSON</button>
-              <button id="closebackup" class="ghost">Hide</button>
+              <button id="confirmremove" class="danger">Yes · remove this Wallet</button>
+              <button id="cancelremove" class="ghost">Cancel</button>
             </div>
+          </div>
+          <div id="vaultstate" class="small"></div>
+        </section>
+
+        <div class="panel-grid">
+          <section class="wallet-section">
+            <div class="address-head">
+              <div>
+                <h2>Active Wallet</h2>
+                <span id="wallet-kind" class="pill">No wallet</span>
+              </div>
+              <div id="bal" class="balance">0 FAE</div>
+            </div>
+            <label class="field" for="addr">Active receiving address</label>
+            <textarea id="addr" class="mono active-address" readonly placeholder="No address selected"></textarea>
+            <div class="actions">
+              <button id="receive" disabled>Receive · copy address</button>
+              <button id="exportwallet" class="alt" disabled>Wallet backup</button>
+              <button id="refresh" class="ghost">Refresh</button>
+            </div>
+            <div id="wstate" class="status">No wallet selected.</div>
+            <div id="ustate" class="small">Select or create a wallet.</div>
+
+            <div id="backup" class="backup" hidden>
+              <h3>Private recovery material</h3>
+              <p id="backupnote" class="small"></p>
+              <label class="field" for="seedwords">24-word FAE recovery phrase</label>
+              <textarea id="seedwords" class="mono seed" readonly></textarea>
+              <div class="actions">
+                <button id="copyseed" class="alt">Copy 24 words</button>
+                <button id="downloadbackup" class="alt">Download recovery JSON</button>
+                <button id="closebackup" class="ghost">Hide</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="wallet-section">
+            <h2>Send FAE</h2>
+            <label class="field" for="sendto">Destination address</label>
+            <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
+            <label class="field" for="sendamt">Amount</label>
+            <input id="sendamt" inputmode="decimal" value="1">
+            <div class="actions">
+              <button id="send" disabled>Sign & send FAE</button>
+              <button id="restorefromsend" class="alt" hidden>Recovery Wallet</button>
+            </div>
+            <div id="sendstate" class="status" role="status" aria-live="polite">Recover or create a full Wallet to send.</div>
+            <div id="lastsendtx" class="txid-result" hidden>
+              <label class="field" for="lastsendtxid">Transaction ID</label>
+              <textarea id="lastsendtxid" class="mono" readonly spellcheck="false" aria-label="Full submitted transaction ID"></textarea>
+              <div class="actions"><button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button></div>
+            </div>
+            <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
+          </section>
+        </div>
+
+        <section class="wallet-section">
+          <div class="section-head">
+            <div>
+              <h2>Transactions</h2>
+              <div class="small">History follows the active derived address. Open any transaction to view and copy its full ID.</div>
+            </div>
+            <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
+          </div>
+          <div id="history-panel">
+            <div id="historystate" class="status" role="status" aria-live="polite" data-state="idle">Select or create a wallet to load recent transfers.</div>
+            <div class="actions"><button id="retryhistory" class="ghost" hidden disabled>Retry transaction history</button></div>
+            <div id="historycoverage" class="small">Coverage: recent transfers for the active address. The source scans the latest 100 network transactions and returns up to 30 for this address. No pagination; mining rewards are excluded; this is not lifetime history.</div>
+            <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">Select or create a wallet to load recent transfers.</div></div>
           </div>
         </section>
 
-        <section class="card">
-          <h2>Send FAE</h2>
-          <label class="field" for="sendto">Destination address</label>
-          <textarea id="sendto" class="mono" placeholder="Destination faet1…"></textarea>
-          <label class="field" for="sendamt">Amount</label>
-          <input id="sendamt" inputmode="decimal" value="1">
-          <div class="actions">
-            <button id="send" disabled>Sign & send FAE</button>
-            <button id="restorefromsend" class="alt" hidden>Insert full wallet</button>
-          </div>
-          <div id="sendstate" class="status" role="status" aria-live="polite">Create, insert, or recover a full wallet to send.</div>
-          <div id="lastsendtx" class="txid-result" hidden>
-            <label class="field" for="lastsendtxid">Transaction ID</label>
-            <textarea id="lastsendtxid" class="mono" readonly spellcheck="false" aria-label="Full submitted transaction ID"></textarea>
-            <div class="actions">
-              <button id="copylastsendtx" class="alt" disabled>Copy transaction ID</button>
+        <section class="wallet-section">
+          <div class="section-head">
+            <div>
+              <h2>Wallet addresses</h2>
+              <div class="small">Derived addresses belong to the active Wallet. Switching an address never switches Wallet identity.</div>
             </div>
           </div>
-          <p class="small">Signing is local. Pending change can be spent again before the next block.</p>
+          <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
         </section>
       </div>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h2>Transactions</h2>
-            <div class="small">History follows the active address. Open any transaction to view and copy its full ID.</div>
-          </div>
-          <button id="togglehistory" class="alt" disabled aria-expanded="true" aria-controls="history-panel">Hide history</button>
-        </div>
-        <div id="history-panel">
-          <div id="historystate" class="status" role="status" aria-live="polite" data-state="idle">Select or create a wallet to load recent transfers.</div>
-          <div class="actions">
-            <button id="retryhistory" class="ghost" hidden disabled>Retry transaction history</button>
-          </div>
-          <div id="historycoverage" class="small">Coverage: recent transfers for the active address. The source scans the latest 100 network transactions and returns up to 30 for this address. No pagination; mining rewards are excluded; this is not lifetime history.</div>
-          <div id="txhist" class="transaction-list" aria-live="polite"><div class="empty">Select or create a wallet to load recent transfers.</div></div>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-head">
-          <div>
-            <h2>Wallet addresses</h2>
-            <div class="small">Choose an address to receive, send, view balance, or mine to it.</div>
-          </div>
-        </div>
-        <div id="addresslist" class="address-list"><div class="empty">No wallet addresses yet.</div></div>
-      </section>
     </div>
   </section>
 
-  <p class="footer-note">FAE public testnet · private keys and Proof of Work stay on your device · test coins have no monetary value</p>
+  <p class="footer-note">FAE testnet · private keys and Proof of Work stay on your device</p>
 </main>
 <script src="/bip39-en.js"></script>
 <script src="/network-status.js"></script>
 <script src="/wallet-transactions.js"></script>
 <script src="/core.js"></script>
-<script src="/wallet-crypto.js"></script>
+<script src="/wallet-crypto.js"></script>\n<script src="/wallet-vault.js"></script>
+<script src="/wallet-signing-intent.js"></script>
 <script src="/wallet.js"></script>
 <script src="/mining.js"></script>
 <script src="/coordinator-trust.js"></script>

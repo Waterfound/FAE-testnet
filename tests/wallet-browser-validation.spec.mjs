@@ -87,9 +87,25 @@ for(const profile of profiles){
 
     await page.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
     await expect(page.locator('#netstatus')).toHaveAttribute('data-state','online');
+    await expect(page.locator('body')).toHaveAttribute('data-authorship-propagation','product-wallet-v1');
+    await expect(page.locator('.fae-hero')).toHaveCount(0);
+    await expect(page.locator('.product-shell-head')).toBeVisible();
+    await expect(page.locator('#tab-wallet')).toHaveAttribute('aria-selected','true');
+    await expect(page.locator('#panel-wallet')).toBeVisible();
+    await expect(page.locator('.wallet-stage-head')).toBeVisible();
+    await expect(page.locator('.wallet-admission-rule')).toContainText('No implicit Wallet creation');
+    await expect(page.locator('#wallet-connected-state')).toBeHidden();
 
     await activate(page.locator('#action-create'),profile.hasTouch);
     await activate(page.locator('#createwallet'),profile.hasTouch);
+    await expect(page.locator('#wallet-connected-state')).toBeHidden();
+    await expect(page.locator('#newseedwords')).not.toHaveValue('');
+    const recoveryWords=await page.locator('#newseedwords').inputValue();
+    expect(recoveryWords.trim().split(/\s+/)).toHaveLength(24);
+    await activate(page.locator('#readyconfirm'),profile.hasTouch);
+    await page.locator('#confirmseed').fill(recoveryWords);
+    await activate(page.locator('#confirmwallet'),profile.hasTouch);
+    await expect(page.locator('#wallet-connected-state')).toBeVisible();
     await expect(page.locator('#addr')).toHaveValue(/^faet1/);
     await expect(page.locator('#historystate')).toHaveAttribute('data-state','ready_recent');
     await expect(page.locator('#txhist details')).toHaveCount(1);
@@ -162,6 +178,46 @@ for(const profile of profiles){
     await context.close();
   });
 }
+
+
+test('authored Product Shell and Wallet preserve reduced-motion meaning without implicit creation',async({browser})=>{
+  const context=await browser.newContext({
+    viewport:{width:390,height:844},
+    hasTouch:true,
+    locale:'en-US',
+    reducedMotion:'reduce'
+  });
+  const page=await context.newPage();
+  await installDeterministicNetwork(page);
+  await page.goto(BASE+'/index.html',{waitUntil:'domcontentloaded'});
+
+  await expect(page.locator('#wallet-connected-state')).toBeHidden();
+  await expect(page.locator('#wallet-entry-card')).toBeVisible();
+  await expect(page.locator('#new-wallet-backup')).toBeHidden();
+  await expect(page.locator('#new-wallet-confirmation')).toBeHidden();
+
+  const tickerAnimation=await page.locator('.ticker-track').evaluate(
+    element=>getComputedStyle(element).animationName
+  );
+  expect(tickerAnimation).toBe('none');
+
+  await activate(page.locator('#tab-mining'),true);
+  await expect(page.locator('#panel-mining')).toBeVisible();
+  const miningAnimation=await page.locator('.mining-activity-fill').evaluate(
+    element=>getComputedStyle(element).animationName
+  );
+  expect(miningAnimation).toBe('none');
+
+  await activate(page.locator('#tab-wallet'),true);
+  await expect(page.locator('#panel-wallet')).toBeVisible();
+  await expect(page.locator('#wallet-connected-state')).toBeHidden();
+
+  const overflow=await page.evaluate(
+    ()=>document.documentElement.scrollWidth-document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+  await context.close();
+});
 
 test('WTX-05 evidence is browser-CI, not physical-device evidence',async()=>{
   expect(profiles.some(profile=>profile.hasTouch)).toBe(true);

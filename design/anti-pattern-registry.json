@@ -1,0 +1,91 @@
+{
+  "schema": "FAE_VISUAL_ANTI_PATTERN_REGISTRY_V2",
+  "direction": "D — Orange Top / White Field / Blue Circulation",
+  "prohibited_or_suspect": [
+    {
+      "id": "AP-01",
+      "pattern": "generic Web3 landing page",
+      "reason": "erases FAE specificity"
+    },
+    {
+      "id": "AP-02",
+      "pattern": "neon crypto casino",
+      "reason": "conflicts with fair participation and engineering seriousness"
+    },
+    {
+      "id": "AP-03",
+      "pattern": "cards everywhere",
+      "reason": "turns composition into generic dashboard segmentation"
+    },
+    {
+      "id": "AP-04",
+      "pattern": "decorative glassmorphism",
+      "reason": "adds depth without semantic purpose"
+    },
+    {
+      "id": "AP-05",
+      "pattern": "random glowing gradients",
+      "reason": "substitutes effects for visual grammar"
+    },
+    {
+      "id": "AP-06",
+      "pattern": "generic AI fantasy fairy imagery",
+      "reason": "makes the identity childish or synthetic"
+    },
+    {
+      "id": "AP-07",
+      "pattern": "fake technical diagrams",
+      "reason": "undermines engineering credibility"
+    },
+    {
+      "id": "AP-08",
+      "pattern": "oversized meaningless typography",
+      "reason": "sacrifices information hierarchy"
+    },
+    {
+      "id": "AP-09",
+      "pattern": "motion without informational purpose",
+      "reason": "costs clarity, battery and accessibility"
+    },
+    {
+      "id": "AP-10",
+      "pattern": "security-critical actions hidden by aesthetics",
+      "reason": "Wallet safety dominates decoration"
+    },
+    {
+      "id": "AP-11",
+      "pattern": "identity that disappears when logo is removed",
+      "reason": "fails recognizable-language test"
+    },
+    {
+      "id": "AP-12",
+      "pattern": "orange used as generic warning color everywhere",
+      "reason": "collapses identity and semantic warning roles"
+    },
+    {
+      "id": "AP-13",
+      "pattern": "blue implying guaranteed mining progress or imminent reward",
+      "reason": "misrepresents probabilistic proof-of-work"
+    },
+    {
+      "id": "AP-14",
+      "pattern": "ticker too fast or visually exhausting",
+      "reason": "turns live network context into noise"
+    },
+    {
+      "id": "AP-15",
+      "pattern": "large fixed network metric balloons as the primary presentation",
+      "reason": "contradicts the Direction D ticker grammar"
+    },
+    {
+      "id": "AP-16",
+      "pattern": "white corporate blandness",
+      "reason": "clarity without identity is not sufficient"
+    },
+    {
+      "id": "AP-17",
+      "pattern": "financial-terminal imitation",
+      "reason": "FAE is a public network product, not an asset-price terminal"
+    }
+  ]
+}

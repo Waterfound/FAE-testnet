@@ -1,0 +1,31 @@
+{
+  "schema": "FAE_VISUAL_LANGUAGE_AUTHORITY_CORRECTION_V2",
+  "discovered_at": "2026-09-28T21:06:21Z",
+  "trigger": "Draft PR #265 ran FAE Block Explorer Lab boundary guard.",
+  "authority_source": "lab/block-explorer/authority.json",
+  "conflict": {
+    "explorer_application_write_authorized": false,
+    "source_writes_frozen": true,
+    "prior_visual_vl11_status": "TECHNICALLY_VERIFIED_BUT_NOT_AUTHORITY_ADMISSIBLE"
+  },
+  "disposition": "FAIL_CLOSED",
+  "remediation": {
+    "explorer_index_reverted_to_main_sha": "5130efd7e3625e81e52517fb9a834697ebf6fc1f",
+    "explorer_styles_reverted_to_main_sha": "86b4dbc444d708be02921e645720033c54a2e138",
+    "prior_vl11_evidence": "RETAINED_EXPLORATORY_ONLY",
+    "integration_candidate_explorer_changes": false
+  },
+  "future_gate": "Explicit compatible Block Explorer source-write authority is required before Direction D Explorer specialization can be admitted.",
+  "mining_conflict": {
+    "discovered_at": "2026-09-28T21:11:10Z",
+    "authority_source": "lab/mining-tip-sync/boundary-guard.mjs",
+    "frozen_invariant": "completed MTS-08 root miner bytes",
+    "prior_change": "UI-only setMiningActivity hooks in mining.js",
+    "disposition": "FAIL_CLOSED",
+    "remediation": {
+      "mining_js_reverted_to_main_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "activity_visualization_source": "index.html CSS :has(#stop:not(:disabled))",
+      "miner_logic_changed": false
+    }
+  }
+}
