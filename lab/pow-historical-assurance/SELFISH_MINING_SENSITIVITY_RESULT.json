@@ -1,0 +1,76 @@
+{
+  "schema": "FAE_STRATEGIC_MINING_SELFISH_SENSITIVITY_RESULT_V1",
+  "date": "2026-10-10",
+  "execution": {
+    "model": "classic selfish-mining state machine",
+    "monte_carlo_events_per_cell": 2000000,
+    "deterministic_rng": true,
+    "runtime": "Vercel Sandbox",
+    "github_actions_consumed": 0
+  },
+  "results": {
+    "observed_grid_first_delta_gt_0p001": {
+      "gamma_0": 0.34,
+      "gamma_0_25": 0.32,
+      "gamma_0_5": 0.26
+    },
+    "analytic_reference_threshold": {
+      "formula": "(1-gamma)/(3-2*gamma)",
+      "gamma_0": 0.3333333333333333,
+      "gamma_0_25": 0.3,
+      "gamma_0_5": 0.25
+    },
+    "selected_cells": [
+      {
+        "alpha": 0.2,
+        "gamma": 0,
+        "revenue_share": 0.12994,
+        "delta": -0.07006
+      },
+      {
+        "alpha": 0.3,
+        "gamma": 0,
+        "revenue_share": 0.27464,
+        "delta": -0.02536
+      },
+      {
+        "alpha": 0.34,
+        "gamma": 0,
+        "revenue_share": 0.34655,
+        "delta": 0.00655
+      },
+      {
+        "alpha": 0.2,
+        "gamma": 0.5,
+        "revenue_share": 0.18216,
+        "delta": -0.01784
+      },
+      {
+        "alpha": 0.25,
+        "gamma": 0.5,
+        "revenue_share": 0.25097,
+        "delta": 0.00097
+      },
+      {
+        "alpha": 0.26,
+        "gamma": 0.5,
+        "revenue_share": 0.26447,
+        "delta": 0.00447
+      },
+      {
+        "alpha": 0.3,
+        "gamma": 0.5,
+        "revenue_share": 0.32725,
+        "delta": 0.02725
+      }
+    ]
+  },
+  "interpretation": [
+    "Cumulative-work validation does not eliminate strategic withholding.",
+    "For a one-candidate versus one-candidate equal-work lexicographic-hash tie, 0.5 is a useful unbiased eventual-branch preference sensitivity; it is not a measured production network gamma.",
+    "Multiple-candidate tie grinding requires additional valid-block work and needs a separate opportunity-cost model.",
+    "Final closure still depends on frozen mainnet timing, DAA, propagation and pool semantics."
+  ],
+  "verdict": "STRATEGIC_WITHHOLDING_MATERIALITY_CONFIRMED__FAE_FINAL_PARAMETER_CLOSURE_OPEN",
+  "authority": "RESEARCH_ONLY"
+}
