@@ -1,7 +1,7 @@
 {
   "schema": "FAE_HISTORICAL_POW_ASSURANCE_WAVE1_STATE_V1",
   "date": "2026-10-10",
-  "status": "WAVE1_SOFTWARE_ADVANCED__BOUNDED_RESOURCE_FIX_VERIFIED__FINAL_PARAMETER_AND_EXTERNAL_GATES_REMAIN",
+  "status": "WAVE1_SOFTWARE_ADVANCED__RESOURCE_AND_OBJECT_IDENTITY_CANDIDATE_GREEN__ECONOMIC_AND_FINAL_FREEZE_GATES_REMAIN",
   "branches": {
     "historical_main": "assurance/pow-historical-main-20261010",
     "dp6_path_binding": "assurance/dp6-path-binding-20261010"
@@ -10,23 +10,23 @@
     "2": {
       "daa_timestamp": "RUNTIME_13_OF_13_GREEN_CANDIDATE__FINAL_MAINNET_PARAMETER_FREEZE_OPEN",
       "majority_security_budget": "OPEN_FINAL_ECONOMIC_GATE",
-      "strategic_mining": "SELFISH_MINING_SENSITIVITY_EXECUTED__TIEBREAK_GRINDING_SURFACE_CONFIRMED__FINAL_PARAMETER_AND_POOL_MODEL_OPEN",
+      "strategic_mining": "SELFISH_MINING_SENSITIVITY_EXECUTED__LEXICOGRAPHIC_TIE_GRINDING_CONFIRMED__STRICT_GREATER_COUNTERFACTUAL_VIABLE__FINAL_SELECTION_OPEN",
       "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__FEE_AWARE_ADMISSION_POLICY_DEPENDS_FINAL_FEE_SECURITY_BUDGET"
     },
     "3": {
-      "genesis_zero_hidden_issuance": "VERIFIER_PREPARED__FINAL_GENESIS_NOT_YET_AVAILABLE"
+      "genesis_zero_hidden_issuance": "VERIFIER_RUNTIME_7_OF_7_GREEN__FINAL_PRODUCTION_GENESIS_REPLAY_OPEN"
     },
     "4": {
       "production_routing_partition": "EXISTING_REAL_WAN_STRONG__FINAL_PRODUCTION_TOPOLOGY_OPEN"
     },
     "8": {
-      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE__4096_TX_16KIB_POLICY__LIVE_NODE_BLOCK_AND_RESTART_VERIFIED",
+      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE__4096_TX_16KIB_POLICY__LIVE_NODE_BLOCK_RESTART_AND_REGRESSION_VERIFIED",
       "long_duration_production_soak": "OPEN_EXTERNAL_OPERATIONAL_EVIDENCE"
     },
     "10": {
       "dp6_path_binding": "IMPLEMENTATION_LOCAL_PASS__PRODUCTION_BINDING_OPEN",
       "independent_dp6_verifier": "OPEN",
-      "same_id_different_body": "RUNTIME_3_OF_3_PASS__FINAL_MAINNET_REPLAY_OPEN",
+      "same_id_different_body": "RUNTIME_3_OF_3_GREEN__FINAL_MAINNET_REPLAY_OPEN",
       "historical_regression_corpus": "PARTIAL_ACTIVE"
     }
   },
@@ -52,21 +52,24 @@
     "release": false,
     "mainnet": false
   },
-  "last_reconciled_head": "61461a135eef671eab081a7e5eb509d6e46816b5",
+  "last_reconciled_head": "5b1879b2e907f5299a3dcf37fff7e16d7b1750b3",
   "runtime_evidence": {
     "pf07_object_identity": "3/3 PASS",
     "pf11_mempool_bounds": "2/2 PASS",
     "historical_security_regressions": "PSR hostile 12/12 + differential 2/2 + authoritative core 2/2 + white-box 5/5 PASS",
     "daa_timestamp": "hardening 8/8 + red-team 5/5 PASS",
     "live_mempool": "4096 accepted then mempool_full; saturated 20-tx block accepted; restart recovered 4076 pending",
-    "selfish_mining": "2,000,000 discovery events per alpha/gamma cell; classic threshold sensitivity reproduced"
+    "selfish_mining": "2,000,000 discovery events per alpha/gamma cell; classic threshold sensitivity reproduced",
+    "genesis_zero_hidden_issuance": "7/7 PASS verifier regression at exact candidate head",
+    "wave1_exact_head_reverify": "12/12 historical regressions + differential 2/2 + authoritative core 2/2 + DAA/timestamp 13/13; partition recovery passed isolated rerun after one transient socket failure",
+    "tiebreak_counterfactual": "strict-greater-only local patch: differential 2/2 PASS; three logical partition/recovery PASSes with transient sandbox socket retries; no persistent source mutation"
   },
   "next_admissible_frontiers": [
     "Independent DP6 verifier implementation and reduced-work/path-confusion negative corpus",
-    "Strategic mining opportunity-cost model for equal-work tie grinding plus BWH/FAW after final pool semantics",
     "Fee-aware mempool admission/template economics after fee/security-budget candidate is frozen",
+    "Strategic mining opportunity-cost model comparing lexicographic versus strict-greater equal-work policy, then BWH/FAW after final pool semantics",
     "Final-mainnet DAA parameter selection after block-time evidence resolves",
-    "Final genesis replay once production genesis exists",
+    "Final production-genesis replay once exact genesis bytes/hash exist",
     "Production routing/partition replay once production bootstrap topology exists"
   ],
   "no_routine_waterfound_action_required": true
