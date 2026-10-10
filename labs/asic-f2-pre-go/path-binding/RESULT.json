@@ -1,0 +1,54 @@
+{
+  "schema": "FAE_DP6_PATH_BINDING_RESULT_V1",
+  "date": "2026-10-10",
+  "branch": "assurance/dp6-path-binding-20261010",
+  "branch_head_before_result": "334e0884d9d4b6faba71c1ff6c22af039710d4e3",
+  "source": {
+    "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "blob_sha1": "ea1ab21fbf359adc35955c42ea8e137707c37b6d"
+  },
+  "verifier": {
+    "path": "labs/asic-f2-pre-go/path-binding/verify-path-binding.mjs",
+    "blob_sha1": "cd69b7082ffeb85c0273ba58f94a45326ad87734"
+  },
+  "execution": {
+    "mode": "REAL_RUN_READ_ONLY_SOURCE_ASSURANCE",
+    "method": "deterministic source-structure reconciliation against exact GitHub blob",
+    "checks_passed": 16,
+    "checks_failed": 0,
+    "github_actions_consumed": 0,
+    "target_mutation": false
+  },
+  "findings": {
+    "fixed_constants": true,
+    "argon2d_256m_t1_p1_v13_fixed": true,
+    "argon_called_exactly_once": true,
+    "rw5_called_exactly_once": true,
+    "top_level_conditional_bypass_absent": true,
+    "mh3_salt_binds_prev_height_task": true,
+    "mh3_input_binds_header_nonce_task": true,
+    "final_binds_header_nonce_task_mh3_rw5_transcript_registers": true,
+    "rw5_seed_binds_mh3_header_nonce_task": true,
+    "rw5_programs": 8,
+    "rw5_steps_per_program": 131072,
+    "mandatory_memory_carried_steps": 1048576,
+    "mandatory_read_depends_into_next_chain": true,
+    "mandatory_state_write_each_step": true,
+    "public_entrypoints": 1,
+    "public_entrypoint_calls_frozen_path_once": true,
+    "entrypoint_alternate_selector_absent": true
+  },
+  "verdict": "IMPLEMENTATION_LOCAL_PATH_BINDING_PASS__PRODUCTION_VERIFIER_AND_INDEPENDENT_VERIFIER_OPEN",
+  "residual": [
+    "future production/mainnet verifier wiring is not yet frozen",
+    "independent DP6 verifier implementation remains open",
+    "negative reduced-work/path-confusion proof corpus remains open",
+    "cryptanalytic shortcut impossibility is not claimed"
+  ],
+  "authority": {
+    "consensus_change": false,
+    "economics_change": false,
+    "release": false,
+    "mainnet": false
+  }
+}
