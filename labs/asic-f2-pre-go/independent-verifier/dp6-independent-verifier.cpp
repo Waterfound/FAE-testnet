@@ -148,11 +148,16 @@ static bool hex(const char*s,uint8_t*out,size_t n){for(size_t i=0;i<n;i++){unsig
 static void printhex(const uint8_t*p,size_t n){for(size_t i=0;i<n;i++)std::printf("%02x",p[i]);}
 
 int main(int argc,char**argv){
+  if(argc>3){std::fprintf(stderr,"unexpected_argument\n");return 2;}
   uint8_t in[112]={0}; bool explicitInput=false; uint64_t nonce=1200;
   if(argc>1 && std::strlen(argv[1])==224){
     if(!hex(argv[1],in,112)){std::fprintf(stderr,"invalid_input_hex\n");return 2;}
     explicitInput=true; nonce=rd64(in+32);
   }else{
+    if(argc>1){
+      for(const char*p=argv[1];*p;p++)if(*p<'0'||*p>'9'){std::fprintf(stderr,"invalid_input_or_nonce\n");return 2;}
+      if(std::strlen(argv[1])>20){std::fprintf(stderr,"invalid_nonce\n");return 2;}
+    }
     nonce=argc>1?std::strtoull(argv[1],nullptr,10):1200;
     hex("83e1528c63f3fad31188c5e266aaf33c5f560c84b1a19b5e68b6ffd7b7bf0da7",in,32);wr64(in+32,nonce);
     hex("d54aeba77470ebde700d3a0a862d839006339587194e2f054f2ce666c4610a10",in+40,32);std::memset(in+72,0x11,32);wr64(in+104,1001);
