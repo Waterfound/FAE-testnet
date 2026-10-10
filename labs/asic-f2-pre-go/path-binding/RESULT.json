@@ -14,10 +14,11 @@
   "execution": {
     "mode": "REAL_RUN_READ_ONLY_SOURCE_ASSURANCE",
     "method": "deterministic source-structure reconciliation against exact GitHub blob",
-    "checks_passed": 16,
+    "checks_passed": 25,
     "checks_failed": 0,
     "github_actions_consumed": 0,
-    "target_mutation": false
+    "target_mutation": false,
+    "note": "25 deterministic assertions: 7 frozen constants plus 18 path/binding/entrypoint checks."
   },
   "findings": {
     "fixed_constants": true,
