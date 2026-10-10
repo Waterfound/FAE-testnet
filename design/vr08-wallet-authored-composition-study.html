@@ -17,7 +17,7 @@ button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #85b8f
 .nav-tab[aria-current="page"]{color:#0c4cc4;border-color:var(--blue);background:#f7fbff}
 main{padding:34px 42px 60px}.stage{display:flex;justify-content:space-between;align-items:start;gap:22px}
 .stage h1{font-size:24px;line-height:1;margin:0;letter-spacing:-.025em}.stage .mode{font:700 10px/1.4 ui-monospace,monospace;color:var(--muted);letter-spacing:.06em}
-.state{display:none}.state.active{display:block}
+[hidden]{display:none!important}.state{display:none}.state.active{display:block}
 .empty-layout{min-height:500px;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.72fr);gap:60px;padding-top:54px}
 .empty-figure{display:flex;flex-direction:column;justify-content:center;min-height:380px;position:relative}
 .empty-figure:before{content:"";position:absolute;top:18%;left:0;right:0;height:1px;background:var(--line2)}
@@ -88,7 +88,8 @@ main{padding:34px 42px 60px}.stage{display:flex;justify-content:space-between;al
 </section>
 <section class="state" id="recovery" aria-label="Wallet entry visual sample">
 <div class="recovery"><div class="label" id="recovery-mode">RECOVERY</div><h2 id="recovery-title">Return to your wallet.</h2>
-<div class="recovery-field"><label for="phrase"><b>Recovery phrase</b></label><p>Enter your 24 words only in the real wallet. This isolated visual study does not accept or process recovery phrases.</p><textarea id="phrase" placeholder="Unavailable in visual study" disabled autocomplete="off" spellcheck="false"></textarea></div>
+<div class="recovery-field" id="phrase-section"><label for="phrase"><b>Recovery phrase</b></label><p>Enter your 24 words only in the real wallet. This isolated visual study does not accept or process recovery phrases.</p><textarea id="phrase" placeholder="Unavailable in visual study" disabled autocomplete="off" spellcheck="false"></textarea></div>
+<div class="recovery-field" id="new-section" hidden><div class="label">EXPLICIT CHOICE</div><p>In the real wallet, continue to generate and securely back up your recovery phrase. This visual study never creates keys.</p></div>
 <div class="recovery-actions"><span class="label">PRIVATE BY DESIGN</span><button type="button" disabled>Continue</button></div></div>
 </section>
 <footer class="footer"><span>FAE · Authored Wallet Composition</span><span>VR-08 / ISOLATED VISUAL STUDY · NO KEYS · NO NETWORK</span></footer>
@@ -98,7 +99,7 @@ main{padding:34px 42px 60px}.stage{display:flex;justify-content:space-between;al
 <script>
 const views=[...document.querySelectorAll('.state')],controls=[...document.querySelectorAll('.review-controls [data-view]')];
 function view(name){views.forEach(s=>s.classList.toggle('active',s.id===name));controls.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));document.getElementById('action-feedback').textContent='';}
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.action==='new'){document.getElementById('recovery-title').textContent='Create your wallet.';document.getElementById('recovery-mode').textContent='NEW WALLET';}else if(b.dataset.action==='recover'){document.getElementById('recovery-title').textContent='Return to your wallet.';document.getElementById('recovery-mode').textContent='RECOVERY';}view(b.dataset.view)}));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.action==='new'){document.getElementById('recovery-title').textContent='Create your wallet.';document.getElementById('recovery-mode').textContent='NEW WALLET';document.getElementById('phrase-section').hidden=true;document.getElementById('new-section').hidden=false;}else if(b.dataset.action==='recover'){document.getElementById('recovery-title').textContent='Return to your wallet.';document.getElementById('recovery-mode').textContent='RECOVERY';document.getElementById('phrase-section').hidden=false;document.getElementById('new-section').hidden=true;}view(b.dataset.view)}));
 const flow=document.getElementById('flow');for(let i=0;i<46;i++){const bar=document.createElement('i');if(i%9===0||i%11===0)bar.classList.add('past');flow.appendChild(bar);}
 document.getElementById('receipt').addEventListener('click',()=>{view('active');const bars=[...flow.children];bars.forEach(b=>b.classList.remove('received','confirmed'));const last=bars[bars.length-4];last.classList.add('received','confirmed');document.getElementById('flow-label').textContent='Received · confirmed';document.getElementById('action-feedback').textContent='Visual simulation only · no funds transferred.';});
 document.querySelectorAll('[data-demo]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('action-feedback').textContent=b.dataset.demo+' · visual study only; no wallet operation is connected.';}));
