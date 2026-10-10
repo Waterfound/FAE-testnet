@@ -1,0 +1,29 @@
+{
+  "schema": "FAE_GENESIS_ZERO_HIDDEN_ISSUANCE_CONTRACT_V1",
+  "date": "2026-10-10",
+  "historical_motivation": "Bitcoin Private 2018 covert UTXO-import inflation",
+  "required_manifest_schema": "FAE_PRODUCTION_GENESIS_MANIFEST_V1",
+  "invariants": [
+    "initial spendable supply at genesis is exactly zero",
+    "no imported spendable UTXO set",
+    "premine_atoms == 0",
+    "treasury_atoms == 0",
+    "administrative_mint_atoms == 0",
+    "no special mint paths",
+    "all post-genesis issuance occurs only through frozen ordinary block rules",
+    "genesis hash and monetary-rules digest are bound into launch-state canonical freeze"
+  ],
+  "final_green_requires": [
+    "manifest verifier PASS",
+    "exact production genesis bytes/hash frozen",
+    "independent full replay from genesis reconstructs issuance exactly",
+    "replay rejects any bootstrap state with additional spendable value",
+    "release/rehearsal artifacts bind the same genesis and monetary-rules digest"
+  ],
+  "authority": {
+    "verification_only": true,
+    "genesis_created": false,
+    "consensus_change": false,
+    "mainnet": false
+  }
+}

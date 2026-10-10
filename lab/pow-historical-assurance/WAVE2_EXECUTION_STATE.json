@@ -1,0 +1,69 @@
+{
+  "schema": "FAE_HISTORICAL_POW_ASSURANCE_WAVE2_EXECUTION_STATE_V1",
+  "date": "2026-10-10",
+  "branch": "assurance/pow-historical-main-20261010",
+  "evidence_anchor_head": "b50f11495e288d828b6026035c5aefeb22dc6ce5",
+  "status": "CANDIDATE_COUNTERFACTUALS_VERIFIED__REAL_MAINNET_GREEN_NOT_ATTAINED",
+  "executions": [
+    {
+      "id": "HPA-MEMPOOL-ADMISSION",
+      "tests": "9/9",
+      "status": "ABSTRACT_POLICY_PASS_NOT_NODE_FIX",
+      "files": [
+        "mempool-admission-policy-counterfactual.mjs",
+        "MEMPOOL_ADMISSION_POLICY_COUNTERFACTUAL_RESULT.json"
+      ],
+      "residual": "Atomic live-node eviction, signature/fee validation, template fee ordering, restart/reorg/relay and final fee parameters"
+    },
+    {
+      "id": "HPA-EQUAL-WORK-GRINDING",
+      "tests": "3/3",
+      "status": "QUANTITATIVE_MODEL_PASS_NOT_PROFITABILITY_PROOF",
+      "files": [
+        "equal-work-tie-opportunity-cost.mjs",
+        "EQUAL_WORK_TIE_OPPORTUNITY_COST_RESULT.json"
+      ],
+      "residual": "Actual FAE selfish/stubborn economics and frozen equal-work/fork policy"
+    },
+    {
+      "id": "HPA-FAE-PPLNS-WINDOW",
+      "tests": "6/6",
+      "status": "WINDOW_ACCOUNTING_PASS_NOT_POOL_ATTACK_SIMULATION",
+      "files": [
+        "finite-pplns-window-assurance.mjs",
+        "FINITE_PPLNS_WINDOW_ASSURANCE_RESULT.json"
+      ],
+      "residual": "Share ledger/fork/stale/job timing, real BWH/FAW/EFAW multi-pool profitability and opportunity costs"
+    }
+  ],
+  "verification_context": "Pure deterministic JavaScript models executed in tool JS runtime. GitHub CI was initiated but still pending at observation. These are NOT equivalent to full live-node or production tests.",
+  "durable": {
+    "dp6_portfolio": "fae-pow-historical-assurance-20261010",
+    "dp6_event": "fae-pow-historical-assurance-dp6-green-003",
+    "dp6_generation": 1,
+    "dp6_candidate_phase": "complete",
+    "strategic_portfolio": "fae-pow-historical-strategic-20261010",
+    "strategic_bootstrap": "fae-pow-historical-strategic-bootstrap-001",
+    "strategic_generation_last_verified": 0,
+    "remaining": "Reconcile fresh wave2 checkpoint via separately authenticated runtime event; PR source persistence alone does not transition SQLite state."
+  },
+  "other_real_mainnet_gates": [
+    "Final DAA/timestamp and block time",
+    "Actual security-budget/majority/rental economics",
+    "Production genesis bytes, hash, monetary digest",
+    "Production DP6 verifier & selectors",
+    "Production routing/partition and launch-state poisoning replay"
+  ],
+  "external_ci_note": "Vercel reports build-rate-limit failures; not proven software regression.",
+  "authority": {
+    "merge": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "pool_activation": false,
+    "production": false,
+    "release": false,
+    "paid_spend": false,
+    "mainnet": false
+  },
+  "terminal_green_claimed": false
+}

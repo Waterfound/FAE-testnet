@@ -1,0 +1,83 @@
+{
+  "schema": "FAE_POOL_INFILTRATION_SENSITIVITY_RESULT_V1",
+  "date": "2026-10-10",
+  "source_branch": "assurance/pow-historical-main-20261010",
+  "exact_head_under_test": "189c93a2c52fc0429375b093561cdd5fc26a2159",
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "github_actions_consumed": 0,
+    "incremental_paid_spend_usd": 0
+  },
+  "model": {
+    "scope": "unilateral BWH/FAW-style pool infiltration sensitivity",
+    "total_network_hash_normalized": 1,
+    "alpha": "attacker total hash fraction",
+    "beta": "target-pool honest hash fraction",
+    "tau": "fraction of attacker hash infiltrating target pool",
+    "c": "probability an FAW-triggered fork branch is selected",
+    "payout_assumption": "long-window proportional share payout approximation; exact FAE PPLNS window mechanics not modeled",
+    "costs_omitted": true
+  },
+  "sweep": {
+    "alphas": [
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35
+    ],
+    "betas": [
+      0.1,
+      0.2,
+      0.3,
+      0.4
+    ],
+    "fork_success_probabilities": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "tau_steps": 1000,
+    "cells": 140
+  },
+  "findings": {
+    "bwh_cells_with_positive_attacker_extra_revenue": 28,
+    "faw_cells_with_positive_attacker_extra_revenue": 112,
+    "strongest_observed_cell": {
+      "alpha": 0.35,
+      "beta": 0.4,
+      "fork_success_probability": 1,
+      "best_tau": 0.475,
+      "attacker_reward_share": 0.3758824230268971,
+      "relative_extra_revenue_pct": 7.394978007684898
+    }
+  },
+  "interpretation": [
+    "Share-based pool participation exposes a strategic infiltration surface that direct sovereign mining does not require.",
+    "This bounded sensitivity run is not a final FAE pool-profitability claim because exact PPLNS window/stale-share/fork semantics, costs and final propagation/timing parameters are not frozen.",
+    "BWH/FAW risk is therefore demonstrated as materially relevant but not terminally closed.",
+    "Pool operation must remain optional and consensus safety must not require coordinator honesty."
+  ],
+  "verdict": "POOL_INFILTRATION_MATERIALITY_CONFIRMED__FINAL_FAE_POOL_SEMANTICS_REPLAY_REQUIRED",
+  "next": [
+    "bind the model to the exact frozen FAE PPLNS window and stale-share rules once selected",
+    "include propagation and opportunity costs",
+    "compare direct sovereign mining versus pool participation incentives",
+    "extend to EFAW/multi-pool interaction only if final pool architecture preserves such a surface"
+  ],
+  "authority": {
+    "research_only": true,
+    "pool_activation": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "release": false,
+    "mainnet": false
+  }
+}

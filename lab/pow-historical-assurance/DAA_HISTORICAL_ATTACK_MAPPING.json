@@ -1,0 +1,38 @@
+{
+  "schema": "FAE_HISTORICAL_DAA_ATTACK_MAPPING_V1",
+  "date": "2026-10-10",
+  "source": "assurance/pow-historical-main-20261010",
+  "historical_class": "PF-03_DIFFICULTY_TIMESTAMP_WORK_ACCOUNTING_MANIPULATION",
+  "current_v4": {
+    "verdict": "NOT_MAINNET_GRADE_BY_OWN_DESIGN",
+    "reason": "20-block batch retarget with integer leading-zero bits remains active testnet authority and is explicitly not the intended mainnet design"
+  },
+  "hardened_candidate": {
+    "status": "candidate-not-active-consensus",
+    "defenses": [
+      "integer-only ASERT-style per-block target",
+      "full 256-bit target representation",
+      "MTP window 11",
+      "parent timestamp non-regression",
+      "absolute 90-second future wall",
+      "future lead cannot be banked as +90 seconds per block",
+      "bounded easiest target",
+      "frozen deterministic vectors",
+      "seeded stationary Poisson and severe 0.25x/1.75x browser-cycle red-team"
+    ],
+    "historical_timewarp_mapping": "STRONG_CANDIDATE_DEFENSE",
+    "residual": [
+      "final mainnet target block time is not frozen",
+      "final ASERT half-life is not ratified",
+      "second independent implementation gate remains",
+      "full-target header/codec migration and cumulative-work migration remain",
+      "shadow/soak/independent-operator and production activation evidence remain"
+    ]
+  },
+  "green_condition": "exact final DAA/timestamp rules and parameters frozen; independent parity; historical timewarp/future-drift/MTP corpus GREEN; activation/reorg/restart and production evidence GREEN",
+  "authority": {
+    "consensus_change": false,
+    "activation": false,
+    "mainnet": false
+  }
+}

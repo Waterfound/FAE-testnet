@@ -1,0 +1,39 @@
+{
+  "schema": "FAE_EQUAL_WORK_TIEBREAK_COUNTERFACTUAL_V1",
+  "date": "2026-10-10",
+  "source_head": "069dcce63456d5b1aaa2eec1e02ad15ca8ac13cc",
+  "current_rule": "equal cumulative work -> lexicographically smaller tip hash wins",
+  "current_surface": {
+    "verdict": "DETERMINISTIC_TIEBREAK_GRINDING_SURFACE_CONFIRMED",
+    "probability_if_attacker_precomputes_k_valid_equal_work_candidates": "k/(k+1) against one independent honest candidate",
+    "cost": "approximately k valid-block work opportunities; not free"
+  },
+  "counterfactual": {
+    "rule": "switch only when candidate cumulative work is strictly greater; retain incumbent on equality",
+    "persistent_source_change": false,
+    "runtime_patch_only": true,
+    "differential_test": {
+      "passed": 2,
+      "failed": 0
+    },
+    "partition_recovery": {
+      "logical_passes": 3,
+      "transient_socket_failures": 2,
+      "transient_failures_passed_on_immediate_retry": true,
+      "interpretation": "No deterministic consensus failure was observed from the strict-greater-only counterfactual in this bounded sandbox run; the socket failures also occur under the unmodified rule and are treated as harness/runtime noise."
+    },
+    "security_effect": "Removes lexicographic tip-hash grinding as an equal-work branch-selection lever for a node that already has an incumbent chain.",
+    "tradeoff": "Equal-work nodes may temporarily retain different incumbents until one branch gains strictly more cumulative work; convergence therefore depends on subsequent work/propagation rather than an immediately global deterministic tie-break."
+  },
+  "verdict": "STRICT_GREATER_WORK_ONLY_IS_A_VIABLE_RESEARCH_CANDIDATE__NOT_SELECTED",
+  "next": [
+    "model selfish/stubborn profitability under both tie rules with frozen propagation/timing assumptions",
+    "run larger partition/latency campaign once final network parameters are available",
+    "select tie policy only inside Element 2 final consensus freeze"
+  ],
+  "authority": {
+    "research_only": true,
+    "consensus_change": false,
+    "mainnet": false
+  }
+}

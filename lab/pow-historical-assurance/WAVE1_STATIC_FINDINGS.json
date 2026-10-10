@@ -1,0 +1,34 @@
+{
+  "schema": "FAE_HISTORICAL_POW_WAVE1_STATIC_FINDINGS_V1",
+  "date": "2026-10-10",
+  "base_source": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+  "findings": {
+    "pf07_object_identity": {
+      "status": "STRONG_STRUCTURAL_DEFENSE__DYNAMIC_REGRESSION_ADDED",
+      "evidence": [
+        "txid is recomputed from full normalized transaction including signature",
+        "claimed txid mismatch is rejected",
+        "duplicate txids within a block are rejected",
+        "tx_root commits the exact ordered txid array",
+        "block hash commits the full canonical header including tx_root"
+      ],
+      "residual": "future mainnet header/body/rejection-cache paths still require final replay"
+    },
+    "valid_mempool_brownout": {
+      "status": "STATIC_GAP_CONFIRMED__DYNAMIC_DIAGNOSTIC_ADDED",
+      "evidence": [
+        "per-transaction inputs and outputs are bounded",
+        "per-block transaction count is bounded",
+        "independent HTTP request body is bounded",
+        "active admission logic permits zero-fee transactions when outputs equal inputs"
+      ],
+      "gap": [
+        "no explicit global mempool transaction-count ceiling identified in authoritative v4 core",
+        "no explicit global mempool byte ceiling identified in authoritative v4 core",
+        "no fee floor identified in active v4 transaction admission"
+      ],
+      "next": "run valid-mempool brownout diagnostic; choose the smallest deterministic admission/eviction policy only if pressure escapes acceptable resource envelopes"
+    }
+  },
+  "authority": "ASSURANCE_ONLY"
+}
