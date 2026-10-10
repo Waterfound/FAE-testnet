@@ -1,0 +1,35 @@
+{
+  "schema": "FAE_MAJORITY_WORK_SECURITY_BUDGET_CLOSURE_CONTRACT_V1",
+  "date": "2026-10-10",
+  "element": 2,
+  "invariant": "No software rule can make PoW immune to an adversary that can sustainably acquire the greatest valid cumulative work.",
+  "green_requires": [
+    "frozen subsidy schedule and final fee/security-budget policy",
+    "deterministic subsidy/fee budget envelope across material eras",
+    "representative general-purpose mining work/W and work/$ evidence admitted for the final DP6 path",
+    "specialized/rentable-hash assumptions bounded to the evidence ceiling rather than asserted away",
+    "adverse low-participation and concentration scenarios evaluated",
+    "confirmation/reorg operating policy explicitly tied to observed/economic work conditions",
+    "no known work-function shortcut or consensus accounting defect makes valid work materially cheaper than the model assumes"
+  ],
+  "machine_can_close_now": [
+    "atom-exact subsidy schedule replay",
+    "coin-denominated fee-backfill envelope",
+    "scenario/model tooling",
+    "binding to existing DP6 and RDE evidence"
+  ],
+  "cannot_be_inferred_now": [
+    "future FAE market price",
+    "future electricity prices",
+    "future global honest hash participation",
+    "future specialized/rental market liquidity",
+    "future fee demand"
+  ],
+  "correct_terminal_semantics": "GREEN means the security assumption is explicitly bounded and evidence-backed; it never means 51%-proof.",
+  "authority": {
+    "research_only": true,
+    "consensus_change": false,
+    "economics_change": false,
+    "mainnet": false
+  }
+}
