@@ -50,7 +50,7 @@ const allExternal={physical_hfb:true,representative_device:true,operational_soak
 const completeEvidence=evaluateLaunchChecklist({software,externalEvidence:allExternal,finalFreeze:config});assert.equal(completeEvidence.software_ready,true);assert.equal(completeEvidence.external_evidence_complete,true);
 assert.equal(completeEvidence.final_freeze_complete,false,'historical staging values cannot pass final policy freeze');
 for(const k of ['tokenomics_authority_digest','final_block_target_seconds','final_coinbase_maturity_blocks','fee_security_budget_digest','daa_timestamp_policy_digest','genesis_issuance_proof_digest'])assert.ok(completeEvidence.final_freeze_missing.includes(k));
-const sampleFinal={...config,tokenomics_authority_digest:'c'.repeat(64),final_block_target_seconds:300,final_coinbase_maturity_blocks:200,fee_security_budget_digest:'d'.repeat(64),daa_timestamp_policy_digest:'e'.repeat(64),genesis_issuance_proof_digest:'f'.repeat(64)};
+const sampleFinal={...config,release_artifact_sha256:releaseSha,tokenomics_authority_digest:'c'.repeat(64),final_block_target_seconds:300,final_coinbase_maturity_blocks:200,fee_security_budget_digest:'d'.repeat(64),daa_timestamp_policy_digest:'e'.repeat(64),genesis_issuance_proof_digest:'f'.repeat(64)};
 const simulatedComplete=evaluateLaunchChecklist({software,externalEvidence:allExternal,finalFreeze:sampleFinal});
 assert.equal(simulatedComplete.final_freeze_complete,true,'synthetic inputs test the checklist shape, not real approval');
 assert.equal(simulatedComplete.mainnet_launch_authorized,false);
