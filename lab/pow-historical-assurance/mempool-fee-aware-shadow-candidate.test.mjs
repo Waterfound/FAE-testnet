@@ -1,0 +1,89 @@
+/** Candidate-only acceptance/security tests. No production state or policy changes. */
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {generateKeyPairSync,sign as signBytes} from 'node:crypto';
+import {NETWORK,MAX_MEMPOOL_TXS,emptyState,acceptTxInto,txPayload} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
+import {sha256} from '../../sovereign-forge/node/authoritative/crypto.mjs';
+import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
+import {assertPendingIndexes,removeDescendantPackageOnClone,simulateFeeAwareAdmission} from './mempool-fee-aware-shadow-candidate.mjs';
+const stable=s=>stableStringify(s);
+function wallet(){
+  const {privateKey,publicKey}=generateKeyPairSync('ed25519');
+  const spki=publicKey.export({format:'der',type:'spki'});
+  return {privateKey,pub:spki.toString('base64'),address:encodeAddress(sha256(spki).subarray(0,20),'faet')};
+}
+function signed(w,input,amount='1000000000',fee=0n){
+  const unsigned={version:2,network:NETWORK,inputs:[input],
+    outputs:[{address:w.address,amount_atoms:(BigInt(amount)-fee).toString()}],public_key_spki:w.pub};
+  const signature=signBytes(null,Buffer.from(stable(txPayload({...unsigned,signature:''}))),w.privateKey).toString('base64');
+  return {...unsigned,signature};
+}
+function seed(s,w,outpoint,amount='1000000000'){
+  s.utxos[outpoint]={outpoint,address:w.address,amount_atoms:amount,created_height:0,spent:false,spent_by:null};
+}
+function deepChain(){
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'chain:0',amount);seed(s,b,'outside:0',amount);
+  let prev='chain:0';
+  for(let i=0;i<MAX_MEMPOOL_TXS;i++)prev=acceptTxInto(s,signed(a,prev,amount)).txid+':0';
+  return{s,a,b,amount};
+}
+const fixture=deepChain();
+test('PF-12A: signed higher-fee tx over saturated 4096-chain is admitted on clone only',()=>{
+  const {s,b,amount}=fixture,incoming=signed(b,'outside:0',amount,1000000n),before=stable(s);
+  const result=simulateFeeAwareAdmission(s,incoming);
+  assert.equal(result.decision,'admitted_after_shadow_eviction');
+  assert.equal(result.evicted.length,1);
+  assert.equal(result.evicted_fee_atoms,'0');
+  assert.equal(result.fee_atoms,'1000000');
+  assert.equal(result.state.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assertPendingIndexes(result.state);
+  assert.equal(stable(s),before,'original must remain immutable');
+  assertPendingIndexes(JSON.parse(JSON.stringify(result.state)));
+});
+test('PF-12B: unprofitable zero-fee replacement is rejected without any source mutation',()=>{
+  const{s,b,amount}=fixture,before=stable(s);
+  assert.throws(()=>simulateFeeAwareAdmission(s,signed(b,'outside:0',amount,0n)),e=>e.code==='no_fee_qualified_eviction');
+  assert.equal(stable(s),before);
+});
+test('PF-12C: invalid signatures cannot trigger eviction',()=>{
+  const{s,b,amount}=fixture,before=stable(s);
+  const hostile={...signed(b,'outside:0',amount,1000000n),signature:'AA=='};
+  assert.throws(()=>simulateFeeAwareAdmission(s,hostile),e=>e.code==='invalid_signature');
+  assert.equal(stable(s),before);
+});
+test('PF-12D: insufficient UTXO and double-spend cannot trigger eviction',()=>{
+  const{s,b,amount}=fixture,before=stable(s);
+  const missing=signed(b,'missing:0',amount,1000000n);
+  assert.throws(()=>simulateFeeAwareAdmission(s,missing),e=>e.code==='missing_or_spent_input');
+  const reserved=signed(fixture.a,'chain:0',amount,1000000n);
+  assert.throws(()=>simulateFeeAwareAdmission(s,reserved),e=>e.code==='input_reserved');
+  assert.equal(stable(s),before);
+});
+test('PF-12E: descendant-closed package removal updates real indexes, retains unrelated pending',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'parent:0',amount);seed(s,b,'independent:0',amount);
+  const parent=acceptTxInto(s,signed(a,'parent:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount));
+  const independent=acceptTxInto(s,signed(b,'independent:0',amount,10n));
+  const before=stable(s);
+  const result=removeDescendantPackageOnClone(s,[parent.txid],{cap:3});
+  assert.deepEqual(result.evicted,[parent.txid,child.txid]);
+  assert.deepEqual(result.state.mempoolOrder,[independent.txid]);
+  assert.equal(result.state.mempoolSpends['parent:0'],undefined);
+  assert.equal(result.state.mempoolOutputs[parent.txid+':0'],undefined);
+  assert.equal(result.state.mempoolSpends['independent:0'],independent.txid);
+  assertPendingIndexes(result.state,{cap:3});
+  assert.equal(stable(s),before);
+});
+test('PF-12F: fail closed on orphan reservation; no state auto-repair',()=>{
+  const {s}=fixture,corrupt=structuredClone(s);
+  corrupt.mempoolSpends['unknown:0']='orphan-id';
+  assert.throws(()=>simulateFeeAwareAdmission(corrupt,signed(fixture.b,'outside:0',fixture.amount,1000000n)),e=>e.code==='orphan_reserved_input');
+});
+test('PF-12G: package-size budget and invalid policy parameters fail closed',()=>{
+  const{s,b,amount}=fixture;
+  assert.throws(()=>simulateFeeAwareAdmission(s,signed(b,'outside:0',amount,1000000n),{cap:MAX_MEMPOOL_TXS,minFeeIncrementAtoms:0n}),e=>e.code==='invalid_min_fee_increment');
+  assert.throws(()=>simulateFeeAwareAdmission(s,signed(b,'outside:0',amount,1000000n),{maxPackageSize:0}),e=>e.code==='invalid_package_limit');
+});
