@@ -15,6 +15,7 @@ import {resolve,join} from 'node:path';
 import {createExplorerReadAdapter,ExplorerDataError} from './explorer-read-adapter.mjs';
 import {loadExplorerOverview,loadExplorerTransaction} from './explorer-view-model.mjs';
 import {createWalletPublicLedgerObserver} from './wallet-public-ledger-observer.mjs';
+import {createVaultBoundPublicObserver} from './wallet-vault-public-bridge.mjs';
 
 const NETWORK='fairyelf-public-testnet-v4';
 const CHARSET='qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -215,6 +216,42 @@ test('isolated real-work v4 chain: six Explorer GET routes, pending-to-confirmed
   const received=await adapter.address({address:recipient.address,expectedTip:tip2});
   assert.equal(received.balanceAtoms,'999999900');
   assert.equal(received.events[0].status,'confirmed');
+  // In the candidate, the real encrypted vault (PR #266) exposes exactly
+  // readState + listWallets public metadata. Exercise this contract-shaped
+  // port against actual node-validated chain records, not invented balances.
+  const thirdReal=key();
+  const record=(walletId,address)=>({
+    walletId,network:NETWORK,activeIndex:0,
+    addresses:[{index:0,address,pub:'ephemeral-public-test'}]
+  });
+  const persistent=[
+    record('wallet-'+'a'.repeat(64),sender.address),
+    record('wallet-'+'b'.repeat(64),recipient.address),
+    record('wallet-'+'c'.repeat(64),thirdReal.address)
+  ];
+  const persisted={activeWalletId:persistent[0].walletId};
+  const vaultPublic={
+    readState:async()=>({...persisted}),
+    listWallets:async()=>persistent.map(item=>({...item})),
+    loadAccount:async()=>{throw Error('Public bridge must not decrypt private vault')}
+  };
+  const realVaultBridge=createVaultBoundPublicObserver({vault:vaultPublic,adapter});
+  const seenFromSender=await realVaultBridge.refresh();
+  assert.equal(seenFromSender.balanceAtoms,'1000000000');
+  assert.equal(seenFromSender.tip.hash,tip2.hash);
+  persisted.activeWalletId=persistent[1].walletId;
+  const seenFromRecipient=await realVaultBridge.refresh();
+  assert.equal(seenFromRecipient.balanceAtoms,'999999900');
+  assert.equal(seenFromRecipient.tip.hash,tip2.hash);
+  persisted.activeWalletId=persistent[2].walletId;
+  const emptyThird=await realVaultBridge.refresh();
+  assert.equal(emptyThird.state,'observed');
+  assert.equal(emptyThird.balanceAtoms,'0');
+  persisted.activeWalletId=null;
+  const invalidActive=await realVaultBridge.refresh();
+  assert.equal(invalidActive.state,'vault_unavailable');
+  assert.equal(invalidActive.balanceAtoms,null);
+
   const recipientAfter=await walletView.refresh();
   assert.equal(recipientAfter.state,'observed');
   assert.equal(recipientAfter.balanceAtoms,'999999900');
