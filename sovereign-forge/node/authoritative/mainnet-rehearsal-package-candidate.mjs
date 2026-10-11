@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 
 export const MAINNET_REHEARSAL_STATUS='candidate-not-authorized-mainnet';
 export const MAINNET_REHEARSAL_FORMAT='FAE_MAINNET_REHEARSAL_PACKAGE_V1';
-export const MAINNET_REHEARSAL_ECONOMICS=Object.freeze({target_seconds:300,initial_subsidy_fae:14,halving_era_blocks:430000,theoretical_max_supply_fae:12040000,coinbase_maturity_blocks:200,status:'not-authorized'});
+export const MAINNET_REHEARSAL_ECONOMICS=Object.freeze({target_seconds:300,target_seconds_authoritative:false,initial_subsidy_fae:9,halving_era_blocks:630000,subsidy_reduction_percent:45,subsidy_retention_percent:55,hard_maximum_supply_fae:12600000,coinbase_maturity_blocks:200,coinbase_maturity_authoritative:false,status:'future-monetary-design-not-active-consensus'});
 export const MAINNET_STARTUP_SEQUENCE=Object.freeze([
   'verify-release-artifact','freeze-launch-config','derive-genesis-commitment','start-bootstrap-isolated',
   'verify-bootstrap-diversity','rehearse-genesis','verify-peer-convergence','evaluate-go-no-go'
@@ -21,7 +21,7 @@ export function createGenesisRehearsal({networkId='fairyelf-mainnet-rehearsal-v1
   const network=requiredString(networkId,'network_id'),timestamp=positiveInteger(timestampMs,'genesis_timestamp_ms'),target=hex64(initialTargetHex,'initial_target_hex'),miner=requiredString(minerAddress,'genesis_miner_address');
   const descriptor={
     format:'FAE_MAINNET_GENESIS_REHEARSAL_V1',status:MAINNET_REHEARSAL_STATUS,network,height:1,previous_hash:ZERO_HASH,
-    timestamp_ms:timestamp,initial_target_hex:target,miner_address:miner,reward_atoms:(14n*COIN).toString(),
+    timestamp_ms:timestamp,initial_target_hex:target,miner_address:miner,reward_atoms:(BigInt(MAINNET_REHEARSAL_ECONOMICS.initial_subsidy_fae)*COIN).toString(),
     target_seconds:MAINNET_REHEARSAL_ECONOMICS.target_seconds,halving_era_blocks:MAINNET_REHEARSAL_ECONOMICS.halving_era_blocks,
     coinbase_maturity_blocks:MAINNET_REHEARSAL_ECONOMICS.coinbase_maturity_blocks,txids:[]
   };
@@ -58,8 +58,8 @@ export function evaluateLaunchChecklist({software={},externalEvidence={},finalFr
   const softwareKeys=['release_reproducible','genesis_rehearsed','bootstrap_ready','peer_convergence','rollback_rehearsed'];
   const softwareMissing=softwareKeys.filter(key=>software[key]!==true);
   const externalMissing=REQUIRED_EXTERNAL_EVIDENCE.filter(key=>externalEvidence[key]!==true);
-  const finalFreezeKeys=['genesis_timestamp_ms','initial_target_hex','genesis_miner_address','release_artifact_sha256','bootstrap_requirements','bootstrap_nodes'];
-  const finalFreezeMissing=finalFreezeKeys.filter(key=>finalFreeze[key]===null||finalFreeze[key]===undefined||(Array.isArray(finalFreeze[key])&&finalFreeze[key].length===0));
+  const finalFreezeKeys=['genesis_timestamp_ms','initial_target_hex','genesis_miner_address','release_artifact_sha256','bootstrap_requirements','bootstrap_nodes','tokenomics_authority_digest','final_block_target_seconds','final_coinbase_maturity_blocks','fee_security_budget_digest','daa_timestamp_policy_digest','genesis_issuance_proof_digest'];
+  const finalFreezeMissing=finalFreezeKeys.filter(key=>finalFreeze[key]===null||finalFreeze[key]===undefined||(typeof finalFreeze[key]==='string'&&!finalFreeze[key].trim())||(Array.isArray(finalFreeze[key])&&finalFreeze[key].length===0));
   return Object.freeze({
     status:MAINNET_REHEARSAL_STATUS,software_ready:softwareMissing.length===0,software_missing:softwareMissing,
     external_evidence_complete:externalMissing.length===0,external_missing:externalMissing,
