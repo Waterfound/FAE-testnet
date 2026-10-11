@@ -168,7 +168,13 @@ test('isolated real-work v4 chain: six Explorer GET routes, pending-to-confirmed
   assert.equal((await adapter.status()).data.mempool_size,1);
   assert.equal((await adapter.search({query:txid,expectedTip:tip1})).matches[0].type,'transaction');
 
-  const second=await mine(base,sender.address);
+  let second;
+  try{second=await mine(base,sender.address);}
+  catch(error){
+    throw new Error('second-block phase failed: child exit='+child.exitCode+
+      ' signal='+child.signalCode+' stderr_tail='+stderr.slice(-1500)+
+      ' original='+String(error?.stack||error),{cause:error});
+  }
   assert.equal(second.height,2);
   assert.deepEqual(second.txids,[txid]);
   const tip2=(await adapter.status()).tip;
