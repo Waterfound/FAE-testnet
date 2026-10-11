@@ -1,0 +1,22 @@
+name: pbr-git-ref-cleanroom-candidate
+on:
+  pull_request:
+    paths:
+      - "tools/repository-recovery/verify-bundle-all-refs-cleanroom.sh"
+      - "tools/repository-recovery/selftest-bundle-all-refs-cleanroom.sh"
+      - "tools/repository-recovery/PBR_GIT_REF_CLEANROOM_HANDOFF_20261011.md"
+      - ".github/workflows/pbr-git-ref-cleanroom-candidate.yml"
+permissions:
+  contents: read
+jobs:
+  isolated-git-ref-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore all synthetic Git refs to two isolated local bare repositories
+        run: bash tools/repository-recovery/selftest-bundle-all-refs-cleanroom.sh
+      - name: Ensure no GitHub remote or provider credential is required
+        run: |
+          grep -F 'github_host_configuration_and_secrets_restored=false' tools/repository-recovery/verify-bundle-all-refs-cleanroom.sh
+          test ! -f tools/repository-recovery/actual-github-restore-activation.yml
