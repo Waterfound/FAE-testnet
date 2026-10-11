@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign as signBytes} from 'node:crypto';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createAuthoritativeV4PeerNode} from '../../sovereign-forge/node/authoritative/fae-v4-peer-node.mjs';
 import {NETWORK,MAX_MEMPOOL_TXS,emptyState,appendBlockFromFeed,
  createMiningTemplate,appendBlockFromSubmission,acceptTxInto,cloneState,
  reconcileDetachedTransactions,preferred,txPayload} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
@@ -81,4 +85,46 @@ test('HPA-W2-R3: reject nonpreferred branch and invalid continuation bounds fail
   e=>e.code==='invalid_recovery_bound');
  assert.equal(stableStringify(candidate),a);
  assert.equal(stableStringify(previous),b);
+});
+
+test('HPA-W2-R4: authenticated higher-work peer sync uses explicit bounded reorg recovery and persists exact state',async t=>{
+ const {candidate,previous,incoming}=scenario();
+ const dir=await mkdtemp(join(tmpdir(),'fae-hpa-reorg-'));
+ t.after(()=>rm(dir,{recursive:true,force:true}));
+ const mainFile=join(dir,'main-state.json'),identityFile=join(dir,'main-identity.json');
+ let invoked=0;
+ const local=createAuthoritativeV4PeerNode({initialState:previous,dataFile:mainFile,
+   identityFile,candidateReorgRecovery:(fork,old)=>{
+     invoked++;
+     return recoverDetachedFeeAware(fork,old);
+   }});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await remote.start();
+ try{
+  const before=local.getState().chain.at(-1).hash;
+  const outcome=await local.syncPeer(remote.baseUrl());
+  assert.equal(outcome.adopted,true);
+  assert.equal(invoked,1,'the source-owned guarded callback must be reached');
+  assert.notEqual(local.getState().chain.at(-1).hash,before);
+  assert.equal(local.getState().chain.at(-1).hash,candidate.chain.at(-1).hash);
+  assert.equal(local.getState().transactions[incoming.txid]?.fee_atoms,'1000000');
+  assertPendingIndexes(local.getState());
+ }finally{await local.close();await remote.close()}
+ const cold=createAuthoritativeV4PeerNode({dataFile:mainFile,identityFile});
+ await cold.start();
+ try{
+   assert.equal(cold.getState().transactions[incoming.txid]?.fee_atoms,'1000000');
+   assert.equal(cold.getState().chain.at(-1).hash,candidate.chain.at(-1).hash);
+ }finally{await cold.close()}
+});
+test('HPA-W2-R5: authenticated reorg rejects a malicious callback that swaps validated chain identity',async t=>{
+ const {candidate,previous}=scenario();
+ const local=createAuthoritativeV4PeerNode({initialState:previous,
+   candidateReorgRecovery:()=>({state:cloneState(previous),reacceptedRecords:[],rejected:0})});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await remote.start();
+ t.after(()=>Promise.all([local.close(),remote.close()]));
+ const original=stableStringify(local.getState());
+ await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_chain_mutation/);
+ assert.equal(stableStringify(local.getState()),original,'malicious candidate must never alter local persisted state');
 });
