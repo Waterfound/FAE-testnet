@@ -3,7 +3,7 @@ import {randomBytes} from 'node:crypto';
 import {mkdir,readFile,rename,writeFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {
-  NETWORK,ZERO_HASH,TARGET_SECONDS,MAX_SUPPLY,HALVING_ERA_BLOCKS,LEGACY_TESTNET_HASHES,
+  NETWORK,ZERO_HASH,TARGET_SECONDS,MAX_SUPPLY,HALVING_ERA_BLOCKS,MAX_TXS_PER_BLOCK,LEGACY_TESTNET_HASHES,
   emptyState,cloneState,tip,issued,formatAtoms,nextDifficulty,chainWork,
   publicBlock,blockHeaderRecord,validateHeaderSequence,
   appendBlockFromFeed,appendBlockFromSubmission,createMiningTemplate,createDistributedTemplate,
@@ -96,10 +96,11 @@ export function createAuthoritativeV4PeerNode({
   host='127.0.0.1',port=0,dataFile=null,identityFile=null,peerTrustFile=null,peers=[],publicUrl=null,
   initialState=null,activationHeight=PPLNS_COINBASE_ACTIVATION_HEIGHT,syncIntervalMs=0,
   pinnedPeerIdentityIds=[],peerDiversityOptions={},guardOptions={},secureChannelOptions={},
-  peerHelloExtensions=null,peerHelloValidator=null,candidateTxAdmission=null
+  peerHelloExtensions=null,peerHelloValidator=null,candidateTxAdmission=null,candidateTemplateSelection=null
 }={}){
   if(peerHelloValidator!==null&&peerHelloValidator!==undefined&&typeof peerHelloValidator!=='function')throw new Error('peer_hello_validator_must_be_function');
   if(candidateTxAdmission!==null&&typeof candidateTxAdmission!=='function')throw new Error('candidate_tx_admission_must_be_function');
+  if(candidateTemplateSelection!==null&&typeof candidateTemplateSelection!=='function')throw new Error('candidate_template_selection_must_be_function');
   const helloExtensions=normalizePeerHelloExtensions(peerHelloExtensions),helloValidator=peerHelloValidator??null;
   const configuredPeers=normalizePeers(peers),publicEndpoint=publicUrl?normalizePeer(publicUrl):null,identity=loadOrCreateNodeIdentity(identityFile),trust=new PeerTrustStore({path:peerTrustFile,networkId:NETWORK}),guard=new PeerGuard(guardOptions),secureChannels=new SecureChannelHub({identity,networkId:NETWORK,...secureChannelOptions}),coordinators=new CoordinatorRegistry({networkId:NETWORK}),directory=new PeerDirectory({networkId:NETWORK}),diversity=new PeerDiversityPolicy({...peerDiversityOptions,pinnedIdentityIds:pinnedPeerIdentityIds});
   const authenticatedPeers=new Map();
@@ -117,6 +118,32 @@ export function createAuthoritativeV4PeerNode({
   async function peerHello(peer,{source='configured',expectedIdentityId=null}={}){const base=normalizePeer(peer),challenge=randomBytes(24).toString('hex'),envelope=await fetchJson(`${base}/peer/hello?challenge=${challenge}`),hello=verifyEnvelope(envelope,{kind:'peer-hello',maxAgeMs:2*60_000});if(hello.challenge!==challenge)throw new Error('peer_hello_challenge_mismatch');if(hello.network!==NETWORK)throw new Error('peer_wrong_network');if(hello.genesis!==CANONICAL_GENESIS_HASH)throw new Error('peer_genesis_mismatch');if(!Number.isInteger(hello.protocol_version)||hello.protocol_version<AUTHORITATIVE_P2P_PROTOCOL_VERSION)throw new Error('peer_protocol_too_old');if(expectedIdentityId&&envelope.signer.id!==expectedIdentityId)throw new Error('peer_descriptor_identity_mismatch');if(helloValidator){const verdict=await helloValidator(hello,{peer:base,signer:envelope.signer});if(verdict===false)throw new Error('peer_hello_extension_rejected');if(verdict&&typeof verdict==='object'&&verdict.ok===false){const error=new Error(verdict.error||'peer_hello_extension_rejected');error.code=verdict.error||'peer_hello_extension_rejected';error.verdict=verdict;throw error}}trust.observe(base,envelope.signer.id,envelope.signer.publicKey);authenticatedPeers.set(base,{endpoint:base,identityId:envelope.signer.id,source});return{...hello,peer_id:envelope.signer.id,base}}
   function verifyPeerFrame(envelope,{kind,peerId}){return verifyEnvelope(envelope,{kind,expectedSignerId:peerId,maxAgeMs:2*60_000})}
   async function peerSession(peer,options={}){const hello=await peerHello(peer,options),session=await establishSecurePeerSession({baseUrl:hello.base,identity,networkId:NETWORK,expectedServerId:hello.peer_id});return{hello,session}}
+  function scopedMiningTemplate(address){
+    if(candidateTemplateSelection===null)return createMiningTemplate(state,address,{activationHeight});
+    // Local test-only injection, never configurable by a remote peer or HTTP.
+    // Validate a bounded topological selection against source-owned pending
+    // records, then ask unchanged authoritative core to commit a real header.
+    const suggestion=candidateTemplateSelection(cloneState(state));
+    const ids=suggestion?.txids;
+    if(!Array.isArray(ids)||ids.length>MAX_TXS_PER_BLOCK||
+      ids.some(id=>typeof id!=='string')||new Set(ids).size!==ids.length)
+      throw Object.assign(new Error('invalid_candidate_template_selection'),{code:'invalid_candidate_template_selection'});
+    const order=new Set();
+    for(const id of ids){
+      const record=state.transactions[id];
+      if(!record||record.status!=='pending')throw Object.assign(new Error('candidate_template_unknown_pending'),{code:'candidate_template_unknown_pending'});
+      for(const input of record.inputs){
+        const parent=state.mempoolOutputs[input]?.txid;
+        if(parent&&!order.has(parent))throw Object.assign(new Error('candidate_template_missing_parent'),{code:'candidate_template_missing_parent'});
+      }
+      order.add(id);
+    }
+    const candidate=cloneState(state);candidate.mempoolOrder=[...ids];
+    const template=createMiningTemplate(candidate,address,{activationHeight});
+    if(template.txids.length!==ids.length||template.txids.some((id,i)=>id!==ids[i]))
+      throw Object.assign(new Error('candidate_template_core_mismatch'),{code:'candidate_template_core_mismatch'});
+    return {...template,template_policy:'fee_sensitive_explicit_candidate'};
+  }
   async function relayTx(record,{exclude=null}={}){const excluded=exclude?normalizePeer(exclude):null,targets=diversity.select(authenticatedObservations().filter(row=>row.endpoint!==excluded),{limit:MAX_SYNC_SELECTION}).map(row=>row.endpoint);return Promise.allSettled(targets.map(async peer=>{const{session}=await peerSession(peer,{source:authenticatedPeers.get(peer)?.source||'relay'});try{return await session.request('/tx',{method:'POST',body:{tx:normalizeTx(record)}})}finally{session.close()}}))}
   async function relayBlock(block,{exclude=null}={}){const excluded=exclude?normalizePeer(exclude):null,targets=diversity.select(authenticatedObservations().filter(row=>row.endpoint!==excluded),{limit:MAX_SYNC_SELECTION}).map(row=>row.endpoint),submission=blockSubmission(block);return Promise.allSettled(targets.map(async peer=>{const{session}=await peerSession(peer,{source:authenticatedPeers.get(peer)?.source||'relay'});try{return await session.request('/blocks',{method:'POST',body:submission})}finally{session.close()}}))}
   async function fetchPeerHeaders(session,peerId,from,target){const headers=[];for(let cursor=from;cursor<=target;){const limit=Math.min(MAX_HEADERS_PAGE,target-cursor+1),envelope=await session.request(`/headers?from=${cursor}&limit=${limit}`),page=verifyPeerFrame(envelope,{kind:'headers-page',peerId});if(Number(page.from)!==cursor||!Array.isArray(page.headers)||page.headers.length<1)throw new Error('peer_incomplete_headers');headers.push(...page.headers);cursor+=page.headers.length;if(headers.length>MAX_BRANCH_BLOCKS)throw new Error('peer_branch_exceeds_sync_ceiling')}return headers}
@@ -175,7 +202,7 @@ export function createAuthoritativeV4PeerNode({
       if(req.method==='GET'&&url.pathname==='/peer/hello'){const challenge=url.searchParams.get('challenge')||'';if(!/^[0-9a-f]{32,128}$/.test(challenge))throw new Error('peer_hello_requires_random_challenge');return send(res,200,signEnvelope(identity,'peer-hello',{challenge,software:'fairyelf',protocol_version:AUTHORITATIVE_P2P_PROTOCOL_VERSION,network:NETWORK,genesis:CANONICAL_GENESIS_HASH,height:tip(state)?.height??0,tip_hash:tip(state)?.hash||ZERO_HASH,chain_work:chainWork(state.chain).toString(),capabilities:NODE_CAPABILITIES,...(helloExtensions||{})}))}
       if(req.method==='POST'&&url.pathname==='/peer/channel'){const body=await readJson(req,64_000);return send(res,200,secureChannels.accept(body))}
       if(req.method==='POST'&&url.pathname==='/peer/secure'){const frame=await readJson(req,3*1024*1024),opened=secureChannels.openRequest(frame);let response;try{response={ok:true,status:200,body:await dispatchSecure(opened.message)};guard.forgive(remote,1)}catch(error){guard.penalize(remote,1);response={ok:false,status:400,body:{error:error.message}}}return send(res,200,secureChannels.sealResponse(opened,response))}
-      if(req.method==='GET'&&url.pathname==='/template'){const address=url.searchParams.get('address')||'';return send(res,200,createMiningTemplate(state,address,{activationHeight}))}
+      if(req.method==='GET'&&url.pathname==='/template'){const address=url.searchParams.get('address')||'';return send(res,200,scopedMiningTemplate(address))}
       if(req.method==='POST'&&url.pathname==='/template/pplns'){const body=await readJson(req,128_000);return send(res,200,createDistributedTemplate(state,body.weights,{activationHeight}))}
       if(req.method==='POST'&&url.pathname==='/submit-block'){const body=await readJson(req);let accepted;await serial(async()=>{state=appendBlockFromSubmission(state,{header:body.header,nonce:Number(body.nonce),hash:String(body.hash||''),txids:(body.txids||[]).map(String),coinbase_outputs:body.coinbase_outputs??null},{activationHeight});accepted=tip(state);await persist()});void relayBlock(accepted);return send(res,200,{ok:true,height:accepted.height,hash:accepted.hash,tx_count:accepted.txids.length})}
       if(req.method==='POST'&&url.pathname==='/submit-tx'){const body=await readJson(req);let accepted;await serial(async()=>{
