@@ -68,3 +68,43 @@ export function sourceWindowRolloff(ledger,{newHonestShares=512}={}){
     attacker_shares:Number(weights.find(w=>w.address==='attacker')?.weight??0n),
     honest_shares:Number(weights.find(w=>w.address==='honest')?.weight??0n)};
 }
+
+/**
+ * FAW/EFAW attacker-favorable opportunity envelope from REAL source share
+ * payout weights; external fork wins, opportunities and costs are INPUT
+ * ASSUMPTIONS, never measured consensus/mempool/network outcomes.
+ * One "opportunity" is a hypothetical independent reward opportunity in the
+ * reference period. This deliberately does NOT assert its occurrence rate.
+ */
+export function fawConditionalExternalOpportunity({ledger,withholdBasisPoints=10000,
+  poolRewardAtoms=100000000n,externalRewardAtoms,assumedOpportunities,
+  assumedForkWinBasisPoints,extraAttackCostAtoms=0n}={}){
+  const internal=bwhConditionalPayoff({ledger,withholdBasisPoints,rewardAtoms:poolRewardAtoms});
+  if(typeof externalRewardAtoms!=='bigint'||externalRewardAtoms<1n||
+     !Number.isSafeInteger(assumedOpportunities)||assumedOpportunities<1||assumedOpportunities>100000||
+     !Number.isSafeInteger(assumedForkWinBasisPoints)||
+     assumedForkWinBasisPoints<0||assumedForkWinBasisPoints>10000||
+     typeof extraAttackCostAtoms!=='bigint'||extraAttackCostAtoms<0n)
+    throw new Error('invalid_faw_external_assumptions');
+  const loss=BigInt(internal.minimum_external_benefit_to_break_even_atoms);
+  const opportunities=BigInt(assumedOpportunities),totalExternal=externalRewardAtoms*opportunities;
+  const needed=loss+extraAttackCostAtoms;
+  const expectedExternal=totalExternal*BigInt(assumedForkWinBasisPoints)/BASIS;
+  const requiredWinBps=(needed*BASIS+totalExternal-1n)/totalExternal;
+  return {
+    verdict:'CONDITIONAL_FAW_MULTIPOOL_OPPORTUNITY__NOT_OBSERVED_PROFIT',
+    ownPoolWithholdingCostAtoms:loss.toString(),
+    assumedExternalOpportunities:assumedOpportunities,
+    assumedForkWinBasisPoints,
+    assumedExtraAttackCostAtoms:extraAttackCostAtoms.toString(),
+    expectedExternalAtoms:expectedExternal.toString(),
+    expectedNetGainAtoms:(expectedExternal-needed).toString(),
+    requiredForkWinBasisPointsCeil:requiredWinBps.toString(),
+    conditionalScenarioAdvantageous:expectedExternal>needed,
+    forkOpportunityRateVerified:false,
+    empiricalForkWinProbabilityVerified:false,
+    externalPoolPayoutVerified:false,
+    realNetworkHashAndLatencyVerified:false,
+    actualAttackerProfitabilityVerified:false
+  };
+}
