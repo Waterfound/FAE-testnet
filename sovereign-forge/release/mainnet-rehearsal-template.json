@@ -4,11 +4,17 @@
   "network_id": "fairyelf-mainnet-rehearsal-v1",
   "economics_candidate": {
     "target_seconds": 300,
-    "initial_subsidy_fae": 14,
-    "halving_era_blocks": 430000,
-    "theoretical_max_supply_fae": 12040000,
+    "target_seconds_authoritative": false,
+    "initial_subsidy_fae": 9,
+    "halving_era_blocks": 630000,
+    "subsidy_reduction_percent": 45,
+    "subsidy_retention_percent": 55,
+    "hard_maximum_supply_fae": 12600000,
     "coinbase_maturity_blocks": 200,
-    "status": "not-authorized"
+    "coinbase_maturity_authoritative": false,
+    "status": "future-monetary-design-not-active-consensus",
+    "authority_source": "Waterfound/FAE-testnet@6d0c3956fdf72cd2e7543eee2539397ed5c0e699:docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+    "authority_source_present_in_historical_rehearsal_branch": false
   },
   "final_freeze_required": {
     "genesis_timestamp_ms": null,
@@ -17,7 +23,13 @@
     "release_artifact_sha256": null,
     "live_activation_height": null,
     "bootstrap_requirements": null,
-    "bootstrap_nodes": []
+    "bootstrap_nodes": [],
+    "tokenomics_authority_digest": null,
+    "final_block_target_seconds": null,
+    "final_coinbase_maturity_blocks": null,
+    "fee_security_budget_digest": null,
+    "daa_timestamp_policy_digest": null,
+    "genesis_issuance_proof_digest": null
   },
   "external_evidence_required": {
     "physical_hfb": false,
