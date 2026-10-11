@@ -24,6 +24,8 @@ import {hashHex,leadingZeroBits,sha256} from '../../sovereign-forge/node/authori
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {simulateFeeAwareAdmission,assertPendingIndexes}
   from './mempool-fee-aware-shadow-candidate.mjs';
+import {establishSecurePeerSession} from '../../sovereign-forge/node/authoritative/secure-channel.mjs';
+import {generateNodeIdentity} from '../../sovereign-forge/node/authoritative/node-identity.mjs';
 
 function wallet(){
   const {privateKey,publicKey}=generateKeyPairSync('ed25519');
@@ -161,4 +163,44 @@ test('HPA-W2 experimental ingress: authentic peer HTTP admits high fee only unde
       body:JSON.stringify({tx:signTx(signer,feeOutpoint,feeAtoms,1000n)})})).body.error,'mempool_full',
       'node without explicit per-instance callback retains the original default full-pool behavior');
   }finally{await cold.close();}
+});
+
+test('HPA-W2 encrypted peer: opt-in native /tx evicts low-fee pending under saturation; default peer still refuses',async t=>{
+  const signer=wallet();let state=emptyState();
+  for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});
+  state=mine(state,signer.address);const chainInput=state.chain.at(-1).hash+':0';
+  state=mine(state,signer.address);const feeInput=state.chain.at(-1).hash+':0';
+  const chainAmount=state.utxos[chainInput].amount_atoms,feeAmount=state.utxos[feeInput].amount_atoms;
+  let prev=chainInput;
+  for(let i=0;i<MAX_MEMPOOL_TXS;i++)prev=acceptTxInto(state,signTx(signer,prev,chainAmount)).txid+':0';
+  assertPendingIndexes(state);
+  const originalOrder=[...state.mempoolOrder];
+  const candidate=createAuthoritativeV4PeerNode({initialState:state,candidateTxAdmission:simulateFeeAwareAdmission});
+  const defaultPeer=createAuthoritativeV4PeerNode({initialState:state});
+  await candidate.start();await defaultPeer.start();
+  t.after(()=>Promise.all([candidate.close(),defaultPeer.close()]));
+  const valid=signTx(signer,feeInput,feeAmount,1000000n),bad={...valid,signature:'AA=='};
+  async function secure(peer){
+    return establishSecurePeerSession({baseUrl:peer.baseUrl(),identity:generateNodeIdentity(),
+      networkId:NETWORK,expectedServerId:peer.identity.id});
+  }
+  let s=await secure(defaultPeer);
+  await assert.rejects(s.request('/tx',{method:'POST',body:{tx:valid}}),/mempool_full/);
+  s.close();
+  assert.deepEqual(defaultPeer.getState().mempoolOrder,originalOrder);
+  s=await secure(candidate);
+  await assert.rejects(s.request('/tx',{method:'POST',body:{tx:bad}}),/invalid_signature/);
+  s.close();
+  assert.deepEqual(candidate.getState().mempoolOrder,originalOrder);
+  s=await secure(candidate);
+  const response=await s.request('/tx',{method:'POST',body:{tx:valid}});
+  s.close();
+  assert.equal(response.accepted,true);
+  assert.equal(response.fee_atoms,'1000000');
+  const after=candidate.getState();
+  assertPendingIndexes(after);
+  assert.equal(after.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assert.equal(after.transactions[response.txid]?.fee_atoms,'1000000');
+  assert.equal(after.transactions[originalOrder.at(-1)],undefined);
+  assert.equal(defaultPeer.getState().transactions[response.txid],undefined);
 });
