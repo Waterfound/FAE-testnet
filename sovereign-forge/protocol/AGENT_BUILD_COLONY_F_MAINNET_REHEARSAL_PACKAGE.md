@@ -8,15 +8,14 @@ Worker F closes the software-only mainnet rehearsal/package ceiling. It exists t
 
 ## Candidate economics exercised
 
-The package rehearses the preferred future candidate:
+This historical Worker F rehearsal was initially written against a superseded 14 FAE / 430,000-block package. Its October 2026 candidate revision now draws a **synthetic rehearsal genesis** from the Waterfound-authoritative future *monetary design* recorded 2026-10-06:
 
-- target interval: **300 seconds**;
-- initial subsidy: **14 FAE**;
-- halving interval: **430,000 blocks**;
-- theoretical maximum supply: **12,040,000 FAE**;
-- coinbase maturity: **200 blocks**.
+- initial subsidy: **9 FAE**;
+- subsidy era: **630,000 blocks**, 45% reduction / 55% retention;
+- hard monetary ceiling: **12,600,000 FAE**.
+- source: `docs/FAE_TOKENOMICS_AUTHORITY_20261006.json` on canonical FAE main; this historical rehearsal branch does **not** claim those authority bytes are included in a final release.
 
-Every one of these values remains `not-authorized`. Worker F does not change the current public-testnet regime and does not choose a live activation height.
+A target interval of **300 seconds** and coinbase maturity of **200 blocks** are still separate research incumbents, explicitly **not frozen** for production. Neither the future monetary design nor these synthetic rehearsal inputs change the current public-testnet rules or choose an activation height.
 
 ## No hidden final values
 
@@ -28,7 +27,11 @@ The checked-in rehearsal template deliberately leaves these final-freeze values 
 - release artifact digest;
 - live activation height;
 - bootstrap requirements;
-- bootstrap nodes.
+- bootstrap nodes;
+- final tokenomics-authority binding digest;
+- final block target and coinbase maturity;
+- fee-security-budget and DAA/timestamp policy digests;
+- genesis issuance proof digest.
 
 The test suite supplies deterministic synthetic values only so the software path can be exercised. In particular, the `.invalid` bootstrap endpoints and the `3 operators / 3 network groups / 1 pinned identity` threshold are test vectors, not proposed production values.
 
