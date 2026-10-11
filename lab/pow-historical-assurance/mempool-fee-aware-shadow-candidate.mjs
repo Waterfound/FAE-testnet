@@ -24,11 +24,18 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
   for(const txid of active){
     const rec=state.transactions[txid];
     if(!rec||rec.txid!==txid||rec.status!=='pending')fail('invalid_pending_record');
-    validFee(rec);
+    const declaredFee=validFee(rec);
+    let inputAtoms=0n,outputAtoms=0n;
     for(const input of rec.inputs){
       if(state.mempoolSpends[input]!==txid)fail('missing_input_reservation');
-      if(!state.utxos[input]&&!state.mempoolOutputs[input])fail('missing_input_source');
+      const confirmed=state.utxos[input];
+      const source=confirmed&&!confirmed.spent?confirmed:state.mempoolOutputs[input];
+      if(!source)fail('missing_input_source');
+      if(source.address!==rec.from_address)fail('invalid_pending_input_owner');
+      inputAtoms+=BigInt(source.amount_atoms);
     }
+    for(const output of rec.outputs)outputAtoms+=BigInt(output.amount_atoms);
+    if(inputAtoms<outputAtoms||inputAtoms-outputAtoms!==declaredFee)fail('pending_fee_mismatch');
     for(let j=0;j<rec.outputs.length;j++){
       const outpoint=txid+':'+j, indexed=state.mempoolOutputs[outpoint];
       if(!indexed||indexed.txid!==txid||String(indexed.amount_atoms)!==String(rec.outputs[j].amount_atoms)||indexed.address!==rec.outputs[j].address)fail('missing_pending_output');
