@@ -14,8 +14,9 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {
   NETWORK,MAX_MEMPOOL_TXS,emptyState,createMiningTemplate,appendBlockFromSubmission,
-  acceptTxInto,txPayload
+  acceptTxInto,txPayload,appendBlockFromFeed
 } from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
 import {createAuthoritativeV4PeerNode,verifyPersistedState}
   from '../../sovereign-forge/node/authoritative/fae-v4-peer-node.mjs';
 import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
@@ -52,6 +53,8 @@ test('HPA-W2 cold process: real chain, 4096 signed chain, guarded fee admission,
   t.after(()=>rm(dir,{recursive:true,force:true}));
   const file=join(dir,'isolated-state.json'),idFile=join(dir,'isolated-identity.json');
   const w=wallet();let chain=emptyState();
+  for(const block of legacyBlocks)chain=appendBlockFromFeed(chain,block,new Map(),{activationHeight:null});
+  assert.equal(chain.chain.length,legacyBlocks.length,'never forge or skip frozen legacy history');
   chain=mine(chain,w.address);const first=chain.chain.at(-1).hash+':0';
   chain=mine(chain,w.address);const second=chain.chain.at(-1).hash+':0';
   const amount=chain.utxos[first].amount_atoms,otherAmount=chain.utxos[second].amount_atoms;
