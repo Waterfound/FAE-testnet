@@ -96,9 +96,10 @@ export function createAuthoritativeV4PeerNode({
   host='127.0.0.1',port=0,dataFile=null,identityFile=null,peerTrustFile=null,peers=[],publicUrl=null,
   initialState=null,activationHeight=PPLNS_COINBASE_ACTIVATION_HEIGHT,syncIntervalMs=0,
   pinnedPeerIdentityIds=[],peerDiversityOptions={},guardOptions={},secureChannelOptions={},
-  peerHelloExtensions=null,peerHelloValidator=null
+  peerHelloExtensions=null,peerHelloValidator=null,candidateTxAdmission=null
 }={}){
   if(peerHelloValidator!==null&&peerHelloValidator!==undefined&&typeof peerHelloValidator!=='function')throw new Error('peer_hello_validator_must_be_function');
+  if(candidateTxAdmission!==null&&typeof candidateTxAdmission!=='function')throw new Error('candidate_tx_admission_must_be_function');
   const helloExtensions=normalizePeerHelloExtensions(peerHelloExtensions),helloValidator=peerHelloValidator??null;
   const configuredPeers=normalizePeers(peers),publicEndpoint=publicUrl?normalizePeer(publicUrl):null,identity=loadOrCreateNodeIdentity(identityFile),trust=new PeerTrustStore({path:peerTrustFile,networkId:NETWORK}),guard=new PeerGuard(guardOptions),secureChannels=new SecureChannelHub({identity,networkId:NETWORK,...secureChannelOptions}),coordinators=new CoordinatorRegistry({networkId:NETWORK}),directory=new PeerDirectory({networkId:NETWORK}),diversity=new PeerDiversityPolicy({...peerDiversityOptions,pinnedIdentityIds:pinnedPeerIdentityIds});
   const authenticatedPeers=new Map();
@@ -177,7 +178,24 @@ export function createAuthoritativeV4PeerNode({
       if(req.method==='GET'&&url.pathname==='/template'){const address=url.searchParams.get('address')||'';return send(res,200,createMiningTemplate(state,address,{activationHeight}))}
       if(req.method==='POST'&&url.pathname==='/template/pplns'){const body=await readJson(req,128_000);return send(res,200,createDistributedTemplate(state,body.weights,{activationHeight}))}
       if(req.method==='POST'&&url.pathname==='/submit-block'){const body=await readJson(req);let accepted;await serial(async()=>{state=appendBlockFromSubmission(state,{header:body.header,nonce:Number(body.nonce),hash:String(body.hash||''),txids:(body.txids||[]).map(String),coinbase_outputs:body.coinbase_outputs??null},{activationHeight});accepted=tip(state);await persist()});void relayBlock(accepted);return send(res,200,{ok:true,height:accepted.height,hash:accepted.hash,tx_count:accepted.txids.length})}
-      if(req.method==='POST'&&url.pathname==='/submit-tx'){const body=await readJson(req);let accepted;await serial(async()=>{accepted=acceptTxInto(state,body.tx||body);await persist()});void relayTx(accepted);return send(res,200,{ok:true,txid:accepted.txid,fee_atoms:accepted.fee_atoms})}
+      if(req.method==='POST'&&url.pathname==='/submit-tx'){const body=await readJson(req);let accepted;await serial(async()=>{
+        if(candidateTxAdmission===null){accepted=acceptTxInto(state,body.tx||body);await persist();return}
+        // Explicit, per-instance experimental admission injection. Default node and
+        // remote peer ingress remain untouched; no network/API flag can enable this.
+        // Reject cloned-state policies that modify validated chain identity.
+        const previous=state,raw=body.tx||body,trial=candidateTxAdmission(cloneState(state),raw);
+        if(!trial||!trial.state||!trial.admitted||!String(trial.decision||'').startsWith('admitted_'))
+          throw Object.assign(new Error('candidate_admission_rejected'),{code:'candidate_admission_rejected'});
+        const next=verifyPersistedState(trial.state,{activationHeight});
+        if(next.chain.length!==previous.chain.length||
+           next.chain.some((block,i)=>block.hash!==previous.chain[i].hash))
+          throw Object.assign(new Error('candidate_chain_mutation'),{code:'candidate_chain_mutation'});
+        accepted=next.transactions[trial.admitted];
+        if(!accepted||accepted.status!=='pending')
+          throw Object.assign(new Error('candidate_admission_missing'),{code:'candidate_admission_missing'});
+        state=next;
+        try{await persist()}catch(error){state=previous;throw error}
+      });void relayTx(accepted);return send(res,200,{ok:true,txid:accepted.txid,fee_atoms:accepted.fee_atoms})}
       if(req.method==='GET'&&url.pathname==='/balance'){const address=url.searchParams.get('address')||'',amount=balanceAtoms(state,address);return send(res,200,{ok:true,address,balance_atoms:amount.toString(),balance_fae:formatAtoms(amount),utxos:spendableOutputs(state,address)})}
       if(req.method==='GET'&&url.pathname==='/coordinators')return send(res,200,{ok:true,network:NETWORK,coordinators:coordinators.list()});
       if(req.method==='GET'&&url.pathname==='/peer-diversity')return send(res,200,{ok:true,network:NETWORK,authenticated_peers:authenticatedObservations(),assessment:diversityStatus()});
