@@ -1,6 +1,7 @@
 # Agent Build Colony — Worker E: Release & Reproducibility
 
-Status: **release-candidate packaging only / no consensus authority**
+Status: **release-candidate packaging only / no consensus authority**  
+Authority reconciliation addendum: **2026-10-11 — superseded 14/430k eliminated from future-design namespace**
 
 Base commit: `02b68016815b3c9e7d2359a408826a790ae5608e`
 
@@ -28,9 +29,11 @@ Outputs:
 `release-candidate-config.json` keeps two namespaces deliberately separate:
 
 - **canonical public testnet** — existing 180s / 10 FAE / 600000-block legacy regime;
-- **preferred future candidate** — 300s / 14 FAE / 430000-block halving / 200-block coinbase maturity.
+- **authoritative future monetary design (not active)** — the 2026-10-06 Waterfound decision: 9 FAE start, 630,000-block eras, 45% subsidy reduction / 55% retention, 12.6M hard ceiling, with atom-floor terminal issuance 12,599,999.811 FAE. The exact authority record is on canonical FAE main (2026-10-06).
+- **still-research-only final choices** — 300s block target and 200-block maturity are historical research incumbents, not production-selected parameters; DAA/timestamp, fees/security budget, activation and genesis remain unfrozen.
+- **superseded historical candidate** — 14 FAE / 430,000-block halving / 12.04M package remains only in the explicitly deprecated historical field.
 
-The preferred candidate is explicitly `not-authorized`, has no activation height, and cannot be interpreted as live consensus authority by this package.
+The future monetary **design** is human-authoritative for its specified tokenomics only, and explicitly not the live testnet or a mainnet release. This historical Worker E source branch does **not** contain the 2026-10-06 authority record; it must be rebound to a current canonical exact source tree before any final release attempt. The final block target and maturity remain separately unresolved. The package cannot be interpreted as permission to change live consensus.
 
 ## Clean-room gate
 
