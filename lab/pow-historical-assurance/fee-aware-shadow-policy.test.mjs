@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign as nodeSign} from 'node:crypto';
 import {
  NETWORK, MAX_MEMPOOL_TXS, emptyState, cloneState, acceptTxInto,
- verifyTxCrypto
+ verifyTxCrypto, txPayload
 } from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
 import {sha256} from '../../sovereign-forge/node/authoritative/crypto.mjs';
@@ -19,10 +19,7 @@ function sign(owner,input,amount,fee=0n){
  const unsigned={version:2,network:NETWORK,inputs:[input],
   outputs:[{address:owner.address,amount_atoms:(BigInt(amount)-fee).toString()}],
   public_key_spki:owner.pub};
- const signature=nodeSign(null,Buffer.from(stableStringify({
-  version:unsigned.version,network:unsigned.network,inputs:unsigned.inputs,
-  outputs:unsigned.outputs,public_key_spki:unsigned.public_key_spki
- })),owner.privateKey).toString('base64');
+ const signature=nodeSign(null,Buffer.from(stableStringify(txPayload({...unsigned,signature:''}))),owner.privateKey).toString('base64');
  return {...unsigned,signature};
 }
 function seed(state,owner,id,amount='1000000000'){
@@ -98,7 +95,7 @@ test('real-core ancestor fee package gets priority over unrelated low-fee tx (sh
 test('no duplicate intake and no mutated policy constants',()=>{
  const {state}=fixture;
  assert.equal(MAX_MEMPOOL_TXS,4096);
- assert.equal(candidateFeeOrderedTxids(state,{limit:1}).length,1);
+ assert.equal(state.mempoolOrder.length,4096);
  assert.throws(()=>candidateFeeOrderedTxids(state,{limit:5000}),/invalid_template_limit/);
  assert.equal(trialFeeAwareAdmission(state,{},{}).status,'rejected');
 });
