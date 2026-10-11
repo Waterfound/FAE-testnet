@@ -6,7 +6,7 @@ import {NETWORK,MAX_MEMPOOL_TXS,emptyState,acceptTxInto,txPayload} from '../../s
 import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
 import {sha256} from '../../sovereign-forge/node/authoritative/crypto.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
-import {assertPendingIndexes,removeDescendantPackageOnClone,simulateFeeAwareAdmission} from './mempool-fee-aware-shadow-candidate.mjs';
+import {assertPendingIndexes,removeDescendantPackageOnClone,simulateFeeAwareAdmission,selectFeeSensitiveTemplateCandidate} from './mempool-fee-aware-shadow-candidate.mjs';
 const stable=s=>stableStringify(s);
 function wallet(){
   const {privateKey,publicKey}=generateKeyPairSync('ed25519');
@@ -86,4 +86,48 @@ test('PF-12G: package-size budget and invalid policy parameters fail closed',()=
   const{s,b,amount}=fixture;
   assert.throws(()=>simulateFeeAwareAdmission(s,signed(b,'outside:0',amount,1000000n),{cap:MAX_MEMPOOL_TXS,minFeeIncrementAtoms:0n}),e=>e.code==='invalid_min_fee_increment');
   assert.throws(()=>simulateFeeAwareAdmission(s,signed(b,'outside:0',amount,1000000n),{maxPackageSize:0}),e=>e.code==='invalid_package_limit');
+});
+
+test('PF-12H: fee-sensitive shadow template selects high-fee child with its zero-fee ancestor in topological order',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'root:0',amount);seed(s,b,'outside:0',amount);
+  const parent=acceptTxInto(s,signed(a,'root:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount,1000000n));
+  const standalone=acceptTxInto(s,signed(b,'outside:0',amount,2000n));
+  const before=stable(s);
+  const selected=selectFeeSensitiveTemplateCandidate(s,{limit:2});
+  assert.deepEqual(selected.txids,[parent.txid,child.txid]);
+  assert.equal(selected.fee_atoms,'1000000');
+  assert.equal(selected.template_policy,'FEE_SENSITIVE_SHADOW_ONLY');
+  assert.deepEqual(selectFeeSensitiveTemplateCandidate(s,{limit:2}),selected,'deterministic replay');
+  assert.equal(stable(s),before);
+  assert.ok(!selected.txids.includes(standalone.txid));
+});
+test('PF-12I: one-slot shadow template cannot include dependent high-fee child without its ancestor',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'root:0',amount);seed(s,b,'other:0',amount);
+  const parent=acceptTxInto(s,signed(a,'root:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount,1000000n));
+  const independent=acceptTxInto(s,signed(b,'other:0',amount,2000n));
+  const selected=selectFeeSensitiveTemplateCandidate(s,{limit:1});
+  assert.deepEqual(selected.txids,[independent.txid]);
+  assert.ok(!selected.txids.includes(child.txid));
+  assert.equal(selected.fee_atoms,'2000');
+});
+test('PF-12J: non-canonical cycle in pending dependencies must fail closed',()=>{
+  const a=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'root:0',amount);
+  const parent=acceptTxInto(s,signed(a,'root:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount));
+  const corrupt=structuredClone(s);
+  delete corrupt.mempoolSpends['root:0'];
+  corrupt.transactions[parent.txid].inputs=[child.txid+':0'];
+  corrupt.mempoolSpends[child.txid+':0']=parent.txid;
+  assertPendingIndexes(corrupt);
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(corrupt),e=>e.code==='cyclic_pending_dependency');
+});
+test('PF-12K: template selector rejects authority-breaking limits',()=>{
+  const {s}=fixture;
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:0}),e=>e.code==='invalid_template_limit');
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:21}),e=>e.code==='invalid_template_limit');
 });
