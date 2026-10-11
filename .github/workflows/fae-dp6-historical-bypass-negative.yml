@@ -1,0 +1,23 @@
+name: fae-dp6-historical-bypass-negative
+on:
+  pull_request:
+    paths:
+      - 'labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp'
+      - 'labs/asic-f2-pre-go/path-binding/**'
+      - '.github/workflows/fae-dp6-historical-bypass-negative.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-path-binding:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Frozen complete-work DP6 implementation-local path binding
+        run: node labs/asic-f2-pre-go/path-binding/verify-path-binding.mjs
+      - name: Reject all structural truncated-work, reuse and bypass mutants
+        run: node --test labs/asic-f2-pre-go/path-binding/verify-path-binding-negative.mjs
