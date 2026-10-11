@@ -80,8 +80,12 @@ test('HPA-ECON-C2: tested activation override restores fee payout without issuan
   assert.equal(next.utxos[hash+':0'].amount_atoms,(subsidy+250000n).toString());
   assert.equal(issued(next)-beforeIssued,subsidy,'fees are transfers, not monetary issuance');
 });
-test('HPA-ECON-C3: mainnet fee-security guarantee cannot be inferred from a null activation height',()=>{
-  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
-  const futureParametersFrozen=false,guaranteedHonestHashFloor=false,feeDemandLowerBoundProven=false;
-  assert.equal(futureParametersFrozen&&guaranteedHonestHashFloor&&feeDemandLowerBoundProven,false);
+test('HPA-ECON-C3: premature fee-paying coinbase is rejected without changing source state',()=>{
+  const {state,miner}=setupFee();
+  const {submission}=mine(state,miner.address);
+  const before=stableStringify(state);
+  const hostile={...submission,header:{...submission.header,fee_atoms:'250000'}};
+  assert.throws(()=>appendBlockFromSubmission(state,hostile,{activationHeight:null}),
+    /premature_coinbase_v1_fields/);
+  assert.equal(stableStringify(state),before,'no money-supply or state mutation on rejected claim');
 });
