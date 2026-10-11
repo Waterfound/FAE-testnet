@@ -14,6 +14,7 @@ import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {createExplorerReadAdapter,ExplorerDataError} from './explorer-read-adapter.mjs';
 import {loadExplorerOverview,loadExplorerTransaction} from './explorer-view-model.mjs';
+import {createWalletPublicLedgerObserver} from './wallet-public-ledger-observer.mjs';
 
 const NETWORK='fairyelf-public-testnet-v4';
 const CHARSET='qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -131,6 +132,8 @@ test('isolated real-work v4 chain: six Explorer GET routes, pending-to-confirmed
   const initial=await adapter.status();
   assert.equal(initial.tip.height,0);
   assert.equal((await loadExplorerOverview(adapter)).miningProgressPercent,null);
+  const walletView=createWalletPublicLedgerObserver({adapter});
+  assert.equal(walletView.getSnapshot().state,'no_wallet');
 
   const first=await mine(base,sender.address);
   assert.equal(first.height,1);
@@ -140,6 +143,17 @@ test('isolated real-work v4 chain: six Explorer GET routes, pending-to-confirmed
   const reward=await adapter.address({address:sender.address,expectedTip:tip1});
   assert.equal(reward.balanceAtoms,'1000000000');
   assert.equal(reward.events[0].type,'reward');
+  walletView.selectWallet({walletId:'sender-public-context',address:sender.address});
+  const senderObserved=await walletView.refresh();
+  assert.equal(senderObserved.state,'observed');
+  assert.equal(senderObserved.balanceAtoms,'1000000000');
+  assert.equal(senderObserved.tip.hash,tip1.hash);
+  walletView.selectWallet({walletId:'recipient-public-context',address:recipient.address});
+  const recipientBefore=await walletView.refresh();
+  assert.equal(recipientBefore.balanceAtoms,'0');
+  assert.equal(recipientBefore.tip.hash,tip1.hash);
+  assert.equal(recipientBefore.walletId,'recipient-public-context');
+  assert.equal(walletView.getSnapshot().address,recipient.address);
   assert.equal((await adapter.search({query:first.hash,expectedTip:tip1})).matches[0].type,'block');
   assert.equal((await adapter.search({query:'1',expectedTip:tip1})).matches[0].height,1);
 
@@ -201,6 +215,27 @@ test('isolated real-work v4 chain: six Explorer GET routes, pending-to-confirmed
   const received=await adapter.address({address:recipient.address,expectedTip:tip2});
   assert.equal(received.balanceAtoms,'999999900');
   assert.equal(received.events[0].status,'confirmed');
+  const recipientAfter=await walletView.refresh();
+  assert.equal(recipientAfter.state,'observed');
+  assert.equal(recipientAfter.balanceAtoms,'999999900');
+  assert.equal(recipientAfter.walletId,'recipient-public-context');
+  assert.equal(recipientAfter.tip.hash,tip2.hash);
+  walletView.selectWallet({walletId:'sender-public-context',address:sender.address});
+  const newSender=await walletView.refresh();
+  assert.equal(newSender.balanceAtoms,'1000000000');
+  assert.equal(newSender.tip.hash,tip2.hash);
+  const third=key();
+  walletView.selectWallet({walletId:'unfunded-third-context',address:third.address});
+  const thirdResult=await walletView.refresh();
+  assert.equal(thirdResult.balanceAtoms,'0');
+  assert.equal(thirdResult.walletId,'unfunded-third-context');
+  walletView.setVaultLocked(true);
+  assert.equal(walletView.getSnapshot().state,'locked');
+  assert.equal(walletView.getSnapshot().address,null);
+  assert.equal(walletView.getSnapshot().balanceAtoms,null);
+  walletView.setVaultLocked(false);
+  assert.equal(walletView.getSnapshot().state,'unknown');
+  assert.equal(walletView.getSnapshot().balanceAtoms,null);
   const sendAfter=await adapter.address({address:sender.address,limit:1,expectedTip:tip2});
   assert.equal(sendAfter.balanceAtoms,'1000000000');
   assert.match(sendAfter.nextCursor,new RegExp('^'+tip2.hash+':1$'));
