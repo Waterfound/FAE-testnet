@@ -1,0 +1,66 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {SOURCE,attackerFriendlyEnvelope,conditionalCostGap,terminalDecision}
+  from './dp6-memory-economics-falsifier.mjs';
+const near=(x,y,relative=0.002)=>assert.ok(Math.abs(x-y)/y<relative,`expected ${x} near ${y}`);
+test('RP-B3-T3-01: frozen source semantics and logic facts are bound, not presumed from 256 MiB alone',()=>{
+  assert.equal(SOURCE.contextBytes,268435456);
+  assert.equal(SOURCE.rw5Steps,1048576);
+  assert.equal(SOURCE.fullMemoryTrafficLow,553648128);
+  assert.equal(SOURCE.fullMemoryTrafficHigh,822083584);
+  assert.equal(SOURCE.logicAreaMm2,0.0856683);
+  assert.match(SOURCE.terminal,/MEMORY_ECONOMIC_BOUND_OPEN/);
+});
+test('RP-B3-T3-02: HBM4 attacker-friendly, conditional latency and bandwidth ceilings are reproducible',()=>{
+  const inputs={capacityBytes:36e9,dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12};
+  const loose=attackerFriendlyEnvelope(inputs);
+  const tight=attackerFriendlyEnvelope({...inputs,trafficBytesPerWork:SOURCE.fullMemoryTrafficHigh});
+  near(loose.residentContexts,134.11045);
+  near(loose.latencyCeilingWorkPerSecond,1724);
+  near(loose.bandwidthCeilingWorkPerSecond,5057);
+  near(tight.bandwidthCeilingWorkPerSecond,3406);
+  assert.equal(loose.achievedThroughputProven,false);
+  assert.equal(loose.specializationResistanceProven,false);
+  assert.equal(tight.combinedConditionalCeilingWorkPerSecond,tight.latencyCeilingWorkPerSecond);
+  assert.equal(loose.mainnetEconomicVerdict,undefined);
+});
+test('RP-B3-T3-03: latency sensitivity binds achievable *ceiling*, cannot be misreported as achieved hardware rate',()=>{
+  const common={capacityBytes:36e9,sustainableBytesPerSecond:2.8e12};
+  const a=attackerFriendlyEnvelope({...common,dependentLatencyNs:50});
+  const b=attackerFriendlyEnvelope({...common,dependentLatencyNs:150});
+  near(a.latencyCeilingWorkPerSecond/b.latencyCeilingWorkPerSecond,3);
+  assert.equal(a.verdict,'CONDITIONAL_ATTACKER_FAVORABLE_CEILING__NOT_ACHIEVED_THROUGHPUT');
+  assert.equal(b.memoryAccessEfficiencyProven,false);
+});
+test('RP-B3-T3-04: invented financial assumptions can reverse result; neither direction proves FAE robustness',()=>{
+  const base={specialistWorkPerSecond:100,lifetimeYears:3,utilization:0.8,
+    totalPowerW:400,electricityUSDPerKWh:0.15,commodityUSDPerWork:0.0001};
+  const cheap=conditionalCostGap({...base,installedCapexUSD:100000});
+  const expensive=conditionalCostGap({...base,installedCapexUSD:2000000});
+  assert.equal(cheap.specialistCheaperInThisScenario,true);
+  assert.equal(expensive.specialistCheaperInThisScenario,false);
+  for(const p of [cheap,expensive]){
+    assert.equal(p.mainnetEconomicVerdict,'EXTERNAL_EVIDENCE_GATE');
+    assert.equal(p.actualASICCostVerified,false);
+    assert.equal(p.actualCommodityCostVerified,false);
+  }
+});
+test('RP-B3-T3-05: fail closed on zero/negative/nonphysical input and unsupported memory traffic',()=>{
+  const base={capacityBytes:36e9,dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12};
+  assert.throws(()=>attackerFriendlyEnvelope({...base,dependentLatencyNs:0}),/invalid_dependentLatencyNs/);
+  assert.throws(()=>attackerFriendlyEnvelope({...base,capacityBytes:-1}),/invalid_capacityBytes/);
+  assert.throws(()=>attackerFriendlyEnvelope({...base,trafficBytesPerWork:8}),/outside_frozen_traffic_range/);
+  const costs={specialistWorkPerSecond:100,installedCapexUSD:1000,lifetimeYears:3,utilization:0.8,totalPowerW:400,electricityUSDPerKWh:0.2,commodityUSDPerWork:1};
+  assert.throws(()=>conditionalCostGap({...costs,utilization:1.5}),/invalid_utilization/);
+  assert.throws(()=>conditionalCostGap({...costs,commodityUSDPerWork:-1}),/invalid_commodityUSDPerWork/);
+});
+test('RP-B3-T3-06: a JSON claim of verified external evidence never self-authenticates into PASS',()=>{
+  const none=terminalDecision();
+  assert.equal(none.decision,'EXTERNAL_EVIDENCE_GATE');
+  assert.equal(none.missing.length,4);
+  const alleged=terminalDecision({independentlyVerifiedSpecialistCost:true,independentlyVerifiedCommodityCost:true,
+    randomIOEfficiencyVerified:true,installedPackageQuoteVerified:true});
+  assert.equal(alleged.decision,'EXTERNAL_EVIDENCE_GATE');
+  assert.deepEqual(alleged.missing,[]);
+  assert.equal(alleged.noImplicitPASSorCOLLAPSE,true);
+});
