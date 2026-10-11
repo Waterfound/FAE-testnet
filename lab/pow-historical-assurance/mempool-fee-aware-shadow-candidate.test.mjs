@@ -131,3 +131,14 @@ test('PF-12K: template selector rejects authority-breaking limits',()=>{
   assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:0}),e=>e.code==='invalid_template_limit');
   assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:21}),e=>e.code==='invalid_template_limit');
 });
+
+test('PF-12L: a forged pending fee cannot distort package scoring',()=>{
+  const {s,b,amount}=fixture;
+  const corrupted=structuredClone(s),id=corrupted.mempoolOrder.at(-1);
+  corrupted.transactions[id].fee_atoms='999999999';
+  const before=stable(corrupted);
+  assert.throws(()=>assertPendingIndexes(corrupted),e=>e.code==='pending_fee_mismatch');
+  assert.throws(()=>simulateFeeAwareAdmission(corrupted,signed(b,'outside:0',amount,1000000n)),
+    e=>e.code==='pending_fee_mismatch');
+  assert.equal(stable(corrupted),before,'no partial mutation on fee-accounting mismatch');
+});
