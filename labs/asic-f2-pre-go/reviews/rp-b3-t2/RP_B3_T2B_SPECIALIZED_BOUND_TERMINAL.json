@@ -1,0 +1,76 @@
+{
+  "schema": "fae.dp6.rp_b3_t2b.specialized_bound_terminal.v1",
+  "date": "2026-09-30",
+  "admitted_run": 36742292802,
+  "source_revision": "3ea20ce42e867797eb781e25cfc268cc7d308741",
+  "c6": "UNCHANGED",
+  "equivalence": "PASS_EQUIVALENCE",
+  "logic_bound": {
+    "status": "TECHNOLOGY_CALIBRATED_LOGIC_PPA_BOUND_ESTABLISHED",
+    "full_cts_stdcell_area_mm2": 0.0856683,
+    "full_allocated_core_mm2": 0.227512,
+    "full_cts_fmax_MHz": 296.568,
+    "full_cts_statistical_power_W": 0.0891599,
+    "argon_synth_area_mm2": 0.048648,
+    "argon_synth_fmax_MHz": 367.389,
+    "rw5_synth_area_mm2": 0.0104976,
+    "rw5_synth_fmax_MHz": 388.653
+  },
+  "coefficients_moved_from_unknown": [
+    "full DP6 predictive standard-cell area",
+    "full DP6 predictive achievable frequency at ASAP7 BC",
+    "full DP6 critical-path family",
+    "full DP6 statistical logic power sensitivity",
+    "Argon predictive standard-cell area/frequency/power sensitivity",
+    "RW5 predictive standard-cell area/frequency/power sensitivity",
+    "logic energy per clock-cycle sensitivity"
+  ],
+  "still_unknown": [
+    "optimized specialist cycles/work",
+    "workload-trace logic power",
+    "complete logic joules/valid-work",
+    "effective DP6 random dependent-access efficiency",
+    "complete HBM/GDDR controller+PHY power/area for the miner",
+    "installed memory cost",
+    "package/interposer cost",
+    "logic die/yield cost at production",
+    "board/power-delivery/cooling cost",
+    "specialist capex",
+    "specialist utilization/lifetime/maintenance",
+    "complete specialist LCVW",
+    "canonical four-class commodity MCVW vector"
+  ],
+  "strongest_plausible_specialist": {
+    "architecture": "external HBM4/GDDR-class full-state memory with many resident contexts, multiple compact shared or replicated DP6 engines, custom controller/PHY/interconnect, optional small SRAM hot structures, aggressive clock gating, and voltage/frequency optimization",
+    "new_evidence_effect": "compute logic is sufficiently compact and fast in ASAP7 predictive PPA that memory/package/random-I/O economics, not raw logic area, are now the dominant unresolved specialization bound",
+    "rw5_effect": "RW5 remains a serial/random-memory workload cost, but its standalone logic PPA is small and not timing-dominant; its marginal anti-specialization economic benefit remains unproven"
+  },
+  "economic_proposition": {
+    "direction": "WEAKENED_NOT_FALSIFIED",
+    "decision_state": "STILL_INCONCLUSIVE",
+    "reason": "attacker-friendly logic PPA is materially better bounded and smaller/faster than a defender-favorable model would require, but total specialized throughput, energy and cost remain dominated by unresolved memory-system and economic coefficients"
+  },
+  "robust_premise_disposition": "STRONG_HEURISTIC_ONLY",
+  "specialist_lcvw_interval": "UNKNOWN",
+  "asic_lab_disposition": "HOLD",
+  "new_aws_information_gain": "INSUFFICIENT_TO_REOPEN",
+  "terminal_classification_refinement": "STRONG_HEURISTIC__LOGIC_PPA_BOUND_CLOSED__MEMORY_ECONOMIC_BOUND_OPEN",
+  "exact_next_frontier": {
+    "id": "RP-B3-T3",
+    "name": "Specialized Memory-System / Random-I-O / Package Economic Bound",
+    "gate": "GENUINE_EXTERNAL_EVIDENCE_GATE",
+    "purpose": "bind effective DP6 dependent-random-access efficiency and transferable installed memory/controller/PHY/package cost strongly enough to produce a specialist LCVW interval",
+    "minimum_missing_evidence": [
+      "credible DP6-relevant or sufficiently transferable random-dependent HBM/GDDR service-rate/latency efficiency evidence",
+      "named controller/PHY/package area and power model for one attacker memory family",
+      "defensible installed memory/package cost or independent quote/cost model",
+      "production-relevant utilization/yield/capex assumptions with provenance"
+    ]
+  },
+  "physical_reconsideration": {
+    "aws_fpga": "NO",
+    "new_physical_specialist_test_now": "NO",
+    "reason": "another FPGA/AFI/F2 result does not close the memory-system economic coefficients exposed by T2B",
+    "commodity_side_dependency": "Representative Device evidence contract remains separate and eventual; do not execute it in this frontier"
+  }
+}
