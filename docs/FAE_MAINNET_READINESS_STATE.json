@@ -668,5 +668,186 @@
       "production_release_and_activation": "HUMAN_GATE"
     },
     "avoid_duplicate_work": "Use existing PRs #294/#299/#302/#303 for product, #98/#300 release, #100/#301 rehearsal, #296/#297 PoW assurance."
+  },
+  "closure_wave_addendum_october_11": {
+    "snapshot_date": "2026-10-11",
+    "authority": "CANDIDATE_ADDITIVE_ONLY",
+    "evidence_provenance": "individual_pull_request_exact_head_and_workflow_receipts",
+    "snapshot_is_not_canonical_promotion": true,
+    "canonical_gate_count_unchanged": 24,
+    "canonical_gate_state_changes": 0,
+    "master_merged": false,
+    "mainnet_authorized": false,
+    "production_parameters_frozen": false,
+    "physical_evidence_replaced": false,
+    "previous_october_11_snapshot_preserved": true,
+    "acceptance_note": "Later verified exact-head results supplement but do not retroactively rewrite the earlier candidate evidence snapshot.",
+    "evidence": [
+      {
+        "pr": 303,
+        "head_sha": "4c56b3f3f5edd39d8ea8029960e093b438e6658e",
+        "owner_pr": 299,
+        "element_ids": [
+          5,
+          10
+        ],
+        "acceptance": "28/28 Node tests; 5/5 GitHub workflows SUCCESS after a transient integrated runner failure was rerun",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Not actual encrypted three-seed Wallet identities or authored live Explorer/Wallet UI; remains a stacked draft, no merge",
+        "ci_receipts": [
+          {
+            "workflow": "public-code-security-recurring-assurance",
+            "run_id": 38109083817,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "authored-product-read-contract",
+            "run_id": 38109083848,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "verify-canonical-source",
+            "run_id": 38109083840,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "codeql-security",
+            "run_id": 38109083801,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "cross-lab-integration-gate",
+            "run_id": 38109083804,
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "pr": 305,
+        "head_sha": "c149d6272043b0d2a06d3a880b2c8fcbb9451ca2",
+        "owner_pr": 303,
+        "element_ids": [
+          5,
+          10
+        ],
+        "acceptance": "36/36 Node product tests; 5/5 GitHub workflows SUCCESS; authentic isolated PoW chain reading through exact two-method public vault-port shape",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Public vault-port is a test double; actual encrypted IndexedDB three-wallet, signing PIN and approved UI still unproven",
+        "ci_receipts": [
+          {
+            "workflow": "authored-product-read-contract",
+            "run_id": 38116541039,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "cross-lab-integration-gate",
+            "run_id": 38116541060,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "public-code-security-recurring-assurance",
+            "run_id": 38116541064,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "codeql-security",
+            "run_id": 38116541083,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "verify-canonical-source",
+            "run_id": 38116541043,
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "pr": 306,
+        "head_sha": "b70078f9ccfcab0c66f0c903feca3b5456d50235",
+        "owner_pr": 297,
+        "element_ids": [
+          2,
+          8
+        ],
+        "acceptance": "4/4 cryptographically signed production-core shadow mempool replay tests; 5/5 GitHub workflows SUCCESS including candidate source manifest parity",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Shadow single-leaf eviction is not deployed fee policy, package eviction, relay/reorg or security-budget closure",
+        "ci_receipts": [
+          {
+            "workflow": "cross-lab-integration-gate",
+            "run_id": 38116762633,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "fae-pow-mempool-shadow-assurance",
+            "run_id": 38116762526,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "verify-canonical-source",
+            "run_id": 38116762713,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "public-code-security-recurring-assurance",
+            "run_id": 38116762488,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "codeql-security",
+            "run_id": 38116762476,
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "pr": 289,
+        "head_sha": "90e3132e4e9e68f9860b48392f70c6ecccb5bc2f",
+        "owner_pr": null,
+        "element_ids": [],
+        "acceptance": "7/7 GitHub workflows SUCCESS; isolated bootstrap refuses to destructively replace existing GitLab control branch",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Still a draft. Success of recurrent mirror and artifact jobs is distinct from verified clean-room full GitHub restoration",
+        "ci_receipts": [
+          {
+            "workflow": "verify-canonical-source",
+            "run_id": 37897230567,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "GitLab Recovery Control Self-Test",
+            "run_id": 37897230625,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "public-code-security-recurring-assurance",
+            "run_id": 37897230621,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "Repository Recovery Self-Test",
+            "run_id": 37897230564,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "cross-lab-integration-gate",
+            "run_id": 37897230628,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "Independent Operator Readiness",
+            "run_id": 37897230565,
+            "conclusion": "success"
+          },
+          {
+            "workflow": "codeql-security",
+            "run_id": 37897230591,
+            "conclusion": "success"
+          }
+        ],
+        "area": "repository_recovery"
+      }
+    ],
+    "adjudication": "Do not increment canonical readiness gates based on software-only candidate test success; exact production and human authority gates remain independently required."
   }
 }
