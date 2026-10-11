@@ -26,7 +26,9 @@ function trackedEntries(){
     const meta=row.slice(0,tab).split(' '),path=row.slice(tab+1);if(meta.length<3||!path)throw new Error('git_index_row_invalid');
     return{git_mode:meta[0],path};
   });
-  rows.sort((a,b)=>a.path.localeCompare(b.path));return rows;
+  // Compare UTF-16 code units, not host-locale collation; Git filenames must
+  // package in the same byte order on clean rooms with different locales.
+  rows.sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);return rows;
 }
 
 export async function buildReproducibleRelease({outDir=resolve(repoRoot,'dist','release'),artifactName='fae-source-release-v1.json'}={}){
