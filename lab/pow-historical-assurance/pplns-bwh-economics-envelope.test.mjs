@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sourceShareWindow,bwhConditionalPayoff,sourceWindowRolloff}
+import {sourceShareWindow,bwhConditionalPayoff,sourceWindowRolloff,fawConditionalExternalOpportunity}
   from './pplns-bwh-economics-envelope.mjs';
 const R=1_000_000_000n;
 test('HPA-W3-09: true 2048-window 25% infiltration retains payout weight but 100% withheld full-blocks reduces own expected reward',()=>{
@@ -54,4 +54,44 @@ test('HPA-W3-12: reject assumption violations without silently claiming final FA
   assert.throws(()=>bwhConditionalPayoff({ledger,withholdBasisPoints:10001}),/invalid_bwh_economic_assumptions/);
   assert.throws(()=>bwhConditionalPayoff({ledger,rewardAtoms:0n}),/invalid_bwh_economic_assumptions/);
   assert.throws(()=>sourceWindowRolloff(ledger,{newHonestShares:2049}),/invalid_rolloff/);
+});
+
+test('HPA-W3-13: conditional one-opportunity fork win threshold, explicitly NOT a measured FAW profit',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const base={ledger,poolRewardAtoms:R,externalRewardAtoms:R,
+    assumedOpportunities:1,withholdBasisPoints:10000};
+  const zero=fawConditionalExternalOpportunity({...base,assumedForkWinBasisPoints:0});
+  const exact=fawConditionalExternalOpportunity({...base,assumedForkWinBasisPoints:625});
+  const speculative=fawConditionalExternalOpportunity({...base,assumedForkWinBasisPoints:1000});
+  assert.equal(zero.ownPoolWithholdingCostAtoms,'62500000');
+  assert.equal(zero.expectedNetGainAtoms,'-62500000');
+  assert.equal(exact.requiredForkWinBasisPointsCeil,'625');
+  assert.equal(exact.expectedNetGainAtoms,'0');
+  assert.equal(exact.conditionalScenarioAdvantageous,false);
+  assert.equal(speculative.expectedNetGainAtoms,'37500000');
+  assert.equal(speculative.conditionalScenarioAdvantageous,true);
+  assert.equal(speculative.actualAttackerProfitabilityVerified,false);
+  assert.equal(speculative.empiricalForkWinProbabilityVerified,false);
+  assert.equal(speculative.forkOpportunityRateVerified,false);
+});
+test('HPA-W3-14: explicit opportunity cost tightens multi-pool threshold; missing chance is no evidence',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const x=fawConditionalExternalOpportunity({ledger,poolRewardAtoms:R,
+    externalRewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:1000,
+    extraAttackCostAtoms:50000000n});
+  assert.equal(x.requiredForkWinBasisPointsCeil,'1125');
+  assert.equal(x.expectedNetGainAtoms,'-12500000');
+  assert.equal(x.conditionalScenarioAdvantageous,false);
+  assert.equal(x.realNetworkHashAndLatencyVerified,false);
+});
+test('HPA-W3-15: arbitrary or ill-typed fake pool opportunity evidence fails closed',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const b={ledger,poolRewardAtoms:R,externalRewardAtoms:R,
+    assumedOpportunities:1,assumedForkWinBasisPoints:1000};
+  for(const delta of [{externalRewardAtoms:0n},{externalRewardAtoms:1},
+    {assumedOpportunities:0},{assumedOpportunities:1.1},{assumedForkWinBasisPoints:-1},
+    {assumedForkWinBasisPoints:10001},{extraAttackCostAtoms:-1n},
+    {extraAttackCostAtoms:1}]){
+    assert.throws(()=>fawConditionalExternalOpportunity({...b,...delta}),/invalid_faw_external_assumptions/);
+  }
 });
