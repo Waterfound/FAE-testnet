@@ -46,6 +46,7 @@ function mine(state,address,{activationHeight=null}={}){
   }
   throw new Error('PoW bounded search exhausted');
 }
+function unspentAtoms(s){return Object.values(s.utxos).reduce((sum,u)=>sum+(u.spent?0n:BigInt(u.amount_atoms)),0n)}
 function setupFee(){
   const walletOwner=wallet(),miner=wallet();let state=frozenHistory();
   state=mine(state,walletOwner.address).next;
@@ -57,7 +58,7 @@ function setupFee(){
 test('HPA-ECON-C1: current unactivated v4 confirms paid fee without miner coinbase fee payout',()=>{
   assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null,'source default must be inactive');
   const {state,tx,miner}=setupFee();
-  const subsidy=expectedReward(state,state.chain.length+1),beforeIssued=issued(state);
+  const subsidy=expectedReward(state,state.chain.length+1),beforeIssued=issued(state),beforeUnspent=unspentAtoms(state);
   const {template,next,hash}=mine(state,miner.address);
   assert.ok(template.txids.includes(tx.txid));
   assert.equal(template.header.reward_atoms,subsidy.toString());
@@ -66,11 +67,13 @@ test('HPA-ECON-C1: current unactivated v4 confirms paid fee without miner coinba
   assert.equal(next.transactions[tx.txid].status,'confirmed');
   assert.equal(next.utxos[hash+':0'].amount_atoms,subsidy.toString());
   assert.equal(issued(next)-beforeIssued,subsidy);
+  assert.equal(unspentAtoms(next)-beforeUnspent,subsidy-250000n,
+    'fee is removed from spendable value, not credited to miner pre-activation');
   assert.notEqual(next.utxos[hash+':0'].amount_atoms,(subsidy+250000n).toString());
 });
 test('HPA-ECON-C2: tested activation override restores fee payout without issuance inflation (NOT live)',()=>{
   const {state,tx,miner}=setupFee(),height=state.chain.length+1;
-  const subsidy=expectedReward(state,height),beforeIssued=issued(state);
+  const subsidy=expectedReward(state,height),beforeIssued=issued(state),beforeUnspent=unspentAtoms(state);
   const {template,next,hash}=mine(state,miner.address,{activationHeight:height});
   assert.ok(template.txids.includes(tx.txid));
   assert.equal(template.header.fee_atoms,'250000');
@@ -79,6 +82,7 @@ test('HPA-ECON-C2: tested activation override restores fee payout without issuan
   assert.equal(template.coinbase_outputs[0].amount_atoms,(subsidy+250000n).toString());
   assert.equal(next.utxos[hash+':0'].amount_atoms,(subsidy+250000n).toString());
   assert.equal(issued(next)-beforeIssued,subsidy,'fees are transfers, not monetary issuance');
+  assert.equal(unspentAtoms(next)-beforeUnspent,subsidy,'miner recaptures fee under isolated explicit activation');
 });
 test('HPA-ECON-C3: premature fee-paying coinbase is rejected without changing source state',()=>{
   const {state,miner}=setupFee();
