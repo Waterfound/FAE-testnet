@@ -94,3 +94,44 @@ export function terminalDecision({independentlyVerifiedSpecialistCost=false,
     currentPremise:SOURCE.terminal
   };
 }
+
+/**
+ * A bank-aware RP-B3-T3 falsification envelope. All bank parameters are
+ * explicit HYPOTHESES, not measured FAE or HBM memory-controller facts.
+ * The 256 MiB/context capacity constraint and 1,048,576 dependent RW5 steps
+ * come from the frozen source. A claimed bank-level throughput is at most
+ * conditional: scheduling, channel hashing and effective service cycles
+ * remain external-evidence gates.
+ */
+export function randomBankServiceSensitivity({
+  capacityBytes,dependentLatencyNs,sustainableBytesPerSecond,
+  effectiveBanks,randomBankServiceNs,bankUtilization=1,
+  bankTransactionsPerStep=1,trafficBytesPerWork=SOURCE.fullMemoryTrafficLow
+}={}){
+  const base=attackerFriendlyEnvelope({capacityBytes,dependentLatencyNs,
+    sustainableBytesPerSecond,trafficBytesPerWork});
+  if(!Number.isSafeInteger(effectiveBanks)||effectiveBanks<1||effectiveBanks>1_000_000)
+    throw new Error('invalid_effectiveBanks');
+  positive('randomBankServiceNs',randomBankServiceNs);
+  if(!Number.isFinite(bankUtilization)||bankUtilization<=0||bankUtilization>1)
+    throw new Error('invalid_bankUtilization');
+  if(!Number.isSafeInteger(bankTransactionsPerStep)||bankTransactionsPerStep<1||
+     bankTransactionsPerStep>32)throw new Error('invalid_bankTransactionsPerStep');
+  const bankRateUpperBound=effectiveBanks*bankUtilization/
+    (SOURCE.rw5Steps*bankTransactionsPerStep*randomBankServiceNs*1e-9);
+  const combined=Math.min(base.combinedConditionalCeilingWorkPerSecond,bankRateUpperBound);
+  return {
+    scenario:'UNMEASURED_BANK_CONCURRENCY_SENSITIVITY__NOT_SPECIALIST_BENCHMARK',
+    frozenRW5Steps:SOURCE.rw5Steps,
+    hypotheses:{effectiveBanks,randomBankServiceNs,bankUtilization,
+      bankTransactionsPerStep},
+    contextAndBandwidthCeilingWorkPerSecond:base.combinedConditionalCeilingWorkPerSecond,
+    bankRateUpperBoundWorkPerSecond:bankRateUpperBound,
+    combinedConditionalCeilingWorkPerSecond:combined,
+    observedDependentBankService:false,
+    observedAddressTraceDistribution:false,
+    observedControllerPHYCost:false,
+    achievedSpecialistThroughput:false,
+    specialistEconomicsVerdict:'EXTERNAL_EVIDENCE_GATE'
+  };
+}
