@@ -204,3 +204,36 @@ test('HPA-W2 encrypted peer: opt-in native /tx evicts low-fee pending under satu
   assert.equal(after.transactions[originalOrder.at(-1)],undefined);
   assert.equal(defaultPeer.getState().transactions[response.txid],undefined);
 });
+
+test('HPA-W2 automatic authenticated relay: high-fee signed tx crosses two full-pool peers through encrypted channel',async t=>{
+  const signer=wallet();let state=emptyState();
+  for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});
+  state=mine(state,signer.address);const chainInput=state.chain.at(-1).hash+':0';
+  state=mine(state,signer.address);const feeInput=state.chain.at(-1).hash+':0';
+  const chainAmount=state.utxos[chainInput].amount_atoms,feeAmount=state.utxos[feeInput].amount_atoms;
+  let prev=chainInput;
+  for(let i=0;i<MAX_MEMPOOL_TXS;i++)prev=acceptTxInto(state,signTx(signer,prev,chainAmount)).txid+':0';
+  assertPendingIndexes(state);
+  const a=createAuthoritativeV4PeerNode({initialState:state,candidateTxAdmission:simulateFeeAwareAdmission});
+  const b=createAuthoritativeV4PeerNode({initialState:state,candidateTxAdmission:simulateFeeAwareAdmission});
+  await a.start();await b.start();
+  t.after(()=>Promise.all([a.close(),b.close()]));
+  // Exact source peer-hello, signed identity and encrypted session admission.
+  const connected=await a.syncPeer(b.baseUrl());
+  assert.ok(a.authenticatedPeerObservations().some(x=>x.identityId===b.identity.id),
+    'receiver peer must be authenticated before relay');
+  assert.equal(connected.adopted,false,'same chain has no fresh block branch to import');
+  const tx=signTx(signer,feeInput,feeAmount,1000000n);
+  const response=await request(a,'/submit-tx',{method:'POST',
+    headers:{'content-type':'application/json'},body:JSON.stringify({tx})});
+  assert.equal(response.status,200,JSON.stringify(response.body));
+  const deadline=Date.now()+8000;
+  while(Date.now()<deadline&&!b.getState().transactions[response.body.txid])
+    await new Promise(resolve=>setTimeout(resolve,100));
+  const received=b.getState();
+  assert.equal(received.transactions[response.body.txid]?.fee_atoms,'1000000',
+    'authenticated encrypted relay should admit signed high fee against full receiving pool');
+  assertPendingIndexes(received);
+  assert.equal(received.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assert.equal(a.getState().chain.at(-1).hash,received.chain.at(-1).hash);
+});
