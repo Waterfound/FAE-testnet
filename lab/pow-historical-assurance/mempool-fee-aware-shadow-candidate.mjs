@@ -5,7 +5,7 @@
  * policy, consensus rule, relay handler, block-template selector or deployment.
  * Fee/size comparison is a bounded research policy, pending final fee economics.
  */
-import {acceptTxInto,cloneState,MAX_MEMPOOL_TXS,normalizeTx,verifyTxCrypto} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {acceptTxInto,cloneState,MAX_MEMPOOL_TXS,MAX_TXS_PER_BLOCK,normalizeTx,verifyTxCrypto} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
 
 const fail=(code)=>{throw Object.assign(new Error(code),{code})};
@@ -158,4 +158,63 @@ export function simulateFeeAwareAdmission(source,raw,{
   return {decision:'admitted_after_shadow_eviction',state:removed.state,
     evicted:removed.evicted,admitted:record.txid,fee_atoms:record.fee_atoms,
     evicted_fee_atoms:best.fee.toString(),evicted_bytes:best.bytes};
+}
+
+/**
+ * Research-only ancestor-topological, fee-sensitive block selection.
+ * Does not construct a block, touch consensus, sort a real node's mempool, or
+ * select a production fee policy. Uses original pending validated records.
+ */
+export function selectFeeSensitiveTemplateCandidate(source,{limit=MAX_TXS_PER_BLOCK}={}){
+  assertPendingIndexes(source);
+  if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_TXS_PER_BLOCK)fail('invalid_template_limit');
+  const order=source.mempoolOrder,active=new Set(order),chosen=new Set(),txids=[];
+  const parents=new Map();
+  for(const id of order){
+    const deps=new Set();
+    for(const input of source.transactions[id].inputs){
+      const parent=source.mempoolOutputs[input]?.txid;
+      if(parent&&active.has(parent))deps.add(parent);
+    }
+    parents.set(id,deps);
+  }
+  function required(id){
+    const path=new Set(),present=new Set(),out=[];
+    function visit(current){
+      if(chosen.has(current)||present.has(current))return;
+      if(path.has(current))fail('cyclic_pending_dependency');
+      path.add(current);
+      for(const dep of parents.get(current)||[])visit(dep);
+      path.delete(current);
+      present.add(current);
+      out.push(current);
+    }
+    visit(id);
+    return out;
+  }
+  while(txids.length<limit&&chosen.size<active.size){
+    let best=null;
+    for(let i=0;i<order.length;i++){
+      const id=order[i];if(chosen.has(id))continue;
+      const pkg=required(id);
+      if(pkg.length>limit-txids.length)continue;
+      let fee=0n,bytes=0;
+      for(const member of pkg){const rec=source.transactions[member];fee+=validFee(rec);bytes+=sizeOf(rec)}
+      const candidate={id,pkg,fee,bytes,index:i};
+      if(!best){best=candidate;continue}
+      const d=candidate.fee*BigInt(best.bytes)-best.fee*BigInt(candidate.bytes);
+      if(d>0n||(d===0n&&(candidate.fee>best.fee||
+         (candidate.fee===best.fee&&candidate.index<best.index))))best=candidate;
+    }
+    if(!best)break;
+    for(const id of best.pkg){if(chosen.has(id))fail('duplicate_candidate_template_tx');chosen.add(id);txids.push(id)}
+  }
+  let fee=0n;
+  for(const id of txids)fee+=validFee(source.transactions[id]);
+  const positions=new Map(txids.map((id,index)=>[id,index]));
+  for(const id of txids)for(const parent of parents.get(id)||[]){
+    if(!positions.has(parent)||positions.get(parent)>=positions.get(id))fail('template_dependency_not_topological');
+  }
+  return {template_policy:'FEE_SENSITIVE_SHADOW_ONLY',txids,fee_atoms:fee.toString(),
+    transactions_considered:order.length,limit,source_state_mutated:false};
 }
