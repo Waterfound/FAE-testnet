@@ -1,0 +1,39 @@
+{
+  "schema": "FAE_DP6_HISTORICAL_POW_ASSURANCE_STATE_V1",
+  "date": "2026-10-10",
+  "element": 10,
+  "task": "DP6 Path Binding + Independent Verifier Soundness",
+  "stages": {
+    "implementation_local_path_binding": {
+      "status": "GREEN",
+      "evidence": "labs/asic-f2-pre-go/path-binding/RESULT.json",
+      "checks": "28/28",
+      "negative_structural_mutants": "10/10 rejected"
+    },
+    "independent_semantic_verifier": {
+      "status": "GREEN",
+      "evidence": "labs/asic-f2-pre-go/independent-verifier/RESULT.json",
+      "valid_vectors": "16/16",
+      "negative_proofs": "6/6 rejected",
+      "interface_negatives": "4/4 rejected",
+      "independent_argon2": "P-H-C/phc-winner-argon2@f57e61e19229e23c4445b85494dbf7c07de721cb"
+    },
+    "production_consensus_path_binding": {
+      "status": "CONDITION_WAIT",
+      "reason": "Exact production/mainnet verifier, network/height/version activation selectors and final consensus wiring do not yet exist in frozen form.",
+      "wake_condition": "Final production consensus candidate with DP6 activation/wiring is available."
+    },
+    "external_organizational_reproduction": {
+      "status": "EXTERNAL_EVIDENCE",
+      "required_for_current_candidate_green": false,
+      "value": "Stronger independent evidence; not impersonated by the machine-side independent implementation."
+    }
+  },
+  "candidate_verdict": "DP6_PATH_BINDING_AND_INDEPENDENT_VERIFIER_CANDIDATE_GREEN__FINAL_PRODUCTION_BINDING_GATE",
+  "mainnet_green_definition": "Replay the same independent verifier/negative corpus against the exact frozen production DP6 wiring and demonstrate that every accepted network/height/version path selects the complete frozen work function.",
+  "authority": {
+    "candidate_assurance_only": true,
+    "consensus_change": false,
+    "mainnet": false
+  }
+}
