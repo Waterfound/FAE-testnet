@@ -1,0 +1,40 @@
+{
+  "schema": "FAE_HPA_W1_SOURCE_PROVENANCE_CANDIDATE_V1",
+  "status": "PROVENANCE_RECONSTRUCTED__PIN_UPDATE_CANDIDATE_ONLY",
+  "source_base": {
+    "commit": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+    "blob_sha1": "2fdc2b279722e740c5b8c56f22490b30c9505762",
+    "sha256": "ccf61d38913e5912e162770f8dd7818095e60d6d196e47439c84603d5c30d882"
+  },
+  "source_candidate": {
+    "commit": "bb2d244cd0c595f73a4ea7ac80f7286cc1f0e6c4",
+    "blob_sha1": "1f8f3f7f731c6b532741add446a2feea7cc4eda5",
+    "sha256": "7b97111bb3119f954b1138f1bd9f2798b870342f4373c4ba70ecdbb4a0b014e5"
+  },
+  "path": "sovereign-forge/node/fae-node.mjs",
+  "manifest_path": "FAE_FORGE_MAIN.sha256",
+  "exact_delta_reconstruction": {
+    "method": "Remove exactly the three uniquely matched inserted source fragments; byte-for-byte compare resulting text to pinned base commit",
+    "passed": true,
+    "fragments": [
+      "MAX_MEMPOOL_TXS=4096 and MAX_TRANSACTION_BYTES=16*1024 declarations",
+      "normalized transaction byte-size rejection",
+      "bounded mempool entry rejection before transaction acceptance"
+    ],
+    "source_behavior_warning": "Bounded mempool without fee-aware eviction still permits economic pinning; this attestation is not W2 completion."
+  },
+  "authority": {
+    "candidate_only": true,
+    "canonical_main_unchanged": true,
+    "no_consensus_or_economics_activation": true,
+    "no_runtime_repin": true,
+    "no_merge": true
+  },
+  "verification": {
+    "independent_sha256_implementation_self_test": "abc -> ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    "base_pin_verified_against_base_source": true,
+    "source_delta_exact_reverse_verified": true,
+    "ci_after_manifest_update": "PENDING",
+    "candidate_w1_terminal": "PENDING_EXACT_HEAD_CI_AND_REVIEW"
+  }
+}
