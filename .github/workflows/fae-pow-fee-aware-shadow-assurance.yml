@@ -1,0 +1,22 @@
+name: fae-pow-fee-aware-shadow-assurance
+on:
+  pull_request:
+    paths:
+      - lab/pow-historical-assurance/fee-aware-shadow-policy.mjs
+      - lab/pow-historical-assurance/fee-aware-shadow-policy.test.mjs
+      - lab/pow-historical-assurance/FEE_AWARE_SHADOW_CANDIDATE_20261011.md
+      - .github/workflows/fae-pow-fee-aware-shadow-assurance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fee-shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate non-activating signed, indexed, descendant-safe fee policy
+        run: node --test lab/pow-historical-assurance/fee-aware-shadow-policy.test.mjs
