@@ -7,6 +7,8 @@ on:
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-template-node.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
       - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
       - .github/workflows/fae-pow-mempool-shadow-assurance.yml
@@ -30,5 +32,7 @@ jobs:
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
       - name: Source-owned fee-sensitive ancestor template and valid mined block (test opt-in)
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-template-node.test.mjs
+      - name: Valid higher-work reorg and bounded detached fee-aware salvage (research only)
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
       - name: Fee payout falsification and premature activation boundary
         run: node --test lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
