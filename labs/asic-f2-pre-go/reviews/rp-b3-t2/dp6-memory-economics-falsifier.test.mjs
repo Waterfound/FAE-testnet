@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SOURCE,attackerFriendlyEnvelope,conditionalCostGap,terminalDecision}
+import {SOURCE,attackerFriendlyEnvelope,conditionalCostGap,terminalDecision,randomBankServiceSensitivity}
   from './dp6-memory-economics-falsifier.mjs';
 const near=(x,y,relative=0.002)=>assert.ok(Math.abs(x-y)/y<relative,`expected ${x} near ${y}`);
 test('RP-B3-T3-01: frozen source semantics and logic facts are bound, not presumed from 256 MiB alone',()=>{
@@ -63,4 +63,38 @@ test('RP-B3-T3-06: a JSON claim of verified external evidence never self-authent
   assert.equal(alleged.decision,'EXTERNAL_EVIDENCE_GATE');
   assert.deepEqual(alleged.missing,[]);
   assert.equal(alleged.noImplicitPASSorCOLLAPSE,true);
+});
+
+test('RP-B3-T3-07: bank-service scenario can bind HBM latency+capacity without claiming achieved throughput',()=>{
+ const base={capacityBytes:36e9,dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12,
+   effectiveBanks:64,randomBankServiceNs:75,bankTransactionsPerStep:2};
+ const scenario=randomBankServiceSensitivity(base);
+ const expected=64/(1048576*2*75e-9);
+ near(scenario.bankRateUpperBoundWorkPerSecond,expected,1e-10);
+ assert.ok(scenario.bankRateUpperBoundWorkPerSecond<scenario.contextAndBandwidthCeilingWorkPerSecond);
+ assert.equal(scenario.combinedConditionalCeilingWorkPerSecond,scenario.bankRateUpperBoundWorkPerSecond);
+ assert.equal(scenario.observedDependentBankService,false);
+ assert.equal(scenario.observedAddressTraceDistribution,false);
+ assert.equal(scenario.achievedSpecialistThroughput,false);
+ assert.equal(scenario.specialistEconomicsVerdict,'EXTERNAL_EVIDENCE_GATE');
+});
+test('RP-B3-T3-08: conditional banking throughput improves with assumed banks but is not proof of an ASIC',()=>{
+ const fixed={capacityBytes:36e9,dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12,
+   randomBankServiceNs:75,bankTransactionsPerStep:2};
+ const a=randomBankServiceSensitivity({...fixed,effectiveBanks:32});
+ const b=randomBankServiceSensitivity({...fixed,effectiveBanks:128});
+ near(b.bankRateUpperBoundWorkPerSecond/a.bankRateUpperBoundWorkPerSecond,4,1e-10);
+ const degraded=randomBankServiceSensitivity({...fixed,effectiveBanks:128,bankUtilization:0.25});
+ near(degraded.bankRateUpperBoundWorkPerSecond,a.bankRateUpperBoundWorkPerSecond,1e-10);
+ assert.equal(b.specialistEconomicsVerdict,'EXTERNAL_EVIDENCE_GATE');
+});
+test('RP-B3-T3-09: incompatible banking hypotheses fail closed rather than masquerade as sourced measurements',()=>{
+ const base={capacityBytes:36e9,dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12,
+    randomBankServiceNs:75,effectiveBanks:64};
+ for(const invalid of [{effectiveBanks:0},{effectiveBanks:1.5},{effectiveBanks:1e7},
+   {randomBankServiceNs:0},{bankTransactionsPerStep:0},{bankTransactionsPerStep:33},
+   {bankUtilization:0},{bankUtilization:1.1}]){
+   const input={...base,...invalid};
+   assert.throws(()=>randomBankServiceSensitivity(input),/invalid_/);
+ }
 });
