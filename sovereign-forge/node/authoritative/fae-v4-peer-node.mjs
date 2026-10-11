@@ -96,11 +96,12 @@ export function createAuthoritativeV4PeerNode({
   host='127.0.0.1',port=0,dataFile=null,identityFile=null,peerTrustFile=null,peers=[],publicUrl=null,
   initialState=null,activationHeight=PPLNS_COINBASE_ACTIVATION_HEIGHT,syncIntervalMs=0,
   pinnedPeerIdentityIds=[],peerDiversityOptions={},guardOptions={},secureChannelOptions={},
-  peerHelloExtensions=null,peerHelloValidator=null,candidateTxAdmission=null,candidateTemplateSelection=null
+  peerHelloExtensions=null,peerHelloValidator=null,candidateTxAdmission=null,candidateTemplateSelection=null,candidateReorgRecovery=null
 }={}){
   if(peerHelloValidator!==null&&peerHelloValidator!==undefined&&typeof peerHelloValidator!=='function')throw new Error('peer_hello_validator_must_be_function');
   if(candidateTxAdmission!==null&&typeof candidateTxAdmission!=='function')throw new Error('candidate_tx_admission_must_be_function');
   if(candidateTemplateSelection!==null&&typeof candidateTemplateSelection!=='function')throw new Error('candidate_template_selection_must_be_function');
+  if(candidateReorgRecovery!==null&&typeof candidateReorgRecovery!=='function')throw new Error('candidate_reorg_recovery_must_be_function');
   const helloExtensions=normalizePeerHelloExtensions(peerHelloExtensions),helloValidator=peerHelloValidator??null;
   const configuredPeers=normalizePeers(peers),publicEndpoint=publicUrl?normalizePeer(publicUrl):null,identity=loadOrCreateNodeIdentity(identityFile),trust=new PeerTrustStore({path:peerTrustFile,networkId:NETWORK}),guard=new PeerGuard(guardOptions),secureChannels=new SecureChannelHub({identity,networkId:NETWORK,...secureChannelOptions}),coordinators=new CoordinatorRegistry({networkId:NETWORK}),directory=new PeerDirectory({networkId:NETWORK}),diversity=new PeerDiversityPolicy({...peerDiversityOptions,pinnedIdentityIds:pinnedPeerIdentityIds});
   const authenticatedPeers=new Map();
@@ -198,7 +199,30 @@ export function createAuthoritativeV4PeerNode({
         const current=state,currentTip=tip(current)?.hash||ZERO_HASH;
         if(currentTip===(tip(candidate)?.hash||ZERO_HASH))return{adopted:false,reason:'already_adopted',height:tip(current)?.height??0,tip_hash:currentTip,reacceptedRecords:[],dropped:0};
         if(!preferred(candidate,current))return{adopted:false,reason:'local_state_advanced',height:tip(current)?.height??0,tip_hash:currentTip,reacceptedRecords:[],dropped:0};
-        const reconciled=reconcileDetachedTransactions(cloneState(candidate),current);state=reconciled.state;await persist();return{adopted:true,reason:'preferred_candidate',height:tip(state)?.height??0,tip_hash:tip(state)?.hash||ZERO_HASH,reacceptedRecords:reconciled.reacceptedRecords,dropped:reconciled.rejected};
+        const reconciled=candidateReorgRecovery===null?
+          reconcileDetachedTransactions(cloneState(candidate),current):
+          candidateReorgRecovery(cloneState(candidate),cloneState(current));
+        if(candidateReorgRecovery!==null){
+          if(!reconciled||!reconciled.state||!Array.isArray(reconciled.reacceptedRecords)||
+             reconciled.reacceptedRecords.length>MAX_MEMPOOL_TXS||
+             !Number.isSafeInteger(reconciled.rejected)||reconciled.rejected<0)
+            throw new Error('invalid_candidate_reorg_result');
+          const validated=verifyPersistedState(reconciled.state,{activationHeight});
+          if(validated.chain.length!==candidate.chain.length||
+             validated.chain.some((block,i)=>block.hash!==candidate.chain[i].hash))
+            throw new Error('candidate_reorg_chain_mutation');
+          const inherited=new Set(Object.keys(current.transactions));
+          for(const record of reconciled.reacceptedRecords){
+            if(!record||!inherited.has(record.txid)||
+               validated.transactions[record.txid]?.status!=='pending'||
+               verifyTxCrypto(normalizeTx(record)).txid!==record.txid)
+              throw new Error('candidate_reorg_unverified_reacceptance');
+          }
+          reconciled.state=validated;
+        }
+        const previousState=state;state=reconciled.state;
+        try{await persist()}catch(error){state=previousState;throw error}
+        return{adopted:true,reason:'preferred_candidate',height:tip(state)?.height??0,tip_hash:tip(state)?.hash||ZERO_HASH,reacceptedRecords:reconciled.reacceptedRecords,dropped:reconciled.rejected};
       });
       if(!adoption.adopted)return{adopted:false,reason:adoption.reason,height:adoption.height,tip_hash:adoption.tip_hash,reaccepted:0,repropagated:0,dropped:0,headers_validated:headersPage.length,blocks_downloaded:downloaded.blocks.length,peer_id:hello.peer_id};
       const sourcePropagation=await Promise.allSettled(adoption.reacceptedRecords.map(record=>session.request('/tx',{method:'POST',body:{tx:normalizeTx(record)}}))),repropagated=sourcePropagation.filter(result=>result.status==='fulfilled').length;
