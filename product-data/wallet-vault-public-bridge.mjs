@@ -39,8 +39,9 @@ export function createVaultBoundPublicObserver({vault,adapter,network='fairyelf-
   if(typeof network!=='string'||!network.trim())bad('Expected network required');
   const observer=createWalletPublicLedgerObserver({adapter});
   let active=null,nonce=0;
-
-  const reset=()=>{active=null;observer.clear();return observer.getSnapshot()};
+  let visible=observer.getSnapshot();
+  const publish=(value)=>{visible=value;return value;};
+  const reset=()=>{active=null;return publish(observer.clear())};
   function stale(){return frozen({state:'stale_discarded',walletId:null,address:null,balanceAtoms:null,tip:null,code:null});}
   async function inspect(){
     const state=await vault.readState();
@@ -65,11 +66,11 @@ export function createVaultBoundPublicObserver({vault,adapter,network='fairyelf-
         active=selection;
         observer.selectWallet(selection);
       }
-      return observer.getSnapshot();
+      return publish(observer.getSnapshot());
     }catch(e){
       if(id!==nonce)return stale();
       reset();
-      return cold(e instanceof ExplorerDataError?e.code:'VAULT_UNAVAILABLE');
+      return publish(cold(e instanceof ExplorerDataError?e.code:'VAULT_UNAVAILABLE'))
     }
   }
   async function refresh(){
@@ -83,17 +84,17 @@ export function createVaultBoundPublicObserver({vault,adapter,network='fairyelf-
     // External tab may have switched Wallet or its active address while the
     // independent node was answering. Do not return an unverified balance.
     let current;
-    try{current=await inspect()}catch{if(id===nonce)reset();return cold('VAULT_UNAVAILABLE')}
+    try{current=await inspect()}catch{if(id===nonce){reset();return publish(cold('VAULT_UNAVAILABLE'))}return stale()}
     if(id!==nonce)return stale();
     if(!same(current,requested)){
       reset();
-      return cold('VAULT_CHANGED');
+      return publish(cold('VAULT_CHANGED'));
     }
-    return result;
+    return result.state==='stale_discarded'?result:publish(result);
   }
   function invalidate(){
     nonce++;
     return reset();
   }
-  return frozen({sync,refresh,invalidate,getSnapshot:()=>observer.getSnapshot()});
+  return frozen({sync,refresh,invalidate,getSnapshot:()=>visible});
 }
