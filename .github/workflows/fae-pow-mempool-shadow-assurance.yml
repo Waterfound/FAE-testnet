@@ -1,0 +1,21 @@
+name: fae-pow-mempool-shadow-assurance
+on:
+  pull_request:
+    paths:
+      - lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
+      - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
+      - .github/workflows/fae-pow-mempool-shadow-assurance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shadow-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Signed production-core mempool shadow replay (no node mutation)
+        run: node --test lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
