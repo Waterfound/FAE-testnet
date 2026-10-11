@@ -10,7 +10,7 @@ on:
       - 'labs/asic-f2-pre-go/reviews/rp-b3-t1/execution/run_asap7_ppa.sh'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: fae-dp6-rp-b3-t1-asap7
@@ -37,21 +37,6 @@ jobs:
         with:
           name: fae-dp6-rp-b3-t1-asap7-evidence
           path: labs/asic-f2-pre-go/reviews/rp-b3-t1/results
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
 
-      - name: Persist compact evidence to branch
-        if: always()
-        run: |
-          if [ ! -d labs/asic-f2-pre-go/reviews/rp-b3-t1/results ]; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add labs/asic-f2-pre-go/reviews/rp-b3-t1/results
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "RP-B3-T1: persist ASAP7 execution evidence [skip ci]"
-          git pull --rebase origin evidence/fae-dp6-rp-b3-t1-20260929
-          git push origin HEAD:evidence/fae-dp6-rp-b3-t1-20260929
