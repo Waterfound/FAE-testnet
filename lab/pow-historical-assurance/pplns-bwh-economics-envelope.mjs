@@ -59,8 +59,9 @@ export function sourceWindowRolloff(ledger,{newHonestShares=512}={}){
   if(!(ledger instanceof ShareLedger)||!Number.isSafeInteger(newHonestShares)||
     newHonestShares<0||newHonestShares>ledger.windowSize)
     throw new Error('invalid_rolloff');
+  const previousTotal=ledger.summary().totalShares;
   for(let i=0;i<newHonestShares;i++)ledger.append({
-    jobId:'honest-renewal-'+i,address:'honest',nonce:i,hash:'0'.repeat(64),
+    jobId:'honest-renewal-'+(previousTotal+i),address:'honest',nonce:previousTotal+i,hash:'0'.repeat(64),
     shareDifficultyBits:12,blockDifficultyBits:18,height:2,previousBlockHash:'1'.repeat(64)});
   const weights=ledger.weights('honest');
   return {window_size:ledger.windowSize,
