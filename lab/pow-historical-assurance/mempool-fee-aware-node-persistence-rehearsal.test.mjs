@@ -107,3 +107,58 @@ test('HPA-W2 cold process: real chain, 4096 signed chain, guarded fee admission,
     assert.equal((await request(peer,'/status')).body.mempool_size,MAX_MEMPOOL_TXS);
   }finally{await peer.close();}
 });
+
+test('HPA-W2 experimental ingress: authentic peer HTTP admits high fee only under explicit local candidate injection',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-w2-explicit-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const file=join(dir,'candidate.json'),identityFile=join(dir,'identity.json');
+  const signer=wallet();let state=emptyState();
+  for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});
+  state=mine(state,signer.address);const chainOutpoint=state.chain.at(-1).hash+':0';
+  state=mine(state,signer.address);const feeOutpoint=state.chain.at(-1).hash+':0';
+  const chainedAtoms=state.utxos[chainOutpoint].amount_atoms,feeAtoms=state.utxos[feeOutpoint].amount_atoms;
+  let predecessor=chainOutpoint;
+  for(let i=0;i<MAX_MEMPOOL_TXS;i++){
+    predecessor=acceptTxInto(state,signTx(signer,predecessor,chainedAtoms)).txid+':0';
+  }
+  assertPendingIndexes(state);
+  const initialOrder=[...state.mempoolOrder],initialHead=state.chain.at(-1).hash;
+  const peer=createAuthoritativeV4PeerNode({
+    initialState:state,dataFile:file,identityFile,candidateTxAdmission:simulateFeeAwareAdmission
+  });
+  await peer.start();
+  let admitted;
+  try{
+    const bad={...signTx(signer,feeOutpoint,feeAtoms,1000000n),signature:'AA=='};
+    const rejected=await request(peer,'/submit-tx',{method:'POST',
+      headers:{'content-type':'application/json'},body:JSON.stringify({tx:bad})});
+    assert.equal(rejected.status,400);
+    assert.equal(peer.getState().mempoolOrder.length,MAX_MEMPOOL_TXS);
+    assert.deepEqual(peer.getState().mempoolOrder,initialOrder);
+    const valid=signTx(signer,feeOutpoint,feeAtoms,1000000n);
+    const response=await request(peer,'/submit-tx',{method:'POST',
+      headers:{'content-type':'application/json'},body:JSON.stringify({tx:valid})});
+    assert.equal(response.status,200,JSON.stringify(response.body));
+    assert.equal(response.body.fee_atoms,'1000000');
+    admitted=response.body.txid;
+    const next=peer.getState();
+    assertPendingIndexes(next);
+    assert.equal(next.chain.at(-1).hash,initialHead);
+    assert.equal(next.mempoolOrder.length,MAX_MEMPOOL_TXS);
+    assert.equal(next.transactions[admitted].fee_atoms,'1000000');
+    assert.equal(next.transactions[initialOrder.at(-1)],undefined);
+    assert.equal((await request(peer,'/status')).body.mempool_size,MAX_MEMPOOL_TXS);
+  }finally{await peer.close();}
+  const cold=createAuthoritativeV4PeerNode({dataFile:file,identityFile});
+  await cold.start();
+  try{
+    const next=cold.getState();assertPendingIndexes(next);
+    assert.equal(next.transactions[admitted]?.fee_atoms,'1000000');
+    assert.equal(next.chain.at(-1).hash,initialHead);
+    assert.equal((await request(cold,'/status')).body.mempool_size,MAX_MEMPOOL_TXS);
+    assert.equal((await request(cold,'/submit-tx',{method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({tx:signTx(signer,feeOutpoint,feeAtoms,1000n)})})).body.error,'mempool_full',
+      'node without explicit per-instance callback retains the original default full-pool behavior');
+  }finally{await cold.close();}
+});
