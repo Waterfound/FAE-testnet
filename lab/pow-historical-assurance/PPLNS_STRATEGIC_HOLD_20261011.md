@@ -21,3 +21,16 @@ node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
 - **NEXT:** Build a timing-bound FAE-specific adversarial coordinator/job simulator using real source constants, then calibrate external propagation, fee demand, future block-time/DAA and total mining costs. Independently maintain the mainnet activation HOLD until exact, authorized acceptance criteria are evidenced.
 
 No source consensus/economic change, pool activation, mainnet authority, merge, provider credential change or paid spending.
+
+## Element 2 handoff — source-level downstream-block-failure accounting
+
+The 2026-10-11 W3 extension adds two real source-path tests to `pplns-strategic-risk-guard.test.mjs`:
+
+- **HPA-W3-07:** when an isolated opt-in `ShareCoordinator` finds a valid, real-hashed full-target nonce, `submitShare` appends the validated share to the durable `ShareLedger` *before* calling `blockSubmitter`. If the downstream block submission fails, the API call rejects but the share remains counted, and replay of the same nonce does not double-credit it.
+- **HPA-W3-08:** a chain-tip change before share submission rejects the stale job *before* the share ledger is mutated.
+
+**Observed boundary, not a proved exploitable loss:** some pool policies intentionally reward valid work independently of whether a block propagates successfully. These source-level results demonstrate the ordering and the lack of atomic rollback of the credited share on a failed block submission. They do **not** show profitability of BWH/FAW/EFAW or prove mainnet pool safety. `PPLNS_COINBASE_ACTIVATION_HEIGHT` remains `null`; all opt-in activation and downstream failure are local fixture-only.
+
+**Existing Element 2 / strategic-mining acceptance gate:** decide the proper share-credit rule for valid full-target proof when network submission fails; execute adversarial retry, late submission, stale-tip and multi-pool economic models with explicit costs and source-backed bounds. Keep PPLNS inactive pending full review. This is linked to the fee-budget Collapse test in candidate PR #310, whose false current-v4 miner fee-revenue assumption is independent from these pool accounting observations.
+
+No consensus, reward rule, deployment, active testnet, provider or mainnet mutation.
