@@ -12,13 +12,19 @@ import {
 const here=dirname(fileURLToPath(import.meta.url));
 const template=JSON.parse(await readFile(resolve(here,'..','release','mainnet-rehearsal-template.json'),'utf8'));
 assert.equal(template.status,MAINNET_REHEARSAL_STATUS);assert.equal(template.authority.mainnet_launch_authorized,false);assert.equal(template.authority.candidate_to_authoritative,false);assert.equal(template.authority.automatic_go_path,false);
-for(const value of ['genesis_timestamp_ms','initial_target_hex','genesis_miner_address','release_artifact_sha256','live_activation_height','bootstrap_requirements'])assert.equal(template.final_freeze_required[value],null);
+for(const value of ['genesis_timestamp_ms','initial_target_hex','genesis_miner_address','release_artifact_sha256','live_activation_height','bootstrap_requirements','tokenomics_authority_digest','final_block_target_seconds','final_coinbase_maturity_blocks','fee_security_budget_digest','daa_timestamp_policy_digest','genesis_issuance_proof_digest'])assert.equal(template.final_freeze_required[value],null);
+assert.equal(template.economics_candidate.initial_subsidy_fae,9);
+assert.equal(template.economics_candidate.halving_era_blocks,630000);
+assert.equal(template.economics_candidate.hard_maximum_supply_fae,12600000);
+assert.equal(template.economics_candidate.target_seconds_authoritative,false);
+assert.equal(template.economics_candidate.coinbase_maturity_authoritative,false);
+assert.equal(template.economics_candidate.authority_source_present_in_historical_rehearsal_branch,false);
 assert.deepEqual(template.final_freeze_required.bootstrap_nodes,[]);
 
 const timestamp=1_900_000_000_000,target='0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',miner='fae-mainnet-rehearsal-miner-placeholder';
 const genesis=createGenesisRehearsal({timestampMs:timestamp,initialTargetHex:target,minerAddress:miner});
 const genesisAgain=createGenesisRehearsal({timestampMs:timestamp,initialTargetHex:target,minerAddress:miner});
-assert.deepEqual(genesisAgain,genesis);assert.equal(genesis.height,1);assert.equal(genesis.previous_hash,'0'.repeat(64));assert.equal(genesis.reward_atoms,(14n*COIN).toString());assert.equal(genesis.target_seconds,300);assert.equal(genesis.halving_era_blocks,430000);assert.equal(genesis.coinbase_maturity_blocks,200);assert.match(genesis.genesis_commitment,/^[0-9a-f]{64}$/);
+assert.deepEqual(genesisAgain,genesis);assert.equal(genesis.height,1);assert.equal(genesis.previous_hash,'0'.repeat(64));assert.equal(genesis.reward_atoms,(9n*COIN).toString());assert.equal(genesis.target_seconds,300);assert.equal(genesis.halving_era_blocks,630000);assert.equal(genesis.coinbase_maturity_blocks,200);assert.match(genesis.genesis_commitment,/^[0-9a-f]{64}$/);
 assert.notEqual(createGenesisRehearsal({timestampMs:timestamp+1,initialTargetHex:target,minerAddress:miner}).genesis_commitment,genesis.genesis_commitment);
 
 const nodes=[
@@ -41,14 +47,22 @@ const postGenesisAbort=abortRehearsal({genesisPublished:true,reason:'post_genesi
 const software={release_reproducible:true,genesis_rehearsed:true,bootstrap_ready:true,peer_convergence:true,rollback_rehearsed:true};
 const noExternal=evaluateLaunchChecklist({software,externalEvidence:{},finalFreeze:config});assert.equal(noExternal.software_ready,true);assert.equal(noExternal.external_evidence_complete,false);assert.equal(noExternal.mainnet_launch_authorized,false);assert.equal(noExternal.decision,'HOLD_FINAL_EXPLICIT_AUTHORIZATION');
 const allExternal={physical_hfb:true,representative_device:true,operational_soak:true,independent_operators:true};
-const completeEvidence=evaluateLaunchChecklist({software,externalEvidence:allExternal,finalFreeze:config});assert.equal(completeEvidence.software_ready,true);assert.equal(completeEvidence.external_evidence_complete,true);assert.equal(completeEvidence.final_freeze_complete,true);assert.equal(completeEvidence.candidate_to_authoritative,false);assert.equal(completeEvidence.mainnet_launch_authorized,false);assert.equal(completeEvidence.automatic_go_path,false);
+const completeEvidence=evaluateLaunchChecklist({software,externalEvidence:allExternal,finalFreeze:config});assert.equal(completeEvidence.software_ready,true);assert.equal(completeEvidence.external_evidence_complete,true);
+assert.equal(completeEvidence.final_freeze_complete,false,'historical staging values cannot pass final policy freeze');
+for(const k of ['tokenomics_authority_digest','final_block_target_seconds','final_coinbase_maturity_blocks','fee_security_budget_digest','daa_timestamp_policy_digest','genesis_issuance_proof_digest'])assert.ok(completeEvidence.final_freeze_missing.includes(k));
+const sampleFinal={...config,tokenomics_authority_digest:'c'.repeat(64),final_block_target_seconds:300,final_coinbase_maturity_blocks:200,fee_security_budget_digest:'d'.repeat(64),daa_timestamp_policy_digest:'e'.repeat(64),genesis_issuance_proof_digest:'f'.repeat(64)};
+const simulatedComplete=evaluateLaunchChecklist({software,externalEvidence:allExternal,finalFreeze:sampleFinal});
+assert.equal(simulatedComplete.final_freeze_complete,true,'synthetic inputs test the checklist shape, not real approval');
+assert.equal(simulatedComplete.mainnet_launch_authorized,false);
+assert.equal(simulatedComplete.decision,'HOLD_FINAL_EXPLICIT_AUTHORIZATION');
+assert.equal(completeEvidence.candidate_to_authoritative,false);assert.equal(completeEvidence.mainnet_launch_authorized,false);assert.equal(completeEvidence.automatic_go_path,false);
 
 const packageA=buildMainnetRehearsalPackage({releaseArtifactSha256:releaseSha,config,genesis,bootstrap,software,externalEvidence:allExternal});
 const packageB=buildMainnetRehearsalPackage({releaseArtifactSha256:releaseSha,config:structuredClone(config),genesis:createGenesisRehearsal({timestampMs:timestamp,initialTargetHex:target,minerAddress:miner}),bootstrap:assessBootstrapSet(structuredClone(nodes),requirements),software:structuredClone(software),externalEvidence:structuredClone(allExternal)});
-assert.deepEqual(packageB,packageA);assert.match(packageA.package_digest,/^[0-9a-f]{64}$/);assert.equal(packageA.status,MAINNET_REHEARSAL_STATUS);assert.equal(packageA.checklist.mainnet_launch_authorized,false);assert.equal(packageA.economics_candidate.status,'not-authorized');
+assert.deepEqual(packageB,packageA);assert.match(packageA.package_digest,/^[0-9a-f]{64}$/);assert.equal(packageA.status,MAINNET_REHEARSAL_STATUS);assert.equal(packageA.checklist.mainnet_launch_authorized,false);assert.equal(packageA.economics_candidate.status,'future-monetary-design-not-active-consensus');
 assert.notEqual(buildMainnetRehearsalPackage({releaseArtifactSha256:'c'.repeat(64),config,genesis,bootstrap,software,externalEvidence:allExternal}).package_digest,packageA.package_digest);
 
-assert.deepEqual(MAINNET_REHEARSAL_ECONOMICS,{target_seconds:300,initial_subsidy_fae:14,halving_era_blocks:430000,theoretical_max_supply_fae:12040000,coinbase_maturity_blocks:200,status:'not-authorized'});
+assert.deepEqual(MAINNET_REHEARSAL_ECONOMICS,{target_seconds:300,target_seconds_authoritative:false,initial_subsidy_fae:9,halving_era_blocks:630000,subsidy_reduction_percent:45,subsidy_retention_percent:55,hard_maximum_supply_fae:12600000,coinbase_maturity_blocks:200,coinbase_maturity_authoritative:false,status:'future-monetary-design-not-active-consensus'});
 assert.equal(INITIAL_SUBSIDY,10n*COIN);assert.equal(HALVING_ERA_BLOCKS,600000);assert.equal(TARGET_SECONDS,180);
 
 console.log(JSON.stringify({status:'PASS',worker:'F',candidate_only:true,genesis_rehearsal:true,deterministic_genesis_commitment:true,bootstrap_diversity:true,startup_sequence:true,pre_and_post_genesis_abort:true,external_gates_modeled:true,automatic_go_path:false,mainnet_launch_authorized:false,package_digest:packageA.package_digest,live_economics_unchanged:true}));
