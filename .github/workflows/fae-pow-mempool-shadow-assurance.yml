@@ -5,6 +5,7 @@ on:
       - lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
       - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
       - .github/workflows/fae-pow-mempool-shadow-assurance.yml
   workflow_dispatch:
@@ -23,3 +24,5 @@ jobs:
         run: node --test lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
       - name: Dependency-closed fee-aware admission policy on isolated state
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs
+      - name: Local HTTP authoritative peer and cold persistence replay (candidate only)
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
