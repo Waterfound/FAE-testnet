@@ -3,7 +3,7 @@ import {randomBytes} from 'node:crypto';
 import {mkdir,readFile,rename,writeFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {
-  NETWORK,ZERO_HASH,TARGET_SECONDS,MAX_SUPPLY,HALVING_ERA_BLOCKS,MAX_TXS_PER_BLOCK,LEGACY_TESTNET_HASHES,
+  NETWORK,ZERO_HASH,TARGET_SECONDS,MAX_SUPPLY,HALVING_ERA_BLOCKS,MAX_TXS_PER_BLOCK,MAX_MEMPOOL_TXS,LEGACY_TESTNET_HASHES,
   emptyState,cloneState,tip,issued,formatAtoms,nextDifficulty,chainWork,
   publicBlock,blockHeaderRecord,validateHeaderSequence,
   appendBlockFromFeed,appendBlockFromSubmission,createMiningTemplate,createDistributedTemplate,
