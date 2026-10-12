@@ -123,3 +123,57 @@ test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended'
   assert.equal(coordinator.ledger.summary().totalShares,0);
   assert.equal(coordinator.jobs.has(work.jobId),false);
 });
+
+function tipRaceFixture({recheck=false,changeDuringHash=true}={}){
+  const address=encodeAddress(Buffer.alloc(20,15),'faet');
+  let currentTip='a'.repeat(64),submissions=0;
+  const header={network:'fairyelf-public-testnet-v4',height:100,
+    previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000',
+    miner_address:address,timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
+    coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,candidateTipRecheck:recheck,
+    statusProvider:async()=>({height:99,tip_hash:currentTip,difficulty_bits:8}),
+    distributedTemplateProvider:async()=>candidate,
+    candidateHasher:async(c,nonce)=>{
+      await Promise.resolve();
+      if(changeDuringHash)currentTip='b'.repeat(64);
+      return hashHex({...c.header,nonce});
+    },
+    blockSubmitter:async()=>{submissions++;return{ok:true}}
+  });
+  let nonce=0,hash='';
+  for(;nonce<100000;nonce++){
+    hash=hashHex({...header,nonce});
+    if(leadingZeroBits(hash)>=header.difficulty_bits)break;
+  }
+  assert.ok(nonce<100000);
+  return {coordinator,address,nonce,hash,getSubmissions:()=>submissions};
+}
+test('HPA-W3-16: existing asynchronous hash phase can credit a share after tip changes',async()=>{
+  const x=tipRaceFixture();
+  const work=await x.coordinator.createWork(x.address);
+  assert.equal(x.coordinator.candidateTipRecheck,false);
+  const result=await x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash});
+  assert.equal(result.accepted,true);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.getSubmissions(),1);
+});
+test('HPA-W3-17: opt-in recheck refuses a changed tip before ledger credit or block submission',async()=>{
+  const x=tipRaceFixture({recheck:true});
+  const work=await x.coordinator.createWork(x.address);
+  await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
+    /Stale share job after hashing chain-tip change/);
+  assert.equal(x.coordinator.ledger.summary().totalShares,0);
+  assert.equal(x.getSubmissions(),0);
+  assert.equal(x.coordinator.jobs.has(work.jobId),false);
+});
+test('HPA-W3-18: opt-in recheck retains valid full-target work when chain tip is stable',async()=>{
+  const x=tipRaceFixture({recheck:true,changeDuringHash:false});
+  const work=await x.coordinator.createWork(x.address);
+  const result=await x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash});
+  assert.equal(result.accepted,true);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.getSubmissions(),1);
+});
