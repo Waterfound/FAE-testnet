@@ -49,6 +49,20 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
   }
   return true;
 }
+// Deterministic source-candidate evaluation budget: this counts graph visits,
+// not milliseconds, and never asserts an unmeasured real-world CPU ceiling.
+// Full-pool capacity, individual transaction bytes and chain depth remain source-bounded.
+const DEFAULT_EVALUATION_VISITS=4_194_304;
+const MAX_EVALUATION_VISITS=16_777_216;
+const MAX_TEMPLATE_DEPENDENCY_DEPTH=128;
+function evaluationCharge(limit){
+  if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_EVALUATION_VISITS)
+    fail('invalid_resource_budget');
+  let remaining=limit;
+  return()=>{
+    if(remaining--<=0)fail('resource_budget_exceeded');
+  };
+}
 function graph(state){
   const active=new Set(state.mempoolOrder),children=new Map(state.mempoolOrder.map(x=>[x,new Set()]));
   for(const id of state.mempoolOrder){
@@ -60,10 +74,12 @@ function graph(state){
   }
   return children;
 }
-function packageIds(root,children,{maxPackageSize}){
+function packageIds(root,children,{maxPackageSize,charge=()=>{}}){
   const seen=new Set([root]),queue=[root];
   for(let i=0;i<queue.length;i++){
+    charge();
     for(const child of children.get(queue[i])||[]){
+      charge();
       if(seen.has(child))continue;
       seen.add(child);queue.push(child);
       if(seen.size>maxPackageSize)return null;
@@ -115,11 +131,13 @@ export function removeDescendantPackageOnClone(source,roots,{cap=MAX_MEMPOOL_TXS
  * Returns a new state; NEVER mutates source.
  */
 export function simulateFeeAwareAdmission(source,raw,{
-  cap=MAX_MEMPOOL_TXS,minFeeIncrementAtoms=1n,maxPackageSize=128
+  cap=MAX_MEMPOOL_TXS,minFeeIncrementAtoms=1n,maxPackageSize=128,
+  maxCandidateVisits=DEFAULT_EVALUATION_VISITS
 }={}){
   assertPendingIndexes(source,{cap});
   if(typeof minFeeIncrementAtoms!=='bigint'||minFeeIncrementAtoms<1n)fail('invalid_min_fee_increment');
   if(!Number.isSafeInteger(maxPackageSize)||maxPackageSize<1||maxPackageSize>cap)fail('invalid_package_limit');
+  const charge=evaluationCharge(maxCandidateVisits);
   const verified=verifyTxCrypto(raw);
   if(!verified.ok)fail(verified.error);
   if(raw.txid&&raw.txid!==verified.txid)fail('txid_mismatch');
@@ -144,10 +162,12 @@ export function simulateFeeAwareAdmission(source,raw,{
   const children=graph(source);
   let best=null;
   for(const root of source.mempoolOrder){
-    const ids=packageIds(root,children,{maxPackageSize});
+    charge();
+    const ids=packageIds(root,children,{maxPackageSize,charge});
     if(!ids)continue;
     let evictionFee=0n,evictionBytes=0;
     for(const id of ids){
+      charge();
       const rec=source.transactions[id];
       evictionFee+=validFee(rec);
       evictionBytes+=sizeOf(rec);
@@ -172,9 +192,12 @@ export function simulateFeeAwareAdmission(source,raw,{
  * Does not construct a block, touch consensus, sort a real node's mempool, or
  * select a production fee policy. Uses original pending validated records.
  */
-export function selectFeeSensitiveTemplateCandidate(source,{limit=MAX_TXS_PER_BLOCK}={}){
+export function selectFeeSensitiveTemplateCandidate(source,{
+  limit=MAX_TXS_PER_BLOCK,maxCandidateVisits=DEFAULT_EVALUATION_VISITS
+}={}){
   assertPendingIndexes(source);
   if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_TXS_PER_BLOCK)fail('invalid_template_limit');
+  const charge=evaluationCharge(maxCandidateVisits);
   const order=source.mempoolOrder,active=new Set(order),chosen=new Set(),txids=[];
   const parents=new Map();
   for(const id of order){
@@ -188,8 +211,10 @@ export function selectFeeSensitiveTemplateCandidate(source,{limit=MAX_TXS_PER_BL
   function required(id){
     const path=new Set(),present=new Set(),out=[];
     function visit(current){
+      charge();
       if(chosen.has(current)||present.has(current))return;
       if(path.has(current))fail('cyclic_pending_dependency');
+      if(path.size>=MAX_TEMPLATE_DEPENDENCY_DEPTH)fail('template_dependency_depth_limit');
       path.add(current);
       for(const dep of parents.get(current)||[])visit(dep);
       path.delete(current);
@@ -203,10 +228,11 @@ export function selectFeeSensitiveTemplateCandidate(source,{limit=MAX_TXS_PER_BL
     let best=null;
     for(let i=0;i<order.length;i++){
       const id=order[i];if(chosen.has(id))continue;
+      charge();
       const pkg=required(id);
       if(pkg.length>limit-txids.length)continue;
       let fee=0n,bytes=0;
-      for(const member of pkg){const rec=source.transactions[member];fee+=validFee(rec);bytes+=sizeOf(rec)}
+      for(const member of pkg){charge();const rec=source.transactions[member];fee+=validFee(rec);bytes+=sizeOf(rec)}
       const candidate={id,pkg,fee,bytes,index:i};
       if(!best){best=candidate;continue}
       const d=candidate.fee*BigInt(best.bytes)-best.fee*BigInt(candidate.bytes);
