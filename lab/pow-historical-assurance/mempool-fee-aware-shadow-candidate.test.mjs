@@ -142,3 +142,41 @@ test('PF-12L: a forged pending fee cannot distort package scoring',()=>{
     e=>e.code==='pending_fee_mismatch');
   assert.equal(stable(corrupted),before,'no partial mutation on fee-accounting mismatch');
 });
+
+test('PF-12M: candidate fee admission respects a bounded evaluation budget',()=>{
+  const {s,b,amount}=fixture,before=stable(s),incoming=signed(b,'outside:0',amount,1000000n);
+  assert.throws(()=>simulateFeeAwareAdmission(s,incoming,{maxCandidateVisits:16}),
+    e=>e.code==='resource_budget_exceeded');
+  assert.equal(stable(s),before);
+  assertPendingIndexes(s);
+});
+test('PF-12N: fee template bounds deep pending dependency paths',()=>{
+  const {s}=fixture,before=stable(s);
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:20}),
+    e=>e.code==='template_dependency_depth_limit');
+  assert.equal(stable(s),before);
+});
+test('PF-12O: require safe integer evaluation budgets',()=>{
+  const {s,b,amount}=fixture,incoming=signed(b,'outside:0',amount,1000000n);
+  for(const maxCandidateVisits of [0,-1,1.5,Infinity,16777217,'4096']){
+    assert.throws(()=>simulateFeeAwareAdmission(s,incoming,{maxCandidateVisits}),
+      e=>e.code==='invalid_resource_budget');
+    assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{maxCandidateVisits}),
+      e=>e.code==='invalid_resource_budget');
+  }
+});
+test('PF-12P: small valid ancestor package fits a defined evaluation budget',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'root:0',amount);seed(s,b,'outside:0',amount);
+  const parent=acceptTxInto(s,signed(a,'root:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount,1000000n));
+  const independent=acceptTxInto(s,signed(b,'outside:0',amount,2000n));
+  const before=stable(s);
+  const selected=selectFeeSensitiveTemplateCandidate(s,{limit:2,maxCandidateVisits:256});
+  assert.deepEqual(selected.txids,[parent.txid,child.txid]);
+  assert.ok(!selected.txids.includes(independent.txid));
+  assert.equal(selected.fee_atoms,'1000000');
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:2,maxCandidateVisits:1}),
+    e=>e.code==='resource_budget_exceeded');
+  assert.equal(stable(s),before);
+});
