@@ -6,7 +6,7 @@
     "legacy_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json",
     "historical_pr297": "fae5120f5b123aa8dc8cc0e6153e65c6d0c4e9ee",
     "w2_pr310": "7c15bca5c9276696e99f8af830cc8a18d8a7106e",
-    "w3_pr311": "16e3601bf7a0c67524be5de757a97fafc5f69a22",
+    "w3_pr311": "4eae6d339cefed9368522336f6fe0d8232d85802",
     "dp6_pr312": "04a34cde293509b679874447b51b28f79d0f8b22",
     "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971"
   },
@@ -99,8 +99,8 @@
       "candidate": "CONDITIONAL_MODELS_AND_SOURCE_GUARDS_PASS__PROFITABILITY_OPEN",
       "mainnet": "HOLD",
       "evidence": [
-        "PR #311 exact head 16e3601bf7a0c67524be5de757a97fafc5f69a22: 46/46 focused, 7/7 CI GREEN",
-        "2048-share source-ledger, conditional BWH/FAW/EFAW ceilings and deterministic finite-horizon classic selfish-release expectation and a bounded one-event trail counterfactual cannot prove full stubborn-strategy equivalence or network attack profitability",
+        "PR #311 exact head 4eae6d339cefed9368522336f6fe0d8232d85802: 50/50 focused, 7/7 CI GREEN",
+        "2048-share source-ledger, conditional BWH/FAW/EFAW ceilings and deterministic finite-horizon classic selfish-release expectation, bounded one-event trail counterfactual and exact conditional tie-advantage threshold cannot prove observed propagation, full stubborn-strategy equivalence or network attack profitability",
         "source tip race, credit-once receipt, malformed ACK, independently validated chain inclusion/non-inclusion uncertainty"
       ],
       "remaining": [
