@@ -286,3 +286,41 @@ test('PF-12S: repeated 4096 independent signed transactions resource sensitivity
   assert.equal(stable(s),before,'three admission/template runs cannot mutate shared authoritative fixture');
   assertPendingIndexes(s);
 });
+
+test('PF-12T: 512 parallel authentic eight-deep signed dependency chains preserve capacity, fee fairness and candidate work budget',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,b,'independent-highfee:0',amount);
+  const roots=[];
+  for(let chain=0;chain<512;chain++){
+    const input='chain-'+chain+':0';
+    seed(s,a,input,amount);
+    let prev=input,first;
+    for(let depth=0;depth<8;depth++){
+      const accepted=acceptTxInto(s,signed(a,prev,amount));
+      first??=accepted.txid;prev=accepted.txid+':0';
+    }
+    roots.push(first);
+  }
+  assert.equal(s.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assertPendingIndexes(s);
+  const before=stable(s),incoming=signed(b,'independent-highfee:0',amount,2500000n);
+  const started=process.hrtime.bigint();
+  const admitted=simulateFeeAwareAdmission(s,incoming,{maxCandidateVisits:4194304});
+  const admissionMs=Number(process.hrtime.bigint()-started)/1e6;
+  assert.equal(admitted.decision,'admitted_after_shadow_eviction');
+  assert.equal(admitted.state.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assert.equal(admitted.evicted.length,1,'evict one eligible zero-fee leaf, never abandon its descendants');
+  for(const first of roots)assert.ok(admitted.state.mempoolOrder.includes(first),'parallel chain roots remain retained');
+  assertPendingIndexes(admitted.state);
+  const selected=selectFeeSensitiveTemplateCandidate(admitted.state,{limit:20,maxCandidateVisits:4194304});
+  assert.equal(selected.txids[0],admitted.admitted);
+  assert.equal(selected.fee_atoms,'2500000');
+  assert.equal(selected.skipped_depth_count,0);
+  assert.equal(selected.txids.length,20);
+  assert.equal(stable(s),before);
+  console.log('HPA_W2_CI_RESOURCE_SCENARIO '+JSON.stringify({
+    topology:'512_signed_parallel_chains_depth_8',pending:MAX_MEMPOOL_TXS,
+    admission_ms:+admissionMs.toFixed(3),status:'CANDIDATE_PASS',
+    indicative_only:true,not_worst_case:true,representative_device:false}));
+  assert.ok(admissionMs<45000,'candidate admission exceeds coarse nonproduction regression envelope');
+});
