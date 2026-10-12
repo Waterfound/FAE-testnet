@@ -98,3 +98,27 @@ test('RP-B3-T3-09: incompatible banking hypotheses fail closed rather than masqu
    assert.throws(()=>randomBankServiceSensitivity(input),/invalid_/);
  }
 });
+
+test('RP-B3-T3-10: partial 256 MiB state is not a physically resident DP6 work context',()=>{
+  const base={dependentLatencyNs:74.1885,sustainableBytesPerSecond:2.8e12};
+  for(const capacityBytes of [1,1024,128*1024*1024,SOURCE.contextBytes-1]){
+    assert.throws(()=>attackerFriendlyEnvelope({...base,capacityBytes}),
+      /insufficient_resident_dp6_context/);
+    assert.throws(()=>randomBankServiceSensitivity({...base,capacityBytes,
+      effectiveBanks:64,randomBankServiceNs:75}),/insufficient_resident_dp6_context/);
+  }
+  const exact=attackerFriendlyEnvelope({...base,capacityBytes:SOURCE.contextBytes});
+  assert.equal(exact.residentContexts,1);
+  assert.ok(exact.combinedConditionalCeilingWorkPerSecond>0);
+  assert.equal(exact.achievedThroughputProven,false);
+  assert.equal(exact.specializationResistanceProven,false);
+});
+test('RP-B3-T3-11: slightly super-capacity remains attacker-favorable but not an achieved fraction of a context',()=>{
+  const base={capacityBytes:SOURCE.contextBytes+1,dependentLatencyNs:74.1885,
+    sustainableBytesPerSecond:2.8e12};
+  const r=attackerFriendlyEnvelope(base);
+  assert.ok(r.residentContexts>1&&r.residentContexts<1.000001,
+    'continuous-capacity ceiling intentionally favors attacker at a full resident context');
+  assert.equal(r.achievedThroughputProven,false);
+  assert.equal(r.memoryAccessEfficiencyProven,false);
+});
