@@ -81,15 +81,28 @@ export class ShareCoordinator{
     return{...candidate,jobId,coordinatorId:this.identity.id,requestAddress:address,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,expiresAt:new Date(expiresAt).toISOString(),workProof};
   }
   fullTargetReceipt({jobId,nonce}={}){
-    const receipt=this.fullTargetReceipts.get(String(jobId)+':'+String(nonce));
-    return receipt?structuredClone(receipt):null;
+    const key=String(jobId)+':'+String(nonce);
+    const receipt=this.fullTargetReceipts.get(key);
+    if(receipt)return structuredClone(receipt);
+    // Candidate-only crash reconciliation: persisted ShareLedger proves that
+    // this exact proof was credited once, but never proves node inclusion.
+    if(!this.candidateFullTargetReceiptProtection||!this.ledger.seen.has(key))return null;
+    for(let i=this.ledger.shares.length-1;i>=0;i--){
+      const entry=this.ledger.shares[i];
+      if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
+      if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)return null;
+      return {jobId,nonce,hash:entry.hash,shareSeq:entry.seq,
+        entryHash:entry.entryHash,status:'submission_outcome_unknown_after_restart',
+        attempts:1};
+    }
+    return null;
   }
   async submitShare({jobId,nonce,hash}){
     this.pruneJobs();
     // Opt-in source-receipt check before job lookup: a failed submission may
     // survive expired job pruning. It is never safe to infer non-inclusion.
     const receiptKey=String(jobId)+':'+String(nonce);
-    const prior=this.candidateFullTargetReceiptProtection?this.fullTargetReceipts.get(receiptKey):null;
+    const prior=this.candidateFullTargetReceiptProtection?this.fullTargetReceipt({jobId,nonce}):null;
     if(prior){
       const code=prior.hash!==hash?'candidate_full_target_receipt_hash_mismatch':
         'candidate_full_target_submission_requires_reconciliation';
