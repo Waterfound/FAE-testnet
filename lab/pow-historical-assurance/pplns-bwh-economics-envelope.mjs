@@ -100,6 +100,13 @@ export function fawConditionalExternalOpportunity({ledger,withholdBasisPoints=10
     expectedExternalAtoms:expectedExternal.toString(),
     expectedNetGainAtoms:(expectedExternal-needed).toString(),
     requiredForkWinBasisPointsCeil:requiredWinBps.toString(),
+    // A 100% fork-win scenario is the explicit attacker-favorable model ceiling.
+    // If even that cannot overcome the source-ledger withholding penalty and
+    // declared attack costs, no lower conditional win probability can profit.
+    maximumHypotheticalExternalAtoms:totalExternal.toString(),
+    minimumHypotheticalBenefitRequiredAtoms:needed.toString(),
+    anyConditionalWinRateCanProfit:totalExternal>needed,
+    noProfitableForkWinRateUnderDeclaredInputs:totalExternal<=needed,
     conditionalScenarioAdvantageous:expectedExternal>needed,
     forkOpportunityRateVerified:false,
     empiricalForkWinProbabilityVerified:false,
