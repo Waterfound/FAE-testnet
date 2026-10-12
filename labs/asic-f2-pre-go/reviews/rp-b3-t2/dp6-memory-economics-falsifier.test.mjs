@@ -122,3 +122,27 @@ test('RP-B3-T3-11: slightly super-capacity remains attacker-favorable but not an
   assert.equal(r.achievedThroughputProven,false);
   assert.equal(r.memoryAccessEfficiencyProven,false);
 });
+
+test('RP-B3-T3-12: finite but extreme hypotheses cannot overflow a specialist cost advantage',()=>{
+  const assumptions={specialistWorkPerSecond:100,installedCapexUSD:100000,
+    lifetimeYears:3,utilization:0.8,totalPowerW:400,
+    electricityUSDPerKWh:0.15,commodityUSDPerWork:0.0001};
+  assert.throws(()=>conditionalCostGap({...assumptions,specialistWorkPerSecond:1e308}),
+    /invalid_derived_cost_economics/);
+  assert.throws(()=>conditionalCostGap({...assumptions,commodityUSDPerWork:1e308,
+    specialistWorkPerSecond:1e10}),/invalid_derived_cost_economics/);
+  const sound=conditionalCostGap(assumptions);
+  assert.ok(Number.isFinite(sound.specialistAdvantageRatioInThisScenario));
+  assert.equal(sound.mainnetEconomicVerdict,'EXTERNAL_EVIDENCE_GATE');
+});
+test('RP-B3-T3-13: underflowed time or bank service cannot be treated as achievable DP6 throughput',()=>{
+  const assumptions={capacityBytes:SOURCE.contextBytes,dependentLatencyNs:75,
+    sustainableBytesPerSecond:2.8e12};
+  assert.throws(()=>attackerFriendlyEnvelope({...assumptions,dependentLatencyNs:Number.MIN_VALUE}),
+    /invalid_derived_hardware_ceiling/);
+  assert.throws(()=>randomBankServiceSensitivity({...assumptions,effectiveBanks:64,
+    randomBankServiceNs:Number.MIN_VALUE}),/invalid_derived_bank_ceiling/);
+  const valid=randomBankServiceSensitivity({...assumptions,effectiveBanks:64,randomBankServiceNs:75});
+  assert.ok(Number.isFinite(valid.combinedConditionalCeilingWorkPerSecond));
+  assert.equal(valid.specialistEconomicsVerdict,'EXTERNAL_EVIDENCE_GATE');
+});
