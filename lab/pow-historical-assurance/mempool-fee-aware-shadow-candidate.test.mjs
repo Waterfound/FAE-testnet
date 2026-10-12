@@ -195,3 +195,42 @@ test('PF-12Q: hostile deep zero-fee chain cannot suppress a fully signed indepen
   assert.equal(stable(s),before);
   assertPendingIndexes(s);
 });
+
+test('PF-12R: observed CI resource envelope for full 4096-entry hostile signed mempool (non-production SLA)',()=>{
+  const {s,b,amount}=fixture;
+  const signedHighFee=signed(b,'outside:0',amount,1000000n);
+  const before=stable(s);
+  // The host runner is an ephemeral CI VM, NOT a representative FAE mobile,
+  // browser, GPU, HBM or ASIC device. These are coarse regression ceilings
+  // only, and no unmeasured mainnet latency guarantee follows from a PASS.
+  const envelope={maxElapsedMs:45000,maxProcessRssBytes:1024*1024*1024};
+  function observe(name,fn){
+    const cpuBefore=process.cpuUsage(),start=process.hrtime.bigint();
+    const result=fn();
+    const elapsedMs=Number(process.hrtime.bigint()-start)/1e6;
+    const cpu=process.cpuUsage(cpuBefore);
+    const mem=process.memoryUsage();
+    const metrics={name,node:process.version,platform:process.platform,arch:process.arch,
+      pendingBefore:s.mempoolOrder.length,elapsed_ms:Math.round(elapsedMs*1000)/1000,
+      cpu_user_ms:cpu.user/1000,cpu_system_ms:cpu.system/1000,
+      rss_bytes:mem.rss,heap_used_bytes:mem.heapUsed,
+      max_rss_bytes:process.resourceUsage().maxRSS*1024,
+      indicative_only:true,representative_device:false};
+    console.log('HPA_W2_CI_RESOURCE_EVIDENCE '+JSON.stringify(metrics));
+    assert.ok(elapsedMs<envelope.maxElapsedMs,
+      name+' exceeded non-production CI time regression envelope');
+    assert.ok(mem.rss<envelope.maxProcessRssBytes,
+      name+' exceeded non-production CI RSS regression envelope');
+    return result;
+  }
+  const admission=observe('fullpool_fee_admission',()=>simulateFeeAwareAdmission(s,signedHighFee));
+  assert.equal(admission.decision,'admitted_after_shadow_eviction');
+  assert.equal(admission.state.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assertPendingIndexes(admission.state);
+  const selection=observe('fullpool_ancestor_template',()=>selectFeeSensitiveTemplateCandidate(admission.state,{limit:20}));
+  assert.equal(selection.txids[0],admission.admitted);
+  assert.equal(selection.txids.length,20);
+  assert.equal(selection.fee_atoms,'1000000');
+  assert.equal(stable(s),before,'benchmark cannot mutate source');
+  assert.equal(selection.source_state_mutated,false);
+});
