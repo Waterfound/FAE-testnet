@@ -366,3 +366,16 @@ test('PF-12V: signed fan-in descendant closure excludes a shared child when eith
   }
   assert.equal(stable(state),before,'source fan-in state must remain immutable');
 });
+
+test('PF-12W: duplicate pending input cannot inflate an accepted fee in a corrupt snapshot',()=>{
+  const owner=wallet(),state=emptyState(),amount='1000000000',input='duplicate-fee:0';
+  seed(state,owner,input,amount);
+  const accepted=acceptTxInto(state,signed(owner,input,amount,100n));
+  assertPendingIndexes(state);
+  const before=stable(state),poisoned=structuredClone(state);
+  const record=poisoned.transactions[accepted.txid];
+  record.inputs=[input,input];
+  record.fee_atoms='1000000100';
+  assert.throws(()=>assertPendingIndexes(poisoned),/duplicate_pending_input/);
+  assert.equal(stable(state),before,'adversarial snapshot check cannot mutate accepted source state');
+});
