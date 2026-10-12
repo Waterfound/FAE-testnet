@@ -6,6 +6,8 @@ on:
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
+      - lab/pow-historical-assurance/full-target-chain-inclusion-candidate.mjs
+      - lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
       - lab/pow-historical-assurance/PPLNS_STRATEGIC_HOLD_20261011.md
       - .github/workflows/fae-pow-pplns-strategic-risk-guard.yml
   workflow_dispatch:
@@ -24,3 +26,5 @@ jobs:
         run: node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
       - name: Bounded economic BWH break-even envelope from authentic PPLNS share window
         run: node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
+      - name: Independently replay full-target inclusion before any lost-ack classification
+        run: node --test lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
