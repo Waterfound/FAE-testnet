@@ -234,3 +234,55 @@ test('PF-12R: observed CI resource envelope for full 4096-entry hostile signed m
   assert.equal(stable(s),before,'benchmark cannot mutate source');
   assert.equal(selection.source_state_mutated,false);
 });
+
+test('PF-12S: repeated 4096 independent signed transactions resource sensitivity, with real source scoring',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,b,'fee-input:0',amount);
+  for(let i=0;i<MAX_MEMPOOL_TXS;i++){
+    const input='independent-'+i+':0';
+    seed(s,a,input,amount);
+    acceptTxInto(s,signed(a,input,amount));
+  }
+  assert.equal(s.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  assertPendingIndexes(s);
+  const before=stable(s),highFee=signed(b,'fee-input:0',amount,1000000n);
+  const observations=[];
+  function observe(operation,run,fn){
+    const beforeCpu=process.cpuUsage(),t=process.hrtime.bigint();
+    const result=fn(),elapsed=Number(process.hrtime.bigint()-t)/1e6;
+    const cpu=process.cpuUsage(beforeCpu),mem=process.memoryUsage();
+    const o={operation,run,topology:'4096_independent_signed_pending',
+      elapsed_ms:+elapsed.toFixed(3),cpu_user_ms:cpu.user/1000,
+      cpu_system_ms:cpu.system/1000,rss_bytes:mem.rss,
+      node:process.version,platform:process.platform,arch:process.arch,
+      indicative_only:true,representative_device:false};
+    observations.push(o);
+    assert.ok(elapsed<45000,'candidate operation exceeded non-production regression latency');
+    assert.ok(mem.rss<1024*1024*1024,'candidate process RSS exceeded 1GiB regression bound');
+    return result;
+  }
+  for(let i=0;i<3;i++){
+    const admitted=observe('flat_fullpool_fee_admission',i,()=>simulateFeeAwareAdmission(s,highFee));
+    assert.equal(admitted.decision,'admitted_after_shadow_eviction');
+    assert.equal(admitted.state.mempoolOrder.length,MAX_MEMPOOL_TXS);
+    assertPendingIndexes(admitted.state);
+    const selected=observe('flat_fullpool_fee_template',i,()=>selectFeeSensitiveTemplateCandidate(admitted.state,{limit:20}));
+    assert.equal(selected.txids[0],admitted.admitted);
+    assert.equal(selected.fee_atoms,'1000000');
+    assert.equal(selected.txids.length,20);
+    assert.equal(selected.skipped_depth_count,0);
+  }
+  for(const name of ['flat_fullpool_fee_admission','flat_fullpool_fee_template']){
+    const rows=observations.filter(x=>x.operation===name);
+    const sorted=rows.map(x=>x.elapsed_ms).sort((a,b)=>a-b);
+    console.log('HPA_W2_CI_RESOURCE_SCENARIO '+JSON.stringify({
+      operation:name,topology:'4096_independent_signed_pending',samples:3,
+      wall_min_ms:sorted[0],wall_median_ms:sorted[1],wall_max_observed_ms:sorted[2],
+      max_observed_process_rss_bytes:Math.max(...rows.map(r=>r.rss_bytes)),
+      samples_detail:rows,observed_ci_only:true,
+      not_worst_case:true,not_production_sla:true,not_dp6_asic_evidence:true
+    }));
+  }
+  assert.equal(stable(s),before,'three admission/template runs cannot mutate shared authoritative fixture');
+  assertPendingIndexes(s);
+});
