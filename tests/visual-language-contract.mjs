@@ -83,7 +83,8 @@ assert.match(grammar,/Prohibited language:/);
 console.log("visual-language contract: PASS");
 
 const product=fs.readFileSync(path.join(root,"index.html"),"utf8");
-assert.match(product,/data-direction-d="true"/);
+// Historical Direction D may be retained as provenance, never as an active product identity.
+assert.doesNotMatch(product,/data-direction-d="true"/);
 assert.match(product,/data-authorship-propagation="product-wallet-v1"/);
 assert.match(product,/class="fae-topper"/);
 assert.match(product,/class="ticker-viewport"/);
