@@ -25,7 +25,7 @@ const assertSignedPendingRecord=(rec)=>{
     fail('invalid_pending_signed_record');
 };
 const validFee=(rec)=>{
-  if(rec?.status!=='pending'||!/^\d+$/.test(String(rec.fee_atoms)))fail('invalid_pending_fee');
+  if(rec?.status!=='pending'||typeof rec.fee_atoms!=='string'||!/^\d+$/.test(rec.fee_atoms))fail('invalid_pending_fee');
   return BigInt(rec.fee_atoms);
 };
 
@@ -51,13 +51,15 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
       const source=confirmed&&!confirmed.spent?confirmed:state.mempoolOutputs[input];
       if(!source)fail('missing_input_source');
       if(source.address!==rec.from_address)fail('invalid_pending_input_owner');
-      inputAtoms+=positivePendingAtoms(String(source.amount_atoms),'input');
+      inputAtoms+=positivePendingAtoms(source.amount_atoms,'input');
     }
-    for(const output of rec.outputs)outputAtoms+=positivePendingAtoms(String(output.amount_atoms),'output');
+    for(const output of rec.outputs)outputAtoms+=positivePendingAtoms(output.amount_atoms,'output');
     if(inputAtoms<outputAtoms||inputAtoms-outputAtoms!==declaredFee)fail('pending_fee_mismatch');
     for(let j=0;j<rec.outputs.length;j++){
       const outpoint=txid+':'+j, indexed=state.mempoolOutputs[outpoint];
-      if(!indexed||indexed.txid!==txid||String(indexed.amount_atoms)!==String(rec.outputs[j].amount_atoms)||indexed.address!==rec.outputs[j].address)fail('missing_pending_output');
+      if(!indexed||indexed.txid!==txid||indexed.address!==rec.outputs[j].address)fail('missing_pending_output');
+      positivePendingAtoms(indexed.amount_atoms,'indexed_output');
+      if(indexed.amount_atoms!==rec.outputs[j].amount_atoms)fail('missing_pending_output');
     }
   }
   for(const [outpoint,id] of Object.entries(state.mempoolSpends)){
