@@ -147,12 +147,30 @@ export class ShareCoordinator{
       if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       try{
         block=await this.blockSubmitter({...job.candidate,nonce,hash});
-        if(this.candidateFullTargetReceiptProtection)
-          this.fullTargetReceipts.get(receiptKey).status='acknowledged_not_confirmed';
+        if(this.candidateFullTargetReceiptProtection){
+          const receipt=this.fullTargetReceipts.get(receiptKey);
+          // A resolved Promise is not a signed block acceptance, and even
+          // a negative provider ACK is not proof of chain non-inclusion.
+          if(!block||typeof block!=='object'||
+             (block.ok!==true&&block.accepted!==true)||
+             block.ok===false||block.accepted===false){
+            const explicitlyRejected=block&&typeof block==='object'&&
+              (block.ok===false||block.accepted===false);
+            receipt.status=explicitlyRejected?
+              'upstream_reported_rejected_unconfirmed':'submission_outcome_unknown';
+            const code=explicitlyRejected?
+              'candidate_full_target_provider_rejected_unconfirmed':
+              'candidate_full_target_missing_positive_ack';
+            throw Object.assign(new Error(code),{code});
+          }
+          receipt.status='acknowledged_not_confirmed';
+        }
         this.jobs.clear();
       }catch(error){
-        if(this.candidateFullTargetReceiptProtection)
-          this.fullTargetReceipts.get(receiptKey).status='submission_outcome_unknown';
+        if(this.candidateFullTargetReceiptProtection){
+          const receipt=this.fullTargetReceipts.get(receiptKey);
+          if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
+        }
         throw error;
       }
     }
