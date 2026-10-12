@@ -15,6 +15,15 @@ const positivePendingAtoms=(amount,kind)=>{
     fail('invalid_pending_'+kind+'_amount');
   return BigInt(amount);
 };
+const assertSignedPendingRecord=(rec)=>{
+  // An internally consistent fee/index snapshot need not be an authentic
+  // signed transaction. Verify cryptographic identity before emitting a
+  // template or committing an eviction; authoritative replay still governs
+  // final node admission and block consensus.
+  const checked=verifyTxCrypto(normalizeTx(rec));
+  if(!checked.ok||checked.txid!==rec.txid||checked.from!==rec.from_address)
+    fail('invalid_pending_signed_record');
+};
 const validFee=(rec)=>{
   if(rec?.status!=='pending'||!/^\d+$/.test(String(rec.fee_atoms)))fail('invalid_pending_fee');
   return BigInt(rec.fee_atoms);
@@ -189,6 +198,9 @@ export function simulateFeeAwareAdmission(source,raw,{
     if(!best||compare(candidate,best)<0)best=candidate;
   }
   if(!best)fail('no_fee_qualified_eviction');
+  // Only verify the bounded chosen eviction package, not every competing
+  // package at every score step. Avoid multiplying signature-work by 4096.
+  for(const id of best.ids)assertSignedPendingRecord(source.transactions[id]);
   const removed=removeDescendantPackageOnClone(source,[best.root],{cap,maxPackageSize});
   const record=acceptTxInto(removed.state,raw);
   assertPendingIndexes(removed.state,{cap});
@@ -273,8 +285,14 @@ export function selectFeeSensitiveTemplateCandidate(source,{
     if(!best)break;
     for(const id of best.pkg){if(chosen.has(id))fail('duplicate_candidate_template_tx');chosen.add(id);txids.push(id)}
   }
+  // Prevent a consistent-looking yet signature-corrupt pending record from
+  // being emitted as an executable candidate mining template.
   let fee=0n;
-  for(const id of txids)fee+=validFee(source.transactions[id]);
+  for(const id of txids){
+    const record=source.transactions[id];
+    assertSignedPendingRecord(record);
+    fee+=validFee(record);
+  }
   const positions=new Map(txids.map((id,index)=>[id,index]));
   for(const id of txids)for(const parent of parents.get(id)||[]){
     if(!positions.has(parent)||positions.get(parent)>=positions.get(id))fail('template_dependency_not_topological');
