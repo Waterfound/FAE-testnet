@@ -5,7 +5,7 @@
   "source": {
     "legacy_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json",
     "historical_pr297": "fae5120f5b123aa8dc8cc0e6153e65c6d0c4e9ee",
-    "w2_pr310": "7c15bca5c9276696e99f8af830cc8a18d8a7106e",
+    "w2_pr310": "069f4af8b61ec2a80d3bb41a82e0e74aec6306aa",
     "w3_pr311": "4eae6d339cefed9368522336f6fe0d8232d85802",
     "dp6_pr312": "04a34cde293509b679874447b51b28f79d0f8b22",
     "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971"
@@ -49,11 +49,12 @@
       "candidate": "PASS_CANDIDATE_LATEST_HEAD",
       "mainnet": "HOLD",
       "evidence": [
-        "PR #310 exact head 7c15bca5c9276696e99f8af830cc8a18d8a7106e: 42/42 focused, 10/10 CI GREEN",
+        "PR #310 exact head 069f4af8b61ec2a80d3bb41a82e0e74aec6306aa: 44/44 focused, 10/10 CI GREEN",
         "Source-signed full 4096 pool, real authenticated reorg/relay and fee-aware candidate template",
         "Signed 512x8 parallel chain, two-parent join and descendant closure; single CI performance and repeated flat pool observations",
         "PF-12W rejects duplicate pending outpoint fee inflation in a corrupt snapshot while preserving accepted source state",
-        "LIVE_NODE_BROWNOUT_RESULT.json historical isolated source-run at 4096"
+        "LIVE_NODE_BROWNOUT_RESULT.json historical isolated source-run at 4096",
+        "PF-12X/Y candidate snapshot: nonpositive signed pending output / source amount cannot inflate fees; forged fee+index value on poisoned clone fails closed"
       ],
       "remaining": [
         "sustained source node resource/latency under mixed topology bursts and inter-node reorg floods, independent device evidence",
@@ -145,8 +146,8 @@
     "mainnet_terminal_green_count": 0,
     "all_risks_resolved": false,
     "mainnet_allowed": false,
-    "percent_progress_last_formal": 63,
-    "percent_progress_recalculation": "NOT_AUDITED_AGAINST_WEIGHTED_GATE_ACCEPTANCE",
+    "percent_progress_last_formal": 80,
+    "percent_progress_recalculation": "PRIVATE_OWNER_80_PERCENT_WEIGHTED_CANDIDATE_INDICATOR__NOT_MAINNET",
     "known_collapse_is_narrow": "current-v4 paid-fee miner-revenue assumption",
     "specialized_economic_bound": "EXTERNAL_EVIDENCE_GATE",
     "do_not_claim": "DP6 always ASIC resistant or 100% mainnet ready from frozen lab proofs and speculative costs"
@@ -166,6 +167,7 @@
     "source_candidate_headers_reconciled": true,
     "evidence_is_snapshot_only": true,
     "allow_inference_of_actual_specialization_resistance": false,
-    "retain_previous_failed_ci_history": true
+    "retain_previous_failed_ci_history": true,
+    "weighted_score_epistemic_boundary": "Candidate W1 10 / W2 30 / W3 40 / W4 20, privately owner-scored 80; not final mainnet or ASIC economic proof"
   }
 }
