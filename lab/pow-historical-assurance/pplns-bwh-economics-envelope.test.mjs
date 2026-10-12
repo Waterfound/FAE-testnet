@@ -95,3 +95,40 @@ test('HPA-W3-15: arbitrary or ill-typed fake pool opportunity evidence fails clo
     assert.throws(()=>fawConditionalExternalOpportunity({...b,...delta}),/invalid_faw_external_assumptions/);
   }
 });
+
+test('HPA-W3-32: 100% imaginary fork-win ceiling can falsify profitability in a real 2048-share ledger scenario',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const trial=fawConditionalExternalOpportunity({ledger,withholdBasisPoints:10000,
+    poolRewardAtoms:R,externalRewardAtoms:50_000_000n,assumedOpportunities:1,
+    assumedForkWinBasisPoints:10000,extraAttackCostAtoms:10_000_000n});
+  assert.equal(trial.ownPoolWithholdingCostAtoms,'62500000');
+  assert.equal(trial.minimumHypotheticalBenefitRequiredAtoms,'72500000');
+  assert.equal(trial.maximumHypotheticalExternalAtoms,'50000000');
+  assert.equal(trial.requiredForkWinBasisPointsCeil,'14500');
+  assert.equal(trial.anyConditionalWinRateCanProfit,false);
+  assert.equal(trial.noProfitableForkWinRateUnderDeclaredInputs,true);
+  assert.equal(trial.conditionalScenarioAdvantageous,false);
+  assert.equal(trial.actualAttackerProfitabilityVerified,false);
+});
+test('HPA-W3-33: an optimistic hypothetical scenario cannot certify a real BWH/FAW attack',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const trial=fawConditionalExternalOpportunity({ledger,withholdBasisPoints:10000,
+    poolRewardAtoms:R,externalRewardAtoms:R,assumedOpportunities:1,
+    assumedForkWinBasisPoints:1000});
+  assert.equal(trial.anyConditionalWinRateCanProfit,true);
+  assert.equal(trial.noProfitableForkWinRateUnderDeclaredInputs,false);
+  assert.equal(trial.conditionalScenarioAdvantageous,true);
+  assert.equal(trial.empiricalForkWinProbabilityVerified,false);
+  assert.equal(trial.externalPoolPayoutVerified,false);
+  assert.equal(trial.actualAttackerProfitabilityVerified,false);
+});
+test('HPA-W3-34: exact break-even is not positive attack profit',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const trial=fawConditionalExternalOpportunity({ledger,withholdBasisPoints:10000,
+    poolRewardAtoms:R,externalRewardAtoms:62_500_000n,assumedOpportunities:1,
+    assumedForkWinBasisPoints:10000});
+  assert.equal(trial.expectedNetGainAtoms,'0');
+  assert.equal(trial.requiredForkWinBasisPointsCeil,'10000');
+  assert.equal(trial.noProfitableForkWinRateUnderDeclaredInputs,true);
+  assert.equal(trial.conditionalScenarioAdvantageous,false);
+});
