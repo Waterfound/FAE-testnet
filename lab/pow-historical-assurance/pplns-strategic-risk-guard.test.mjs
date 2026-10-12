@@ -273,3 +273,31 @@ test('HPA-W3-22: cold restart replays a durable full-target share but never assu
     e=>e.code==='candidate_full_target_submission_requires_reconciliation');
   assert.equal(fresh.ledger.summary().totalShares,1);
 });
+
+test('HPA-W3-23: receipt capacity with 1024 unknown blocks fails closed before share credit',async()=>{
+  const x=fullTargetReceiptFixture();
+  const work=await x.coordinator.createWork(x.address);
+  for(let i=0;i<1024;i++)x.coordinator.fullTargetReceipts.set('unknown-'+i,{
+    status:'submission_outcome_unknown',hash:'a'.repeat(64),attempts:1});
+  await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
+    e=>e.code==='candidate_full_target_receipt_capacity');
+  assert.equal(x.coordinator.ledger.summary().totalShares,0);
+  assert.equal(x.attempts(),0);
+  assert.equal(x.coordinator.fullTargetReceipts.size,1024);
+});
+test('HPA-W3-24: acknowledged receipts can be compacted without losing exact share replay protection',async()=>{
+  const x=fullTargetReceiptFixture();
+  const work=await x.coordinator.createWork(x.address);
+  for(let i=0;i<1024;i++)x.coordinator.fullTargetReceipts.set('ack-'+i,{
+    status:'acknowledged_not_confirmed',hash:'a'.repeat(64),attempts:1});
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  const result=await x.coordinator.submitShare(input);
+  assert.equal(result.accepted,true);
+  assert.equal(x.attempts(),1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.ok(x.coordinator.fullTargetReceipts.size<=1024);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
