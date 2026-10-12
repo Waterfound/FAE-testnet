@@ -5,6 +5,9 @@ import {PPLNS_COINBASE_ACTIVATION_HEIGHT,activationConfigured,isPplnsCoinbaseAct
 import {ShareLedger,ShareCoordinator,allocatePplnsOutputs} from '../../sovereign-forge/node/authoritative/share-coordinator.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {hashHex,leadingZeroBits} from '../../sovereign-forge/node/authoritative/crypto.mjs';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {assessCurrentPplnsAdmission,requireFreshStrategicAuthority} from './pplns-strategic-risk-guard.mjs';
 const honest='honest',infiltrator='infiltrator';
 function share(log,address,i){
@@ -178,7 +181,7 @@ test('HPA-W3-18: opt-in recheck retains valid full-target work when chain tip is
   assert.equal(x.getSubmissions(),1);
 });
 
-function fullTargetReceiptFixture({submitBlock}={}){
+function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
   const address=encodeAddress(Buffer.alloc(20,16),'faet'),previous='c'.repeat(64);
   const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
     difficulty_bits:8,reward_atoms:'1000000000',miner_address:address,
@@ -187,7 +190,7 @@ function fullTargetReceiptFixture({submitBlock}={}){
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   let attempts=0;
   const coordinator=new ShareCoordinator({
-    multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
+    logFile,multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
     statusProvider:async()=>({height:99,tip_hash:previous,difficulty_bits:8}),
     distributedTemplateProvider:async()=>candidate,
     candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce}),
@@ -250,4 +253,23 @@ test('HPA-W3-21: racing repeated proof during in-flight submission remains singl
   await assert.rejects(first,/provider_outcome_indeterminate/);
   assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
+
+test('HPA-W3-22: cold restart replays a durable full-target share but never assumes upstream block inclusion',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-fulltarget-recovery-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const x=fullTargetReceiptFixture({logFile,submitBlock:async()=>{throw new Error('upstream_ack_lost')}});
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  await assert.rejects(x.coordinator.submitShare(input),/upstream_ack_lost/);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
+  const fresh=new ShareCoordinator({logFile,candidateFullTargetReceiptProtection:true});
+  assert.equal(fresh.ledger.summary().totalShares,1);
+  const restored=fresh.fullTargetReceipt(input);
+  assert.equal(restored.status,'submission_outcome_unknown_after_restart');
+  assert.equal(restored.hash,x.hash);
+  await assert.rejects(fresh.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(fresh.ledger.summary().totalShares,1);
 });
