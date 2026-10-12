@@ -150,10 +150,11 @@ test('PF-12M: candidate fee admission respects a bounded evaluation budget',()=>
   assert.equal(stable(s),before);
   assertPendingIndexes(s);
 });
-test('PF-12N: fee template bounds deep pending dependency paths',()=>{
+test('PF-12N: deep signed chains do not deny mining of bounded valid ancestors',()=>{
   const {s}=fixture,before=stable(s);
-  assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:20}),
-    e=>e.code==='template_dependency_depth_limit');
+  const selected=selectFeeSensitiveTemplateCandidate(s,{limit:20});
+  assert.deepEqual(selected.txids,s.mempoolOrder.slice(0,20));
+  assert.equal(selected.skipped_depth_count,MAX_MEMPOOL_TXS-128);
   assert.equal(stable(s),before);
 });
 test('PF-12O: require safe integer evaluation budgets',()=>{
@@ -179,4 +180,18 @@ test('PF-12P: small valid ancestor package fits a defined evaluation budget',()=
   assert.throws(()=>selectFeeSensitiveTemplateCandidate(s,{limit:2,maxCandidateVisits:1}),
     e=>e.code==='resource_budget_exceeded');
   assert.equal(stable(s),before);
+});
+
+test('PF-12Q: hostile deep zero-fee chain cannot suppress a fully signed independent high-fee template',()=>{
+  const a=wallet(),s=removeDescendantPackageOnClone(fixture.s,
+    [fixture.s.mempoolOrder.at(-1)]).state;
+  const independent=acceptTxInto(s,signed(fixture.b,'outside:0',fixture.amount,1000000n));
+  assert.equal(s.mempoolOrder.length,MAX_MEMPOOL_TXS);
+  const before=stable(s),selected=selectFeeSensitiveTemplateCandidate(s,{limit:20});
+  assert.equal(selected.txids[0],independent.txid);
+  assert.equal(selected.txids.length,20);
+  assert.ok(selected.skipped_depth_count>0);
+  assert.equal(selected.fee_atoms,'1000000');
+  assert.equal(stable(s),before);
+  assertPendingIndexes(s);
 });
