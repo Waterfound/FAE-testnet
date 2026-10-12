@@ -1,11 +1,11 @@
 {
   "schema": "FAE_HISTORICAL_POW_EVIDENCE_RECONCILIATION_V2",
-  "date": "2026-10-11",
+  "date": "2026-10-12",
   "scope": "Candidate-software evidence, not mainnet/ASIC economic security",
   "source": {
     "legacy_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json",
     "historical_pr297": "fae5120f5b123aa8dc8cc0e6153e65c6d0c4e9ee",
-    "w2_pr310": "8e16ddd1b0a00e7deab6b92ea106a002c3cc401e",
+    "w2_pr310": "7c15bca5c9276696e99f8af830cc8a18d8a7106e",
     "w3_pr311": "81c0abd5ed64426ae37f6d803f0b76b0d564ffc1",
     "dp6_pr312": "04a34cde293509b679874447b51b28f79d0f8b22",
     "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971"
@@ -49,9 +49,10 @@
       "candidate": "PASS_CANDIDATE_LATEST_HEAD",
       "mainnet": "HOLD",
       "evidence": [
-        "PR #310 exact head 8e16ddd1b0a00e7deab6b92ea106a002c3cc401e: 41/41 focused, 10/10 CI GREEN",
+        "PR #310 exact head 7c15bca5c9276696e99f8af830cc8a18d8a7106e: 42/42 focused, 10/10 CI GREEN",
         "Source-signed full 4096 pool, real authenticated reorg/relay and fee-aware candidate template",
         "Signed 512x8 parallel chain, two-parent join and descendant closure; single CI performance and repeated flat pool observations",
+        "PF-12W rejects duplicate pending outpoint fee inflation in a corrupt snapshot while preserving accepted source state",
         "LIVE_NODE_BROWNOUT_RESULT.json historical isolated source-run at 4096"
       ],
       "remaining": [
