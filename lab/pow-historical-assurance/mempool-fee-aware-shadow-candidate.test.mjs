@@ -366,3 +366,28 @@ test('PF-12V: signed fan-in descendant closure excludes a shared child when eith
   }
   assert.equal(stable(state),before,'source fan-in state must remain immutable');
 });
+
+test('PF-12W: detached pending transaction record cannot masquerade as an empty indexed pool',()=>{
+  const owner=wallet(),state=emptyState(),amount='1000000000';
+  seed(state,owner,'ghost:0',amount);
+  const accepted=acceptTxInto(state,signed(owner,'ghost:0',amount));
+  const corrupt=structuredClone(state);
+  corrupt.mempoolOrder=[];
+  corrupt.mempoolSpends={};
+  corrupt.mempoolOutputs={};
+  assert.equal(corrupt.transactions[accepted.txid].status,'pending');
+  const before=stable(corrupt);
+  assert.throws(()=>assertPendingIndexes(corrupt),e=>e.code==='unindexed_pending_record');
+  assert.equal(stable(corrupt),before,'validation must not repair or mutate a corrupt snapshot');
+});
+test('PF-12X: duplicate pending input cannot be disguised by an internally consistent forged fee',()=>{
+  const owner=wallet(),state=emptyState(),amount='1000000000';
+  seed(state,owner,'repeat:0',amount);
+  const accepted=acceptTxInto(state,signed(owner,'repeat:0',amount));
+  const corrupt=structuredClone(state),rec=corrupt.transactions[accepted.txid];
+  rec.inputs.push('repeat:0');
+  rec.fee_atoms=amount;
+  const before=stable(corrupt);
+  assert.throws(()=>assertPendingIndexes(corrupt),e=>e.code==='duplicate_pending_input');
+  assert.equal(stable(corrupt),before,'validation must fail closed without source mutation');
+});
