@@ -26,7 +26,12 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
     if(!rec||rec.txid!==txid||rec.status!=='pending')fail('invalid_pending_record');
     const declaredFee=validFee(rec);
     let inputAtoms=0n,outputAtoms=0n;
+    const uniqueInputs=new Set();
     for(const input of rec.inputs){
+      // A corrupt pending record must not count the same source value twice.
+      // Reservation indexes are keyed by outpoint and cannot reveal this alone.
+      if(uniqueInputs.has(input))fail('duplicate_pending_input');
+      uniqueInputs.add(input);
       if(state.mempoolSpends[input]!==txid)fail('missing_input_reservation');
       const confirmed=state.utxos[input];
       const source=confirmed&&!confirmed.spent?confirmed:state.mempoolOutputs[input];
