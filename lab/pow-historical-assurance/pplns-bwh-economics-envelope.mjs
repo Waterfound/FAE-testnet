@@ -115,3 +115,63 @@ export function fawConditionalExternalOpportunity({ledger,withholdBasisPoints=10
     actualAttackerProfitabilityVerified:false
   };
 }
+
+/**
+ * Conditional EFAW portfolio ceiling with an explicit, conserved attacker
+ * allocation budget.  Each external pool receives a declared fraction of the
+ * attacker's finite allocation; the fractions may not sum above 100%.  This
+ * prevents a multi-pool scenario from silently assigning the same attacker
+ * hash budget in full to every pool.
+ *
+ * Rewards, opportunity counts and fork-win rates remain assumptions.  The
+ * result can falsify profit under declared inputs, but cannot prove real EFAW
+ * profitability or authenticate network observations.
+ */
+export function efawConditionalPortfolio({ledger,withholdBasisPoints=10000,
+  poolRewardAtoms=100000000n,externalPools,extraAttackCostAtoms=0n}={}){
+  const internal=bwhConditionalPayoff({ledger,withholdBasisPoints,rewardAtoms:poolRewardAtoms});
+  if(!Array.isArray(externalPools)||externalPools.length<1||externalPools.length>64||
+     typeof extraAttackCostAtoms!=='bigint'||extraAttackCostAtoms<0n)
+    throw new Error('invalid_efaw_portfolio_assumptions');
+  let allocation=0,totalMaximum=0n,totalExpected=0n;
+  const pools=externalPools.map((raw,index)=>{
+    if(!raw||typeof raw.rewardAtoms!=='bigint'||raw.rewardAtoms<1n||
+       !Number.isSafeInteger(raw.assumedOpportunities)||raw.assumedOpportunities<1||
+       raw.assumedOpportunities>100000||
+       !Number.isSafeInteger(raw.assumedForkWinBasisPoints)||
+       raw.assumedForkWinBasisPoints<0||raw.assumedForkWinBasisPoints>10000||
+       !Number.isSafeInteger(raw.allocationBasisPoints)||
+       raw.allocationBasisPoints<1||raw.allocationBasisPoints>10000)
+      throw new Error('invalid_efaw_portfolio_assumptions');
+    allocation+=raw.allocationBasisPoints;
+    if(allocation>10000)throw new Error('efaw_allocation_budget_exceeded');
+    const opportunities=BigInt(raw.assumedOpportunities);
+    const maximum=raw.rewardAtoms*opportunities*BigInt(raw.allocationBasisPoints)/BASIS;
+    const expected=maximum*BigInt(raw.assumedForkWinBasisPoints)/BASIS;
+    totalMaximum+=maximum;totalExpected+=expected;
+    return {pool_index:index,allocation_basis_points:raw.allocationBasisPoints,
+      assumed_opportunities:raw.assumedOpportunities,
+      assumed_fork_win_basis_points:raw.assumedForkWinBasisPoints,
+      maximum_hypothetical_atoms:maximum.toString(),expected_external_atoms:expected.toString()};
+  });
+  const ownPoolLoss=BigInt(internal.minimum_external_benefit_to_break_even_atoms);
+  const needed=ownPoolLoss+extraAttackCostAtoms;
+  return {
+    verdict:'CONDITIONAL_EFAW_ALLOCATED_PORTFOLIO__NOT_OBSERVED_PROFIT',
+    ownPoolWithholdingCostAtoms:ownPoolLoss.toString(),
+    assumedExtraAttackCostAtoms:extraAttackCostAtoms.toString(),
+    totalAllocationBasisPoints:allocation,
+    unallocatedBasisPoints:10000-allocation,
+    maximumHypotheticalExternalAtoms:totalMaximum.toString(),
+    expectedExternalAtoms:totalExpected.toString(),
+    minimumHypotheticalBenefitRequiredAtoms:needed.toString(),
+    expectedNetGainAtoms:(totalExpected-needed).toString(),
+    noProfitablePortfolioUnderDeclaredInputs:totalMaximum<=needed,
+    conditionalPortfolioAdvantageous:totalExpected>needed,
+    pools,
+    allocationObserved:false,
+    opportunityRatesVerified:false,
+    empiricalForkWinProbabilitiesVerified:false,
+    actualAttackerProfitabilityVerified:false
+  };
+}
