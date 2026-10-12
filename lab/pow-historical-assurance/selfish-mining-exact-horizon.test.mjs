@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {exactSelfishHorizon} from './selfish-mining-exact-horizon.mjs';
+import {exactSelfishHorizon,exactOneEventTrailHorizon} from './selfish-mining-exact-horizon.mjs';
 
 test('HPA-W3-39: deterministic finite-horizon model conserves probability mass',()=>{
   for(const alpha of [.1,.2,.25,.3,.4])for(const gamma of [0,.25,.5,1]){
@@ -38,4 +38,36 @@ test('HPA-W3-42: threshold sensitivity remains conditional and invalid assumptio
   for(const args of [{alpha:0,gamma:.5},{alpha:.5,gamma:.5},{alpha:.2,gamma:-1},
     {alpha:.2,gamma:1.1},{alpha:.2,gamma:.5,events:0},{alpha:.2,gamma:.5,events:100001}])
     assert.throws(()=>exactSelfishHorizon(args),/invalid_selfish_horizon_assumptions/);
+});
+
+test('HPA-W3-43: one-event trail counterfactual conserves mass and retains epistemic limits',()=>{
+  for(const alpha of [.1,.2,.3,.4])for(const gamma of [0,.5,1]){
+    const r=exactOneEventTrailHorizon({alpha,gamma,events:2000});
+    assert.ok(Math.abs(r.probability_mass-1)<1e-11,{alpha,gamma,mass:r.probability_mass});
+    assert.equal(r.full_literature_strategy_equivalence_proven,false);
+    assert.equal(r.propagation_gamma_observed,false);
+    assert.equal(r.actual_profitability_proven,false);
+  }
+});
+
+test('HPA-W3-44: trail counterfactual is deterministic and bounded against classic release',()=>{
+  const classic=exactSelfishHorizon({alpha:.25,gamma:.5,events:5000});
+  const trail=exactOneEventTrailHorizon({alpha:.25,gamma:.5,events:5000});
+  assert.deepEqual(trail,exactOneEventTrailHorizon({alpha:.25,gamma:.5,events:5000}));
+  assert.ok(Number.isFinite(trail.attacker_revenue_share));
+  assert.ok(Math.abs(trail.attacker_revenue_share-classic.attacker_revenue_share)<.1);
+  assert.ok(trail.trail_or_second_race_terminal_probability>=0);
+});
+
+test('HPA-W3-45: conditional gamma advantage remains monotonic for the explicit trail policy',()=>{
+  const rows=[0,.25,.5,.75,1].map(gamma=>
+    exactOneEventTrailHorizon({alpha:.25,gamma,events:3000}));
+  for(let i=1;i<rows.length;i++)
+    assert.ok(rows[i].attacker_revenue_share>=rows[i-1].attacker_revenue_share-1e-12);
+});
+
+test('HPA-W3-46: trail policy input violations fail closed',()=>{
+  for(const args of [{alpha:0,gamma:.5},{alpha:.5,gamma:.5},{alpha:.2,gamma:-1},
+    {alpha:.2,gamma:1.1},{alpha:.2,gamma:.5,events:0},{alpha:.2,gamma:.5,events:100001}])
+    assert.throws(()=>exactOneEventTrailHorizon(args),/invalid_trail_horizon_assumptions/);
 });
