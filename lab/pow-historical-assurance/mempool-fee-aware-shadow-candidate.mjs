@@ -21,9 +21,16 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
   if(!Array.isArray(state.mempoolOrder)||state.mempoolOrder.length>cap)fail('invalid_mempool_order');
   const active=new Set(state.mempoolOrder);
   if(active.size!==state.mempoolOrder.length)fail('duplicate_mempool_order');
+  // A detached pending record is a corrupt source snapshot even if its
+  // reservation/output indexes were also removed. Do not silently repair it.
+  for(const [id,rec] of Object.entries(state.transactions)){
+    if(rec?.status==='pending'&&!active.has(id))fail('unindexed_pending_record');
+  }
   for(const txid of active){
     const rec=state.transactions[txid];
     if(!rec||rec.txid!==txid||rec.status!=='pending')fail('invalid_pending_record');
+    if(!Array.isArray(rec.inputs)||new Set(rec.inputs).size!==rec.inputs.length)
+      fail('duplicate_pending_input');
     const declaredFee=validFee(rec);
     let inputAtoms=0n,outputAtoms=0n;
     for(const input of rec.inputs){
