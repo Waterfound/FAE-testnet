@@ -48,6 +48,7 @@ test('HPA-W4-06: authority flags cannot silently activate mainnet/fee/consensus 
   assert.equal(matrix.authority.research_document_only,true);
   for(const k of ['change_consensus','activate_fee','activate_pplns','merge_main','release_mainnet'])
     assert.equal(matrix.authority[k],false,k);
-  assert.equal(matrix.interpretation.percent_progress_last_formal,63);
-  assert.equal(matrix.interpretation.percent_progress_recalculation,'NOT_AUDITED_AGAINST_WEIGHTED_GATE_ACCEPTANCE');
+  assert.equal(matrix.interpretation.percent_progress_last_formal,80);
+  assert.equal(matrix.interpretation.percent_progress_recalculation,
+    'PRIVATE_OWNER_80_PERCENT_WEIGHTED_CANDIDATE_INDICATOR__NOT_MAINNET');
 });
