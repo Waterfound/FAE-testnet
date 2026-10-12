@@ -379,3 +379,33 @@ test('PF-12W: duplicate pending input cannot inflate an accepted fee in a corrup
   assert.throws(()=>assertPendingIndexes(poisoned),/duplicate_pending_input/);
   assert.equal(stable(state),before,'adversarial snapshot check cannot mutate accepted source state');
 });
+
+test('PF-12X: negative pending outputs cannot manufacture an inflated candidate fee in corrupt snapshot',()=>{
+  const owner=wallet(),s=emptyState(),amount='1000000000',input='negative-output:0';
+  seed(s,owner,input,amount);
+  const accepted=acceptTxInto(s,signed(owner,input,amount,100n));
+  assertPendingIndexes(s);
+  const before=stable(s),bad=structuredClone(s);
+  bad.transactions[accepted.txid].outputs[0].amount_atoms='-1';
+  bad.mempoolOutputs[accepted.txid+':0'].amount_atoms='-1';
+  bad.transactions[accepted.txid].fee_atoms='1000000001';
+  assert.throws(()=>assertPendingIndexes(bad),e=>e.code==='invalid_pending_output_amount');
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(bad),e=>e.code==='invalid_pending_output_amount');
+  assert.equal(stable(s),before,'source state remains byte-stable');
+});
+test('PF-12Y: zero-value pending outputs and source UTXOs cannot pass fee-scoring conservation',()=>{
+  const owner=wallet(),s=emptyState(),amount='1000000000',input='zero-output:0';
+  seed(s,owner,input,amount);
+  const accepted=acceptTxInto(s,signed(owner,input,amount,100n));
+  assertPendingIndexes(s);
+  const before=stable(s);
+  const badOutput=structuredClone(s);
+  badOutput.transactions[accepted.txid].outputs[0].amount_atoms='0';
+  badOutput.mempoolOutputs[accepted.txid+':0'].amount_atoms='0';
+  badOutput.transactions[accepted.txid].fee_atoms=amount;
+  assert.throws(()=>assertPendingIndexes(badOutput),e=>e.code==='invalid_pending_output_amount');
+  const badInput=structuredClone(s);
+  badInput.utxos[input].amount_atoms='0';
+  assert.throws(()=>assertPendingIndexes(badInput),e=>e.code==='invalid_pending_input_amount');
+  assert.equal(stable(s),before);
+});
