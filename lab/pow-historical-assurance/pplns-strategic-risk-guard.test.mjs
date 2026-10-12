@@ -301,3 +301,44 @@ test('HPA-W3-24: acknowledged receipts can be compacted without losing exact sha
     e=>e.code==='candidate_full_target_submission_requires_reconciliation');
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
 });
+
+test('HPA-W3-29: explicit negative provider block ACK never masquerades as confirmed submission',async()=>{
+  const x=fullTargetReceiptFixture({submitBlock:async()=>({ok:false,error:'block_stale'})});
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_provider_rejected_unconfirmed');
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'upstream_reported_rejected_unconfirmed');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.attempts(),1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
+test('HPA-W3-30: empty, malformed and conflicting block ACKs never yield a positive receipt',async()=>{
+  for(const ack of [undefined,null,{},'ok',{ok:'true'},{accepted:false},{ok:true,accepted:false}]){
+    const x=fullTargetReceiptFixture({submitBlock:async()=>ack});
+    const work=await x.coordinator.createWork(x.address);
+    const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+    await assert.rejects(x.coordinator.submitShare(input),
+      e=>['candidate_full_target_missing_positive_ack',
+        'candidate_full_target_provider_rejected_unconfirmed'].includes(e.code));
+    assert.notEqual(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
+    assert.equal(x.coordinator.ledger.summary().totalShares,1);
+    assert.equal(x.attempts(),1);
+    await assert.rejects(x.coordinator.submitShare(input),
+      e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  }
+});
+test('HPA-W3-31: explicitly accepted upstream result is acknowledged, still not a finality proof',async()=>{
+  const x=fullTargetReceiptFixture({submitBlock:async()=>({accepted:true,tip_hash:'a'.repeat(64)})});
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  const result=await x.coordinator.submitShare(input);
+  assert.equal(result.accepted,true);
+  assert.equal(result.block.accepted,true);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+});
