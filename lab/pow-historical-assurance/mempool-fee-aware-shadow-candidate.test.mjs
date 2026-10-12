@@ -433,3 +433,22 @@ test('PF-12AA: high-fee admission cannot evict a source-index-consistent but sig
   assert.equal(stable(s),before);
   assertPendingIndexes(s);
 });
+
+test('PF-12AB: persisted atom and fee fields must retain canonical decimal-string types',()=>{
+  const owner=wallet(),s=emptyState(),amount='1000000000',input='typed-atoms:0';
+  seed(s,owner,input,amount);
+  const accepted=acceptTxInto(s,signed(owner,input,amount,100n));
+  assertPendingIndexes(s);
+  const before=stable(s);
+  const numericFee=structuredClone(s);
+  numericFee.transactions[accepted.txid].fee_atoms=100;
+  assert.throws(()=>assertPendingIndexes(numericFee),e=>e.code==='invalid_pending_fee');
+  const numericInput=structuredClone(s);
+  numericInput.utxos[input].amount_atoms=1000000000;
+  assert.throws(()=>assertPendingIndexes(numericInput),e=>e.code==='invalid_pending_input_amount');
+  const numericOutput=structuredClone(s),outpoint=accepted.txid+':0';
+  numericOutput.transactions[accepted.txid].outputs[0].amount_atoms=999999900;
+  numericOutput.mempoolOutputs[outpoint].amount_atoms=999999900;
+  assert.throws(()=>assertPendingIndexes(numericOutput),e=>e.code==='invalid_pending_output_amount');
+  assert.equal(stable(s),before,'type-confusion checks cannot mutate the source snapshot');
+});
