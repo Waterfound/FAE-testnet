@@ -12,7 +12,7 @@ import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.m
 import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
 import {sha256,hashHex,leadingZeroBits} from '../../sovereign-forge/node/authoritative/crypto.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
-import {assertPendingIndexes} from './mempool-fee-aware-shadow-candidate.mjs';
+import {assertPendingIndexes,simulateFeeAwareAdmission} from './mempool-fee-aware-shadow-candidate.mjs';
 import {recoverDetachedFeeAware} from './mempool-fee-aware-reorg-candidate.mjs';
 function wallet(){
  const{privateKey,publicKey}=generateKeyPairSync('ed25519');
@@ -88,7 +88,7 @@ test('HPA-W2-R3: reject nonpreferred branch and invalid continuation bounds fail
 });
 
 test('HPA-W2-R4: authenticated higher-work peer sync uses explicit bounded reorg recovery and persists exact state',async t=>{
- const {candidate,previous,incoming}=scenario();
+ const {candidate,previous,incoming,lastId}=scenario();
  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-reorg-'));
  t.after(()=>rm(dir,{recursive:true,force:true}));
  const mainFile=join(dir,'main-state.json'),identityFile=join(dir,'main-identity.json');
@@ -98,7 +98,7 @@ test('HPA-W2-R4: authenticated higher-work peer sync uses explicit bounded reorg
      invoked++;
      return recoverDetachedFeeAware(fork,old);
    }});
- const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate,candidateTxAdmission:simulateFeeAwareAdmission});
  await local.start();await remote.start();
  try{
   const before=local.getState().chain.at(-1).hash;
@@ -109,6 +109,14 @@ test('HPA-W2-R4: authenticated higher-work peer sync uses explicit bounded reorg
   assert.equal(local.getState().chain.at(-1).hash,candidate.chain.at(-1).hash);
   assert.equal(local.getState().transactions[incoming.txid]?.fee_atoms,'1000000');
   assertPendingIndexes(local.getState());
+  assert.equal(outcome.reaccepted,1,'one authentic detached high-fee transaction recovered');
+  assert.equal(outcome.repropagated,1,'authenticated sender must repropagate to saturated opt-in peer');
+  const receiver=remote.getState();
+  assertPendingIndexes(receiver);
+  assert.equal(receiver.mempoolOrder.length,MAX_MEMPOOL_TXS,'receiver never exceeds source mempool bound');
+  assert.equal(receiver.transactions[incoming.txid]?.fee_atoms,'1000000','second full-pool peer received the exact signed transaction');
+  assert.equal(receiver.transactions[lastId],undefined,'full receiving mempool evicts a lower-fee leaf');
+  assert.deepEqual(receiver.chain.map(b=>b.hash),candidate.chain.map(b=>b.hash),'receiver validated chain remains immutable during encrypted transaction relay');
  }finally{await local.close();await remote.close()}
  const cold=createAuthoritativeV4PeerNode({dataFile:mainFile,identityFile});
  await cold.start();
@@ -127,4 +135,24 @@ test('HPA-W2-R5: authenticated reorg rejects a malicious callback that swaps val
  const original=stableStringify(local.getState());
  await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_chain_mutation/);
  assert.equal(stableStringify(local.getState()),original,'malicious candidate must never alter local persisted state');
+});
+
+test('HPA-W2-R6: full-pool default remote refuses detached repropagation; local recovered tip and tx remain valid',async t=>{
+ const {candidate,previous,incoming}=scenario();
+ const local=createAuthoritativeV4PeerNode({initialState:previous,candidateReorgRecovery:recoverDetachedFeeAware});
+ const unchangedDefault=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await unchangedDefault.start();
+ t.after(()=>Promise.all([local.close(),unchangedDefault.close()]));
+ const result=await local.syncPeer(unchangedDefault.baseUrl());
+ assert.equal(result.adopted,true);
+ assert.equal(result.reaccepted,1);
+ assert.equal(result.repropagated,0,'default full-pool peer must reject without opt-in');
+ const remote=unchangedDefault.getState();
+ assert.equal(remote.transactions[incoming.txid],undefined);
+ assert.equal(remote.mempoolOrder.length,MAX_MEMPOOL_TXS);
+ assert.deepEqual(remote.chain.map(x=>x.hash),candidate.chain.map(x=>x.hash));
+ assert.equal(local.getState().transactions[incoming.txid]?.status,'pending',
+   'remote rejection does not roll back a legitimate local preferred-chain adoption');
+ assertPendingIndexes(remote);
+ assertPendingIndexes(local.getState());
 });
