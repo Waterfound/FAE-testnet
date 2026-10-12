@@ -324,3 +324,39 @@ test('PF-12T: 512 parallel authentic eight-deep signed dependency chains preserv
     indicative_only:true,not_worst_case:true,representative_device:false}));
   assert.ok(admissionMs<45000,'candidate admission exceeds coarse nonproduction regression envelope');
 });
+
+test('PF-12U: pending parent input cannot be evicted to admit its signed high-fee child',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'parent-confirmed:0',amount);seed(s,b,'independent-confirmed:0',amount);
+  const parent=acceptTxInto(s,signed(a,'parent-confirmed:0',amount));
+  const unrelated=acceptTxInto(s,signed(b,'independent-confirmed:0',amount));
+  assertPendingIndexes(s,{cap:2});
+  const before=stable(s),child=signed(a,parent.txid+':0',amount,1000000n);
+  const result=simulateFeeAwareAdmission(s,child,{cap:2});
+  assert.equal(result.decision,'admitted_after_shadow_eviction');
+  assert.deepEqual(result.evicted,[unrelated.txid],
+    'never evict a signed pending parent required by the incoming child');
+  assert.deepEqual(result.state.mempoolOrder,[parent.txid,result.admitted]);
+  assert.equal(result.state.mempoolSpends[parent.txid+':0'],result.admitted);
+  assert.equal(result.state.mempoolOutputs[parent.txid+':0'].txid,parent.txid);
+  assertPendingIndexes(result.state,{cap:2});
+  const selected=selectFeeSensitiveTemplateCandidate(result.state,{limit:2});
+  assert.deepEqual(selected.txids,[parent.txid,result.admitted]);
+  assert.equal(selected.fee_atoms,'1000000');
+  assert.equal(stable(s),before,'shadow admission must not mutate source state');
+});
+
+test('PF-12V: signed high-fee descendant protects total package fees against cheaper independent replacement',()=>{
+  const a=wallet(),b=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,a,'fee-parent:0',amount);seed(s,b,'fee-outside:0',amount);
+  const parent=acceptTxInto(s,signed(a,'fee-parent:0',amount));
+  const child=acceptTxInto(s,signed(a,parent.txid+':0',amount,500000n));
+  assertPendingIndexes(s,{cap:2});
+  const before=stable(s),cheap=signed(b,'fee-outside:0',amount,100000n);
+  assert.throws(()=>simulateFeeAwareAdmission(s,cheap,{cap:2}),
+    e=>e.code==='no_fee_qualified_eviction',
+    'do not compare incoming fee to only the zero-fee ancestor');
+  assert.deepEqual(s.mempoolOrder,[parent.txid,child.txid]);
+  assertPendingIndexes(s,{cap:2});
+  assert.equal(stable(s),before,'rejected replacement must preserve all pending indexes');
+});
