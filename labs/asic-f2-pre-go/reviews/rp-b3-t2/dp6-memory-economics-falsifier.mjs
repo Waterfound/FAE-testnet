@@ -41,6 +41,8 @@ export function attackerFriendlyEnvelope({capacityBytes,dependentLatencyNs,
   const secondsPerWorkPerContext=SOURCE.rw5Steps*dependentLatencyNs*1e-9;
   const latencyCeiling=contexts/secondsPerWorkPerContext;
   const bandwidthCeiling=sustainableBytesPerSecond/trafficBytesPerWork;
+  if(![contexts,secondsPerWorkPerContext,latencyCeiling,bandwidthCeiling].every(v=>Number.isFinite(v)&&v>0))
+    throw new Error('invalid_derived_hardware_ceiling');
   return {
     verdict:'CONDITIONAL_ATTACKER_FAVORABLE_CEILING__NOT_ACHIEVED_THROUGHPUT',
     source:SOURCE.terminal,
@@ -72,12 +74,15 @@ export function conditionalCostGap({
   const fixedPerWork=installedCapexUSD/(lifetimeYears*annualWork);
   const electricityPerWorkUSD=(totalPowerW/1000)*electricityUSDPerKWh/(specialistWorkPerSecond*3600);
   const costUSDPerWork=fixedPerWork+electricityPerWorkUSD+variableOpexUSDPerWork;
+  const advantageRatio=commodityUSDPerWork/costUSDPerWork;
+  if(![annualWork,fixedPerWork,electricityPerWorkUSD,costUSDPerWork,advantageRatio].every(v=>Number.isFinite(v)&&v>0))
+    throw new Error('invalid_derived_cost_economics');
   return {
     verdict:'HYPOTHETICAL_ECONOMIC_COMPARISON__EXTERNAL_VERIFICATION_REQUIRED',
     modeledSpecialistUSDPerWork:costUSDPerWork,
     hypotheticalCommodityUSDPerWork:commodityUSDPerWork,
     specialistCheaperInThisScenario:costUSDPerWork<commodityUSDPerWork,
-    specialistAdvantageRatioInThisScenario:commodityUSDPerWork/costUSDPerWork,
+    specialistAdvantageRatioInThisScenario:advantageRatio,
     actualASICCostVerified:false,
     actualCommodityCostVerified:false,
     mainnetEconomicVerdict:'EXTERNAL_EVIDENCE_GATE'
@@ -123,6 +128,8 @@ export function randomBankServiceSensitivity({
   const bankRateUpperBound=effectiveBanks*bankUtilization/
     (SOURCE.rw5Steps*bankTransactionsPerStep*randomBankServiceNs*1e-9);
   const combined=Math.min(base.combinedConditionalCeilingWorkPerSecond,bankRateUpperBound);
+  if(!Number.isFinite(bankRateUpperBound)||bankRateUpperBound<=0||!Number.isFinite(combined)||combined<=0)
+    throw new Error('invalid_derived_bank_ceiling');
   return {
     scenario:'UNMEASURED_BANK_CONCURRENCY_SENSITIVITY__NOT_SPECIALIST_BENCHMARK',
     frozenRW5Steps:SOURCE.rw5Steps,
