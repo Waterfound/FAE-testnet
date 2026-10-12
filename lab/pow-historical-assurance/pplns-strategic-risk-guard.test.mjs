@@ -177,3 +177,77 @@ test('HPA-W3-18: opt-in recheck retains valid full-target work when chain tip is
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
   assert.equal(x.getSubmissions(),1);
 });
+
+function fullTargetReceiptFixture({submitBlock}={}){
+  const address=encodeAddress(Buffer.alloc(20,16),'faet'),previous='c'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
+    difficulty_bits:8,reward_atoms:'1000000000',miner_address:address,
+    timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
+    coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  let attempts=0;
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
+    statusProvider:async()=>({height:99,tip_hash:previous,difficulty_bits:8}),
+    distributedTemplateProvider:async()=>candidate,
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce}),
+    blockSubmitter:async block=>{attempts++;return submitBlock?submitBlock(block):{ok:true}}
+  });
+  let nonce=0,hash='';
+  for(;nonce<100000;nonce++){
+    hash=hashHex({...header,nonce});
+    if(leadingZeroBits(hash)>=header.difficulty_bits)break;
+  }
+  assert.ok(nonce<100000);
+  return{coordinator,address,nonce,hash,attempts:()=>attempts};
+}
+test('HPA-W3-19: an ambiguous full-block submission keeps one share and forbids blind resubmit',async()=>{
+  const x=fullTargetReceiptFixture({submitBlock:async()=>{throw new Error('provider_ack_unknown')}});
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  await assert.rejects(x.coordinator.submitShare(input),/provider_ack_unknown/);
+  const receipt=x.coordinator.fullTargetReceipt(input);
+  assert.equal(receipt.status,'submission_outcome_unknown');
+  assert.equal(receipt.attempts,1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  await assert.rejects(x.coordinator.submitShare({...input,hash:'f'.repeat(64)}),
+    e=>e.code==='candidate_full_target_receipt_hash_mismatch');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+  receipt.status='forged_confirmed';
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
+});
+test('HPA-W3-20: acknowledged block is not falsely marked confirmed and duplicate proof cannot be credited',async()=>{
+  const x=fullTargetReceiptFixture();
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  const result=await x.coordinator.submitShare(input);
+  assert.equal(result.accepted,true);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.attempts(),1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
+test('HPA-W3-21: racing repeated proof during in-flight submission remains single-credit, single-send',async()=>{
+  let entered,fail;
+  const submitted=new Promise(resolve=>{entered=resolve});
+  const blockOutcome=new Promise((_,reject)=>{fail=reject});
+  const x=fullTargetReceiptFixture({submitBlock:async()=>{entered();return blockOutcome}});
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  const first=x.coordinator.submitShare(input);
+  await submitted;
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_in_flight');
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.attempts(),1);
+  fail(new Error('provider_outcome_indeterminate'));
+  await assert.rejects(first,/provider_outcome_indeterminate/);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
