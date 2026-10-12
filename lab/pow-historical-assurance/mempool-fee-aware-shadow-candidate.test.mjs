@@ -409,3 +409,27 @@ test('PF-12Y: zero-value pending outputs and source UTXOs cannot pass fee-scorin
   assert.throws(()=>assertPendingIndexes(badInput),e=>e.code==='invalid_pending_input_amount');
   assert.equal(stable(s),before);
 });
+
+test('PF-12Z: forged signature under otherwise consistent indexes must never enter a mining template',()=>{
+  const owner=wallet(),s=emptyState(),amount='1000000000';
+  seed(s,owner,'authentic:0',amount);
+  const rec=acceptTxInto(s,signed(owner,'authentic:0',amount,20000n));
+  const tampered=structuredClone(s),before=stable(s);
+  tampered.transactions[rec.txid].signature='AA==';
+  assertPendingIndexes(tampered);
+  assert.throws(()=>selectFeeSensitiveTemplateCandidate(tampered,{limit:1}),
+    e=>e.code==='invalid_pending_signed_record');
+  assert.deepEqual(selectFeeSensitiveTemplateCandidate(s,{limit:1}).txids,[rec.txid]);
+  assert.equal(stable(s),before);
+});
+test('PF-12AA: high-fee admission cannot evict a source-index-consistent but signature-forged leaf',()=>{
+  const {s,b,amount}=fixture,before=stable(s),tampered=structuredClone(s);
+  const leaf=tampered.mempoolOrder.at(-1);
+  tampered.transactions[leaf].signature='AA==';
+  assertPendingIndexes(tampered);
+  const incoming=signed(b,'outside:0',amount,1000000n);
+  assert.throws(()=>simulateFeeAwareAdmission(tampered,incoming),
+    e=>e.code==='invalid_pending_signed_record');
+  assert.equal(stable(s),before);
+  assertPendingIndexes(s);
+});
