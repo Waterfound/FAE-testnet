@@ -208,6 +208,26 @@ export function selectFeeSensitiveTemplateCandidate(source,{
     }
     parents.set(id,deps);
   }
+  // Bound adversarial deep-chain work without letting a single over-depth
+  // signed child deny mining templates for unrelated valid transactions.
+  // Kahn traversal detects malformed dependency cycles before filtering.
+  const children=new Map(order.map(id=>[id,[]]));
+  const indegree=new Map(order.map(id=>[id,parents.get(id).size]));
+  const depths=new Map(order.map(id=>[id,1]));
+  for(const id of order)for(const parent of parents.get(id))children.get(parent).push(id);
+  const ready=order.filter(id=>indegree.get(id)===0);
+  let processed=0;
+  for(let pos=0;pos<ready.length;pos++){
+    const id=ready[pos];processed++;charge();
+    for(const child of children.get(id)){
+      charge();
+      depths.set(child,Math.max(depths.get(child),depths.get(id)+1));
+      indegree.set(child,indegree.get(child)-1);
+      if(indegree.get(child)===0)ready.push(child);
+    }
+  }
+  if(processed!==order.length)fail('cyclic_pending_dependency');
+  const skippedDepth=order.filter(id=>depths.get(id)>MAX_TEMPLATE_DEPENDENCY_DEPTH).length;
   function required(id){
     const path=new Set(),present=new Set(),out=[];
     function visit(current){
@@ -229,6 +249,7 @@ export function selectFeeSensitiveTemplateCandidate(source,{
     for(let i=0;i<order.length;i++){
       const id=order[i];if(chosen.has(id))continue;
       charge();
+      if(depths.get(id)>MAX_TEMPLATE_DEPENDENCY_DEPTH)continue;
       const pkg=required(id);
       if(pkg.length>limit-txids.length)continue;
       let fee=0n,bytes=0;
@@ -249,5 +270,6 @@ export function selectFeeSensitiveTemplateCandidate(source,{
     if(!positions.has(parent)||positions.get(parent)>=positions.get(id))fail('template_dependency_not_topological');
   }
   return {template_policy:'FEE_SENSITIVE_SHADOW_ONLY',txids,fee_atoms:fee.toString(),
-    transactions_considered:order.length,limit,source_state_mutated:false};
+    transactions_considered:order.length,limit,skipped_depth_count:skippedDepth,
+    source_state_mutated:false};
 }
