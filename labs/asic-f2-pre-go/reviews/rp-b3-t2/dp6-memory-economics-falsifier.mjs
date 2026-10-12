@@ -32,6 +32,9 @@ export function attackerFriendlyEnvelope({capacityBytes,dependentLatencyNs,
   positive('dependentLatencyNs',dependentLatencyNs);
   positive('sustainableBytesPerSecond',sustainableBytesPerSecond);
   positive('trafficBytesPerWork',trafficBytesPerWork);
+  // One valid DP6 state requires the entire source-frozen private 256 MiB.
+  // Fractional resident contexts cannot execute one valid work unit.
+  if(capacityBytes<SOURCE.contextBytes)throw new Error('insufficient_resident_dp6_context');
   if(trafficBytesPerWork<SOURCE.fullMemoryTrafficLow||trafficBytesPerWork>SOURCE.fullMemoryTrafficHigh)
     throw new Error('outside_frozen_traffic_range');
   const contexts=capacityBytes/SOURCE.contextBytes;
