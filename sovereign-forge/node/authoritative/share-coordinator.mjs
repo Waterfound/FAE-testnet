@@ -127,7 +127,14 @@ export class ShareCoordinator{
       // Do not credit a share when its dedupe/recovery receipt cannot fit.
       // No automatic eviction of unknown receipts.
       if(this.fullTargetReceipts.size>=MAX_JOBS){
-        throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
+        for(const [key,old] of this.fullTargetReceipts){
+          if(old.status==='acknowledged_not_confirmed'){
+            this.fullTargetReceipts.delete(key);
+            if(this.fullTargetReceipts.size<MAX_JOBS)break;
+          }
+        }
+        if(this.fullTargetReceipts.size>=MAX_JOBS)
+          throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
       }
     }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
