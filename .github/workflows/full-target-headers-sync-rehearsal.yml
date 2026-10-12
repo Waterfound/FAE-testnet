@@ -1,0 +1,43 @@
+name: Full Target Headers Sync Rehearsal
+
+on:
+  push:
+    branches: [main, full-target-headers-sync-rehearsal]
+    paths:
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs'
+      - '.github/workflows/full-target-headers-sync-rehearsal.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs'
+      - '.github/workflows/full-target-headers-sync-rehearsal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  headers-first-activation-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check candidate sync surface
+        run: node --check sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+      - name: Rehearse headers-first reorg across activation
+        run: node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+      - name: Preserve active-consensus fence
+        run: |
+          ! grep -q "full-target-headers-sync-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-headers-sync-candidate" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs

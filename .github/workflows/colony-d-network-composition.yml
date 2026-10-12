@@ -1,0 +1,36 @@
+name: colony-d-network-composition
+
+on:
+  push:
+    branches:
+      - 'colony/d-network-composition-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs'
+      - 'sovereign-forge/tests/activation-network-composition-colony-d.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_D_NETWORK_COMPOSITION.md'
+      - '.github/workflows/colony-d-network-composition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  network-composition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check composition gate
+        run: node --check sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs
+      - name: Activation partition/eclipse/recovery composition
+        run: node sovereign-forge/tests/activation-network-composition-colony-d.mjs
+      - name: Existing three-node partition and transaction recovery
+        run: node sovereign-forge/tests/partition-recovery-3node.mjs
+      - name: Existing authoritative eclipse candidate
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+      - name: Existing activation deep-reorg gate
+        run: node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+      - name: Preserve candidate-only authority boundary
+        run: grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs

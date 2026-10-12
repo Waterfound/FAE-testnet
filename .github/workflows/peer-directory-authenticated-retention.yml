@@ -1,0 +1,43 @@
+name: peer-directory-authenticated-retention
+
+on:
+  push:
+    branches: [lab-peer-directory-authenticated-retention]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/peer-directory.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs'
+      - 'sovereign-forge/tests/peer-directory-authenticated-retention.mjs'
+      - 'sovereign-forge/tests/peer-directory-admission-hardening.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-*.mjs'
+      - '.github/workflows/peer-directory-authenticated-retention.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-retention:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Preserve syntax and non-activation boundary
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/node/authoritative/peer-directory.mjs
+          node --check sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs
+          node --check sovereign-forge/tests/peer-directory-authenticated-retention.mjs
+          ! grep -q 'fae-v4-peer-node-eclipse-candidate' sovereign-forge/node/fae-node-v6-candidate.mjs
+      - name: Authenticated retention and quota-laundering tests
+        run: node --test sovereign-forge/tests/peer-directory-authenticated-retention.mjs
+      - name: Admission-hardening regression
+        run: node --test sovereign-forge/tests/peer-directory-admission-hardening.mjs
+      - name: Eclipse resistance regression
+        run: |
+          node --test sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-protocol6.mjs
+          node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs

@@ -1,0 +1,71 @@
+{
+  "schema": "FAE_PQ_WAVE_G_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "base_after_integration": "a5af028770debfaf46656f39e902eb8278d4312e",
+  "gates": {
+    "PQ-08": {
+      "status": "GREEN",
+      "admitted_head": "7c56774b0ce91f72b230222cc4c1f31a2424cba1",
+      "integrated_commit": "df015bd4d9a0d998bba7176755d817a855d95358",
+      "executor_run_id": 35361939758,
+      "canonical_run_id": 35361939624,
+      "pq_lab_standards_run_id": 35361939574,
+      "artifact_id": 10554871457,
+      "artifact_sha256": "5fde3a046b23347ecb75f730eb78220fc36803435ff1d957da3e48f006717f78",
+      "case_count": 66,
+      "valid_cases": 6,
+      "invalid_cases": 60,
+      "primary_replay": "PASS",
+      "independent_native_verifier": "PASS",
+      "official_vector_and_circl_replay": "PASS",
+      "no_shared_verdict_cache": true,
+      "unexplained_disagreements": 0
+    },
+    "PQ-09": {
+      "status": "GREEN",
+      "admitted_head": "9ea07e5686562c9f1ea993f45e5c7019c481fd4f",
+      "integrated_commit": "a5af028770debfaf46656f39e902eb8278d4312e",
+      "executor_run_id": 35361945002,
+      "canonical_run_id": 35361945013,
+      "pq_lab_standards_run_id": 35361945028,
+      "artifact_id": 10554451615,
+      "artifact_sha256": "9a426674e30deaaf42eb564cf3f721798e619f5f9bdf4bd0041ea387a3b99aa0",
+      "runtime": {
+        "node": "v24.8.0",
+        "module_initialization_ms": 12.383746,
+        "max_rss_kb": 81648
+      },
+      "transaction_bytes": {
+        "ed25519_v2": 408,
+        "hybrid_ml_dsa_44": 5517,
+        "hybrid_ml_dsa_65": 7553,
+        "hybrid_ml_dsa_87": 10165
+      },
+      "incremental_bytes_vs_v2": {
+        "ml_dsa_44": 5109,
+        "ml_dsa_65": 7145,
+        "ml_dsa_87": 9757
+      },
+      "sign_median_ms": {
+        "ed25519": 0.036437,
+        "ml_dsa_44": 5.908713,
+        "ml_dsa_65": 2.837665,
+        "ml_dsa_87": 7.382973,
+        "slh_sha2_128s": 1232.470089,
+        "slh_shake_128f": 370.310405,
+        "slh_sha2_192s": 2483.434222,
+        "slh_shake_192f": 595.055301,
+        "slh_sha2_256s": 2242.576585,
+        "slh_shake_256f": 1208.502918
+      },
+      "browser_facing_smoke": "PASS",
+      "physical_device_claims": false,
+      "iphone_ipad_inference": false,
+      "operational_winner_promoted": false
+    }
+  },
+  "wave_g_status": "GREEN",
+  "next_frontier": "PQ-10"
+}

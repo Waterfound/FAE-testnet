@@ -1,0 +1,35 @@
+{
+  "schema": "FAE_MTS_01_BASELINE_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "verified_candidate_head": "5ff8c1fc825e418baa4248ca4ed7bb19909ae174",
+  "integration_base": "d69ebf05895692760fc5c917a394c65b9709894c",
+  "lab_workflow": {
+    "run_id": 35343151298,
+    "job_id": 105593476901,
+    "conclusion": "success",
+    "node_version": "22.23.2",
+    "artifact_id": 10546141283,
+    "artifact_digest": "sha256:3a5b6eed8ad3033a7fe9ca8e2b65cf336646b9fe4fb34919fb36c506082edd51"
+  },
+  "canonical_workflow": {
+    "run_id": 35343151410,
+    "job_id": 105593477132,
+    "conclusion": "success"
+  },
+  "observations": {
+    "refresh_observed_new_tip": true,
+    "stale_worker_survived_authoritative_refresh": true,
+    "automatic_pre_nonce_cancellation_observed": false,
+    "stale_detection_point": "after fake solution -> submit-block -> stale_tip",
+    "stale_submission_count": 1,
+    "manual_stop_terminated_old_worker": true,
+    "restart_reacquired_fresh_template": true
+  },
+  "template_sequence": [
+    {"height": 101, "previous_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"height": 102, "previous_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+    {"height": 103, "previous_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+  ],
+  "conclusion": "CURRENT_BROWSER_MINER_REPRODUCES_TIP_DRIVEN_CANCELLATION_GAP",
+  "next_frontier": ["MTS-02", "MTS-03"]
+}

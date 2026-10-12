@@ -1,0 +1,98 @@
+{
+  "schema": "FAE_LIVE_NODE_VALID_MEMPOOL_BROWNOUT_RESULT_V1",
+  "date": "2026-10-10",
+  "source_branch": "assurance/pow-historical-main-20261010",
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "plan_context": "existing hobby project",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "runtime": "node22 sandbox image; command reported Node v24.21.0 for shell process in one diagnostic",
+    "production_routes": false,
+    "persistent": false,
+    "github_actions_consumed": 0,
+    "paid_spend_increment_usd": 0
+  },
+  "candidate_policy": {
+    "max_mempool_txs": 4096,
+    "max_transaction_bytes": 16384
+  },
+  "run": {
+    "status": "PASS_BOUNDED_LIVE_NODE",
+    "accepted_before_cap": 4096,
+    "over_cap_rejection": "mempool_full",
+    "total_fill_ms": 44921.629113999996,
+    "state_file_bytes_at_cap": 6087052,
+    "rss_bytes_at_cap_sample": 134905856,
+    "submit_latency_at_4096_recent_128": {
+      "p50_ms": 19.865130999998655,
+      "p95_ms": 21.792083000000275
+    },
+    "template_latency_at_4096_ms": 11.7259139999951,
+    "saturated_block": {
+      "tx_count": 20,
+      "submit_ms": 114.6219740000015,
+      "accepted": true,
+      "mempool_after": 4076
+    },
+    "restart": {
+      "ms": 188.28470099999686,
+      "recovered_mempool_size": 4076,
+      "rss_bytes": 86421504,
+      "template_latency_ms": 8.371349000000919
+    },
+    "checkpoints": [
+      {
+        "accepted": 256,
+        "p50_submit_ms": 2.145140000000083,
+        "p95_submit_ms": 3.738790999999992,
+        "rss_bytes": 81596416,
+        "state_file_bytes": 381554
+      },
+      {
+        "accepted": 512,
+        "p50_submit_ms": 2.950260999999955,
+        "p95_submit_ms": 5.463565999999901,
+        "rss_bytes": 87441408,
+        "state_file_bytes": 761714
+      },
+      {
+        "accepted": 1024,
+        "p50_submit_ms": 5.0468739999996615,
+        "p95_submit_ms": 6.1337139999996,
+        "rss_bytes": 89395200,
+        "state_file_bytes": 1522060
+      },
+      {
+        "accepted": 2048,
+        "p50_submit_ms": 7.989126000000397,
+        "p95_submit_ms": 8.487919999999576,
+        "rss_bytes": 107364352,
+        "state_file_bytes": 3043724
+      },
+      {
+        "accepted": 4096,
+        "p50_submit_ms": 19.865130999998655,
+        "p95_submit_ms": 21.792083000000275,
+        "rss_bytes": 134905856,
+        "state_file_bytes": 6087052
+      }
+    ]
+  },
+  "interpretation": {
+    "resource_boundedness": "PASS_CANDIDATE_SOFTWARE_SCOPE",
+    "normal_template_service_at_cap": true,
+    "block_acceptance_at_cap": true,
+    "restart_recovery_at_near_cap": true,
+    "write_amplification_observed": true,
+    "write_amplification_terminal_blocker_in_this_run": false,
+    "admission_economics": "SEPARATE_OPEN_GAP"
+  },
+  "non_claims": [
+    "This is not a production soak.",
+    "This does not prove long-duration disk endurance or multi-peer network liveness.",
+    "The hard cap alone does not prevent mempool admission pinning by already-admitted low-fee transactions.",
+    "No mainnet or consensus authority is created."
+  ]
+}

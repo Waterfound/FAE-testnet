@@ -1,0 +1,45 @@
+{
+  "schema": "FAE_MTS_04_06_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "verified_candidate_head": "159f9e22c7afa99a9b7280525e0f032f9e0d3fd3",
+  "candidate_miner_sha256": "dc8bca3de833f4fbabaf5a345fd04ec21e97989593058ca7e4047776ac0aa393",
+  "lab_workflow": {
+    "run_id": 35344645791,
+    "job_id": 105598271890,
+    "conclusion": "success"
+  },
+  "canonical_workflow": {
+    "run_id": 35344645796,
+    "job_id": 105598288073,
+    "conclusion": "success"
+  },
+  "retained_intermediate_failure": {
+    "run_id": 35344168583,
+    "job_id": 105596749190,
+    "conclusion": "failure",
+    "failed_gate": "Verify deployed browser security sources match Forge snapshot",
+    "cause": "mining.js changed before its canonical Sovereign Forge mirror and protected SHA-256 entry were renewed",
+    "resolution": "byte-identical mirror plus exact miner hash renewal; no gate bypass"
+  },
+  "MTS-04": {
+    "observer_interval_ms": 2000,
+    "authoritative_source": "/status",
+    "unchanged_parent_does_not_cancel": true,
+    "chain_advance_cancels_before_submission": true,
+    "same_height_parent_replacement_cancels": true,
+    "automatic_template_reacquisition": true,
+    "stale_submission_before_nonce_after_observed_mismatch": 0
+  },
+  "MTS-06": {
+    "deterministic_vm_harness": true,
+    "fake_worker": true,
+    "fake_timer": true,
+    "real_pow_performed": false,
+    "tests": {"total": 5, "pass": 5, "fail": 0}
+  },
+  "canonical_integrity": {
+    "root_miner_equals_forge_mirror": true,
+    "forge_manifest_sha256_check": true
+  },
+  "next_frontier": ["MTS-05"]
+}

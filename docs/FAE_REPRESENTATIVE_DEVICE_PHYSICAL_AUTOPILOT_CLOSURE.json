@@ -1,0 +1,171 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_CLOSURE_V1",
+  "workstream": "FAE — Representative Device Physical Autopilot",
+  "portfolio_role": "SECONDARY",
+  "closure_date": "2026-09-28",
+  "source_main_revision": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+  "verified_candidate_revision": "18bf625585500f722e2bac164cbaf149cece4f79",
+  "verdict": "REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_READY",
+  "software_execution_kit_complete": true,
+  "physical_evidence_obtained": false,
+  "final_physical_portfolio_admitted": false,
+  "frontiers": {
+    "RPA-00": "PASS",
+    "RPA-01": "PASS",
+    "RPA-02": "PASS",
+    "RPA-03": "PASS",
+    "RPA-04": "PASS",
+    "RPA-05": "PASS",
+    "RPA-06": "PASS",
+    "RPA-07": "PASS",
+    "RPA-08": "PASS",
+    "RPA-09": "PASS",
+    "RPA-10": "PASS",
+    "RPA-11": "PASS",
+    "RPA-12": "PASS",
+    "RPA-13": "PASS",
+    "RPA-14": "PASS",
+    "RPA-15": "PASS",
+    "RPA-16": "PASS",
+    "RPA-X1": "PHYSICAL_EVIDENCE",
+    "RPA-X2": "PHYSICAL_HUMAN_TOUCH",
+    "RPA-X3": "EXTERNAL_EVIDENCE",
+    "RPA-X4": "EXTERNAL_EVIDENCE"
+  },
+  "execution_package": [
+    "lab/representative-device-physical-autopilot/index.html",
+    "lab/representative-device-physical-autopilot/autopilot-core.mjs",
+    "lab/representative-device-physical-autopilot/autopilot-browser.mjs",
+    "lab/representative-device-physical-autopilot/desktop-agent.mjs",
+    "lab/representative-device-physical-autopilot/import-browser-portfolio.mjs",
+    "lab/representative-device-physical-autopilot/run-autopilot.sh",
+    "lab/representative-device-physical-autopilot/run-autopilot.ps1",
+    "lab/representative-device-physical-autopilot/execution-kit.json",
+    "lab/representative-device-physical-autopilot/tests/autopilot.test.mjs",
+    ".github/workflows/representative-device-physical-autopilot.yml"
+  ],
+  "verification": {
+    "verified_candidate_revision": "18bf625585500f722e2bac164cbaf149cece4f79",
+    "github_actions": {
+      "physical_autopilot": {
+        "run_id": 36486838180,
+        "result": "SUCCESS"
+      },
+      "cross_lab_integration": {
+        "run_id": 36486838342,
+        "result": "SUCCESS"
+      },
+      "verify_canonical_source": {
+        "run_id": 36486838087,
+        "result": "SUCCESS"
+      },
+      "codeql_security": {
+        "run_id": 36486838340,
+        "result": "SUCCESS"
+      },
+      "public_code_security_recurring_assurance": {
+        "run_id": 36486838090,
+        "result": "SUCCESS"
+      }
+    },
+    "local_controller": {
+      "result": "PASS",
+      "checks": [
+        "localhost_server_start",
+        "profile_endpoint",
+        "reward_address_prefill",
+        "autostart_mode_binding",
+        "harness_delivery",
+        "autostart_without_reward_address_fails_closed"
+      ]
+    },
+    "public_harness": {
+      "url": "https://fae-rde-physical-autopilot-1lztsf.v2.appdeploy.ai/",
+      "app_id": "fae-rde-physical-autopilot-1lztsf",
+      "snapshot_version": "1790631207980",
+      "host_qa": {
+        "status": "READY",
+        "frontend_errors": 0,
+        "network_errors": 0
+      },
+      "zero_click_rehearsal": {
+        "browser_run_id": "07dfa2ce-94ee-41a7-85ff-e95adcb26379",
+        "result": "PASS",
+        "mode": "REHEARSAL_ONLY",
+        "device_locked": "Locked before results",
+        "campaign_status": "Campaign complete on this device",
+        "captures": 6,
+        "attempts": 3855940,
+        "observed_rate_hps": 50982,
+        "physical_evidence": false
+      }
+    },
+    "vercel": {
+      "branch_preview_verified": true,
+      "verified_preview": "https://fairyelf-fae-testnet-gwdetze92-waterfound.vercel.app/lab/representative-device-physical-autopilot/",
+      "live_lock_observed_height": 496,
+      "exact_final_head_rebuild": "BLOCKED_BY_BUILD_RATE_LIMIT",
+      "acceptance_dependency": false
+    }
+  },
+  "autonomy_ceiling": {
+    "mac_thin_light": "ONE_COMMAND_UNATTENDED_AFTER_PHYSICAL_BOOTSTRAP",
+    "windows_or_linux_consumer_gpu": "ONE_COMMAND_UNATTENDED_AFTER_PHYSICAL_BOOTSTRAP",
+    "compact_handheld": "UNATTENDED_UNTIL_GENUINE_LIFECYCLE_TRANSITIONS_IF_OS_CANNOT_DRIVE_THEM",
+    "ipad_safari": "ONE_TAP_AUTOSTART_UNTIL_FIVE_GENUINE_BACKGROUND_FOREGROUND_CYCLES",
+    "wall_meter": "MANUAL_OR_EXTERNAL_UNLESS_MACHINE_READABLE"
+  },
+  "residual_gates": [
+    {
+      "id": "RPA-X1",
+      "state": "PHYSICAL_EVIDENCE",
+      "reason": "Measurements must be produced by the actual preselected devices."
+    },
+    {
+      "id": "RPA-X2",
+      "state": "PHYSICAL_HUMAN_TOUCH",
+      "reason": "iPad Safari lifecycle evidence requires five genuine background/foreground cycles; simulation is forbidden."
+    },
+    {
+      "id": "RPA-X3",
+      "state": "EXTERNAL_EVIDENCE",
+      "reason": "Any unavailable required device class or desired wall-power efficiency evidence needs real external hardware/access."
+    },
+    {
+      "id": "RPA-X4",
+      "state": "EXTERNAL_EVIDENCE",
+      "reason": "Final physical portfolio admission happens only after all required class bundles pass the frozen verifier."
+    }
+  ],
+  "authority": {
+    "parent_contract_changed": false,
+    "representative_device_evidence_pass": false,
+    "physical_hfb_economics_pass": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "activation_height_selected": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  },
+  "serialization_check": {
+    "current_main_at_check": "a52fa9eb7747d227245e4e38b522c0b56888b503",
+    "autopilot_compare_to_main": {
+      "status": "ahead",
+      "ahead_by": 29,
+      "behind_by": 0
+    },
+    "active_research": {
+      "branch": "colony/fae-180s-economic-block-time-validation-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "visual_language": {
+      "branch": "colony/fae-visual-language-rebrand-001",
+      "touches_FAE_CANONICAL_STATE": false,
+      "touches_FAE_MAINNET_READINESS_STATE": false
+    },
+    "shared_state_conflict_observed": false,
+    "rule": "Parallelize independence. Serialize shared state."
+  }
+}

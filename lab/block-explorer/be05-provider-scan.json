@@ -1,0 +1,60 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE05_PROVIDER_SCAN_V1",
+  "observed_date": "2026-09-23",
+  "canonical_source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+  "purpose": "Find an already-existing or already-entitled persistent host that can run the independently validating FAE reference node without consuming Stability Soak capacity or a new unapproved budget.",
+  "providers": {
+    "render": {
+      "eligible_existing_host_found": false,
+      "observed_persistent_services": 10,
+      "observed_state": "ALL_LISTED_SERVICES_SUSPENDED_BY_BILLING",
+      "disposition": "REJECT_FOR_BE05_CURRENT_BINDING",
+      "reasons": [
+        "No currently running persistent service is available.",
+        "Existing WAN/soak services belong to other bounded workstreams.",
+        "Stability Soak V3 Render capacity is reserved and must not be consumed by Explorer."
+      ]
+    },
+    "vercel": {
+      "eligible_existing_host_found": false,
+      "disposition": "REJECT_AS_INDEPENDENT_NODE_HOST",
+      "reasons": [
+        "Existing projects are application/audit deployments, not a persistent independently validating node with node-owned durable state.",
+        "Wallet/Mining and audit projects cannot be repurposed as Explorer node authority."
+      ]
+    },
+    "appdeploy": {
+      "eligible_existing_host_found": false,
+      "disposition": "FRONTEND_ONLY_FOR_CURRENT_EXPLORER",
+      "reasons": [
+        "The verified FAE Explorer deployment is frontend-only and UNBOUND.",
+        "No existing AppDeploy app observed in this scan is an independently validating persistent FAE node."
+      ]
+    },
+    "digitalocean": {
+      "eligible_existing_host_found": false,
+      "active_droplets_observed": 0,
+      "current_usage_observed": "0.00",
+      "disposition": "NO_EXISTING_HOST_TO_REUSE",
+      "note": "No Droplet was created by BE-05."
+    },
+    "aws": {
+      "eligible_existing_host_found": false,
+      "active_ec2_instances_observed": 0,
+      "active_lightsail_instances_observed_in_accessible_regions": 0,
+      "terminated_ec2_instances_observed": 2,
+      "terminated_ec2_disposition": "EXCLUDED_AS_ASIC_F2_LAB_RESOURCES",
+      "lightsail_scan_limitation": "Four returned Lightsail regions could not be queried with the current regional credential context; no resource is inferred in inaccessible regions.",
+      "disposition": "NO_EXISTING_ELIGIBLE_HOST_DISCOVERED",
+      "note": "BE-05 performed read-only inventory only. It created, started, modified, or billed no AWS resource."
+    }
+  },
+  "conclusion": {
+    "eligible_existing_https_independent_node_found": false,
+    "deployment_performed": false,
+    "binding_performed": false,
+    "live_authorized": false,
+    "next_action": "Prepare and verify the provider-neutral node+public-read-gateway deployment contract. Any new infrastructure requires a later explicit authority/budget decision."
+  },
+  "invariant": "Explorer observes FAE; it never authorizes FAE."
+}

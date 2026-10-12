@@ -1,0 +1,84 @@
+{
+  "schema": "FAE_HISTORICAL_POW_ASSURANCE_CONTRACT_V1",
+  "date": "2026-10-10",
+  "base_source": "Waterfound/FAE-testnet@6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+  "elements": {
+    "2": {
+      "tasks": [
+        {
+          "id": "HPA-DAA",
+          "name": "Final DAA / Timestamp Hardening",
+          "green": "final parameters frozen; independent parity; timewarp/MTP/future-drift corpus GREEN; activation/reorg/restart GREEN"
+        },
+        {
+          "id": "HPA-MAJORITY",
+          "name": "Majority-Work / Security-Budget Closure",
+          "green": "frozen security-budget model; adverse low-hash/rental scenarios evaluated; confirmation/reorg policy explicit"
+        },
+        {
+          "id": "HPA-STRATEGIC",
+          "name": "Strategic Mining & Pool Incentives",
+          "green": "selfish/stubborn/BWH/FAW/EFAW/fee strategy analysis completed on frozen mainnet parameters"
+        }
+      ]
+    },
+    "3": {
+      "tasks": [
+        {
+          "id": "HPA-GENESIS",
+          "name": "Genesis / Bootstrap Zero-Hidden-Issuance Proof",
+          "green": "exact genesis identity and initial spendable supply proven; no undocumented imported value; full issuance replay matches frozen schedule"
+        }
+      ]
+    },
+    "4": {
+      "tasks": [
+        {
+          "id": "HPA-ROUTING",
+          "name": "Production Routing / Partition Assurance",
+          "green": "production-equivalent partition/heal/eclipsing campaign passes with validated cumulative-work adoption and bounded topology concentration"
+        }
+      ]
+    },
+    "8": {
+      "tasks": [
+        {
+          "id": "HPA-BROWNOUT",
+          "name": "Valid-Mempool / Resource Brownout Boundedness",
+          "green": "sustained valid-spam stays inside explicit resource envelopes or deterministic admission/eviction bounds are added and the same campaign passes"
+        }
+      ]
+    },
+    "10": {
+      "tasks": [
+        {
+          "id": "HPA-DP6-PATH",
+          "name": "DP6 Proof-of-Work Path Binding Audit",
+          "green": "all accepted DP6 paths bound to frozen context; no reduced/legacy/fallback accepted path"
+        },
+        {
+          "id": "HPA-DP6-VERIFIER",
+          "name": "Independent DP6 Verifier Soundness",
+          "green": "independent verifier agrees on valid/reject vectors and rejects reduced-work/path-confusion proofs"
+        },
+        {
+          "id": "HPA-POISON",
+          "name": "Same-ID / Different-Body & Rejection-Poisoning Audit",
+          "green": "alternate bodies cannot acquire same valid identity and invalid body/rejection state cannot poison later-valid object"
+        },
+        {
+          "id": "HPA-CORPUS",
+          "name": "Historical PoW Regression Corpus",
+          "green": "final mainnet candidate replays all applicable retained historical cases"
+        }
+      ]
+    }
+  },
+  "authority": {
+    "candidate_assurance_only": true,
+    "consensus_change": false,
+    "economics_change": false,
+    "production_change": false,
+    "mainnet": false
+  }
+}

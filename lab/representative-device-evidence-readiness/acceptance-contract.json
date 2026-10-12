@@ -1,0 +1,292 @@
+{
+  "schema": "FAE_REPRESENTATIVE_DEVICE_ACCEPTANCE_CONTRACT_V1",
+  "contract_id": "FAE-RDE-ACCEPTANCE-V1-20260928",
+  "frozen_date": "2026-09-28",
+  "authority_scope": "READINESS_ONLY_WITH_FUTURE_PHYSICAL_ADMISSION",
+  "source_binding": {
+    "repository": "Waterfound/FAE-testnet",
+    "baseline_source_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+    "miner_path": "mining.js",
+    "miner_blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+    "network": "fairyelf-public-testnet-v4",
+    "genesis_hash": "0000391ae913006a6c1ab07760675e71067dfc40f893416b4bcb81eac75989bc",
+    "rule": "Physical evidence is admissible only when verifier expectations bind the exact tested source/runtime/network. A consequential miner or protocol change requires a new contract revision or fresh evidence; never silently widen this contract."
+  },
+  "representative_device_definition": {
+    "definition": "A commercially general-purpose consumer device selected before measurement because it represents a predeclared hardware class relevant to ordinary ownership/use, not because it produced a favorable FAE result.",
+    "eligibility": [
+      "consumer_general_purpose_device",
+      "stock_or_normally_available_configuration",
+      "no_FAE_specific_hardware_modification",
+      "no_specialized_mining_hardware",
+      "release_age_at_selection_not_more_than_8_years_unless_explicitly_justified",
+      "can_execute_the_frozen_FAE_workload_without_hardware_modification",
+      "selection_locked_before_any_result_for_that_device_is_observed"
+    ],
+    "exclusions": [
+      "ASIC_FPGA_or_mining_specific_accelerator",
+      "device_selected_after_viewing_FAE_measurements",
+      "overclock_or_cooling_configuration_not_representative_of_normal_owner_use",
+      "prototype_or_unreleased_hardware_without_explicit_external_evidence_scope",
+      "cloud_instance_presented_as_household_device"
+    ]
+  },
+  "device_classes": {
+    "required": {
+      "mobile_tablet_arm": {
+        "form_factor": "mobile_or_tablet",
+        "requirements": [
+          "ARM64_or_equivalent_mobile_SoC",
+          "integrated_power_limited_consumer_device"
+        ]
+      },
+      "thin_light_integrated": {
+        "form_factor": "thin_and_light_laptop",
+        "requirements": [
+          "no_discrete_GPU_required_for_test",
+          "thermally_constrained_general_purpose_computer"
+        ]
+      },
+      "consumer_discrete_gpu": {
+        "form_factor": "consumer_desktop_or_laptop_with_dGPU",
+        "requirements": [
+          "consumer_discrete_GPU",
+          "not_mining_specific"
+        ]
+      },
+      "compact_handheld_consumer": {
+        "form_factor": "handheld_or_compact_gaming_device",
+        "requirements": [
+          "consumer_power_limited_APU_or_equivalent",
+          "integrated_compact_form_factor"
+        ]
+      }
+    },
+    "expansion": {
+      "general_purpose_cpu": {
+        "form_factor": "desktop_or_laptop_CPU",
+        "required_for_initial_portfolio": false
+      }
+    }
+  },
+  "coverage_contract": {
+    "minimum_required_classes": 4,
+    "required_class_ids": [
+      "mobile_tablet_arm",
+      "thin_light_integrated",
+      "consumer_discrete_gpu",
+      "compact_handheld_consumer"
+    ],
+    "minimum_distinct_isa_families": 2,
+    "minimum_distinct_form_factors": 3,
+    "one_selected_device_minimum_per_required_class": true,
+    "identical_device_may_not_satisfy_multiple_required_classes": true,
+    "global_installed_base_claim_authorized": false,
+    "selection_lock_required": true,
+    "selection_lock_must_precede_measurement": true,
+    "selection_rationale_required": true,
+    "available_candidate_inventory_required": true,
+    "anti_cherry_pick_rule": "Device model choice must be locked from eligibility/availability/class rationale before FAE results. A favorable result may not retroactively justify representativeness."
+  },
+  "evidence_classes": {
+    "REHEARSAL_ONLY": {
+      "physical": false,
+      "may_satisfy_external_gate": false
+    },
+    "HISTORICAL_REFERENCE": {
+      "physical": "unknown_or_pre_contract",
+      "may_satisfy_external_gate": false
+    },
+    "PHYSICAL_EVIDENCE": {
+      "physical": true,
+      "may_satisfy_external_gate": true
+    }
+  },
+  "required_bundle_files": [
+    "run.json",
+    "selection-lock.json",
+    "device.json",
+    "environment.json",
+    "source-provenance.json",
+    "workload.json",
+    "measurements.json",
+    "energy.json",
+    "thermals.json",
+    "system-events.json",
+    "miner-events.json",
+    "operator-attestation.json",
+    "integrity.json",
+    "logs/miner.log",
+    "manifest.json"
+  ],
+  "environment_control": {
+    "required_fields": [
+      "power_mode",
+      "charging_state",
+      "external_power",
+      "cooling_configuration",
+      "background_task_policy",
+      "display_state",
+      "ambient_temperature_status"
+    ],
+    "ambient_temperature_may_be_unavailable": true,
+    "missing_sensor_telemetry_must_be_explicit": true,
+    "rule": "Control enough state for comparison without pretending consumer devices are metrology-lab instruments."
+  },
+  "workload_protocol": {
+    "pure_mining_sustained": {
+      "required": true,
+      "warmup_seconds": 600,
+      "measurement_seconds": 1200,
+      "repetitions": 3
+    },
+    "normal_use_coexistence": {
+      "required": true,
+      "warmup_seconds": 300,
+      "measurement_seconds": 900,
+      "repetitions": 3,
+      "baseline_required": true,
+      "script": "standard_local_interaction_script_v1"
+    },
+    "lifecycle_recovery": {
+      "required_for_classes": [
+        "mobile_tablet_arm",
+        "compact_handheld_consumer"
+      ],
+      "minimum_transitions": 5
+    },
+    "useful_work_coexistence": {
+      "required": false,
+      "conditional_rule": "Required only if the tested candidate makes a current useful-work coexistence claim and exact useful-work revision is frozen in source-provenance."
+    },
+    "temporary_node_plus_mining": {
+      "required": false,
+      "conditional_rule": "Required only if the tested candidate makes a current simultaneous temporary-node duty claim."
+    },
+    "stability_soak_substitution_forbidden": true
+  },
+  "metrics": {
+    "performance": {
+      "authoritative_inputs": [
+        "attempt_counter_deltas",
+        "independently_validated_work_events",
+        "accepted_work_events",
+        "invalid_work_events",
+        "stale_work_events",
+        "measurement_timestamps"
+      ],
+      "miner_displayed_hashrate_is_authoritative": false,
+      "derived_rate": "attempt_delta / measured_elapsed_seconds",
+      "sustained_retention": "last_window_rate / first_window_rate",
+      "duplicate_event_rejection": true
+    },
+    "energy": {
+      "allowed_sources": [
+        "WALL_POWER",
+        "BATTERY_DELTA",
+        "COMPONENT_TELEMETRY",
+        "UNAVAILABLE"
+      ],
+      "comparison_rule": "Efficiency comparisons are valid only within compatible measurement-source classes; wall power and component telemetry must never be mixed.",
+      "wall_power_w_plausible_range": [
+        0.5,
+        2500
+      ],
+      "component_telemetry_w_plausible_range": [
+        0.1,
+        1000
+      ],
+      "energy_consistency_relative_tolerance": 0.2,
+      "unavailable_energy_blocks_efficiency_claim_only": true
+    },
+    "thermals": {
+      "telemetry_optional_if_platform_inaccessible": true,
+      "explicit_missing_reason_required": true,
+      "critical_shutdown_or_OS_thermal_warning_is_material_risk": true
+    },
+    "normal_use": {
+      "baseline_ratio_metric": "interactive_p95_ms_with_mining / interactive_p95_ms_baseline",
+      "maximum_p95_ratio_for_supported_class": 2,
+      "maximum_recovery_seconds_after_foreground_load": 120,
+      "failed_scripted_interactions_allowed": 0
+    }
+  },
+  "run_acceptance": {
+    "sustained_throughput_retention_minimum": 0.7,
+    "no_critical_thermal_events": true,
+    "no_device_shutdown": true,
+    "no_manual_miner_restart_to_hide_failure": true,
+    "minimum_valid_repetitions_per_required_workload": 3,
+    "contaminated_run_may_not_be_counted": true,
+    "physical_run_must_not_contain_synthetic_marker": true,
+    "physical_measurement_timestamps_must_cover_required_warmup_and_measurement": true
+  },
+  "portfolio_acceptance": {
+    "each_required_class_must_pass": true,
+    "maximum_cross_class_median_throughput_ratio_before_material_specialization_flag": 100,
+    "efficiency_ratio_may_only_be_computed_for_compatible_energy_sources": true,
+    "verdicts": [
+      "REPRESENTATIVE_DEVICE_SUPPORT_WITHIN_CURRENT_EVIDENCE",
+      "MATERIAL_SPECIALIZATION_RISK_FOUND",
+      "INSUFFICIENT_REPRESENTATIVE_DEVICE_EVIDENCE",
+      "READINESS_REHEARSAL_ONLY"
+    ],
+    "no_best_device_ranking": true
+  },
+  "deterministic_run_verdicts": [
+    "PASS",
+    "FAIL",
+    "INCOMPLETE",
+    "INVALID_PROVENANCE",
+    "UNSUPPORTED_DEVICE_CLASS",
+    "CONTAMINATED_RUN"
+  ],
+  "fail_closed_on": [
+    "missing_required_file",
+    "malformed_json",
+    "checksum_mismatch",
+    "edited_manifest",
+    "wrong_network",
+    "wrong_genesis",
+    "stale_or_unexpected_source_revision",
+    "mismatched_miner_revision",
+    "selection_lock_after_measurement",
+    "unsupported_device_class",
+    "simulation_labeled_physical",
+    "historical_labeled_new_physical",
+    "impossible_timestamp",
+    "insufficient_warmup",
+    "insufficient_measurement_interval",
+    "duplicate_run_id",
+    "duplicate_event",
+    "truncated_log",
+    "physically_implausible_energy",
+    "energy_duration_inconsistency",
+    "unknown_measurement_source",
+    "missing_required_repetition",
+    "critical_thermal_event",
+    "failed_normal_use_script",
+    "contaminated_run"
+  ],
+  "historical_evidence_policy": {
+    "append_only": true,
+    "retroactive_rewrite_forbidden": true,
+    "pre_contract_measurements_default_class": "HISTORICAL_REFERENCE",
+    "independent_admission_required_for_reuse": true,
+    "MTS12_is_representative_device_evidence": false,
+    "ASIC_lab_is_representative_device_evidence": false
+  },
+  "authority_boundaries": {
+    "readiness_can_close_without_physical_runs": true,
+    "physical_evidence_requires_real_hardware": true,
+    "representative_device_pass_requires_admitted_physical_portfolio": true,
+    "asic_resistance_proven": false,
+    "physical_hfb_economics_pass": false,
+    "consensus_change_authorized": false,
+    "economics_change_authorized": false,
+    "activation_height_selected": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}

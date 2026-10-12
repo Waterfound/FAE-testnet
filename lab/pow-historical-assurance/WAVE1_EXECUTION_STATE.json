@@ -1,0 +1,94 @@
+{
+  "schema": "FAE_HISTORICAL_POW_ASSURANCE_WAVE1_STATE_V1",
+  "date": "2026-10-10",
+  "status": "WAVE1_SOFTWARE_FRONTIERS_ADVANCED__DP6_SEPARATE_PR_CANDIDATE_GREEN__ECONOMIC_AND_FINAL_ARTIFACT_GATES_REMAIN",
+  "branches": {
+    "historical_main": "assurance/pow-historical-main-20261010",
+    "dp6_path_binding": "assurance/dp6-path-binding-20261010"
+  },
+  "elements": {
+    "2": {
+      "daa_timestamp": "RUNTIME_13_OF_13_GREEN_CANDIDATE__FINAL_MAINNET_PARAMETER_FREEZE_OPEN",
+      "majority_security_budget": "OPEN_FINAL_ECONOMIC_GATE",
+      "strategic_mining": "SELFISH_MINING_AND_BWH_FAW_SENSITIVITY_EXECUTED__LEXICOGRAPHIC_TIE_GRINDING_CONFIRMED__FINAL_FAE_POOL_TIMING_POLICY_OPEN",
+      "mempool_admission_economics": "ADMISSION_PINNING_REPRODUCED__FEE_AWARE_ADMISSION_POLICY_DEPENDS_FINAL_FEE_SECURITY_BUDGET",
+      "majority_work_security_budget": "DETERMINISTIC_SUBSIDY_ENVELOPE_GREEN__MARKET_FEE_HASH_ECONOMICS_OPEN"
+    },
+    "3": {
+      "genesis_zero_hidden_issuance": "VERIFIER_RUNTIME_7_OF_7_GREEN__FINAL_PRODUCTION_GENESIS_REPLAY_OPEN"
+    },
+    "4": {
+      "production_routing_partition": "EXISTING_REAL_WAN_STRONG__FINAL_PRODUCTION_TOPOLOGY_OPEN"
+    },
+    "8": {
+      "valid_mempool_resource_brownout": "PASS_CANDIDATE_SOFTWARE_SCOPE__4096_TX_16KIB_POLICY__LIVE_NODE_BLOCK_RESTART_AND_REGRESSION_VERIFIED",
+      "long_duration_production_soak": "OPEN_EXTERNAL_OPERATIONAL_EVIDENCE"
+    },
+    "10": {
+      "dp6_path_binding": "IMPLEMENTATION_LOCAL_PASS__PRODUCTION_BINDING_OPEN",
+      "independent_dp6_verifier": "OPEN",
+      "same_id_different_body": "GREEN_CANDIDATE_SCOPE__TX_3_OF_3_PLUS_FULL_TARGET_BODY_5_OF_5__FINAL_LAUNCH_REPLAY_OPEN",
+      "historical_regression_corpus": "PARTIAL_ACTIVE"
+    }
+  },
+  "newly_discovered": {
+    "mempool_pinning": {
+      "status": "REPRODUCED",
+      "cause": "full-mempool check rejects even unrelated higher-fee valid transaction before fee-aware admission/eviction",
+      "routing": "Element 2 fee/security-budget + admission economics",
+      "mainnet_disposition": "MUST_NOT_REMAIN_UNRESOLVED"
+    },
+    "equal_work_tiebreak_grinding": {
+      "status": "STRUCTURAL_SURFACE_CONFIRMED",
+      "cause": "lexicographically smallest equal-work tip can be selected with additional valid candidate search",
+      "profitability": "UNRESOLVED",
+      "routing": "Element 2 strategic mining"
+    }
+  },
+  "authority": {
+    "merge": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "activation": false,
+    "release": false,
+    "mainnet": false
+  },
+  "last_reconciled_head": "70ccf2159f2bb11e74a0cc577aa4956df49bcd6d",
+  "runtime_evidence": {
+    "pf07_object_identity": "3/3 PASS",
+    "pf11_mempool_bounds": "2/2 PASS",
+    "historical_security_regressions": "PSR hostile 12/12 + differential 2/2 + authoritative core 2/2 + white-box 5/5 PASS",
+    "daa_timestamp": "hardening 8/8 + red-team 5/5 PASS",
+    "live_mempool": "4096 accepted then mempool_full; saturated 20-tx block accepted; restart recovered 4076 pending",
+    "selfish_mining": "2,000,000 discovery events per alpha/gamma cell; classic threshold sensitivity reproduced",
+    "genesis_zero_hidden_issuance": "7/7 PASS verifier regression at exact candidate head",
+    "wave1_exact_head_reverify": "12/12 historical regressions + differential 2/2 + authoritative core 2/2 + DAA/timestamp 13/13; partition recovery passed isolated rerun after one transient socket failure",
+    "tiebreak_counterfactual": "strict-greater-only local patch: differential 2/2 PASS; three logical partition/recovery PASSes with transient sandbox socket retries; no persistent source mutation",
+    "full_target_body_poisoning": "5/5 PASS: altered tx body/header/hash and historical checkpoint body rejected; valid object remains admissible afterward",
+    "security_budget_envelope": "34 nonzero eras and 12,599,999.811 FAE terminal scheduled issuance replay exact; fee-backfill envelope generated",
+    "pool_infiltration": "140-cell BWH/FAW sensitivity executed; material infiltration surface confirmed; exact FAE PPLNS/cost/propagation replay remains open"
+  },
+  "next_admissible_frontiers": [
+    "Fee/security-budget market/hash assumptions and confirmation/reorg policy — Element 2",
+    "Strategic mining: exact FAE PPLNS/cost/propagation replay and final tie policy once pool/timing semantics freeze — Element 2",
+    "Final DAA parameter selection after block-time evidence resolves — Element 2",
+    "Final production genesis replay once exact genesis bytes/hash exist — Element 3",
+    "Production routing/partition replay once production bootstrap topology exists — Element 4",
+    "Replay DP6 independent verifier against exact production verifier/activation wiring once frozen — Element 10",
+    "Replay PF-07 object/body poisoning corpus against launch-state implementation — Element 10"
+  ],
+  "no_routine_waterfound_action_required": true,
+  "cross_branch_evidence": {
+    "dp6_path_binding_pr": 296,
+    "status": "CANDIDATE_GREEN",
+    "verdict": "DP6_PATH_BINDING_AND_INDEPENDENT_VERIFIER_CANDIDATE_GREEN__FINAL_PRODUCTION_BINDING_GATE",
+    "evidence": [
+      "28/28 path-binding checks",
+      "10/10 structural bypass mutants rejected",
+      "16/16 independent semantic vectors",
+      "6/6 negative proofs rejected",
+      "4/4 interface negatives rejected"
+    ]
+  },
+  "closure_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json"
+}

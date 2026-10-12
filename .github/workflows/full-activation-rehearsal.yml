@@ -1,0 +1,46 @@
+name: Full Activation Rehearsal
+
+on:
+  push:
+    branches: [main, full-activation-rehearsal]
+    paths:
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-*.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-*.mjs'
+      - 'sovereign-forge/tests/full-activation-rehearsal.mjs'
+      - '.github/workflows/full-activation-rehearsal.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-reorg-*.mjs'
+      - 'sovereign-forge/node/authoritative/activation-policy-identity-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/difficulty-timestamp-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-*.mjs'
+      - 'sovereign-forge/tests/full-activation-rehearsal.mjs'
+      - '.github/workflows/full-activation-rehearsal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  end-to-end-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check rehearsal candidate
+        run: node --check sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs
+      - name: Full activation end-to-end rehearsal
+        run: node sovereign-forge/tests/full-activation-rehearsal.mjs
+      - name: Preserve consensus-authority fence
+        run: |
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs
+          ! grep -q "full-activation-rehearsal" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-activation-rehearsal" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "full-activation-rehearsal" sovereign-forge/node/fae-node-v6-candidate.mjs

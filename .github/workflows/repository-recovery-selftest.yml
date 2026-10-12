@@ -1,0 +1,32 @@
+name: Repository Recovery Self-Test
+
+on:
+  pull_request:
+    paths:
+      - 'tools/repository-recovery/**'
+      - '.github/workflows/repository-recovery-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-history-roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove mirror, prune, restore and portable bundle
+        env:
+          SOURCE_URL: https://github.com/${{ github.repository }}.git
+          SOURCE_REF: refs/heads/${{ github.head_ref || github.ref_name }}
+          EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash tools/repository-recovery/selftest-real-repo.sh

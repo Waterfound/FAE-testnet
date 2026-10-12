@@ -1,0 +1,55 @@
+{
+  "schema": "FAE_HISTORICAL_POW_WAVE1_REVERIFY_V1",
+  "date": "2026-10-10",
+  "exact_head": "069dcce63456d5b1aaa2eec1e02ad15ca8ac13cc",
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "github_actions_consumed": 0,
+    "paid_spend_increment_usd": 0
+  },
+  "results": {
+    "historical_pow_regressions": {
+      "passed": 12,
+      "failed": 0,
+      "breakdown": {
+        "genesis_zero_hidden_issuance": 7,
+        "mempool_bounds": 2,
+        "object_identity": 3
+      }
+    },
+    "independent_differential": {
+      "passed": 2,
+      "failed": 0
+    },
+    "authoritative_v4_core": {
+      "passed": 2,
+      "failed": 0
+    },
+    "partition_recovery": {
+      "status": "PASS_ON_ISOLATED_RERUN",
+      "note": "one transient UND_ERR_SOCKET occurred in an earlier combined run; isolated rerun passed immediately"
+    },
+    "daa_timestamp": {
+      "passed": 13,
+      "failed": 0
+    }
+  },
+  "open_findings": {
+    "mempool_admission_pinning": "REPRODUCED: a full 4096-entry low/zero-fee mempool rejects an unrelated higher-fee valid transaction under the current hard-cap-only candidate policy",
+    "equal_work_tiebreak_grinding": "STRUCTURAL: lexicographic equal-work selection is grindable at additional valid-work cost",
+    "dp6_independent_verifier": "OPEN",
+    "final_genesis_replay": "OPEN_UNTIL_PRODUCTION_GENESIS",
+    "final_mainnet_daa_parameter_selection": "OPEN_UNTIL_BLOCK_TIME_FREEZE"
+  },
+  "verdict": "WAVE1_REVERIFIED__RESOURCE_BOUNDEDNESS_AND_PF07_GREEN_AT_CANDIDATE_SCOPE__ECONOMIC_AND_FINAL_FREEZE_GATES_REMAIN",
+  "authority": {
+    "candidate_assurance_only": true,
+    "merge": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "mainnet": false
+  }
+}

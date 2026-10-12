@@ -1,0 +1,52 @@
+name: independent-node-v1.1-hardening
+
+on:
+  push:
+    branches: [independent-node-v1.1-hardening]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/**'
+      - 'sovereign-forge/tests/**'
+      - '.github/workflows/independent-node-v11.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: independent-node-v11-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hardening:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check Independent Node v1.1 modules
+        run: |
+          node --check sovereign-forge/node/authoritative/durable-state-store.mjs
+          node --check sovereign-forge/node/authoritative/node-state-recovery.mjs
+          node --check sovereign-forge/node/authoritative/peer-guard.mjs
+          node --check sovereign-forge/node/fae-node-v6-candidate.mjs
+          node --check sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --check sovereign-forge/tests/independent-node-v11-process-recovery.mjs
+
+      - name: Verify existing P2P security invariants
+        run: node --test sovereign-forge/tests/authoritative-p2p-security.mjs
+
+      - name: Verify existing protocol-6 integration invariants
+        run: node --test sovereign-forge/tests/authoritative-p2p-v6-integration.mjs
+
+      - name: Verify existing three-node partition recovery
+        run: node sovereign-forge/tests/partition-recovery-3node.mjs
+
+      - name: Attack Independent Node v1.1 durability and network recovery
+        run: node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+
+      - name: Verify hard-crash restart and durable healing in the real v6 process
+        run: node --test sovereign-forge/tests/independent-node-v11-process-recovery.mjs

@@ -1,0 +1,222 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_READ_MODEL_V1",
+  "version": 1,
+  "status": "LAB_VERIFIED",
+  "bound_source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
+  "active_network": {
+    "network": "fairyelf-public-testnet-v4",
+    "address_hrp": "faet",
+    "base_unit_atoms": "100000000",
+    "target_seconds": 180,
+    "initial_subsidy_fae": "10",
+    "halving_era_blocks": 600000,
+    "max_supply_fae": "12000000",
+    "pplns_coinbase_active": false
+  },
+  "invariants": [
+    "Explorer responses describe the selected chain/state of an independently validating FAE node.",
+    "Explorer availability or storage never participates in consensus, mining, signing, wallet ownership, or fork choice.",
+    "Candidate or research parameters must never be presented as active network parameters.",
+    "Every chain-derived detail response is bound to the node tip observed for that response.",
+    "A cache or future index is derived disposable state and cannot become canonical truth.",
+    "Unknown or ambiguous authority/provenance fails closed rather than being displayed as confirmed truth."
+  ],
+  "transport": {
+    "namespace": "/explorer",
+    "allowed_methods": [
+      "GET",
+      "OPTIONS"
+    ],
+    "mutating_methods_forbidden": [
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ],
+    "resources": {
+      "status": "GET /explorer/status",
+      "latest_blocks": "GET /explorer/blocks?limit=<n>&before_height=<optional>",
+      "block": "GET /explorer/block?height=<h> OR GET /explorer/block?hash=<64hex>",
+      "transaction": "GET /explorer/transaction?txid=<64hex>",
+      "address": "GET /explorer/address?address=<faet1...>&limit=<n>&cursor=<optional>",
+      "search": "GET /explorer/search?q=<query>"
+    }
+  },
+  "response_binding": {
+    "required_on_chain_views": [
+      "network",
+      "observed_tip_height",
+      "observed_tip_hash"
+    ],
+    "confirmations_formula": "If the object is currently confirmed on the selected chain: observed_tip_height - confirmed_height + 1; otherwise null.",
+    "reorg_rule": "Confirmation state is derived from the currently selected validated chain. The Explorer does not choose or preserve a superseded chain as authoritative."
+  },
+  "entities": {
+    "network_status": {
+      "required": [
+        "network",
+        "height",
+        "tip_hash",
+        "difficulty_bits",
+        "target_seconds",
+        "issued_atoms",
+        "issued_fae",
+        "max_supply_fae",
+        "mempool_size"
+      ],
+      "semantics": {
+        "issued_supply": "Sum of validated block subsidy/reward_atoms on the selected chain.",
+        "current_supply": "Alias must not be used unless its meaning is explicitly the same as issued_supply.",
+        "candidate_parameters": "Forbidden in active-network fields unless explicitly labelled research/candidate outside the live-state view."
+      }
+    },
+    "block": {
+      "identifiers": [
+        "height",
+        "hash"
+      ],
+      "required": [
+        "height",
+        "hash",
+        "previous_hash",
+        "timestamp_ms",
+        "difficulty_bits",
+        "nonce",
+        "miner_address",
+        "reward_atoms",
+        "txids"
+      ],
+      "optional": [
+        "coinbase_outputs",
+        "fee_atoms",
+        "coinbase_mode"
+      ],
+      "semantics": {
+        "transaction_membership": "txids are transfers committed to this validated block.",
+        "reward_current_live": "With PPLNS coinbase activation null, the live v4 reward is materialized as <block_hash>:0 to miner_address.",
+        "reward_forward_compatibility": "If a future authoritative activation exposes coinbase_outputs, render the validated outputs without assuming a single reward recipient.",
+        "previous_block": "previous_hash links to the prior selected-chain block except at genesis."
+      }
+    },
+    "transaction": {
+      "identifier": "txid",
+      "required": [
+        "txid",
+        "network",
+        "from_address",
+        "inputs",
+        "outputs",
+        "fee_atoms",
+        "status",
+        "confirmed_height"
+      ],
+      "status_values": [
+        "pending",
+        "confirmed"
+      ],
+      "semantics": {
+        "confirmed": "Only when the transaction is in the node's currently selected validated chain.",
+        "pending": "Present in the node mempool and not currently confirmed.",
+        "inputs": "Outpoint references. An explorer may resolve public source address/amount from validated historical UTXO state when available.",
+        "outputs": "Ordered public address + amount_atoms records.",
+        "signature_material": "Public signature/SPKI may exist in node state but is not required in the minimum human-readable Explorer view."
+      }
+    },
+    "address": {
+      "identifier": "address",
+      "required": [
+        "address",
+        "balance_atoms",
+        "balance_fae",
+        "events"
+      ],
+      "event_types": [
+        "transfer",
+        "reward"
+      ],
+      "semantics": {
+        "balance": "Confirmed unspent balance from validated UTXO state at the observed tip.",
+        "transfer_event": "Derived from a validated transaction involving the address as sender and/or output recipient.",
+        "reward_event": "Derived from validated coinbase/mining outputs, not from ordinary transaction history.",
+        "completeness": "Address history must not silently equate transfer history with total public activity."
+      }
+    }
+  },
+  "universal_search": {
+    "rules": [
+      {
+        "when": "valid faet address",
+        "resolve": [
+          "address"
+        ]
+      },
+      {
+        "when": "positive decimal integer",
+        "resolve": [
+          "block_height"
+        ]
+      },
+      {
+        "when": "64-character lowercase hexadecimal digest",
+        "resolve": [
+          "block_hash",
+          "txid"
+        ],
+        "ambiguity": "query both namespaces; do not infer object type from digest shape"
+      },
+      {
+        "when": "anything else",
+        "resolve": [
+          "invalid"
+        ]
+      }
+    ],
+    "not_found": "A syntactically valid query with no selected-state match returns not_found, not a fabricated object."
+  },
+  "failure_semantics": {
+    "malformed_query": {
+      "http_status": 400,
+      "code": "invalid_query"
+    },
+    "not_found": {
+      "http_status": 404,
+      "code": "not_found"
+    },
+    "wrong_network": {
+      "http_status": 503,
+      "code": "network_mismatch",
+      "policy": "fail_closed"
+    },
+    "validated_state_unavailable": {
+      "http_status": 503,
+      "code": "validated_state_unavailable",
+      "policy": "fail_closed"
+    },
+    "inconsistent_tip_binding": {
+      "http_status": 503,
+      "code": "tip_changed_retry",
+      "policy": "retry from one coherent validated snapshot or fail closed"
+    }
+  },
+  "minimum_v1_scope": {
+    "include": [
+      "network status",
+      "latest blocks",
+      "block detail",
+      "transaction detail",
+      "address detail",
+      "universal search",
+      "copyable full identifiers",
+      "Block ↔ Transaction ↔ Address navigation"
+    ],
+    "exclude_until_evidence_requires": [
+      "dedicated explorer database",
+      "search engine",
+      "analytics dashboard",
+      "charts requiring historical aggregation",
+      "wallet signing",
+      "transaction submission",
+      "mining controls"
+    ]
+  }
+}

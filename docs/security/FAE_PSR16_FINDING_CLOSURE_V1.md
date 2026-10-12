@@ -1,0 +1,76 @@
+# FAE PSR-16 — Finding Closure and Regression Promotion
+
+Status: candidate zero-finding closure pending verification and integration  
+Bound source: `a9ae1980206c8b0d73cd391c4a970b76b70336e0`
+
+## Prerequisite
+
+PSR-15 is operationally GREEN from PR #190 and exact-candidate runs:
+
+- Project Assurance #1 — SUCCESS;
+- canonical #563 — SUCCESS;
+- cross-Lab #21 — SUCCESS;
+- CodeQL #44 — SUCCESS signal only.
+
+The dedicated campaign report recorded:
+
+- 17 planned;
+- 17 executed;
+- 17 passed;
+- 0 failed;
+- 0 findings;
+- target unchanged;
+- authority NONE.
+
+## Closure model
+
+PSR-16 does not invent a finding simply to exercise a closure workflow.
+
+Because PSR-15 admitted zero findings:
+
+- admitted findings = 0;
+- fixes required = 0;
+- residual-risk acceptances = 0;
+- open blockers = 0.
+
+The closure task is therefore to prove that this zero-finding result remains true on the exact PSR-16 candidate and that all 17 attack cases remain permanent executable regressions.
+
+## Regression promotion
+
+Every WB-01 through WB-17 attack is retained in the PSR-15 campaign manifest and remains owned by the dedicated Project Assurance workflow.
+
+The static PSR-16 guard fails if:
+
+- an attack disappears;
+- an attack command changes without corresponding ledger change;
+- its executable asset disappears;
+- regression promotion count is not 17;
+- residual-risk acceptance or blocker state is silently introduced.
+
+The dynamic PSR-16 workflow reruns the complete PSR-15 campaign on the exact PSR-16 candidate. Any new finding, failed attack, target mutation or authority change fails closed.
+
+## Authority
+
+PSR-16 has no production, consensus, economic, wallet/address, release or mainnet authority.
+
+## Exit
+
+PSR-16 becomes GREEN only after:
+
+1. static closure contract SUCCESS;
+2. dynamic PSR-15 rerun on the exact candidate returns zero findings;
+3. canonical verification SUCCESS;
+4. cross-Lab integration SUCCESS;
+5. exact-source anti-stale check at merge.
+
+On GREEN, PSR-17 Full Security Baseline Replay becomes READY.
+
+
+## Rebinding note
+
+Before integration, `main` advanced by five MTS-12 physical-recorder commits to `a9ae1980206c8b0d73cd391c4a970b76b70336e0`. Because WB-17 directly executes `lab/mining-tip-sync/tests/mts-12-preflight.test.mjs`, the prior successful PSR-16 candidate is stale. This rebound candidate must rerun the full PSR-15 campaign, PSR-16 closure, canonical and cross-Lab gates.
+
+
+## Rebinding note — revision 3
+
+Before integration, `main` advanced to `a9ae1980206c8b0d73cd391c4a970b76b70336e0` with Git-host independence/repository recovery proof. This changes the public repository/supply-chain surface exercised by WB-11 and cross-Lab verification. The new workflow is read-only and secret-free, but the prior successful candidate is still stale. PSR-16 must replay again on this exact tree.

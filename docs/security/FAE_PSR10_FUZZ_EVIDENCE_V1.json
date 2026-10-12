@@ -1,0 +1,69 @@
+{
+  "schema": "FAE_PSR10_FUZZ_EVIDENCE_V1",
+  "psr": "PSR-10",
+  "status": "CANDIDATE_COMPLETE_PENDING_CANONICAL_VERIFICATION_AND_INTEGRATION",
+  "source_revision": "7a975a1fdc3103e9a3c9bec4f29aa98775ea735a",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "seed": "0xfae51010",
+  "corpus": "tests/security-corpus/public-code-malformed-v1.json",
+  "harness": "tests/public-code-security-fuzz.mjs",
+  "fixed_corpus": {
+    "transaction_cases": 14,
+    "block_cases": 14,
+    "peer_cases": 8,
+    "browser_api_cases": 17,
+    "total": 53
+  },
+  "property_fuzz": {
+    "transaction_shape_totality": 512,
+    "transaction_state_atomicity": 384,
+    "block_rejection_atomicity": 512,
+    "peer_directory_bounds": 64,
+    "browser_parser_totality": 512,
+    "total": 1984
+  },
+  "promoted_specialized_evidence": [
+    "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+    "sovereign-forge/tests/difficulty-timestamp-redteam.mjs",
+    "lab/mining-tip-sync/tests/mts-07-stress.test.mjs",
+    "lab/mining-tip-sync/tests/mts-08-lifecycle.test.mjs"
+  ],
+  "properties": [
+    "Malformed transaction verification is total and deterministic for JSON-like hostile shapes.",
+    "Rejected semantic transaction mutations do not partially mutate admitted state.",
+    "Malformed block envelopes reject deterministically without canonical state mutation.",
+    "Peer-directory floods remain inside declared record/source/network-group/unverified budgets.",
+    "Browser address parser remains total and amount acceptance matches the canonical decimal grammar.",
+    "Property failures emit seed, case index and a minimized reproducer when feasible.",
+    "Discovered failures must become named corpus cases or dedicated regression tests before closure."
+  ],
+  "authority": {
+    "runtime_or_consensus_change": false,
+    "mainnet_authority": false,
+    "activation_authority": false
+  },
+  "downstream_unlock_on_green": [
+    "PSR-11"
+  ],
+  "rebinding": {
+    "previous_source_revision": "3643cec06b4b1382c18e0b4c525f398bb32a60d5",
+    "intervening_commits": 5,
+    "reviewed_scope": [
+      ".github/workflows/pq-lab-wave-e-pq05.yml",
+      ".github/workflows/pq-lab-wave-e-pq06.yml"
+    ],
+    "prior_canonical_runs": [
+      {
+        "run_number": 454,
+        "status": "SUCCESS",
+        "candidate_head": "17c49869ae7d694e96c4873180b741eb39b0bd7f"
+      },
+      {
+        "run_number": 462,
+        "status": "SUCCESS",
+        "candidate_head": "4294177b23fd6896d665d68f1bf907fde9b7258a"
+      }
+    ],
+    "authority_note": "PQ Wave E executor workflows remain independent and are not counted as PSR-10 active-security evidence."
+  }
+}

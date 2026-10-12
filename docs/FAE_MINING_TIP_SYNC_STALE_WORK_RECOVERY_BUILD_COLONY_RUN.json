@@ -1,0 +1,119 @@
+{
+  "schema": "FAE_MINING_TIP_SYNC_STALE_WORK_RECOVERY_BUILD_COLONY_PLAN_V1",
+  "run_kind": "REAL_PLANNING_RUN",
+  "run_date": "2026-09-18",
+  "project": "FAE",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/mining-tip-sync-plan-002",
+  "integration_base_revision": "aab16f58cec310781034b240c8321e533e45ca31",
+  "evidence_source_revision_unchanged_by_concurrent_main": true,
+  "source_revision": "f3561ec8bf53d25c646f2f4c880af506cc1f5a65",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "active_gate_class": "capability_gap",
+  "active_gate_evidence_ref": "Waterfound/FAE-testnet@f3561ec8bf53d25c646f2f4c880af506cc1f5a65:mining.js",
+  "supporting_evidence_refs": [
+    "Waterfound/FAE-testnet@f3561ec8bf53d25c646f2f4c880af506cc1f5a65:core.js",
+    "Waterfound/FAE-testnet@f3561ec8bf53d25c646f2f4c880af506cc1f5a65:supabase/functions/fae-public-testnet-v4/index.ts",
+    "Waterfound/FAE-testnet@f3561ec8bf53d25c646f2f4c880af506cc1f5a65:tests/client-smoke.mjs"
+  ],
+  "evidence_observations": [
+    "Direct mining executes template -> localPow -> submit-block without a concurrent tip-invalidating cancellation path.",
+    "The global refresh loop polls every 7000 ms but does not cancel an in-flight Proof-of-Work Worker when height or tip_hash changes.",
+    "The backend /status response already exposes authoritative height and tip_hash.",
+    "The backend rejects a solved block with stale_tip when submitted height or previous_hash no longer matches the current chain tip.",
+    "Template policy is snapshot: mempool changes after template creation do not by themselves invalidate Proof of Work."
+  ],
+  "native_progress_unit": "mining_tip_sync_gate_completion",
+  "work_selection_decision": {
+    "route": "mining-tip-sync-stale-work-recovery-lab",
+    "route_state": "active",
+    "eligible_domains": [
+      "mts-boundary-freeze",
+      "mts-baseline-reproduction",
+      "mts-work-identity-instrumentation",
+      "mts-tip-observer-contract",
+      "mts-direct-tip-driven-cancellation",
+      "mts-race-safe-restart-and-freshness-barrier",
+      "mts-regression-harness",
+      "mts-adversarial-rapid-tip-load-network",
+      "mts-background-lifecycle",
+      "mts-multi-context-convergence",
+      "mts-cross-tab-hint-optimization",
+      "mts-coordinator-share-parity",
+      "mts-latency-and-false-positive-acceptance",
+      "mts-physical-browser-device-validation",
+      "mts-release-rehearsal",
+      "mts-terminal-verdict"
+    ],
+    "filtered_domains": [
+      "block-time-economic-change",
+      "network-recovery-reorg",
+      "consensus-rule-change",
+      "monetary-policy-change"
+    ],
+    "generic_development_proposed": false
+  },
+  "authority": {
+    "ceiling": "LAB_TEST_AND_CANDIDATE_BROWSER_MINER_WRITE",
+    "consensus_change_authorized": false,
+    "monetary_policy_change_authorized": false,
+    "block_time_change_authorized": false,
+    "backend_consensus_semantics_change_authorized": false,
+    "private_key_or_seed_access_authorized": false,
+    "public_testnet_promotion_authorized_by_this_run": false,
+    "mainnet_launch_authorized": false
+  },
+  "invariants": [
+    "The network tip identified by authoritative FAE network state remains the source of truth.",
+    "BroadcastChannel or any same-device mechanism may only accelerate revalidation; it never becomes chain authority.",
+    "A template remains valid across mempool-only changes under snapshot semantics.",
+    "A change in template height or previous_hash caused by chain-tip advancement invalidates the prior Proof-of-Work session.",
+    "The user must not need Stop -> Start merely because the chain advanced.",
+    "Old Worker callbacks/results cannot mutate or complete a newer mining session.",
+    "Cancellation must not create false-positive discards of work that is still tip-valid.",
+    "Direct and coordinator/share paths must preserve their existing reward-address and verification boundaries.",
+    "No consensus, supply, reward, halving or target-block-time parameter is changed by this Lab.",
+    "All required failures remain evidence; retries cannot erase a failed run."
+  ],
+  "dependency_graph": {
+    "mts-boundary-freeze": [],
+    "mts-baseline-reproduction": ["mts-boundary-freeze"],
+    "mts-work-identity-instrumentation": ["mts-baseline-reproduction"],
+    "mts-tip-observer-contract": ["mts-baseline-reproduction"],
+    "mts-direct-tip-driven-cancellation": ["mts-work-identity-instrumentation", "mts-tip-observer-contract"],
+    "mts-race-safe-restart-and-freshness-barrier": ["mts-direct-tip-driven-cancellation"],
+    "mts-regression-harness": ["mts-work-identity-instrumentation", "mts-tip-observer-contract"],
+    "mts-adversarial-rapid-tip-load-network": ["mts-race-safe-restart-and-freshness-barrier", "mts-regression-harness"],
+    "mts-background-lifecycle": ["mts-race-safe-restart-and-freshness-barrier", "mts-regression-harness"],
+    "mts-multi-context-convergence": ["mts-race-safe-restart-and-freshness-barrier", "mts-regression-harness"],
+    "mts-cross-tab-hint-optimization": ["mts-background-lifecycle", "mts-multi-context-convergence"],
+    "mts-coordinator-share-parity": ["mts-race-safe-restart-and-freshness-barrier", "mts-regression-harness"],
+    "mts-latency-and-false-positive-acceptance": [
+      "mts-adversarial-rapid-tip-load-network",
+      "mts-background-lifecycle",
+      "mts-multi-context-convergence",
+      "mts-coordinator-share-parity"
+    ],
+    "mts-physical-browser-device-validation": ["mts-latency-and-false-positive-acceptance"],
+    "mts-release-rehearsal": ["mts-latency-and-false-positive-acceptance", "mts-physical-browser-device-validation"],
+    "mts-terminal-verdict": ["mts-release-rehearsal"]
+  },
+  "acceptance_metrics": {
+    "tip_identity": "height + tip_hash on network state; work identity binds template height + previous_hash",
+    "foreground_local_reaction": "p95 <= 250 ms from authoritative mismatch observation to old Worker termination",
+    "foreground_loaded_reaction": "p99 <= 1000 ms from authoritative mismatch observation to old Worker termination under synthetic client load",
+    "post_observation_stale_progress": "zero accepted progress/result events from the invalidated Worker generation",
+    "resume_safety": "after background/suspension, authoritative tip revalidation occurs before resumed stale work may be accepted or submitted",
+    "false_positive_rule": "mempool-only changes and unchanged height+tip_hash must not cancel valid snapshot work",
+    "correctness_rule": "multi-context correctness must pass without BroadcastChannel enabled"
+  },
+  "terminal_lab_verdicts": [
+    "TIP_DRIVEN_STALE_WORK_RECOVERY_VERIFIED",
+    "SOFTWARE_CORRECT_BUT_PHYSICAL_BROWSER_EVIDENCE_PENDING",
+    "BLOCKED_BY_UNRESOLVED_STALE_WORK_OR_RUNTIME_BEHAVIOR"
+  ],
+  "next_executable_sequence": [
+    "MTS-00 Boundary Freeze",
+    "MTS-01 Baseline Reproduction"
+  ]
+}

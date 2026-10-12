@@ -1,0 +1,80 @@
+{
+  "schema": "FAE_TOKENOMICS_AUTHORITY_V2",
+  "recorded_at": "2026-10-06",
+  "repository": "Waterfound/FAE-testnet",
+  "authority_source": "Explicit Waterfound tokenomics decision",
+  "status": "AUTHORITATIVE_DESIGN__NOT_ACTIVE_CONSENSUS",
+  "authoritative_now": {
+    "initial_reward_fae": 9,
+    "subsidy_reduction_per_era_pct": 45,
+    "subsidy_retention_per_era_pct": 55,
+    "era_blocks": 630000,
+    "maximum_supply_fae": 12600000,
+    "issuance_shape": "FINITE_GEOMETRIC",
+    "perpetual_tail_inflation": false,
+    "premine_treasury_admin_mint": "NONE"
+  },
+  "derived_atom_exact_schedule": {
+    "base_unit_atoms_per_fae": 100000000,
+    "atom_floor_each_era": true,
+    "terminal_scheduled_issuance_fae": "12599999.81100000",
+    "permanently_unissued_below_ceiling_fae": "0.18900000",
+    "nonzero_reward_eras": 34,
+    "total_subsidized_blocks": 21420000
+  },
+  "calendar_context_only": {
+    "final_block_target_seconds_authoritative": false,
+    "current_research_incumbent_seconds": 300,
+    "era_duration_at_300s_days": 2187.5,
+    "era_duration_at_300s_years": 5.989048596851472,
+    "difference_from_six_reference_years_days": -4,
+    "total_subsidy_duration_at_300s_years": 203.62765229295005,
+    "note": "The monetary rule is authoritative in blocks. Calendar duration is derived from the eventual block target; 300 seconds remains a separate research parameter."
+  },
+  "open_parameters_not_authorized_by_this_decision": {
+    "final_block_target_seconds": {
+      "current_research_incumbent": 300,
+      "authoritative": false
+    },
+    "coinbase_maturity": {
+      "authoritative": false
+    },
+    "fee_security_budget_model": {
+      "authoritative": false
+    },
+    "activation_height": null
+  },
+  "supersession": {
+    "prior_authority_artifact": "docs/FAE_TOKENOMICS_AUTHORITY_20261004.json",
+    "prior_10fae_14026000_package": "SUPERSEDED_BY_9FAE_630000_12600000",
+    "prior_7fae_authority": "HISTORICAL_SUPERSEDED",
+    "five_year_era": "CLOSED_AS_PRIMARY__SENSITIVITY_CHALLENGER_ONLY",
+    "prior_14fae_430000_50pct_package": "HISTORICAL_SUPERSEDED",
+    "historical_evidence_must_remain_frozen": true
+  },
+  "live_network_boundary": {
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_subsidy_fae": 10,
+    "halving_era_blocks": 600000,
+    "maximum_supply_fae": 12000000,
+    "changed_by_this_decision": false
+  },
+  "manifesto_principles": [
+    "FAE orients with Bitcoin; it does not mechanically imitate it.",
+    "If general-purpose hardware should remain relevant across generations, primary issuance should remain materially available across generations.",
+    "Scarcity should be preserved without concentrating most monetary opportunity near genesis.",
+    "Subsidy reductions are security-budget events, not only scarcity events.",
+    "A 45% reduction preserves strong geometric scarcity while extending the distribution tail relative to a 50% halving.",
+    "The authoritative monetary cadence is 630,000 blocks per subsidy era; at the current 300-second research incumbent this is approximately six years.",
+    "The 9 FAE starting reward and 630,000-block era produce a natural theoretical ceiling of exactly 12,600,000 FAE before atom-floor effects.",
+    "The hard ceiling is 12,600,000 FAE; deterministic atom-flooring may leave a tiny permanently unissued remainder below it."
+  ],
+  "authority_boundaries": {
+    "public_testnet_consensus_changed": false,
+    "economics_activated": false,
+    "release_authority_created": false,
+    "production_authority_created": false,
+    "mainnet_authority_created": false
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "FAE_PQ05_FAILURE_LEDGER_V1",
+  "entries": [
+    {
+      "workflow_run_id": 35355556489,
+      "head": "79f8fb4cc147af149b69c49f1eadf6d318af07f9",
+      "classification": "TEST_DESIGN_REACHED_REJECTION_EARLY",
+      "first_failure": "Parameter-set substitution changed ML-DSA public-key size; signingBytes correctly rejected the malformed substituted envelope before the test reached verifyHybridTransaction.",
+      "cryptographic_divergence_observed": false,
+      "artifact_id": 10551757121,
+      "artifact_sha256": "f9732676b25479e59e7d3a11625610d751f38daf29a38af7fbf6ccfcad7d686e"
+    }
+  ]
+}

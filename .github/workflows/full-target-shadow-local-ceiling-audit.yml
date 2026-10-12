@@ -1,0 +1,41 @@
+name: Full Target Shadow Local Ceiling Audit
+
+on:
+  push:
+    branches: [main, shadow-local-ceiling-audit]
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-local-ceiling-audit.mjs'
+      - '.github/workflows/full-target-shadow-local-ceiling-audit.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/full-activation-rehearsal-candidate.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-local-ceiling-audit.mjs'
+      - '.github/workflows/full-target-shadow-local-ceiling-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-ceiling-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check final local audit
+        run: node --check sovereign-forge/tests/full-target-shadow-local-ceiling-audit.mjs
+      - name: Concurrent sync and persistence corruption audit
+        run: node sovereign-forge/tests/full-target-shadow-local-ceiling-audit.mjs
+      - name: Preserve strict authority isolation
+        run: |
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-shadow-peer-node" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs

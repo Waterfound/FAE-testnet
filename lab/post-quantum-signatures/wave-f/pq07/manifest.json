@@ -1,0 +1,80 @@
+{
+  "schema": "FAE_PQ_WAVE_F_PQ07_FREEZE_V1",
+  "status": "FROZEN_BEFORE_IMPLEMENTATION",
+  "recorded_at": "2026-09-18",
+  "base_revision": "62de37222c054e5b5cf392dadbe3af2acee80b73",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-05": "GREEN",
+    "PQ-06": "GREEN"
+  },
+  "scope": "Adversarial downgrade, replay, stripping and parser ambiguity testing across the Wave E transaction and wallet shadow paths.",
+  "transaction_attack_matrix": [
+    "remove Ed25519 signature",
+    "remove ML-DSA signature",
+    "blank Ed25519 signature",
+    "blank ML-DSA signature",
+    "swap Ed25519 public keys across otherwise-valid hybrid transactions",
+    "swap ML-DSA public keys within the same parameter set",
+    "swap Ed25519 signatures across distinct payloads",
+    "swap ML-DSA signatures across distinct payloads",
+    "cross-parameter ML-DSA signature or public-key substitution",
+    "replay active Transaction v2 signature into hybrid Ed25519 component",
+    "replay hybrid Ed25519 signature into active Transaction v2",
+    "replay across signing domains",
+    "wrong kind",
+    "wrong shadow version",
+    "wrong network",
+    "malformed base64 public keys and signatures",
+    "non-canonical base64 encodings",
+    "truncated and extended signatures",
+    "malformed ML-DSA public-key lengths",
+    "partial hybrid objects",
+    "duplicate or contradictory legacy/hybrid field sets",
+    "polyglot object containing a complete valid Transaction v2 view and complete valid hybrid view",
+    "parser differential corpus: every case must have an unambiguous single verdict boundary"
+  ],
+  "wallet_attack_matrix": [
+    "legacy-only wallet metadata presented as PQ-upgraded",
+    "PQ-upgraded public metadata forced through the legacy recovery path",
+    "missing PQ public key",
+    "missing PQ public-key fingerprint",
+    "changed ML-DSA parameter-set label",
+    "changed address index",
+    "changed legacy address",
+    "changed legacy public key",
+    "changed PQ public key",
+    "changed PQ fingerprint",
+    "wrong passphrase",
+    "corrupted 24-word mnemonic",
+    "unknown/extra migration schema",
+    "partial upgraded wallet object",
+    "public-metadata downgrade with PQ fields stripped"
+  ],
+  "anti_post_hoc_rules": [
+    "attack cases are frozen before execution",
+    "no case may be deleted because it exposes an ambiguity",
+    "a real ambiguity is a PQ-07 finding and must be fixed or remain blocking",
+    "failed runs remain in the PQ-07 failure ledger",
+    "selective retry cannot erase a failure",
+    "active FAE files remain outside PQ-07 write authority"
+  ],
+  "evidence_requirements": [
+    "deterministic corpus identifiers",
+    "per-case expected boundary",
+    "per-case observed boundary",
+    "zero unauthorized dual-acceptance",
+    "zero unauthorized downgrade acceptance",
+    "zero unexplained parser disagreement",
+    "no private material in artifacts",
+    "PQ-00 boundary guard PASS",
+    "canonical source verification PASS",
+    "pq-lab-standards PASS"
+  ],
+  "gate": "Every unauthorized downgrade, replay, stripping, partial-object and parser-ambiguity attempt fails deterministically. No single object may be accepted simultaneously as active Transaction v2 and PQ hybrid shadow.",
+  "next_if_green": [
+    "PQ-08 Independent Differential Verification",
+    "PQ-09 Resource Economics"
+  ]
+}

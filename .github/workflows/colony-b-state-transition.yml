@@ -1,0 +1,33 @@
+name: colony-b-state-transition
+
+on:
+  push:
+    branches:
+      - 'colony/b-state-transition-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs'
+      - 'sovereign-forge/tests/activation-state-transition-colony-b.mjs'
+      - '.github/workflows/colony-b-state-transition.yml'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_B_STATE_TRANSITION.md'
+
+permissions:
+  contents: read
+
+jobs:
+  state-transition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check candidate oracle
+        run: node --check sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+      - name: Execute Worker B transition gate
+        run: node sovereign-forge/tests/activation-state-transition-colony-b.mjs
+      - name: Preserve non-activation boundary
+        run: |
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs

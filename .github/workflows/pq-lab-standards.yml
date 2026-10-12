@@ -1,0 +1,190 @@
+name: pq-lab-standards
+
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/**'
+      - '.github/workflows/pq-lab-standards.yml'
+  push:
+    branches:
+      - 'colony/pq-wave-d-*'
+    paths:
+      - 'lab/post-quantum-signatures/**'
+      - '.github/workflows/pq-lab-standards.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-and-standards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - name: PQ-00 boundary guard
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: PQ-01 verify pinned standards
+        id: standards
+        run: node lab/post-quantum-signatures/tools/observe-standards.mjs
+      - name: Upload standards observation
+        if: steps.standards.outcome == 'success' || steps.standards.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq-standards-observation
+          path: lab/post-quantum-signatures/standards/standards-observation.json
+          if-no-files-found: error
+
+  implementation-independence:
+    needs: boundary-and-standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: Record exact Noble registry provenance
+        run: |
+          set -o pipefail
+          mkdir -p lab/post-quantum-signatures/evidence
+          npm view @noble/post-quantum@0.7.1 version dist.integrity dist.shasum repository.url --json | tee lab/post-quantum-signatures/evidence/pq02-noble-registry.json
+      - name: Install exact Noble candidate
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Probe Noble browser-facing implementation
+        run: |
+          set -o pipefail
+          mkdir -p lab/post-quantum-signatures/evidence
+          node lab/post-quantum-signatures/probes/noble-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-noble.json
+      - name: Probe Node crypto tertiary path
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/probes/node-crypto-probe.mjs | tee lab/post-quantum-signatures/evidence/pq02-node-crypto.json
+      - name: Probe Cloudflare CIRCL independent verifier
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/fae-pq-circl
+          cp lab/post-quantum-signatures/probes/circl-probe.go /tmp/fae-pq-circl/main.go
+          cd /tmp/fae-pq-circl
+          go mod init fae-pq02-probe
+          go get github.com/cloudflare/circl@2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          go mod tidy
+          go list -m -json github.com/cloudflare/circl | tee "$GITHUB_WORKSPACE/lab/post-quantum-signatures/evidence/pq02-circl-module.json"
+          go run main.go | tee "$GITHUB_WORKSPACE/lab/post-quantum-signatures/evidence/pq02-circl.json"
+      - name: Upload PQ-02 implementation probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq02-implementation-independence
+          path: lab/post-quantum-signatures/evidence/pq02-*.json
+          if-no-files-found: error
+
+
+  primitive-correctness:
+    needs: implementation-independence
+    runs-on: ubuntu-latest
+    env:
+      PQ_ACVP_DIR: /tmp/fae-pq-acvp
+      CIRCL_DIR: /tmp/circl
+      PQ_EVIDENCE_DIR: lab/post-quantum-signatures/evidence/wave-d
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      - name: PQ-00 boundary guard for execution revision
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Prepare evidence directory
+        run: mkdir -p "$PQ_EVIDENCE_DIR"
+      - name: Install exact Noble dependencies
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Checkout exact CIRCL verifier
+        run: |
+          set -euo pipefail
+          git init "$CIRCL_DIR"
+          git -C "$CIRCL_DIR" remote add origin https://github.com/cloudflare/circl.git
+          git -C "$CIRCL_DIR" fetch --depth 1 origin 2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0
+          git -C "$CIRCL_DIR" checkout --detach FETCH_HEAD
+          test "$(git -C "$CIRCL_DIR" rev-parse HEAD)" = "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0"
+      - name: Reacquire and verify frozen NIST ACVP corpus
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/prepare-acvp.mjs | tee "$PQ_EVIDENCE_DIR/acvp-acquisition.log"
+          cp "$PQ_ACVP_DIR/acquisition-evidence.json" "$PQ_EVIDENCE_DIR/acvp-acquisition.json"
+      - name: PQ-03 and PQ-04 Noble official-vector replay
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/run-noble-acvp.mjs | tee "$PQ_EVIDENCE_DIR/noble-acvp.json"
+      - name: Install modern ACVP adapter into pinned CIRCL checkout
+        run: node lab/post-quantum-signatures/primitives/install-circl-modern-adapter.mjs
+      - name: PQ-03 CIRCL full modern ML-DSA ACVP replay
+        working-directory: /tmp/circl
+        run: |
+          set -o pipefail
+          go test ./sign/mldsa/mldsa44/internal ./sign/mldsa/mldsa65/internal ./sign/mldsa/mldsa87/internal -run TestFAEModernACVP -count=1 -v | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-mldsa-acvp.log"
+      - name: PQ-04 CIRCL native SLH-DSA ACVP replay
+        working-directory: /tmp/circl
+        run: |
+          set -o pipefail
+          go test ./sign/slhdsa -run TestACVP -count=1 -v | tee "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-slhdsa-acvp.log"
+      - name: Noble produces cross-implementation corpus
+        run: node lab/post-quantum-signatures/primitives/cross-generate-noble.mjs "$PQ_EVIDENCE_DIR/noble-to-circl.json"
+      - name: CIRCL verifies Noble and produces reverse corpus
+        run: |
+          set -euo pipefail
+          mkdir -p "$CIRCL_DIR/cmd/fae-pq-cross"
+          cp lab/post-quantum-signatures/primitives/cross-circl.go "$CIRCL_DIR/cmd/fae-pq-cross/main.go"
+          (
+            cd "$CIRCL_DIR"
+            go run ./cmd/fae-pq-cross "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/noble-to-circl.json" "$GITHUB_WORKSPACE/$PQ_EVIDENCE_DIR/circl-to-noble.json"
+          ) | tee "$PQ_EVIDENCE_DIR/cross-circl.log"
+      - name: Noble verifies CIRCL reverse corpus
+        run: |
+          set -o pipefail
+          node lab/post-quantum-signatures/primitives/cross-verify-noble.mjs "$PQ_EVIDENCE_DIR/circl-to-noble.json" | tee "$PQ_EVIDENCE_DIR/cross-final.json"
+      - name: Record Wave D executor provenance
+        if: always()
+        run: |
+          {
+            echo "{"
+            echo "  \"node\": \"$(node --version)\","
+            echo "  \"go\": \"$(go version)\","
+            echo "  \"circl_commit\": \"$(git -C "$CIRCL_DIR" rev-parse HEAD 2>/dev/null || echo unavailable)\","
+            echo "  \"fae_head\": \"$GITHUB_SHA\""
+            echo "}"
+          } > "$PQ_EVIDENCE_DIR/executor-provenance.json"
+      - name: Upload PQ-03/PQ-04 primitive evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq03-pq04-primitive-correctness
+          path: lab/post-quantum-signatures/evidence/wave-d
+          if-no-files-found: error

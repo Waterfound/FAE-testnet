@@ -1,0 +1,25 @@
+{
+  "schema": "FAE_PUBLIC_TESTNET_DIFFICULTY_SHADOW_SNAPSHOT_V1",
+  "source": "public.fae_v4_blocks",
+  "captured_tip_height": 414,
+  "captured_tip_hash": "000003f706dc5c4f615ff9894cd3f4612ed63c1e9e0a1fc085d3817dbbbc66fd",
+  "blocks": [
+    {"height":398,"timestamp_ms":1789010660200,"difficulty_bits":20,"hash":"00000e58dc1b96e4c563dce42a9a9ed6dc4e4206a9e0d4b3c0958fb9010e7dba"},
+    {"height":399,"timestamp_ms":1789010782997,"difficulty_bits":20,"hash":"00000aed7b8101eb465776ea2a585eb0dfeee2178317317f838969fc7b8d40e8"},
+    {"height":400,"timestamp_ms":1789010816028,"difficulty_bits":20,"hash":"00000e6512a2f04719bd751a2a9d5538cd81a95f94aaebf6bc50b5ce9c1f7684"},
+    {"height":401,"timestamp_ms":1789010828367,"difficulty_bits":22,"hash":"000001ac0f6805711d46608df29a34c267fd81f3f01861df666c0f45c1a71de7"},
+    {"height":402,"timestamp_ms":1789010859341,"difficulty_bits":22,"hash":"000000b5445bdda9195399f2317782d3f7c3fbec55db37bc681e6d495b1ef37a"},
+    {"height":403,"timestamp_ms":1789010890367,"difficulty_bits":22,"hash":"000002beba4ebd6fd031db87edf2b1436348d70de1f92f8d442349620d042b42"},
+    {"height":404,"timestamp_ms":1789010968616,"difficulty_bits":22,"hash":"000003918df503ca32066015559cba0f8eca1ba0c4463ed1286bab89f00fe1fe"},
+    {"height":405,"timestamp_ms":1789010976527,"difficulty_bits":22,"hash":"0000024c2de86ae16afd9aecd5a58fd788a316ee912fafbb50fa448f944e7c0c"},
+    {"height":406,"timestamp_ms":1789011733516,"difficulty_bits":22,"hash":"000003913811980d832e63fb800782f2a13cec41e65ae87c19bf1b31a9b5a594"},
+    {"height":407,"timestamp_ms":1789017612313,"difficulty_bits":22,"hash":"0000012a8c820f76e446e3705f7cbda3126d47fe28f38c97e9cb911cbfea5fd8"},
+    {"height":408,"timestamp_ms":1789018118950,"difficulty_bits":22,"hash":"0000012d2dd70b8c2b4b7580e13390f343ee62ed2766d9a10fac9356df56219f"},
+    {"height":409,"timestamp_ms":1789087770066,"difficulty_bits":22,"hash":"00000171b35e7cb8a099c02b131a2e317ce19c86c11cd9ca86d43e8a9dbd329e"},
+    {"height":410,"timestamp_ms":1789087808018,"difficulty_bits":22,"hash":"0000013c2316890ee3111e9090f5e02fd72b54471a01ae6dd045a1d7d111e356"},
+    {"height":411,"timestamp_ms":1789087952686,"difficulty_bits":22,"hash":"000002d3102a5304805f51318fb9ab49be6f1745c2496a49736021606fc89229"},
+    {"height":412,"timestamp_ms":1789087973878,"difficulty_bits":22,"hash":"00000171ec10f97b8157b2873c2a274a9d559f6bf2f217d9d49ac6310b6c41cc"},
+    {"height":413,"timestamp_ms":1789088211060,"difficulty_bits":22,"hash":"00000034ec71eea61ca0180761899a82adeb7ef16c357647dae4607a8849892a"},
+    {"height":414,"timestamp_ms":1789088328791,"difficulty_bits":22,"hash":"000003f706dc5c4f615ff9894cd3f4612ed63c1e9e0a1fc085d3817dbbbc66fd"}
+  ]
+}

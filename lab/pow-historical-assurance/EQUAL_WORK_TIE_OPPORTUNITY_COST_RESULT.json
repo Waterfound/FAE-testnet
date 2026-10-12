@@ -1,0 +1,108 @@
+{
+  "schema": "FAE_EQUAL_WORK_TIE_OPPORTUNITY_COST_RESULT_V1",
+  "status": "BOUNDED_QUANTITATIVE_CANDIDATE__FINAL_STRATEGIC_PROFITABILITY_OPEN",
+  "tests": 3,
+  "model": {
+    "single_honest_tip_hash": "independent uniform continuous rank",
+    "valid_attacker_candidate_hashes": "independent uniform ranks",
+    "competing_first_honest_extension": "Poisson rate 1-alpha, attacker grinding Poisson rate alpha",
+    "grind_opportunity": "attacker uses hash to search same-height candidate, not to extend chain",
+    "formula": "P(initial wins) + integral_0^1 (1-u)*alpha*u/(1-alpha+alpha*u) du",
+    "caveat": "The first-honest-extension stopping rule and zero network delay are an assumption; direct extension payoff and time-to-finality differ from this conditional win metric."
+  },
+  "fixed_k_work_cost_sensitivity": [
+    {
+      "number_of_attack_valid_candidates": 1,
+      "win_probability": 0.5,
+      "win_probability_per_expected_valid_candidate": 0.5
+    },
+    {
+      "number_of_attack_valid_candidates": 2,
+      "win_probability": 0.6666666666666666,
+      "win_probability_per_expected_valid_candidate": 0.3333333333333333
+    },
+    {
+      "number_of_attack_valid_candidates": 3,
+      "win_probability": 0.75,
+      "win_probability_per_expected_valid_candidate": 0.25
+    },
+    {
+      "number_of_attack_valid_candidates": 4,
+      "win_probability": 0.8,
+      "win_probability_per_expected_valid_candidate": 0.2
+    },
+    {
+      "number_of_attack_valid_candidates": 8,
+      "win_probability": 0.8888888888888888,
+      "win_probability_per_expected_valid_candidate": 0.1111111111111111
+    },
+    {
+      "number_of_attack_valid_candidates": 16,
+      "win_probability": 0.9411764705882353,
+      "win_probability_per_expected_valid_candidate": 0.058823529411764705
+    }
+  ],
+  "extension_hazard_competition": [
+    {
+      "attacker_hash_fraction": 0,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0,
+      "grind_total_win_probability": 0.5,
+      "attacker_extension_before_honest_extension_probability": 0
+    },
+    {
+      "attacker_hash_fraction": 0.05,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.00854813,
+      "grind_total_win_probability": 0.50854813,
+      "attacker_extension_before_honest_extension_probability": 0.05
+    },
+    {
+      "attacker_hash_fraction": 0.1,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.01755359,
+      "grind_total_win_probability": 0.51755359,
+      "attacker_extension_before_honest_extension_probability": 0.1
+    },
+    {
+      "attacker_hash_fraction": 0.2,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.03712897,
+      "grind_total_win_probability": 0.53712897,
+      "attacker_extension_before_honest_extension_probability": 0.2
+    },
+    {
+      "attacker_hash_fraction": 0.3,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.05919488,
+      "grind_total_win_probability": 0.55919488,
+      "attacker_extension_before_honest_extension_probability": 0.3
+    },
+    {
+      "attacker_hash_fraction": 0.35,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.07135596,
+      "grind_total_win_probability": 0.57135596,
+      "attacker_extension_before_honest_extension_probability": 0.35
+    },
+    {
+      "attacker_hash_fraction": 0.45,
+      "base_single_candidate_tie_win_probability": 0.5,
+      "grind_before_honest_extension_additional_win_probability": 0.09846741,
+      "grind_total_win_probability": 0.59846741,
+      "attacker_extension_before_honest_extension_probability": 0.45
+    }
+  ],
+  "interpretation": [
+    "Lexicographic tie advantage increases with repeated valid candidate work, but not for free.",
+    "Fixed-k probability is NOT a profitability measure; probability normalized per discovery declines.",
+    "Race-constrained advantage cannot be equated to net revenue: extending the chain, propagation, private lead, stochastic block times and network tie reachability are excluded.",
+    "Strict-greater-work-only remains a tested non-persistent counterfactual, not a consensus choice."
+  ],
+  "authority": {
+    "research_only": true,
+    "consensus_change": false,
+    "selected_tie_policy": false,
+    "mainnet": false
+  }
+}

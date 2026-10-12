@@ -1,0 +1,83 @@
+{
+  "schema": "FAE_SOVEREIGN_STANDALONE_MINING_EVIDENCE_V1",
+  "date": "2026-09-30",
+  "verdict": "SOVEREIGN_STANDALONE_MINING_READY",
+  "executable_candidate_revision": "305e4ff670649b6c86dafc2bde7d3a74a63c0172",
+  "branch": "build-colony/fae-sovereign-standalone-mining-001",
+  "pull_request": 270,
+  "stacked_on_planning_pr": 269,
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "general_execution_revision": "ff510496136c0c35fa377f6962750f1fdfb84b8e",
+  "implementation": {
+    "mining_core": "standalone/mining-core.mjs",
+    "cli": "standalone/fae-miner.mjs",
+    "package": "standalone/package.json",
+    "operator_docs": "standalone/README.md"
+  },
+  "tests": [
+    "tests/standalone-mining-core.test.mjs",
+    "tests/standalone-miner-behavior.test.mjs",
+    "tests/standalone-miner-process-restart.test.mjs",
+    "tests/standalone-miner-independent-node.test.mjs"
+  ],
+  "verification": {
+    "canonical": {
+      "run_id": 36752867795,
+      "attempt": 2,
+      "conclusion": "success"
+    },
+    "codeql": {
+      "run_id": 36752868064,
+      "conclusion": "success"
+    },
+    "psr15": {
+      "run_id": 36752867828,
+      "conclusion": "success"
+    },
+    "psr16": {
+      "run_id": 36752867990,
+      "conclusion": "success"
+    },
+    "psr17": {
+      "run_id": 36752867853,
+      "conclusion": "success"
+    },
+    "psr18": {
+      "run_id": 36752867895,
+      "conclusion": "success"
+    },
+    "recurring_security": {
+      "run_id": 36752868047,
+      "conclusion": "success"
+    },
+    "cross_lab": {
+      "run_id": 36752867694,
+      "conclusion": "success"
+    }
+  },
+  "transient_event": {
+    "canonical_run_id": 36752867795,
+    "attempt": 1,
+    "failing_step": "Verify three-node partition recovery",
+    "error": "UND_ERR_SOCKET: other side closed",
+    "standalone_specific_steps_before_failure": "success",
+    "no_code_change_rerun": true,
+    "attempt_2_same_step": "success",
+    "classification": "TRANSIENT_VERIFIER_RUNTIME_EVENT_NOT_STANDALONE_REGRESSION"
+  },
+  "definition_of_done": {
+    "standalone_real": "PASS",
+    "browser_not_required": "PASS",
+    "wallet_not_required": "PASS",
+    "private_keys_not_required": "PASS",
+    "public_reward_address_sufficient": "PASS",
+    "selectable_node": "PASS",
+    "local_independent_node": "PASS",
+    "consensus_facing_parity": "PASS",
+    "restart_reconnect_error_fail_safe": "PASS",
+    "secret_free_config": "PASS",
+    "independent_operator_docs": "PASS",
+    "sovereignty_compatible": "PASS"
+  },
+  "forbidden_authority_consumed": false
+}

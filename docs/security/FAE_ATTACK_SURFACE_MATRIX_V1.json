@@ -1,0 +1,527 @@
+{
+  "schema": "FAE_PUBLIC_CODE_ATTACK_SURFACE_MATRIX_V1",
+  "psr": "PSR-03",
+  "status": "CANDIDATE_COMPLETE_PENDING_INTEGRATION",
+  "source_revision": "eb8409573e3ee4c37b925817a474a1c6e5dd4410",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "repository": "Waterfound/FAE-testnet",
+  "principle": "FAE must remain secure even if the attacker knows 100% of the source code.",
+  "invariant_registry": [
+    {
+      "id": "I-CONS-01",
+      "class": "consensus",
+      "statement": "An invalid block or transaction never becomes canonical.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-MONEY-01",
+      "class": "monetary",
+      "statement": "Issued value never exceeds the active maximum supply.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-MONEY-02",
+      "class": "monetary",
+      "statement": "An invalid reward or coinbase is never accepted.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-MONEY-03",
+      "class": "monetary",
+      "statement": "A spend cannot create value and spent/reserved inputs cannot be reused contrary to active rules.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-AUTH-01",
+      "class": "authentication",
+      "statement": "Invalid signatures, public-key bindings, signed work or authenticated identities are never accepted as valid authority.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-FORK-01",
+      "class": "fork_choice",
+      "statement": "A lower-work valid chain cannot replace a valid higher-work chain under the active fork-choice rule.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-MATURITY-01",
+      "class": "economic_candidate",
+      "statement": "Where coinbase maturity is active, it cannot be bypassed.",
+      "severity": "baseline_blocking",
+      "active_v4": false
+    },
+    {
+      "id": "I-STATE-01",
+      "class": "state",
+      "statement": "Malformed external input cannot corrupt canonical durable state.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-RECOVERY-01",
+      "class": "recovery",
+      "statement": "Crash, restart and recovery cannot create or destroy value and may converge only to a state valid under ordinary rules.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-MINING-01",
+      "class": "mining",
+      "statement": "Stale, invalidated or abandoned work cannot mutate consensus state.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-DIFF-01",
+      "class": "differential",
+      "statement": "Independent conforming implementations must produce the same consensus result for the same admitted history/input.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-KEY-01",
+      "class": "wallet_secret",
+      "statement": "Private keys and seed phrases never enter CI, logs, fixtures, Build Colony evidence or backend persistence.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-P2P-01",
+      "class": "network_auth",
+      "statement": "Unauthenticated, replayed or tampered peer traffic cannot silently acquire authenticated authority.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-AVAIL-01",
+      "class": "availability",
+      "statement": "Attacker-controlled inputs are bounded or rejected before avoidable unbounded CPU, memory, storage, connection or retry amplification.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-SUPPLYCHAIN-01",
+      "class": "supply_chain",
+      "statement": "A release claim is bound to exact reviewed source and provenance; provider identity alone is insufficient.",
+      "severity": "baseline_blocking"
+    },
+    {
+      "id": "I-AUTHORITY-01",
+      "class": "authority_boundary",
+      "statement": "Candidate, shadow and research code cannot become authoritative without explicit activation or release authority.",
+      "severity": "baseline_blocking"
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "AS-01",
+      "name": "Consensus and state transition",
+      "owner_gates": [
+        "PSR-05",
+        "PSR-10",
+        "PSR-11"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-01",
+        "I-MONEY-02",
+        "I-MONEY-03",
+        "I-FORK-01",
+        "I-STATE-01",
+        "I-DIFF-01",
+        "I-AUTHORITY-01"
+      ],
+      "ingress": [
+        "block submission",
+        "transaction admission",
+        "difficulty/timestamp fields",
+        "activation/candidate fields",
+        "fork candidate histories"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/tests/authoritative-v4-core.mjs",
+        ".github/workflows/verify.yml",
+        "sovereign-forge/tests/partition-recovery-3node.mjs"
+      ],
+      "specialized_evidence": [
+        "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+        "sovereign-forge/tests/difficulty-timestamp-redteam.mjs"
+      ],
+      "known_gaps": [
+        "GAP-MAX-SUPPLY-BOUNDARY",
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-DIFFERENTIAL-ALL-CONSENSUS",
+        "GAP-RESOURCE-EXHAUSTION"
+      ],
+      "next_gate": "PSR-05"
+    },
+    {
+      "id": "AS-02",
+      "name": "Wallet, keys and signatures",
+      "owner_gates": [
+        "PSR-06",
+        "PSR-10",
+        "PSR-11"
+      ],
+      "invariants": [
+        "I-AUTH-01",
+        "I-KEY-01",
+        "I-DIFF-01"
+      ],
+      "ingress": [
+        "recovery phrase",
+        "passphrase",
+        "imported recovery package",
+        "public keys",
+        "signatures",
+        "address derivation"
+      ],
+      "existing_strong_evidence": [
+        "tests/crypto-compat.mjs",
+        "tests/client-smoke.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "specialized_evidence": [
+        "lab/post-quantum-signatures/*"
+      ],
+      "known_gaps": [
+        "GAP-INVALID-SIGNATURE-NEGATIVE-COVERAGE",
+        "GAP-GENERAL-HOSTILE-CORPUS"
+      ],
+      "next_gate": "PSR-06"
+    },
+    {
+      "id": "AS-03",
+      "name": "Transaction validation and mempool",
+      "owner_gates": [
+        "PSR-05",
+        "PSR-06",
+        "PSR-10",
+        "PSR-11"
+      ],
+      "invariants": [
+        "I-CONS-01",
+        "I-MONEY-03",
+        "I-AUTH-01",
+        "I-STATE-01",
+        "I-DIFF-01"
+      ],
+      "ingress": [
+        "inputs",
+        "outputs",
+        "amounts",
+        "txid",
+        "from_address",
+        "public_key_spki",
+        "signature",
+        "mempool ordering/reservations"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+        "sovereign-forge/tests/authoritative-v4-core.mjs"
+      ],
+      "specialized_evidence": [
+        "sovereign-forge/tests/activation-state-transition-core-differential.mjs"
+      ],
+      "known_gaps": [
+        "GAP-INVALID-SIGNATURE-NEGATIVE-COVERAGE",
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-DIFFERENTIAL-ALL-CONSENSUS"
+      ],
+      "next_gate": "PSR-05"
+    },
+    {
+      "id": "AS-04",
+      "name": "Mining, templates and coordinator",
+      "owner_gates": [
+        "PSR-09",
+        "PSR-10"
+      ],
+      "invariants": [
+        "I-MINING-01",
+        "I-AUTH-01",
+        "I-AUTHORITY-01",
+        "I-AVAIL-01"
+      ],
+      "ingress": [
+        "mining template",
+        "tip/status observation",
+        "coordinator work",
+        "share receipt",
+        "cross-tab hint",
+        "worker callbacks"
+      ],
+      "existing_strong_evidence": [
+        "tests/mining-coordinator-smoke.mjs",
+        "sovereign-forge/tests/authoritative-share-receipt.mjs"
+      ],
+      "specialized_evidence": [
+        "lab/mining-tip-sync/tests/mts-02-03.test.mjs",
+        "lab/mining-tip-sync/tests/mts-04-06.test.mjs"
+      ],
+      "known_gaps": [
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-RESOURCE-EXHAUSTION"
+      ],
+      "next_gate": "PSR-09"
+    },
+    {
+      "id": "AS-05",
+      "name": "P2P, discovery and eclipse resistance",
+      "owner_gates": [
+        "PSR-07",
+        "PSR-10"
+      ],
+      "invariants": [
+        "I-P2P-01",
+        "I-AVAIL-01",
+        "I-CONS-01",
+        "I-AUTHORITY-01"
+      ],
+      "ingress": [
+        "peer descriptors",
+        "peer lists",
+        "signed envelopes",
+        "secure-channel frames",
+        "headers-first sync",
+        "identity rotation",
+        "network claims"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/tests/authoritative-p2p-security.mjs",
+        "sovereign-forge/tests/authoritative-peer-diversity.mjs",
+        "sovereign-forge/tests/authoritative-p2p-v6-integration.mjs"
+      ],
+      "specialized_evidence": [
+        "sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs",
+        "sovereign-forge/tests/peer-isolation-eclipse-real-wan-controller.mjs"
+      ],
+      "known_gaps": [
+        "GAP-RESOURCE-EXHAUSTION",
+        "GAP-GENERAL-HOSTILE-CORPUS"
+      ],
+      "next_gate": "PSR-07"
+    },
+    {
+      "id": "AS-06",
+      "name": "Fork choice, reorg and recovery",
+      "owner_gates": [
+        "PSR-08",
+        "PSR-10",
+        "PSR-11"
+      ],
+      "invariants": [
+        "I-FORK-01",
+        "I-RECOVERY-01",
+        "I-STATE-01",
+        "I-MONEY-03",
+        "I-DIFF-01"
+      ],
+      "ingress": [
+        "candidate chain",
+        "persisted state",
+        "durable snapshot",
+        "reorg transaction set",
+        "restart state",
+        "bootstrap feed"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/tests/partition-recovery-3node.mjs",
+        "sovereign-forge/tests/sync-legacy-bootstrap.mjs"
+      ],
+      "specialized_evidence": [
+        "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+        "sovereign-forge/tests/independent-node-v11-process-recovery.mjs"
+      ],
+      "known_gaps": [
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-DIFFERENTIAL-ALL-CONSENSUS"
+      ],
+      "next_gate": "PSR-08"
+    },
+    {
+      "id": "AS-07",
+      "name": "Browser and frontend boundary",
+      "owner_gates": [
+        "PSR-09",
+        "PSR-10"
+      ],
+      "invariants": [
+        "I-KEY-01",
+        "I-MINING-01",
+        "I-AUTHORITY-01",
+        "I-AVAIL-01"
+      ],
+      "ingress": [
+        "DOM state",
+        "localStorage",
+        "wallet UI",
+        "network status",
+        "hostile backend response",
+        "watch-only state"
+      ],
+      "existing_strong_evidence": [
+        "tests/client-smoke.mjs",
+        "tests/crypto-compat.mjs",
+        "tests/mining-coordinator-smoke.mjs"
+      ],
+      "specialized_evidence": [
+        "tests/live-e2e-readonly.mjs"
+      ],
+      "known_gaps": [
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-RESOURCE-EXHAUSTION"
+      ],
+      "next_gate": "PSR-09"
+    },
+    {
+      "id": "AS-08",
+      "name": "API, backend and coordinator boundary",
+      "owner_gates": [
+        "PSR-09",
+        "PSR-10"
+      ],
+      "invariants": [
+        "I-AUTH-01",
+        "I-STATE-01",
+        "I-AVAIL-01",
+        "I-AUTHORITY-01"
+      ],
+      "ingress": [
+        "HTTP/JSON requests",
+        "template/status responses",
+        "coordinator API",
+        "Supabase Edge functions",
+        "deployment manifests"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/tests/authoritative-coordinator-runtime.mjs",
+        "sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "specialized_evidence": [
+        "tests/live-e2e-readonly.mjs"
+      ],
+      "known_gaps": [
+        "GAP-GENERAL-HOSTILE-CORPUS",
+        "GAP-RESOURCE-EXHAUSTION"
+      ],
+      "next_gate": "PSR-09"
+    },
+    {
+      "id": "AS-09",
+      "name": "Build, dependencies and supply chain",
+      "owner_gates": [
+        "PSR-12",
+        "PSR-13"
+      ],
+      "invariants": [
+        "I-SUPPLYCHAIN-01",
+        "I-KEY-01",
+        "I-AUTHORITY-01"
+      ],
+      "ingress": [
+        "dependency graph",
+        "workflow source",
+        "build environment",
+        "release artifact",
+        "deployment manifest",
+        "repository secrets boundary"
+      ],
+      "existing_strong_evidence": [
+        "FAE_FORGE_MAIN.sha256",
+        "supabase/SOURCE_MANIFEST.sha256",
+        ".github/workflows/verify.yml"
+      ],
+      "specialized_evidence": [
+        "sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs"
+      ],
+      "known_gaps": [
+        "GAP-DEPENDABOT",
+        "GAP-CODEQL",
+        "GAP-SECRET-SCAN-GATE"
+      ],
+      "next_gate": "PSR-12"
+    },
+    {
+      "id": "AS-10",
+      "name": "Candidate, lab and activation boundary",
+      "owner_gates": [
+        "PSR-05",
+        "PSR-12",
+        "PSR-13",
+        "PSR-15"
+      ],
+      "invariants": [
+        "I-AUTHORITY-01",
+        "I-CONS-01",
+        "I-SUPPLYCHAIN-01"
+      ],
+      "ingress": [
+        "candidate modules",
+        "shadow codecs",
+        "future economics",
+        "lab artifacts",
+        "activation configuration"
+      ],
+      "existing_strong_evidence": [
+        "sovereign-forge/tests/consensus-v3-shadow-activation.mjs",
+        "sovereign-forge/tests/authoritative-v4-core.mjs",
+        ".github/workflows/verify.yml"
+      ],
+      "specialized_evidence": [
+        "lab/post-quantum-signatures/authority.json",
+        "lab/mining-tip-sync/authority.json",
+        "sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs"
+      ],
+      "known_gaps": [
+        "GAP-DIFFERENTIAL-ALL-CONSENSUS"
+      ],
+      "next_gate": "PSR-05"
+    },
+    {
+      "id": "AS-11",
+      "name": "Disclosure, findings and regression lifecycle",
+      "owner_gates": [
+        "PSR-04",
+        "PSR-15",
+        "PSR-16",
+        "PSR-17"
+      ],
+      "invariants": [
+        "I-AUTHORITY-01",
+        "I-KEY-01"
+      ],
+      "ingress": [
+        "vulnerability report",
+        "security finding",
+        "fix",
+        "regression test",
+        "residual-risk decision"
+      ],
+      "existing_strong_evidence": [],
+      "specialized_evidence": [],
+      "known_gaps": [
+        "GAP-DISCLOSURE"
+      ],
+      "next_gate": "PSR-04"
+    }
+  ],
+  "routing_rules": [
+    "Every security finding maps to at least one attack-surface ID and invariant ID.",
+    "Every baseline-blocking finding blocks the owning gate until fixed or explicitly carried as a blocker.",
+    "Every feasible fix leaves an executable regression test.",
+    "Missing evidence never upgrades a surface to covered.",
+    "Candidate/lab evidence cannot satisfy active-consensus authority without an explicit activation boundary.",
+    "Cross-surface findings may have multiple owner gates; no owner may silently waive another gate."
+  ],
+  "downstream_frontier_on_green": [
+    "PSR-05",
+    "PSR-06",
+    "PSR-07",
+    "PSR-08",
+    "PSR-09"
+  ],
+  "parallelization_note": "PSR-05 through PSR-09 may proceed in parallel after PSR-03 integration because each owns a distinct attack surface; PSR-10 serializes the shared hostile corpus/property/fuzz layer.",
+  "rebinding": {
+    "previous_source_revision": "83a6adff3a6232026e78321062fe58e68174d9cd",
+    "reason": "FAE main advanced by 13 commits before PR creation; intervening changes were reviewed and were limited to Mining Tip Sync/browser mining plus the corresponding Forge hash.",
+    "admitted_intervening_evidence": [
+      "lab/mining-tip-sync/tests/mts-04-06.test.mjs",
+      "lab/mining-tip-sync/evidence/mts-04-06.json"
+    ]
+  }
+}

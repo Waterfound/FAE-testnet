@@ -1,0 +1,33 @@
+{
+  "schema": "FAE_MTS_02_03_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "candidate_head": "467eecab923e4af6042d36cb4d7c62ef733a8e87",
+  "lab_workflow": {
+    "run_id": 35343576845,
+    "job_id": 105594832777,
+    "conclusion": "success",
+    "tests": {"total": 9, "pass": 9, "fail": 0}
+  },
+  "canonical_workflow": {
+    "run_id": 35343576784,
+    "job_id": 105594833294,
+    "conclusion": "success"
+  },
+  "MTS-02": {
+    "generation_monotonic": true,
+    "stale_generation_rejected": true,
+    "invalidated_generation_rejected": true,
+    "work_identity_binds": ["session_id","generation","network","height","previous_hash","reward_address"]
+  },
+  "MTS-03": {
+    "exact_parent": "current",
+    "higher_height": "stale:CHAIN_ADVANCED",
+    "same_height_different_hash": "stale:PARENT_REPLACED",
+    "observer_behind": "unknown:OBSERVER_BEHIND_WORK_PARENT",
+    "transport_or_malformed": "unknown",
+    "mempool_only_change": "current when height+tip_hash unchanged",
+    "cross_tab_hint": "revalidate only; not authoritative"
+  },
+  "next_frontier": ["MTS-04","MTS-06"],
+  "miner_write_authorization": "mining.js only"
+}

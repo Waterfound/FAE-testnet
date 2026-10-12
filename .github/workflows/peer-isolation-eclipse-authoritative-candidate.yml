@@ -1,0 +1,51 @@
+name: peer-isolation-eclipse-authoritative-candidate
+
+on:
+  push:
+    branches: [lab-peer-isolation-eclipse-authoritative-integration]
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/fae-v4-peer-node.mjs'
+      - 'sovereign-forge/node/authoritative/peer-*.mjs'
+      - 'sovereign-forge/node/lab/peer-isolation-*.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-*.mjs'
+      - 'sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_*.md'
+      - '.github/workflows/peer-isolation-eclipse-authoritative-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peer-isolation-eclipse-authoritative-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authoritative-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax-check authoritative candidate
+        run: |
+          node --check sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs
+          node --check sovereign-forge/node/authoritative/fae-v4-peer-node-eclipse-candidate.mjs
+          node --check sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+
+      - name: Re-run frozen Gate 1
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs
+
+      - name: Re-run frozen Gate 2
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-protocol6.mjs
+
+      - name: Verify protocol-6 baseline
+        run: node --test sovereign-forge/tests/authoritative-p2p-v6-integration.mjs
+
+      - name: Prove promotion parity and authoritative candidate recovery
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs

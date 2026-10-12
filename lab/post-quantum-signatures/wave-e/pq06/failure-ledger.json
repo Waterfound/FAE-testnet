@@ -1,0 +1,15 @@
+{
+  "schema": "FAE_PQ06_FAILURE_LEDGER_V1",
+  "entries": [
+    {
+      "workflow_run_id": 35355560840,
+      "head": "8fda18222b5ff0211722193e68a9c3813689a788",
+      "classification": "MODULE_SYNTAX_ERROR",
+      "first_failure": "serializePublicMetadata contained an unclosed array expression; the PQ-06 matrix did not execute.",
+      "cryptographic_derivation_executed": false,
+      "cryptographic_divergence_observed": false,
+      "artifact_id": 10550519980,
+      "artifact_sha256": "8edbe943fc3ae9819b979313162b4ba9409ecfe7d4f97712c9420fdef29bf3dd"
+    }
+  ]
+}

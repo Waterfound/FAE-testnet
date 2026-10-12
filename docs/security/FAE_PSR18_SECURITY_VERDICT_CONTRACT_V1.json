@@ -1,0 +1,50 @@
+{
+  "schema": "FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_CONTRACT_V1",
+  "psr": "PSR-18",
+  "allowed_verdicts": [
+    "BASELINE_READY_FOR_RECURRING_ASSURANCE",
+    "BLOCKED_BY_SECURITY_FINDINGS",
+    "BLOCKED_BY_MISSING_EVIDENCE"
+  ],
+  "required_green_phases": [
+    "PSR-00",
+    "PSR-01",
+    "PSR-02",
+    "PSR-03",
+    "PSR-04",
+    "PSR-05",
+    "PSR-06",
+    "PSR-07",
+    "PSR-08",
+    "PSR-09",
+    "PSR-10",
+    "PSR-11",
+    "PSR-12",
+    "PSR-13",
+    "PSR-14",
+    "PSR-15",
+    "PSR-16",
+    "PSR-17"
+  ],
+  "required_integrated_evidence": [
+    "docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json",
+    "docs/security/FAE_PSR17_INTEGRATED_RESULT_V1.json",
+    "docs/security/FAE_PSR17_FULL_SECURITY_BASELINE_REPLAY_V1.json"
+  ],
+  "decision_order": [
+    "If any open baseline-blocking finding exists -> BLOCKED_BY_SECURITY_FINDINGS",
+    "Else if any required phase/evidence/check is missing or non-GREEN -> BLOCKED_BY_MISSING_EVIDENCE",
+    "Else -> BASELINE_READY_FOR_RECURRING_ASSURANCE"
+  ],
+  "scanner_policy": "CodeQL/static/dependency scanner results can contribute evidence but cannot waive findings.",
+  "authority": {
+    "mainnet_authority": false,
+    "release_authority": false,
+    "consensus_activation": false,
+    "economic_activation": false
+  },
+  "downstream": {
+    "ready_verdict": "PSR-19 becomes READY",
+    "blocked_verdict": "PSR-19 remains blocked"
+  }
+}

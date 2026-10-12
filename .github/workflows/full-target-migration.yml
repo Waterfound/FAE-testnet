@@ -1,0 +1,41 @@
+name: full-target-migration
+
+on:
+  push:
+    branches: [full-target-migration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check sovereign-forge/node/authoritative/full-target-migration-candidate.mjs
+          node --check sovereign-forge/node/authoritative/full-target-activation-candidate.mjs
+          node --check sovereign-forge/tests/full-target-migration.mjs
+      - name: Full-target migration tests
+        run: node --test sovereign-forge/tests/full-target-migration.mjs
+      - name: Authority fences
+        run: |
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-migration-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-activation-candidate.mjs
+          ! grep -q "full-target-migration-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "full-target-activation-candidate" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "export function chainWork(chain){return chain.reduce((sum,b)=>sum+(1n<<BigInt(Number(b.difficulty_bits))),0n)}" sovereign-forge/node/authoritative/fae-v4-core.mjs
+      - name: Preserve Difficulty Timestamp and prior network gates
+        run: |
+          node --test sovereign-forge/tests/difficulty-timestamp-hardening.mjs
+          node --test sovereign-forge/tests/difficulty-timestamp-shadow.mjs
+          node --test sovereign-forge/tests/difficulty-timestamp-redteam.mjs
+          python3 sovereign-forge/tests/difficulty_timestamp_reference.py
+          node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --test sovereign-forge/tests/consensus-v3-shadow-activation.mjs

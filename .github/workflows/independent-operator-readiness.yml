@@ -1,0 +1,73 @@
+name: Independent Operator Readiness
+
+on:
+  push:
+    branches:
+      - "colony/fae-independent-operator-readiness-*"
+  pull_request:
+    paths:
+      - "lab/independent-operator-readiness/**"
+      - "docs/FAE_INDEPENDENT_OPERATOR_READINESS_*"
+      - ".github/workflows/independent-operator-readiness.yml"
+      - "sovereign-forge/node/**"
+      - "sovereign-forge/tests/independent-node-v11*"
+      - "tools/repository-recovery/**"
+      - "scripts/psr13-release-provenance.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: independent-operator-readiness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax check readiness tooling
+        run: |
+          node --check lab/independent-operator-readiness/verify-evidence.mjs
+          node --check lab/independent-operator-readiness/run-operator.mjs
+          node --check lab/independent-operator-readiness/run-clean-room-rehearsal.mjs
+          node --check lab/independent-operator-readiness/tests/ior-readiness.test.mjs
+
+      - name: Parse frozen contracts and Build Colony state
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('lab/independent-operator-readiness/acceptance-contract.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_INDEPENDENT_OPERATOR_READINESS_BUILD_COLONY_RUN.json'))"
+          node -e "JSON.parse(require('fs').readFileSync('docs/FAE_INDEPENDENT_OPERATOR_READINESS_DURABLE_STATE.json'))"
+
+      - name: Run adversarial false-PASS campaign
+        run: node --test lab/independent-operator-readiness/tests/ior-readiness.test.mjs
+
+      - name: Re-run hardened Independent Node recovery gates
+        run: |
+          node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
+          node --test sovereign-forge/tests/independent-node-v11-process-recovery.mjs
+
+      - name: Preserve canonical readiness invariants
+        run: node tools/verify-mainnet-readiness-state.mjs
+
+      - name: Run clean-room real-process rehearsal
+        run: |
+          rm -rf "$RUNNER_TEMP/fae-ior-rehearsal"
+          node lab/independent-operator-readiness/run-clean-room-rehearsal.mjs --out "$RUNNER_TEMP/fae-ior-rehearsal" | tee "$RUNNER_TEMP/fae-ior-rehearsal-result.json"
+
+      - name: Upload rehearsal evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-ior-readiness-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/fae-ior-rehearsal
+            ${{ runner.temp }}/fae-ior-rehearsal-result.json
+          retention-days: 7

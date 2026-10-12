@@ -1,0 +1,90 @@
+name: pq-lab-wave-f-pq07
+
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/wave-f/pq07/**'
+      - '.github/workflows/pq-lab-wave-f-pq07.yml'
+  push:
+    branches:
+      - 'colony/pq07-*'
+    paths:
+      - 'lab/post-quantum-signatures/wave-f/pq07/**'
+      - '.github/workflows/pq-lab-wave-f-pq07.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pq07-adversarial-downgrade-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.8.0'
+      - name: PQ-00 boundary guard
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Enforce PQ-07 executor binding
+        id: binding
+        shell: bash
+        run: |
+          TEST='lab/post-quantum-signatures/wave-f/pq07/test.mjs'
+          if [ -f "$TEST" ]; then
+            echo "bound=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$GITHUB_HEAD_REF" = "colony/pq-wave-f-harness" ]; then
+            echo "bound=false" >> "$GITHUB_OUTPUT"
+            echo "Harness bootstrap: PQ-07 implementation intentionally absent."
+            exit 0
+          fi
+          echo "Missing required PQ-07 executor target: $TEST" >&2
+          exit 1
+      - name: Verify PQ-05 and PQ-06 prerequisites
+        run: |
+          node - <<'NODE'
+          const s=require('./lab/post-quantum-signatures/gate-status.json');
+          if(s.gates['PQ-05']?.status!=='GREEN') process.exit(1);
+          if(s.gates['PQ-06']?.status!=='GREEN') process.exit(1);
+          if(s.activation_authorized!==false) process.exit(1);
+          NODE
+      - name: Validate frozen PQ-07 manifest
+        run: |
+          node - <<'NODE'
+          const m=require('./lab/post-quantum-signatures/wave-f/pq07/manifest.json');
+          if(m.status!=='FROZEN_BEFORE_IMPLEMENTATION') process.exit(1);
+          if(m.activation_authorized!==false) process.exit(1);
+          if(!Array.isArray(m.transaction_attack_matrix)||m.transaction_attack_matrix.length<20) process.exit(1);
+          if(!Array.isArray(m.wallet_attack_matrix)||m.wallet_attack_matrix.length<10) process.exit(1);
+          NODE
+      - name: Install pinned PQ dependencies
+        if: steps.binding.outputs.bound == 'true'
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Syntax-check PQ-07 attack harness
+        if: steps.binding.outputs.bound == 'true'
+        run: node --check lab/post-quantum-signatures/wave-f/pq07/test.mjs
+      - name: Execute frozen PQ-07 adversarial matrix
+        if: steps.binding.outputs.bound == 'true'
+        run: |
+          set -o pipefail
+          mkdir -p lab/post-quantum-signatures/evidence/wave-f
+          node lab/post-quantum-signatures/wave-f/pq07/test.mjs | tee lab/post-quantum-signatures/evidence/wave-f/pq07.json
+      - name: Upload PQ-07 evidence
+        if: always() && steps.binding.outputs.bound == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq07-adversarial-downgrade-replay
+          path: lab/post-quantum-signatures/evidence/wave-f/pq07.json
+          if-no-files-found: error

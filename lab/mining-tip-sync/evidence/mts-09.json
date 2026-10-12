@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_MTS_09_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "verified_head_before_freeze": "6fc17130e7ae3896946e19605eafc065f40dfd58",
+  "lab_workflow": {
+    "run_id": 35354959816,
+    "job_id": 105631947234,
+    "conclusion": "success",
+    "tests": {"total": 4, "pass": 4, "fail": 0}
+  },
+  "canonical_workflow": {
+    "run_id": 35354960017,
+    "job_id": 105631948457,
+    "conclusion": "success",
+    "canonical_gates": {"total": 31, "pass": 31, "fail": 0}
+  },
+  "topology": {
+    "same_device_tabs": 2,
+    "isolated_other_device_contexts": 1,
+    "shared_authoritative_chain": true,
+    "cross_context_notification_required": false
+  },
+  "proofs": {
+    "remote_tip_advance": "Each context replaced stale work only after its own authoritative /status observation.",
+    "per_context_outage": "Two healthy contexts converged while the failed context remained isolated, then converged after its own status recovery.",
+    "remote_nonce_submit_race": "External tip advance after local work acquisition blocked local submission with zero stale submits.",
+    "same_height_replacement": "Each isolated context independently detected parent replacement at unchanged height."
+  },
+  "runtime_patch_required": false,
+  "stale_submissions_observed": 0,
+  "authority": {
+    "same_device_hint_is_chain_authority": false,
+    "broadcast_channel_required_for_correctness": false,
+    "backend_changed": false,
+    "consensus_changed": false,
+    "economics_changed": false,
+    "block_time_changed": false
+  },
+  "next_frontier": ["MTS-10"],
+  "MTS-10_scope": "BroadcastChannel as an optional acceleration-only revalidation hint."
+}

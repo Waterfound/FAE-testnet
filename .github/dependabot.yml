@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+
+  - package-ecosystem: "npm"
+    directory: "/sovereign-forge/node"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+
+  - package-ecosystem: "npm"
+    directory: "/lab/post-quantum-signatures"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+
+  - package-ecosystem: "docker"
+    directory: "/sovereign-forge/node"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"

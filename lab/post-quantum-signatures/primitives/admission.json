@@ -1,0 +1,49 @@
+{
+  "schema": "FAE_PQ_WAVE_D_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "admitted_head": "cced61cb5ca813976697647e24c1a445c43bfd55",
+  "integrated_executor_repair": "74ddd2b24d4b4653ec620d7c208809c98f6633e2",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-00": "GREEN",
+    "PQ-01": "GREEN",
+    "PQ-02": "GREEN"
+  },
+  "decision": {
+    "PQ-03": "GREEN",
+    "PQ-04": "GREEN"
+  },
+  "all_runs_must_pass_binding": {
+    "pq_run_id": 35347872084,
+    "pq_run_number": 97,
+    "pq_conclusion": "success",
+    "canonical_run_id": 35347872099,
+    "canonical_run_number": 443,
+    "canonical_conclusion": "success"
+  },
+  "evidence_artifacts": {
+    "primitive": {
+      "id": 10547354448,
+      "sha256": "c724121007345ded686560fd6150f0f9ebd5763ba44471c8c4616726e15738c0"
+    },
+    "implementation_independence": {
+      "id": 10547692332,
+      "sha256": "2ceb8778358c63dc9cede7a86c16cf1334dabc1baf4da883aeea9d95bb53a648"
+    },
+    "standards": {
+      "id": 10547259061,
+      "sha256": "5e4724326534691565781698694ffe0dea1f95d1353a2dcb0f58a861d3b63d48"
+    }
+  },
+  "failures_preserved_in": "lab/post-quantum-signatures/primitives/failure-ledger.json",
+  "cryptographic_summary": {
+    "noble_frozen_replay": "PASS",
+    "circl_mldsa_modern_replay": "PASS",
+    "circl_slhdsa_native_replay": "PASS",
+    "noble_to_circl": "PASS",
+    "circl_to_noble": "PASS",
+    "unexplained_disagreements": 0
+  },
+  "authority_effect": "NONE"
+}

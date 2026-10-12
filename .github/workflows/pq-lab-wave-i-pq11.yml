@@ -1,0 +1,43 @@
+name: pq-lab-wave-i-pq11
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/wave-i/**'
+      - '.github/workflows/pq-lab-wave-i-pq11.yml'
+  push:
+    branches:
+      - 'colony/pq11-*'
+    paths:
+      - 'lab/post-quantum-signatures/wave-i/**'
+      - '.github/workflows/pq-lab-wave-i-pq11.yml'
+permissions:
+  contents: read
+jobs:
+  software-only-ceiling-verdict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24.8.0' }
+      - name: PQ boundary
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Verify PQ-10 prerequisite
+        run: node -e "const s=require('./lab/post-quantum-signatures/gate-status.json'); if(s.gates['PQ-10']?.status!=='GREEN'||s.activation_authorized!==false)process.exit(1)"
+      - name: Execute frozen PQ-11 verdict
+        run: node lab/post-quantum-signatures/wave-i/evaluate.mjs
+      - name: Upload PQ-11 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq11-software-only-ceiling-verdict
+          path: lab/post-quantum-signatures/wave-i/verdict.json
+          if-no-files-found: error

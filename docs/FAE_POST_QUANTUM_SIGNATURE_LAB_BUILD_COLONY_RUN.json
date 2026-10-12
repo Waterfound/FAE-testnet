@@ -1,0 +1,80 @@
+{
+  "schema": "FAE_POST_QUANTUM_SIGNATURE_LAB_BUILD_COLONY_PLAN_V1",
+  "run_kind": "REAL_PLANNING_RUN",
+  "run_date": "2026-09-18",
+  "project": "FAE",
+  "repository": "Waterfound/FAE-testnet",
+  "source_revision": "e4b5cb6fc0a3a374d40d2d11e38585abb974a3a7",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "active_gate_class": "capability_gap",
+  "active_gate_evidence_ref": "Waterfound/FAE-testnet@e4b5cb6fc0a3a374d40d2d11e38585abb974a3a7:wallet-crypto.js",
+  "supporting_evidence_refs": [
+    "Waterfound/FAE-testnet@e4b5cb6fc0a3a374d40d2d11e38585abb974a3a7:sovereign-forge/node/authoritative/fae-v4-core.mjs",
+    "Waterfound/FAE-testnet@e4b5cb6fc0a3a374d40d2d11e38585abb974a3a7:tests/crypto-compat.mjs"
+  ],
+  "native_progress_unit": "post_quantum_shadow_gate_completion",
+  "work_selection_decision": {
+    "route": "pq-signature-lab",
+    "route_state": "active",
+    "eligible_domains": [
+      "pq-boundary-freeze",
+      "pq-standards-pinning",
+      "pq-implementation-independence",
+      "pq-mldsa-correctness",
+      "pq-slhdsa-diversity",
+      "pq-shadow-transaction",
+      "pq-wallet-migration",
+      "pq-adversarial-downgrade-replay",
+      "pq-differential-verification",
+      "pq-resource-economics",
+      "pq-end-to-end-shadow",
+      "pq-software-ceiling-verdict",
+      "pq-physical-device-evidence"
+    ],
+    "filtered_domains": [],
+    "generic_development_proposed": false
+  },
+  "authority": {
+    "ceiling": "RESEARCH_SHADOW_CANDIDATE_WRITE",
+    "consensus_change_authorized": false,
+    "transaction_v2_change_authorized": false,
+    "active_wallet_format_change_authorized": false,
+    "active_address_change_authorized": false,
+    "public_testnet_change_authorized": false,
+    "candidate_to_authoritative": false,
+    "mainnet_launch_authorized": false
+  },
+  "invariants": [
+    "Ed25519 remains authoritative in the active FAE implementation.",
+    "Transaction v2 remains authoritative and unchanged by the Lab.",
+    "No active wallet, address, consensus, public-testnet or mainnet state is modified by Lab work.",
+    "Private keys and seed phrases never enter Build Colony evidence.",
+    "Independent human operator is N/A by design; method independence is mandatory.",
+    "Independent verifier code path is mandatory.",
+    "Official standards/vectors and exact corpus revisions are pinned before admission.",
+    "Cross-implementation agreement is mandatory where independent implementations are available.",
+    "All required runs must pass; no selective retry may erase a failing run.",
+    "Research findings cannot grant activation authority."
+  ],
+  "dependency_graph": {
+    "pq-boundary-freeze": [],
+    "pq-standards-pinning": ["pq-boundary-freeze"],
+    "pq-implementation-independence": ["pq-boundary-freeze", "pq-standards-pinning"],
+    "pq-mldsa-correctness": ["pq-standards-pinning", "pq-implementation-independence"],
+    "pq-slhdsa-diversity": ["pq-standards-pinning", "pq-implementation-independence"],
+    "pq-shadow-transaction": ["pq-mldsa-correctness"],
+    "pq-wallet-migration": ["pq-mldsa-correctness"],
+    "pq-adversarial-downgrade-replay": ["pq-shadow-transaction", "pq-wallet-migration"],
+    "pq-differential-verification": ["pq-mldsa-correctness", "pq-slhdsa-diversity", "pq-shadow-transaction", "pq-wallet-migration", "pq-adversarial-downgrade-replay"],
+    "pq-resource-economics": ["pq-mldsa-correctness", "pq-slhdsa-diversity", "pq-shadow-transaction", "pq-wallet-migration"],
+    "pq-end-to-end-shadow": ["pq-differential-verification", "pq-resource-economics"],
+    "pq-software-ceiling-verdict": ["pq-end-to-end-shadow"],
+    "pq-physical-device-evidence": ["pq-software-ceiling-verdict"]
+  },
+  "terminal_lab_verdicts": [
+    "MIGRATION_PATH_TECHNICALLY_VIABLE_IN_SHADOW",
+    "INSUFFICIENT_JUSTIFICATION_FOR_ACTIVATION",
+    "BLOCKED_BY_UNRESOLVED_EVIDENCE"
+  ],
+  "activation_gate": "OUTSIDE_THIS_RUN_AND_OUTSIDE_BUILD_COLONY_AUTHORITY"
+}

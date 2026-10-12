@@ -1,0 +1,140 @@
+{
+  "schema": "FAE_INDEPENDENT_OPERATOR_ACCEPTANCE_CONTRACT_V1",
+  "contract_id": "FAE-IOR-ACCEPTANCE-V1-20260928",
+  "frozen_date": "2026-09-28",
+  "authority_scope": "READINESS_ONLY",
+  "target_network": {
+    "network": "fairyelf-public-testnet-v4",
+    "genesis_hash": "0000391ae913006a6c1ab07760675e71067dfc40f893416b4bcb81eac75989bc",
+    "minimum_p2p_protocol_version": 6
+  },
+  "independent_operator_definition": {
+    "required": [
+      "operator_is_not_Waterfound_or_an_agent_acting_as_Waterfound",
+      "operator_uses_operator_controlled_compute",
+      "operator_uses_no_Waterfound_shell_session",
+      "operator_uses_no_Waterfound_private_keys_or_private_cloud_credentials",
+      "operator_starts_without_a_preinitialized_node_database",
+      "operator_receives_no_undocumented_interactive_help",
+      "operator_uses_only_public_or_explicitly_admitted_inputs",
+      "operator_produces_the_run_evidence_from_their_own_execution"
+    ],
+    "permitted": [
+      "canonical_public_documentation",
+      "canonical_public_source",
+      "verifiable_release_artifacts",
+      "explicit_public_bootstrap_information",
+      "operator_owned_compute_and_logs"
+    ],
+    "forbidden_shortcuts": [
+      "pre_synchronized_database_supplied_to_operator",
+      "Waterfound_remote_shell_execution",
+      "shared_private_credentials",
+      "secret_preconfigured_node_image",
+      "copied_evidence_from_prior_run",
+      "undocumented_interactive_configuration_help"
+    ]
+  },
+  "run_inputs": {
+    "required": [
+      "expected_source_revision",
+      "run_challenge",
+      "operator_id",
+      "eligible_peer_endpoint"
+    ],
+    "peer_endpoint_rule": "The endpoint is run-specific public/admitted bootstrap input. This contract does not select final production bootstrap nodes.",
+    "source_rule": "Verifier invocation MUST bind the exact expected source revision; a bundle from a different revision is stale and fails."
+  },
+  "evidence_classification": {
+    "rehearsal": "READINESS_REHEARSAL_ONLY",
+    "terminal_external": "EXTERNAL_OPERATOR_RUN",
+    "rehearsal_may_satisfy_external_gate": false
+  },
+  "required_bundle_files": [
+    "operator-run.json",
+    "environment.json",
+    "source-provenance.json",
+    "bootstrap.json",
+    "network-identity.json",
+    "peer-observations.json",
+    "tip-observations.json",
+    "restart-recovery.json",
+    "operator-attestation.json",
+    "logs/node.log",
+    "manifest.json"
+  ],
+  "acceptance": {
+    "source_provenance": {
+      "require_exact_expected_revision": true,
+      "require_source_tree": true,
+      "require_clean_worktree": true
+    },
+    "bootstrap": {
+      "require_fresh_state_directory": true,
+      "require_no_preinitialized_database": true,
+      "require_explicit_peer_input": true
+    },
+    "network_identity": {
+      "require_network_match": true,
+      "require_genesis_match": true,
+      "require_signed_node_challenge": true
+    },
+    "peers": {
+      "minimum_authenticated_peers": 1,
+      "isolated_node_passes": false
+    },
+    "tip": {
+      "minimum_observations": 3,
+      "require_monotonic_time": true,
+      "require_non_decreasing_height": true,
+      "require_progression": true
+    },
+    "restart": {
+      "required": true,
+      "require_same_node_identity": true,
+      "require_state_recovery": true,
+      "require_peer_recovery": true,
+      "manual_state_surgery_allowed": false
+    },
+    "provenance": {
+      "require_manifest_sha256": true,
+      "require_run_id": true,
+      "require_external_run_challenge_binding": true,
+      "require_operator_id_binding": true
+    }
+  },
+  "deterministic_verdicts": [
+    "PASS",
+    "FAIL",
+    "INCOMPLETE",
+    "INVALID_PROVENANCE"
+  ],
+  "fail_closed_on": [
+    "missing_required_file",
+    "malformed_json",
+    "checksum_mismatch",
+    "wrong_network",
+    "wrong_genesis",
+    "missing_authenticated_peer",
+    "missing_tip_progression",
+    "missing_restart",
+    "node_identity_changed_across_restart",
+    "impossible_or_non_monotonic_timestamps",
+    "stale_or_unexpected_source_revision",
+    "run_challenge_mismatch",
+    "operator_id_mismatch",
+    "evidence_class_mismatch",
+    "unsupported_schema",
+    "partial_execution"
+  ],
+  "authority_boundaries": {
+    "readiness_can_close_without_external_run": true,
+    "independent_operator_evidence_requires_real_eligible_operator": true,
+    "readiness_pass_means_external_evidence_pass": false,
+    "consensus_change_authorized": false,
+    "economics_change_authorized": false,
+    "mainnet_ready": false,
+    "mainnet_authorized": false,
+    "new_spending_authorized": false
+  }
+}

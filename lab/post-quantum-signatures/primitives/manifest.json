@@ -1,0 +1,105 @@
+{
+  "schema": "FAE_PQ_PRIMITIVE_CORRECTNESS_WAVE_D_V1",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "recorded_at": "2026-09-18",
+  "fae_base_revision": "a6721bb231471873ba069ab5bd6b2c8e5c6df92a",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-00": "GREEN",
+    "PQ-01": "GREEN",
+    "PQ-02": "GREEN"
+  },
+  "pinned_inputs": {
+    "nist_acvp_repository": "usnistgov/ACVP-Server",
+    "nist_acvp_commit": "975de31eb83d87039ec88934fdc47d8c312b892d",
+    "noble": {
+      "package": "@noble/post-quantum",
+      "version": "0.7.1",
+      "source_commit": "a23736036d4d5b34dd3a9e0ee312fd43d00154ac"
+    },
+    "circl": {
+      "repository": "cloudflare/circl",
+      "commit": "2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0"
+    }
+  },
+  "PQ-03": {
+    "name": "ML-DSA Primitive Correctness",
+    "parameter_sets": [
+      "ML-DSA-44",
+      "ML-DSA-65",
+      "ML-DSA-87"
+    ],
+    "official_vector_policy": "FULL_FROZEN_ACVP_REPLAY",
+    "modes": [
+      "keyGen",
+      "sigGen",
+      "sigVer"
+    ],
+    "anchors_required": [
+      "noble-js",
+      "cloudflare-circl"
+    ],
+    "cross_implementation_handshake": "ALL_THREE_PARAMETER_SETS",
+    "negative_matrix": [
+      "tampered_signature",
+      "wrong_public_key",
+      "truncated_signature",
+      "extended_signature"
+    ],
+    "gate": "all required official replays, cross-verification, and negative cases pass with no unexplained disagreement"
+  },
+  "PQ-04": {
+    "name": "SLH-DSA Diversity Study",
+    "all_parameter_sets": [
+      "SLH-DSA-SHA2-128s",
+      "SLH-DSA-SHA2-128f",
+      "SLH-DSA-SHA2-192s",
+      "SLH-DSA-SHA2-192f",
+      "SLH-DSA-SHA2-256s",
+      "SLH-DSA-SHA2-256f",
+      "SLH-DSA-SHAKE-128s",
+      "SLH-DSA-SHAKE-128f",
+      "SLH-DSA-SHAKE-192s",
+      "SLH-DSA-SHAKE-192f",
+      "SLH-DSA-SHAKE-256s",
+      "SLH-DSA-SHAKE-256f"
+    ],
+    "official_vector_policy": {
+      "noble_keygen": "lowest-tcId case from every parameter-set group",
+      "noble_sigver": "lowest-tcId positive and lowest-tcId negative case from the first external/pure group for every parameter set",
+      "noble_siggen": "lowest-tcId case from the first deterministic external/pure group for each representative signing set",
+      "circl_native_acvp": "run upstream ACVP suite against the FAE-pinned corpus; upstream-defined long-test skips are evidence and are not reclassified as passes",
+      "cross_implementation": "representative signing sets below"
+    },
+    "representative_signing_sets": [
+      "SLH-DSA-SHA2-128s",
+      "SLH-DSA-SHAKE-128f",
+      "SLH-DSA-SHA2-192s",
+      "SLH-DSA-SHAKE-192f",
+      "SLH-DSA-SHA2-256s",
+      "SLH-DSA-SHAKE-256f"
+    ],
+    "selection_rationale": "Frozen before execution to cover NIST security categories 1/3/5, SHA2/SHAKE families, and small/fast parameter profiles without turning PQ-04 into the resource-economics study reserved for PQ-09.",
+    "negative_matrix": [
+      "tampered_signature",
+      "wrong_public_key",
+      "truncated_signature",
+      "extended_signature"
+    ],
+    "gate": "official-vector surface plus representative cross-implementation signing demonstrates diversity viability with no unexplained disagreement"
+  },
+  "execution_rules": [
+    "all required runs must pass",
+    "failed runs remain evidence and cannot be erased by selective retry",
+    "a harness defect may invalidate a run only with an explicit preserved reason",
+    "wrappers over the same core do not create new independence",
+    "active FAE runtime, wallet, Transaction v2, address and consensus files remain outside write authority"
+  ],
+  "execution_binding": {
+    "executor_workflow": ".github/workflows/pq-lab-standards.yml",
+    "executor_state": "ATTACHED_BY_LAB_SCOPE_SYNCHRONIZE",
+    "standalone_bootstrap_workflow_used_as_evidence": false,
+    "note": "Wave D is executed by the established PQ workflow already present on main; the standalone bootstrap workflow was removed as redundant."
+  }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MTS-11 real-browser fixture</title>
+<button id="mine">mine</button>
+<button id="stop">stop</button>
+<button id="copyminingaddr">copy</button>
+<button id="openwallet">wallet</button>
+<button id="refreshnetwork">refresh</button>
+<div id="mstate"></div>
+<script>
+'use strict';
+const params=new URLSearchParams(location.search);
+const CLIENT_ID=params.get('id')||'client';
+if(params.get('bc')==='0'){
+  try{Object.defineProperty(window,'BroadcastChannel',{value:undefined,configurable:true,writable:true})}catch{}
+}
+var wallet={address:'faet1mts11browser'+CLIENT_ID,watchOnly:true};
+var worker=null;
+var powReject=null;
+var mining=false;
+var attemptsTotal=0;
+var NETWORK='fairyelf-public-testnet-v4';
+var E=new TextEncoder();
+function $(id){return document.getElementById(id)}
+function setStatus(id,text,kind=''){const el=$(id);el.textContent=text;el.className='status'+(kind?' '+kind:'')}
+function short(value,start=16,end=8){const text=String(value||'');return text.length<=start+end+1?text:text.slice(0,start)+'…'+text.slice(-end)}
+function stable(value){return JSON.stringify(value)}
+async function sh(bytes){return new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))}
+function fb(value){return Uint8Array.from(atob(value),c=>c.charCodeAt(0))}
+function validAddr(){return true}
+async function loadWallet(){}
+function renderWallet(){}
+function setEnvironment(){}
+function copyText(){return Promise.resolve()}
+async function refresh(){}
+async function api(path,options={}){
+  const headers=new Headers(options.headers||{});
+  headers.set('x-mts11-client',CLIENT_ID);
+  const response=await fetch('/__mts11'+path,{...options,headers});
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok){
+    const error=new Error(payload.error||payload.reason||'HTTP '+response.status);
+    error.data=payload;
+    error.status=response.status;
+    throw error;
+  }
+  return payload;
+}
+window.__mts11={clientId:CLIENT_ID,workerStarts:[],workerTerminates:[],hintSends:[]};
+const NativeWorker=window.Worker;
+window.Worker=class InstrumentedWorker extends NativeWorker{
+  constructor(...args){
+    super(...args);
+    window.__mts11.workerStarts.push(Date.now());
+  }
+  terminate(){
+    window.__mts11.workerTerminates.push(Date.now());
+    return super.terminate();
+  }
+};
+</script>
+<script src="/mining.js"></script>
+<script>
+window.__mts11.start=()=>{miningLoop();return true};
+window.__mts11.stop=()=>{stopMining();return true};
+window.__mts11.sendHint=()=>{const at=Date.now();window.__mts11.hintSends.push(at);broadcastDirectTipHint();return at};
+window.__mts11.snapshot=()=>({
+  workerStarts:[...window.__mts11.workerStarts],
+  workerTerminates:[...window.__mts11.workerTerminates],
+  state:document.getElementById('mstate').textContent
+});
+</script>

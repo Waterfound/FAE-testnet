@@ -1,0 +1,27 @@
+name: stability-soak-v3-fallback-colony
+
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/release/stability-soak-v3-fallbacks.json'
+      - 'sovereign-forge/tests/stability-soak-v3-fallbacks.test.mjs'
+      - 'sovereign-forge/protocol/STABILITY_SOAK_V3_FALLBACKS.md'
+      - '.github/workflows/stability-soak-v3-fallbacks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fallback-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: node --check sovereign-forge/tests/stability-soak-v3-fallbacks.test.mjs
+      - name: Verify Plan B and Plan C invariants
+        run: node --test sovereign-forge/tests/stability-soak-v3-fallbacks.test.mjs

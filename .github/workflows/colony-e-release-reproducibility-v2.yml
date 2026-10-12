@@ -1,0 +1,122 @@
+name: colony-e-release-reproducibility-v2
+
+on:
+  push:
+    branches:
+      - 'colony/e-release-reproducibility-v2'
+  pull_request:
+    paths:
+      - 'sovereign-forge/release/**'
+      - 'sovereign-forge/scripts/build-reproducible-release.mjs'
+      - 'sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_E_RELEASE_REPRODUCIBILITY_V2.md'
+      - '.github/workflows/colony-e-release-reproducibility-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-reproducibility-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_SHA: cfd08a88f0f4f2e66560811cdd7eac6f8eec9cf9
+    steps:
+      - name: Checkout Worker E v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: primary
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove E v2 is additive only from hardened Colony baseline
+        working-directory: primary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/colony-e-v2-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/colony-e-v2-diff.txt | grep -q .; then
+            echo 'Worker E v2 may not modify pre-existing authority.'
+            exit 1
+          fi
+
+      - name: Unit, Git-blob binding and same-checkout reproducibility
+        working-directory: primary
+        run: |
+          node --check sovereign-forge/scripts/build-reproducible-release.mjs
+          node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
+
+      - name: Independent clean-room checkout A
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          path: clean-a
+      - name: Independent clean-room checkout B
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          path: clean-b
+      - name: Dirty-room negative control
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          path: dirty-c
+
+      - name: Build identical bytes in independent checkout paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-a" "$RUNNER_TEMP/release-b"
+          node clean-a/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-a"
+          node clean-b/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/release-b"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v2.json" "$RUNNER_TEMP/release-b/fae-source-release-v2.json"
+          cmp "$RUNNER_TEMP/release-a/manifest.json" "$RUNNER_TEMP/release-b/manifest.json"
+          cmp "$RUNNER_TEMP/release-a/fae-source-release-v2.json.sha256" "$RUNNER_TEMP/release-b/fae-source-release-v2.json.sha256"
+          sha256sum "$RUNNER_TEMP/release-a/fae-source-release-v2.json"
+          echo 'COLONY_E_V2_CLEAN_ROOM=PASS'
+
+      - name: Refuse tracked working-tree contamination
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '\ncolony-e-v2-negative-control\n' >> dirty-c/README.md
+          if node dirty-c/sovereign-forge/scripts/build-reproducible-release.mjs --out "$RUNNER_TEMP/dirty-release" >/tmp/dirty-out.txt 2>/tmp/dirty-err.txt; then
+            echo 'Builder incorrectly accepted a dirty tracked working tree.'
+            exit 1
+          fi
+          cat /tmp/dirty-err.txt
+          grep -q 'tracked_worktree_dirty' /tmp/dirty-err.txt
+          test ! -e "$RUNNER_TEMP/dirty-release/fae-source-release-v2.json"
+          echo 'COLONY_E_V2_DIRTY_ROOM=REJECTED'
+
+      - name: Preserve candidate-only authority fences
+        working-directory: primary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"candidate_to_authoritative": false' sovereign-forge/release/release-candidate-config.json
+          grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/release-candidate-config.json
+          grep -q '"status": "not-authorized"' sovereign-forge/release/release-candidate-config.json
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+      - name: Preserve reproducibility evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-release-candidate-reproducibility-e-v2
+          path: |
+            ${{ runner.temp }}/release-a/fae-source-release-v2.json
+            ${{ runner.temp }}/release-a/manifest.json
+            ${{ runner.temp }}/release-a/fae-source-release-v2.json.sha256
+          if-no-files-found: error
+          retention-days: 7

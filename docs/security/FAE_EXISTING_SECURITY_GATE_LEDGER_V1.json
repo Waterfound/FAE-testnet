@@ -1,0 +1,1270 @@
+{
+  "schema": "FAE_PUBLIC_CODE_SECURITY_GATE_LEDGER_V1",
+  "psr": "PSR-02",
+  "status": "CANDIDATE_COMPLETE_PENDING_INTEGRATION",
+  "source_revision": "a6721bb231471873ba069ab5bd6b2c8e5c6df92a",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "repository": "Waterfound/FAE-testnet",
+  "evidence_policy": {
+    "classes": {
+      "CANONICAL_PR_GATE": "Executed by .github/workflows/verify.yml on ordinary pull requests.",
+      "CANONICAL_PR_GATE_CONTENT_INSPECTED": "Canonical gate whose relevant assertions/content were additionally inspected in this PSR-02 run.",
+      "SPECIALIZED_EXECUTABLE_NOT_CANONICAL_PR_GATE": "Executable security evidence exists but is not credited as a universal PR gate.",
+      "DISCOVERED_SPECIALIZED_WORKFLOW": "Workflow path exists; existence alone is not proof that it ran or covers its apparent surface.",
+      "DISCOVERED_TEST_OR_LAB_ASSET": "Executable/test/lab asset path exists; path discovery alone receives no PASS credit."
+    },
+    "rule": "Existence is inventory evidence, not security proof. Only executed or specifically inspected gates receive coverage credit."
+  },
+  "canonical_verify": {
+    "path": ".github/workflows/verify.yml",
+    "blob_sha": "3de27d65da301523e9719bb325fc99ec4e610ad9",
+    "permissions": "contents: read",
+    "canonical_gates": [
+      {
+        "name": "Imported Sovereign Forge snapshot hash check",
+        "path": "FAE_FORGE_MAIN.sha256",
+        "surface": "release_supply_chain_authority",
+        "invariants": [
+          "I-SUPPLYCHAIN-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Exported Supabase source hash check",
+        "path": "supabase/SOURCE_MANIFEST.sha256",
+        "surface": "release_supply_chain_authority",
+        "invariants": [
+          "I-SUPPLYCHAIN-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Browser/client/wallet/coordinator smoke suite",
+        "path": "tests/crypto-compat.mjs + tests/client-smoke.mjs + tests/mining-coordinator-smoke.mjs + tests/coordinator-trust-smoke.mjs + tests/coordinator-rotation-smoke.mjs",
+        "surface": "wallet_crypto_auth",
+        "invariants": [
+          "I-KEY-01",
+          "I-AUTH-01",
+          "I-MINING-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Deployed browser security source equality",
+        "path": "cmp mining.js/coordinator-trust.js against sovereign-forge/browser",
+        "surface": "release_supply_chain_authority",
+        "invariants": [
+          "I-SUPPLYCHAIN-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Independent reference node syntax/install check",
+        "path": "sovereign-forge/node + locked npm ci",
+        "surface": "general_verification",
+        "invariants": [
+          "I-DIFF-01",
+          "I-SUPPLYCHAIN-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Isolated independent-node block smoke",
+        "path": "sovereign-forge/tests/smoke-independent-node.mjs",
+        "surface": "consensus_economics",
+        "invariants": [
+          "I-CONS-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Historical bootstrap boundary",
+        "path": "sovereign-forge/tests/sync-legacy-bootstrap.mjs",
+        "surface": "persistence_reorg_recovery",
+        "invariants": [
+          "I-CONS-01",
+          "I-RECOVERY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Three-node partition recovery",
+        "path": "sovereign-forge/tests/partition-recovery-3node.mjs",
+        "surface": "persistence_reorg_recovery",
+        "invariants": [
+          "I-FORK-01",
+          "I-RECOVERY-01",
+          "I-STATE-01"
+        ],
+        "strength": "CANONICAL_PR_GATE_CONTENT_INSPECTED"
+      },
+      {
+        "name": "Authoritative P2P security primitives",
+        "path": "sovereign-forge/tests/authoritative-p2p-security.mjs",
+        "surface": "p2p_network_eclipse",
+        "invariants": [
+          "I-P2P-01",
+          "I-AVAIL-01"
+        ],
+        "strength": "CANONICAL_PR_GATE_CONTENT_INSPECTED"
+      },
+      {
+        "name": "Authoritative coordinator signer/codec",
+        "path": "sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs",
+        "surface": "wallet_crypto_auth",
+        "invariants": [
+          "I-AUTH-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Consensus-v3 shadow parity and authoritative exclusion",
+        "path": "sovereign-forge/tests/consensus-v3-shadow-activation.mjs + grep exclusion checks",
+        "surface": "consensus_economics",
+        "invariants": [
+          "I-DIFF-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Authoritative PPLNS HTTP candidate adapter",
+        "path": "sovereign-forge/tests/authoritative-pplns-http-adapter.mjs",
+        "surface": "mining_template_coordinator",
+        "invariants": [
+          "I-AUTH-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Authoritative coordinator runtime",
+        "path": "sovereign-forge/tests/authoritative-coordinator-runtime.mjs",
+        "surface": "mining_template_coordinator",
+        "invariants": [
+          "I-AUTH-01",
+          "I-AVAIL-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Coordinator rotation certificates/runtime publication",
+        "path": "sovereign-forge/tests/authoritative-coordinator-rotation.mjs",
+        "surface": "wallet_crypto_auth",
+        "invariants": [
+          "I-AUTH-01",
+          "I-P2P-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Signed durable coordinator share receipts",
+        "path": "sovereign-forge/tests/authoritative-share-receipt.mjs",
+        "surface": "mining_template_coordinator",
+        "invariants": [
+          "I-AUTH-01",
+          "I-MINING-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Reconciled v4 consensus core and activation boundary",
+        "path": "sovereign-forge/tests/authoritative-v4-core.mjs",
+        "surface": "consensus_economics",
+        "invariants": [
+          "I-CONS-01",
+          "I-MONEY-02",
+          "I-MONEY-03",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE_CONTENT_INSPECTED"
+      },
+      {
+        "name": "Protocol 6 headers-first integration",
+        "path": "sovereign-forge/tests/authoritative-p2p-v6-integration.mjs",
+        "surface": "p2p_network_eclipse",
+        "invariants": [
+          "I-P2P-01",
+          "I-CONS-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Peer diversity/eclipse simulations",
+        "path": "sovereign-forge/tests/authoritative-peer-diversity.mjs",
+        "surface": "p2p_network_eclipse",
+        "invariants": [
+          "I-P2P-01",
+          "I-AVAIL-01"
+        ],
+        "strength": "CANONICAL_PR_GATE_CONTENT_INSPECTED"
+      },
+      {
+        "name": "Executable P2P v6 candidate entrypoint",
+        "path": "sovereign-forge/tests/authoritative-v6-entrypoint.mjs",
+        "surface": "p2p_network_eclipse",
+        "invariants": [
+          "I-P2P-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "Candidate image builds",
+        "path": "Dockerfile.v6-candidate + Dockerfile.coordinator-candidate",
+        "surface": "release_supply_chain_authority",
+        "invariants": [
+          "I-SUPPLYCHAIN-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      },
+      {
+        "name": "PPLNS SQL migration on PostgreSQL 16",
+        "path": "sovereign-forge/tests/verify-pplns-sql-migration.sh",
+        "surface": "consensus_economics",
+        "invariants": [
+          "I-STATE-01",
+          "I-AUTHORITY-01"
+        ],
+        "strength": "CANONICAL_PR_GATE"
+      }
+    ]
+  },
+  "inspected_noncanonical": [
+    {
+      "path": "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+      "blob_sha": "23abf88053d5abf5047746d0ae3f2fc66f9999b6",
+      "surface": "persistence_reorg_recovery",
+      "invariants": [
+        "I-FORK-01",
+        "I-DIFF-01",
+        "I-RECOVERY-01"
+      ],
+      "evidence": "128 deterministic differential cases; independent reference comparison; restart replay",
+      "credit": "SPECIALIZED_EXECUTABLE_NOT_CANONICAL_PR_GATE"
+    },
+    {
+      "path": "sovereign-forge/tests/independent-node-v11-process-recovery.mjs",
+      "blob_sha": "b2b6a0a1dd8a59283bdcc4875ab18de92eba0059",
+      "surface": "persistence_reorg_recovery",
+      "invariants": [
+        "I-RECOVERY-01",
+        "I-STATE-01"
+      ],
+      "evidence": "SIGKILL and corrupted raw-state recovery from durable snapshot",
+      "credit": "SPECIALIZED_EXECUTABLE_NOT_CANONICAL_PR_GATE"
+    },
+    {
+      "path": "sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs",
+      "blob_sha": "71c51481d15e0849f269d77d96d805d852d2ec4e",
+      "surface": "release_supply_chain_authority",
+      "invariants": [
+        "I-SUPPLYCHAIN-01",
+        "I-AUTHORITY-01"
+      ],
+      "evidence": "byte-identical repeated build, source commit/tree binding, per-file SHA-256/Git object checks, candidate-only authority",
+      "credit": "SPECIALIZED_EXECUTABLE_NOT_CANONICAL_PR_GATE"
+    },
+    {
+      "path": "lab/mining-tip-sync/tests/mts-02-03.test.mjs",
+      "blob_sha": "1e4e6a4b1b8aad02aea596673aa4cdcce31bb39d",
+      "surface": "mining_template_coordinator",
+      "invariants": [
+        "I-MINING-01",
+        "I-AUTHORITY-01"
+      ],
+      "evidence": "generation invalidation, stale-parent detection, observer-behind UNKNOWN, cross-tab hint explicitly non-authoritative",
+      "credit": "LAB_EXECUTABLE_NOT_ACTIVE_CONSENSUS_GATE"
+    }
+  ],
+  "discovered": {
+    "workflows": [
+      {
+        "path": ".github/workflows/activation-deep-reorg.yml",
+        "blob_sha": "39e800fe31c288ca4ef0149118b0fff374fd366f",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/activation-policy-peer-negotiation.yml",
+        "blob_sha": "4f607481f7895623b0ba6373a9ffc1800845633f",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-b-state-transition.yml",
+        "blob_sha": "738bba41a13240976e0bb02d35b97db40fb0f360",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-c-compatibility-replay.yml",
+        "blob_sha": "5fda75f67da8f0f791fca6353ee45eaec28ddcaf",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-d-network-composition.yml",
+        "blob_sha": "17e9037df86c49ca11875fcea32899ccd4af64a9",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-e-release-reproducibility-v2.yml",
+        "blob_sha": "daa42c9c3cae04fb0655fc1e371f538905af6ac7",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-f-mainnet-rehearsal-package-v2.yml",
+        "blob_sha": "1d92348ba79581d7ae6fad87fd02f3a1dd6190ae",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-g-independent-verifier.yml",
+        "blob_sha": "fa30487ed25f0ce0afaaaa1e8fc4e4b9c1270ea8",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-g2-independent-release-mainnet-verifier.yml",
+        "blob_sha": "576c0df529a723f3b3122e7502a9b45823cee10b",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-h-integration.yml",
+        "blob_sha": "7df69aece8285243c988002d13045ed8e1143ceb",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-h2-final-serialized-integration.yml",
+        "blob_sha": "959a6de58332b136d789ce442c2a325a93ab1317",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/colony-post-integration-differential-hardening.yml",
+        "blob_sha": "b16c8f19322d4781d3958fc717efb051216967ce",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/consensus-v3-shadow.yml",
+        "blob_sha": "ba3d09d7a4d34dcc062c7ea0adeee1cb78da0203",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/difficulty-timestamp-arrival-clock.yml",
+        "blob_sha": "616c3f5170f3edec3d34f9997f21238e7c2e20bf",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/difficulty-timestamp-hardening.yml",
+        "blob_sha": "b248db20631b5a03c81a1010342c122982e44475",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/difficulty-timestamp-redteam.yml",
+        "blob_sha": "86290ea1b279546e7b3e1cee416c72bd8056a8fc",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/economic-block-time-v2-lab.yml",
+        "blob_sha": "70f931c6f506b3337775764c1dd951d17a323120",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-activation-rehearsal.yml",
+        "blob_sha": "bf9ad1d18b645d3b7bb5f02cdf625517d07f4d55",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-headers-sync-rehearsal.yml",
+        "blob_sha": "dbe6b6acf501fa1d4f56c5a705d957211d86d5b3",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-migration.yml",
+        "blob_sha": "5d5268304f67eaf3c3b0fe52a34e0f8d92a5d8d2",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-clock-health-wan.yml",
+        "blob_sha": "26cca96441282fbd610d55c95fcb4595969c03e8",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-external-validation-kit.yml",
+        "blob_sha": "426c5041c695b814d3ac0de28f2582e2dd6e4c19",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-free-real-wan.yml",
+        "blob_sha": "e82b6a648b6d7fa9c826b0c1592189ac66eaa49d",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-local-ceiling-audit.yml",
+        "blob_sha": "10dcc1a8b13e79707190dbd1255c7aeb48a44898",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-one-machine-ceiling.yml",
+        "blob_sha": "c77f7b92e12ed51b09f3b9a675788b0301bd637b",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-operator-neutrality.yml",
+        "blob_sha": "91b2ebd34424ac50f20bcf81ecdac799d2f54f46",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/full-target-shadow-peer-node.yml",
+        "blob_sha": "ea120ab5507fc8a9f9889f7ddd8d2bc58852d099",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/independent-node-v11.yml",
+        "blob_sha": "78349a89e2dd55d5e6e3777c60d3f2fd3045418f",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/live-e2e.yml",
+        "blob_sha": "311a90299b233c9a78141346b537c823a83ed0fc",
+        "surface": "browser_api_boundary",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/mining-tip-sync-lab.yml",
+        "blob_sha": "270a9759e5dd32428335ec9c0d89841d22ee0aaa",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-directory-admission-hardening.yml",
+        "blob_sha": "0be686349b80536587e38f2e789b935365a334e9",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-directory-authenticated-retention.yml",
+        "blob_sha": "4655f265169ffd2584fc7118f14d8bd092521dd8",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-directory-liveness-decay.yml",
+        "blob_sha": "754a48fc243e8f3c002c3f6ee7a6980fb062a3b2",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-isolation-eclipse-authoritative-candidate.yml",
+        "blob_sha": "bca63a25e7365e61ee2a4d9440edd5bb37b63cfb",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-isolation-eclipse-gate2.yml",
+        "blob_sha": "baeeddd32ebe7a7e7dc7d62a5f482373a3bb2038",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-isolation-eclipse-real-wan.yml",
+        "blob_sha": "0a553b7a9767d444c49f78faced04099382aee0a",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/peer-isolation-eclipse-resistance.yml",
+        "blob_sha": "01159dca696b4510f328827b028ce65c53032815",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/pq-lab-standards.yml",
+        "blob_sha": "851b2fc780af63674a7bb32071d16e893ae1d460",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/public-testnet-difficulty-shadow.yml",
+        "blob_sha": "07b6a13decae9b095dc8842594eade91afba1a5c",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/stability-soak-v3-fallbacks.yml",
+        "blob_sha": "b27fe8e8a1ba017674ffaad769e7254c6f2d3ac3",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      },
+      {
+        "path": ".github/workflows/verify.yml",
+        "blob_sha": "3de27d65da301523e9719bb325fc99ec4e610ad9",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_SPECIALIZED_WORKFLOW"
+      }
+    ],
+    "tests": [
+      {
+        "path": "lab/mining-tip-sync/authority.json",
+        "blob_sha": "a6d98f57a47954d2072bb8cdf64ea19d05f54323",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/baseline-reproduction.mjs",
+        "blob_sha": "cc14e627a2d1f1096fbaa3277ae45a9df20f7009",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/boundary-guard.mjs",
+        "blob_sha": "dc0d55f4ecaebf2e2264f3763f998865e7d54e66",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/contracts/mts-02-03.json",
+        "blob_sha": "6ba9215dc78f06980bf6f8e546e22cc1cf313f85",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/evidence/mts-01-baseline.json",
+        "blob_sha": "3bd529353a6ab7b7fd33c5891c556ccdc43dbe13",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/evidence/mts-02-03.json",
+        "blob_sha": "7595c7b8f75c85c6a37d05563df7415f759a9334",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/tests/mts-02-03.test.mjs",
+        "blob_sha": "1e4e6a4b1b8aad02aea596673aa4cdcce31bb39d",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/tip-observer.mjs",
+        "blob_sha": "80feaa8936e1351e64da6765e3cbcf9b17db1b31",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/mining-tip-sync/work-identity.mjs",
+        "blob_sha": "cf2e28a8efff1a85ecfedefa862de545716155e3",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/authority.json",
+        "blob_sha": "d555dd7d6358799f963ffa0eb2991514116adfcc",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/boundary-guard.mjs",
+        "blob_sha": "290b937b4f7d6f71719c8885aa7d9f91b1e99a7c",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/evidence/pq02-implementation-independence.json",
+        "blob_sha": "8b31c2e0aa30750f7c04b872e76d91d8ef635ff4",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/gate-status.json",
+        "blob_sha": "a300e49ec715243a60c3bb1cf628326cc13bd255",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/implementation-selection.json",
+        "blob_sha": "d72f3a8e962508d47c99dc6f7ccaf66a233049a2",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/package.json",
+        "blob_sha": "12843fafe47bc7b77d582199fbd144861c4bcc28",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/probes/noble-probe.mjs",
+        "blob_sha": "b9e0902cedc35aeae0c548aca2217fe1c5f87f7d",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/probes/node-crypto-probe.mjs",
+        "blob_sha": "9a2983acbdcd3ec478c558ec17b25fd999a239d8",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/standards/freeze-evidence.json",
+        "blob_sha": "98437e811e7c34645d7d932c490591f937045a80",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/standards/observation-request.json",
+        "blob_sha": "b3076d8ffc2e77562e2a0de8ac9c8de705096458",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/standards/parameter-sets.json",
+        "blob_sha": "6e8e748be68f559559e8d27f2ebfbed245bbd554",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/standards/sources.json",
+        "blob_sha": "150dcfbdaa8ac8ea6c0b61188feef97cf5e4eb5b",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "lab/post-quantum-signatures/tools/observe-standards.mjs",
+        "blob_sha": "3c6a6fefd72e05c9d6035e81b10059a4250ce937",
+        "surface": "shadow_post_quantum",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-boundary-hardening.mjs",
+        "blob_sha": "279ed8c55eac10e142208e5de685526de1632a18",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-deep-reorg-fork.mjs",
+        "blob_sha": "be5ddbc372a91e99dad4b6d6aa84dbc46ccbb9da",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-network-composition-colony-d.mjs",
+        "blob_sha": "1246cc5676f89a2da81be2d5abb7c600d90765cd",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-network-composition-runtime-differential.mjs",
+        "blob_sha": "0339d0507cb014bd48d05846a288f3942e6c3484",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-policy-identity-rehearsal.mjs",
+        "blob_sha": "3a4d055f09d8fb0476d067e9bb51f36113db6efc",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-policy-peer-negotiation.mjs",
+        "blob_sha": "3b131f852b120a6f59249f18a76778bf33f3c0dc",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-reorg-differential-fuzz.mjs",
+        "blob_sha": "23abf88053d5abf5047746d0ae3f2fc66f9999b6",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-state-transition-colony-b.mjs",
+        "blob_sha": "88f3d20e866d7959f297004d7480ef350164ab48",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/activation-state-transition-core-differential.mjs",
+        "blob_sha": "6eba1db194063ceca9c766bb636bb5a0da6848d1",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/agent-build-colony-h-integration.mjs",
+        "blob_sha": "927205d8e8b24cecb531bb7e2be106d8201845f9",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/agent-build-colony-h2-final-integration.mjs",
+        "blob_sha": "330f9f1a916c2f949a2dc3ef454ce65abbaf547f",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-coordinator-rotation.mjs",
+        "blob_sha": "310c9b7edfd7d3dabfe34bf15883bdc54f32ff72",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-coordinator-runtime.mjs",
+        "blob_sha": "014831ec3b088ad85a4f0f7af5697b70ac2cd206",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs",
+        "blob_sha": "313d1742c779167f17e94f05eb82629e81878e75",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-p2p-security.mjs",
+        "blob_sha": "8cb7bfd08fa692110b9aa7a9f220e096aea461dc",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-p2p-v6-integration.mjs",
+        "blob_sha": "f27dca3f2e1c1fb04ab5694152070f395a632398",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-peer-diversity.mjs",
+        "blob_sha": "a1c4c8007c511bf62c45ecf87829f53b770f64a3",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-pplns-http-adapter.mjs",
+        "blob_sha": "d0c1b814e11384a47a2fd30439632e3665642e70",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-share-receipt.mjs",
+        "blob_sha": "c3c6e4ff9eefc782719e5751ac17b67b2c045a2a",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-v4-core.mjs",
+        "blob_sha": "35ca40fba761a3412904ecb4e5be531846d98808",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/authoritative-v6-entrypoint.mjs",
+        "blob_sha": "60f551183a6a82a6400949cf58bdcffd40783c9d",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/compatibility-replay-colony-c.mjs",
+        "blob_sha": "a089b388ab7efcc1540e8bc2e39fe91baca558e1",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/consensus-v3-shadow-activation.mjs",
+        "blob_sha": "09a47a57edc16f77c3a34a121dffb8a7c49e3b98",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/difficulty-timestamp-arrival-clock.mjs",
+        "blob_sha": "00d45c363c45f83bdfe1ec45e804335019a17701",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/difficulty-timestamp-hardening.mjs",
+        "blob_sha": "740e05ad53e627d5668ece308061757fa091bec4",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/difficulty-timestamp-redteam.mjs",
+        "blob_sha": "17702b2b51f54f8ef9f2289d5ea62b53834e562b",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/difficulty-timestamp-shadow.mjs",
+        "blob_sha": "b1fd72bb58977e26ca79b3f0f2d7fcc271b7aae1",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/difficulty_timestamp_reference.py",
+        "blob_sha": "5b381f429d7e0e367eab2a8e0814a9efd301d210",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/economic-block-time-v2-evidence-gate.mjs",
+        "blob_sha": "cd1ac8a4bf7b75ce1d8bfe6328edba3625d85992",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/economic-block-time-v2-lab.mjs",
+        "blob_sha": "9101c226baf0a4d0ee1c316ee03f21ea30229178",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/economic-block-time-v2-sensitivity.mjs",
+        "blob_sha": "fbe47d4fa244c65b57cbdf283187ee13f89f93b3",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/fixtures/public-testnet-v4-heights-398-414.json",
+        "blob_sha": "6c5c7f3edf5b80ac230ff4f5508eeeeff7531e02",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-activation-rehearsal.mjs",
+        "blob_sha": "7143219fee959eaaa9a6e71cdc6e56684cf99e3d",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs",
+        "blob_sha": "a559c0f5448365468b59ee7887daea61deafe009",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs",
+        "blob_sha": "a30eaaf16ec11576c95baa3045429bf06ef19f7e",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-migration.mjs",
+        "blob_sha": "f1c65ae0a2efcbd7d6da6986e2a9a9dbbc92ee46",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-external-validation-kit.mjs",
+        "blob_sha": "01116dc8aafc7f074672635a7073aebcb7018288",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-free-real-wan-common.sh",
+        "blob_sha": "f303f71e41fc744e1b6fa0828c2529e36731c4ad",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh",
+        "blob_sha": "4e44048d0ad2b234c7dd3918b0e82423d327688f",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh",
+        "blob_sha": "80003a90151fb73b76020aae0202398d5b9ae782",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh",
+        "blob_sha": "f3306c3e4d1d129b808d0e7ad1760c8a3c81086b",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-local-ceiling-audit.mjs",
+        "blob_sha": "cb9dda2b860bbb18a02a6c367a5cff0db176cd79",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs",
+        "blob_sha": "4bad3d0cd8b705fa5771975ba07723903c9f70bc",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-one-machine-failure-domain.sh",
+        "blob_sha": "26d6be4807416a274d95a3ed2daa806eb0bf0009",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-operator-neutral-replay.sh",
+        "blob_sha": "41e4cbbadaee9664bd53b632142a537df879ad56",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-operator-neutral-verifier.mjs",
+        "blob_sha": "a420f3f5000be74e5f3981888cf328fe7be6f3f9",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/full-target-shadow-peer-node.mjs",
+        "blob_sha": "2769a5eef9de9e642a0f1b7bede97d4dedfc1bcf",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/independent-node-v11-hardening.mjs",
+        "blob_sha": "508ce7772a7e341fb79f851ff7de1530e7e8de12",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/independent-node-v11-process-recovery.mjs",
+        "blob_sha": "b2b6a0a1dd8a59283bdcc4875ab18de92eba0059",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/legacy-testnet-fixture.mjs",
+        "blob_sha": "2c533d57e93127e65fcbb14c3a38fb149932e09c",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/mainnet-rehearsal-package-colony-f-v2.mjs",
+        "blob_sha": "911fbdc90a3469e42ed67097da479fe17696fe10",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/partition-recovery-3node.mjs",
+        "blob_sha": "16812e3882209eb8efc9427e46a2784bd478b8c5",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-directory-admission-hardening.mjs",
+        "blob_sha": "32ca9b44c80d8887374ed3a399fb2f8b598f558a",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-directory-authenticated-retention.mjs",
+        "blob_sha": "2668d960911282cf5fbef6f9e15d1e0550a2351d",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-directory-liveness-decay.mjs",
+        "blob_sha": "81200b654ad4f0840e8633d93487a51dea8a626f",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs",
+        "blob_sha": "4c12ab38dce90186a134d49e5265822e8ee84645",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-protocol6.mjs",
+        "blob_sha": "74b8add5f9e2edc1697e7a409ff5605f98f6e7f8",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-real-wan-common.sh",
+        "blob_sha": "51f5951b5fe4cf497e39a52214485abf25439972",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-real-wan-controller.mjs",
+        "blob_sha": "47029d85594de8e970afb4b1acfcfe0cd31022e4",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh",
+        "blob_sha": "2716aa2efbdd8ba293a5e958b5e20a44965a390e",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-real-wan-node.mjs",
+        "blob_sha": "5eb8f56bd751f125db0f786ebfa82d275009f699",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-real-wan-observer.sh",
+        "blob_sha": "6f372966a93ee95b07a0a42bec9aa5865e8a6f28",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/peer-isolation-eclipse-resistance.mjs",
+        "blob_sha": "cf6c51c6c07ef76fd7fc16939461ad9d14591783",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/public-testnet-difficulty-shadow.mjs",
+        "blob_sha": "0b8d5acfd54e562f9dd3368a98fde15ee01c0658",
+        "surface": "consensus_economics",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/release-mainnet-independent-verifier-g2.mjs",
+        "blob_sha": "180775bf202993f0452a02924e8616fcb1618bbc",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs",
+        "blob_sha": "71c51481d15e0849f269d77d96d805d852d2ec4e",
+        "surface": "release_supply_chain_authority",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/smoke-independent-node.mjs",
+        "blob_sha": "465012440b7d7358272396d0ef1070ba8579d061",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/stability-soak-v3-fallbacks.test.mjs",
+        "blob_sha": "b2e96ffcfd8bea9a3e09720e9cdf1db166144439",
+        "surface": "general_verification",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/sync-legacy-bootstrap.mjs",
+        "blob_sha": "e4d5037a7442046bfc5a0771b5aa5043eff1635f",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/test_wan_clock_health.py",
+        "blob_sha": "844c53e872e2c7fd2b6b50471c1ce5bd21c87b95",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/verify-pplns-sql-migration.sh",
+        "blob_sha": "57c4b946c7d83a1ad8356575a8e58c901eb10a6e",
+        "surface": "persistence_reorg_recovery",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "sovereign-forge/tests/wan_clock_health.py",
+        "blob_sha": "745dbb1bce43c3a5cf6f474c29c340c500f41d64",
+        "surface": "p2p_network_eclipse",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/client-smoke.mjs",
+        "blob_sha": "51e4502ce429b9af146dc1f6039cefaca771ca72",
+        "surface": "browser_api_boundary",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/coordinator-rotation-smoke.mjs",
+        "blob_sha": "7c2f156f37f58bde60a5c6635a6dec04dda5d05c",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/coordinator-trust-smoke.mjs",
+        "blob_sha": "c97356d1c86cb8c58b4a7158707837886b48893f",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/crypto-compat.mjs",
+        "blob_sha": "b9ecb49359452366fdbc3e692bd9b42d8f432009",
+        "surface": "wallet_crypto_auth",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/live-e2e-readonly.mjs",
+        "blob_sha": "47bf89625f1ce5bac56135b6cc310f63d7353e32",
+        "surface": "browser_api_boundary",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      },
+      {
+        "path": "tests/mining-coordinator-smoke.mjs",
+        "blob_sha": "c7483a444999feac80c37687d132d86a94f17e24",
+        "surface": "mining_template_coordinator",
+        "evidence_class": "DISCOVERED_TEST_OR_LAB_ASSET"
+      }
+    ]
+  },
+  "discovered_counts": {
+    "workflow_count": 41,
+    "test_or_lab_asset_count": 100
+  },
+  "coverage_summary": {
+    "strong_existing": [
+      "source/snapshot hash integrity",
+      "browser wallet/client/coordinator smoke",
+      "independent-node smoke",
+      "partition recovery",
+      "P2P authentication/replay/rate limiting",
+      "peer diversity/eclipse simulation",
+      "v4 core issuance/fee conservation and activation boundary",
+      "coordinator trust/rotation/receipts",
+      "candidate image buildability",
+      "PPLNS SQL migration"
+    ],
+    "specialized_but_not_universal": [
+      "differential reorg fuzz",
+      "hard-crash durable recovery",
+      "release reproducibility",
+      "mining tip-sync stale-work lab"
+    ],
+    "explicit_gaps": [
+      "GAP-DISCLOSURE",
+      "GAP-LICENSE",
+      "GAP-DEPENDABOT",
+      "GAP-CODEQL",
+      "GAP-SECRET-SCAN-GATE",
+      "GAP-GENERAL-HOSTILE-CORPUS",
+      "GAP-RESOURCE-EXHAUSTION",
+      "GAP-INVALID-SIGNATURE-NEGATIVE-COVERAGE",
+      "GAP-MAX-SUPPLY-BOUNDARY",
+      "GAP-COINBASE-MATURITY-ACTIVE-V4",
+      "GAP-DIFFERENTIAL-ALL-CONSENSUS"
+    ]
+  },
+  "gaps": [
+    {
+      "id": "GAP-DISCLOSURE",
+      "status": "ABSENT_AT_FROZEN_SOURCE",
+      "evidence": [
+        "SECURITY.md absent"
+      ],
+      "target": "PSR-04"
+    },
+    {
+      "id": "GAP-LICENSE",
+      "status": "ABSENT_AT_FROZEN_SOURCE",
+      "evidence": [
+        "LICENSE and LICENSE.md absent"
+      ],
+      "target": "PSR-14"
+    },
+    {
+      "id": "GAP-DEPENDABOT",
+      "status": "ABSENT_AT_FROZEN_SOURCE",
+      "evidence": [
+        ".github/dependabot.yml/.yaml absent"
+      ],
+      "target": "PSR-12"
+    },
+    {
+      "id": "GAP-CODEQL",
+      "status": "ABSENT_AT_FROZEN_SOURCE",
+      "evidence": [
+        "dedicated .github/workflows/codeql.yml/.yaml absent"
+      ],
+      "target": "PSR-12"
+    },
+    {
+      "id": "GAP-SECRET-SCAN-GATE",
+      "status": "NO_REPOSITORY_WORKFLOW_IDENTIFIED",
+      "evidence": [
+        "no dedicated secret-leak workflow in repository tree; platform-native settings not inferred"
+      ],
+      "target": "PSR-12"
+    },
+    {
+      "id": "GAP-GENERAL-HOSTILE-CORPUS",
+      "status": "PARTIAL",
+      "evidence": [
+        "specialized adversarial/fuzz tests exist, but no single malformed-protocol corpus spans all public ingress surfaces"
+      ],
+      "target": "PSR-10"
+    },
+    {
+      "id": "GAP-RESOURCE-EXHAUSTION",
+      "status": "PARTIAL",
+      "evidence": [
+        "P2P guard/rate-limit tests exist; no cross-surface CPU/memory/storage/network budget gate identified in canonical verify"
+      ],
+      "target": "PSR-05_TO_PSR-10"
+    },
+    {
+      "id": "GAP-INVALID-SIGNATURE-NEGATIVE-COVERAGE",
+      "status": "PARTIAL",
+      "evidence": [
+        "signature verification exists and peer tamper tests exist; direct negative transaction-signature corpus not identified in canonical verify"
+      ],
+      "target": "PSR-06"
+    },
+    {
+      "id": "GAP-MAX-SUPPLY-BOUNDARY",
+      "status": "PARTIAL",
+      "evidence": [
+        "active core enforces remaining-supply cap and consensus docs specify ceiling; canonical PR gate inspected proves issuance conservation over tested blocks but not an explicit near-ceiling exhaustion vector"
+      ],
+      "target": "PSR-05"
+    },
+    {
+      "id": "GAP-COINBASE-MATURITY-ACTIVE-V4",
+      "status": "NOT_APPLICABLE_TO_ACTIVE_V4",
+      "evidence": [
+        "200-block maturity belongs to preferred future economic candidate, not current v4 authority"
+      ],
+      "target": "future candidate activation security gate"
+    },
+    {
+      "id": "GAP-DIFFERENTIAL-ALL-CONSENSUS",
+      "status": "PARTIAL",
+      "evidence": [
+        "reorg differential fuzz and consensus-v3 shadow parity exist; not every consensus-critical parser/state transition is independently differential-tested"
+      ],
+      "target": "PSR-11"
+    }
+  ],
+  "exit_criteria": {
+    "all_relevant_workflows_tests_discovered_from_exact_tree": true,
+    "assets_mapped_to_surface": true,
+    "canonical_vs_noncanonical_credit_separated": true,
+    "missing_controls_recorded_fail_closed": true,
+    "security_readiness_claimed": false
+  }
+}

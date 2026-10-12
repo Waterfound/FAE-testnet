@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>FAE Representative Device Physical Autopilot</title>
+<style>
+:root{color-scheme:light;--orange:#ff7a00;--blue:#1473e6;--ink:#172033;--muted:#657084;--line:#dce2ea;--soft:#f6f8fb;--good:#15803d;--warn:#a16207;--bad:#b91c1c}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{border-top:8px solid var(--orange);border-bottom:1px solid var(--line);padding:18px 16px;background:#fff;position:sticky;top:0;z-index:4}
+header div,main{max-width:980px;margin:auto}h1{font-size:clamp(24px,5vw,38px);margin:0;letter-spacing:-.03em}h2{font-size:19px;margin:0 0 10px}
+main{padding:18px 14px 64px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.wide{grid-column:1/-1}
+.card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff;box-shadow:0 5px 24px rgba(20,30,50,.05)}
+label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin:9px 0 4px}input,select,button,textarea{font:inherit}
+input,select,textarea{width:100%;border:1px solid #c9d1dc;border-radius:10px;padding:10px;background:#fff;color:var(--ink)}
+button{border:0;border-radius:10px;padding:11px 14px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer}button.alt{background:#edf3fb;color:#1b4f8f;border:1px solid #cdddf2}button:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.status{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:10px;margin-top:10px}
+.status.good{border-color:#b8dfc5;color:var(--good);background:#f2fbf5}.status.warn{border-color:#ead8a9;color:var(--warn);background:#fffbeb}.status.bad{border-color:#efc1c1;color:var(--bad);background:#fff5f5}
+.bar{height:10px;background:#e9eef5;border-radius:999px;overflow:hidden;margin-top:10px}.bar>div{height:100%;width:0;background:var(--blue);transition:width .25s}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{background:var(--soft);border-radius:11px;padding:9px}.metric b{display:block;font-size:18px}
+.small{font-size:12px;color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.locked{border-left:4px solid var(--good)}.danger-note{border-left:4px solid var(--orange);padding:10px 12px;background:#fff7ed;border-radius:8px;margin:10px 0}
+ol{padding-left:22px}.hidden{display:none!important}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.metrics{grid-template-columns:repeat(2,1fr)}header{position:static}}
+</style>
+</head>
+<body>
+<header><div><h1>FAE Physical Autopilot</h1><div class="small">Representative Device Evidence · frozen contract FAE-RDE-ACCEPTANCE-V1-20260928</div></div></header>
+<main>
+<div class="danger-note"><b>Evidence boundary:</b> Physical mode uses the full frozen durations and real browser/device events. Rehearsal mode is scaled and can never satisfy the physical gate.</div>
+<div class="grid">
+<section class="card">
+<h2>1 · Device preselection</h2>
+<label for="deviceClass">Required device class</label>
+<select id="deviceClass">
+<option value="mobile_tablet_arm">Mobile / tablet ARM</option>
+<option value="thin_light_integrated">Thin-and-light integrated</option>
+<option value="consumer_discrete_gpu">Consumer discrete GPU device</option>
+<option value="compact_handheld_consumer">Compact / handheld consumer</option>
+</select>
+<label for="manufacturer">Manufacturer</label><input id="manufacturer" placeholder="e.g. Apple, Valve, Acer">
+<label for="model">Exact model</label><input id="model" placeholder="Exact commercial model">
+<label for="rewardAddress">FAE reward address</label><input id="rewardAddress" class="mono" placeholder="faet1…">
+<label for="mode">Execution mode</label>
+<select id="mode"><option value="REHEARSAL_ONLY">REHEARSAL_ONLY · fast software check</option><option value="PHYSICAL_EVIDENCE">PHYSICAL_EVIDENCE · full frozen durations</option></select>
+<div class="actions"><button id="lock">Lock device before results</button><button id="unlock" class="alt" disabled>Reset before any run</button></div>
+<div id="lockState" class="status">No selection lock yet.</div>
+</section>
+
+<section class="card">
+<h2>2 · Environment</h2>
+<label for="powerMode">Power mode</label><input id="powerMode" value="normal">
+<label for="chargingState">Charging state</label><input id="chargingState" value="stable">
+<label for="externalPower">External power</label><select id="externalPower"><option value="true">Yes</option><option value="false">No</option></select>
+<label for="cooling">Cooling configuration</label><input id="cooling" value="stock">
+<label for="background">Background task policy</label><input id="background" value="ordinary_background_state">
+<div id="profileState" class="status">Browser profile not yet loaded.</div>
+</section>
+
+<section class="card wide">
+<h2>3 · Campaign</h2>
+<div class="metrics">
+<div class="metric"><span class="small">Run</span><b id="runLabel">Idle</b></div>
+<div class="metric"><span class="small">Attempts</span><b id="attempts">0</b></div>
+<div class="metric"><span class="small">Rate</span><b id="rate">0 H/s</b></div>
+<div class="metric"><span class="small">Captures</span><b id="captures">0</b></div>
+</div>
+<div class="bar"><div id="progress"></div></div>
+<div id="campaignState" class="status">Lock a device to enable the campaign.</div>
+<div class="actions">
+<button id="runFull" disabled>Run full device campaign</button>
+<button id="stop" class="alt" disabled>Stop safely</button>
+<button id="export" class="alt" disabled>Export captures</button>
+</div>
+</section>
+
+<section id="lifecycleCard" class="card wide hidden">
+<h2>Lifecycle physical step</h2>
+<p>For this device class, the frozen contract requires five <b>real</b> hidden → visible cycles. Background Safari/browser and return. The harness records actual visibility events; it will not simulate them.</p>
+<div class="metrics"><div class="metric"><span class="small">Completed cycles</span><b id="cycles">0 / 5</b></div></div>
+<div id="lifecycleState" class="status warn">Waiting for real device lifecycle transitions.</div>
+</section>
+
+<section class="card wide">
+<h2>What the machine will do</h2>
+<ol>
+<li>Freeze the selected device before observing any FAE result and bind the lock to the live testnet tip.</li>
+<li>Run three 10 min warm-up + 20 min measured sustained-mining repetitions.</li>
+<li>Run three normal-use coexistence repetitions with an automated local interaction baseline, 5 min mining warm-up and 15 min measured phase.</li>
+<li>Record genuine lifecycle transitions where required.</li>
+<li>Export a provenance-bound <span class="mono">FAE_RDE_OPERATOR_CAPTURE_V1</span> for each run. When served by the local agent, each capture is automatically packaged and independently verified.</li>
+</ol>
+</section>
+</div>
+</main>
+<script type="module" src="./autopilot-browser.mjs"></script>
+</body>
+</html>

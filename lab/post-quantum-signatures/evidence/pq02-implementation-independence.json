@@ -1,0 +1,50 @@
+{
+  "schema": "FAE_PQ02_IMPLEMENTATION_INDEPENDENCE_EVIDENCE_V1",
+  "recorded_at": "2026-09-18",
+  "admitted_run": {
+    "workflow_run_id": 35343551855,
+    "boundary_and_standards_job_id": 105594756219,
+    "implementation_job_id": 105594849522,
+    "result": "PASS"
+  },
+  "canonical_non_regression": {
+    "workflow_run_id": 35343551933,
+    "job_id": 105594757125,
+    "result": "PASS"
+  },
+  "artifact": {
+    "id": 10546531169,
+    "zip_sha256": "5fde47d3b9503bbf50a8185b073c2767cceb1055eabf84685fcd63667b114835"
+  },
+  "independence_decision": {
+    "anchor_a": "@noble/post-quantum@0.7.1",
+    "anchor_b": "cloudflare/circl@2ef8bf457d28ab1c62f42b76f6564610c5a3b3f0",
+    "tertiary": "node:crypto v24.8.0 / OpenSSL 3.5.2",
+    "required_pair_executable": true,
+    "official_vector_baseline": "PQ-01 frozen NIST ACVP corpus",
+    "activation_authorized": false
+  },
+  "provenance": {
+    "noble": {
+      "integrity": "sha512-+P9981IiAnVh+rmcubozzVwrEy3XsN/tMhTnvsjV9VDaYpOnNCqWqKo2FLWxbu92YHfjGIlE5XnW175UK+ln+Q==",
+      "shasum": "b57156fab2b4661f965d3d2d9776a7dbd1310ff8"
+    },
+    "circl": {
+      "pseudo_version": "v1.6.6-0.20260909114340-2ef8bf457d28",
+      "module_sum": "h1:ttcJETOVjoYQpvvPJlnP/SwxsGv333gFaWhHCHp7koE=",
+      "go_mod_sum": "h1:h5LNyxAc5nTue9DS5jT+48en2PSDYt3zdGnz5OstK6c="
+    }
+  },
+  "negative_history": [
+    {
+      "run_id": 35343144782,
+      "admitted": false,
+      "reason": "pipe_status_masked_CIRCL_failure"
+    },
+    {
+      "run_id": 35343452736,
+      "admitted": false,
+      "reason": "synthetic_merge_HEAD_contained_unrelated_parallel_lab_changes"
+    }
+  ]
+}

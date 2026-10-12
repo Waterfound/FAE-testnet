@@ -1,0 +1,326 @@
+{
+  "schema": "FAE_BROWSER_COIN_DESIGN_ASSURANCE_REVIEW_V1",
+  "review_id": "fae-browsercoin-design-assurance-001",
+  "date": "2026-09-29",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "colony/fae-browsercoin-design-assurance-001",
+  "baseline_revision": "b00bbebca81a8f1085f7e61beddca862d8b5dfaa",
+  "reviewed_candidate_revision": "93eaf13a68b3b8000b94499bf7060fe674fda6ca",
+  "browsercoin": {
+    "repository": "swompythesecond/BrowserCoin",
+    "revision": "9e060f4822fcff5c3e2993fcd3c94f215b139685",
+    "primary_source_observations": {
+      "temporal": {
+        "target_block_seconds": 150,
+        "initial_reward_brc": 50,
+        "halving_interval_blocks": 210000,
+        "evidence": [
+          "src/chain/genesis.ts"
+        ]
+      },
+      "pow": {
+        "implementation": "Sandglass v3",
+        "scratch_bytes": 524288,
+        "dependent_chains": 4,
+        "total_steps": 2097152,
+        "evidence": [
+          "src/crypto/sandglass.ts"
+        ]
+      },
+      "wallet_storage": {
+        "observation": "BrowserCoin v1 persists privateKeyHex in localStorage and exports privateKeyHex in wallet JSON.",
+        "evidence": [
+          "src/storage/wallet.ts"
+        ],
+        "inference_boundary": "This is an implementation observation, not by itself a claim that a compromise occurred."
+      },
+      "bootstrap": {
+        "observation": "BrowserCoin node startup uses P2P plus helper/bootstrap-server synchronization paths.",
+        "evidence": [
+          "src/node.ts",
+          "src/net/fastSync.ts"
+        ],
+        "inference_boundary": "Use only as an assurance prompt; architectural difference is not a FAE defect."
+      }
+    }
+  },
+  "fae_authority_at_baseline": {
+    "active_public_testnet": {
+      "target_seconds": 180,
+      "initial_subsidy_fae": 10,
+      "halving_era_blocks": 600000,
+      "max_supply_fae": 12000000,
+      "evidence": [
+        "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+        "docs/FAE_CANONICAL_STATE.md"
+      ]
+    },
+    "future_research_candidate": {
+      "target_seconds": 300,
+      "initial_subsidy_fae": 14,
+      "halving_era_blocks": 430000,
+      "approximate_supply_fae": 12040000,
+      "authority": "RESEARCH_ONLY_NO_ACTIVATION",
+      "evidence": [
+        "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md"
+      ]
+    }
+  },
+  "principles": [
+    "Competitor has weakness != FAE needs new subsystem.",
+    "Does the observed weakness expose an untested or insufficiently evidenced FAE premise?",
+    "Evidence before status.",
+    "Memory suggests. Evidence decides.",
+    "Builder != Assurer.",
+    "Parallelize independence. Serialize shared state.",
+    "Fail closed on missing evidence.",
+    "conversation interruption != development interruption."
+  ],
+  "challenges": [
+    {
+      "id": "temporal-monetary-distribution",
+      "browsercoin_observation": "150 s target, 50 BRC initial subsidy and 210,000-block halving make issuance eras roughly one year; this motivates checking whether issuance outruns participation formation.",
+      "existing_fae_owner": "Economic Block-Time / monetary consensus research",
+      "premise": "Issuance cadence and monetary timing must be evaluated with participation/decentralization evidence rather than copied from another network.",
+      "evidence": [
+        "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+        "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_PRE_L3_CEILING.md",
+        "sovereign-forge/protocol/ECONOMIC_BLOCK_TIME_V2_EXTERNAL_EVIDENCE.md",
+        "docs/FAE_MAINNET_READINESS_STATE.json"
+      ],
+      "coverage": "EXISTING_FRONTIER_SUFFICIENT",
+      "unproven_remainder": "No empirical result proves a universally sufficient wall-clock distribution for broad participation.",
+      "actual_gap": "No BrowserCoin-derived ownership gap. The question is already inside the economic research owner.",
+      "cii_admission_decision": "NO_ACTION",
+      "required_action": "Do not create a new frontier and do not change active economics. Continue only the existing economic evidence path under separate authority.",
+      "target_frontier": "Economic Block-Time / monetary research",
+      "authority_impact": "No economic/tokenomic/halving/activation authority consumed.",
+      "residual_uncertainty": "Social participation/distribution adequacy remains empirical and research-bound."
+    },
+    {
+      "id": "specialized-hardware-resistance",
+      "browsercoin_observation": "Sandglass v3 uses a 512 KiB scratch space, four dependent chains and serial dependent accesses; intra-hash dependency does not bound many-hash FPGA/ASIC parallelism.",
+      "existing_fae_owner": "ASIC Lab / DP6 Robust Premise Review",
+      "premise": "A competent specialized DP6 implementation must be bounded against the commodity-participation property using technology-calibrated PPA/economic evidence.",
+      "evidence": [
+        "evidence/fae-dp6-rp-b3-20260929@b3811fc1b616ddd629651e8921c3d55282aa3192",
+        "labs/asic-f2-pre-go/runtime/FAE_DP6_ROBUST_PREMISE_REVIEW_HOLD.json",
+        "labs/asic-f2-pre-go/reviews/FAE_DP6_RP_B3_TECHNOLOGY_CALIBRATED_COEFFICIENT_LEDGER.json",
+        "labs/asic-f2-pre-go/reviews/FAE_DP6_RP_B3_TECHNOLOGY_CALIBRATED_SPECIALIZED_PPA_EVIDENCE_GATE.md"
+      ],
+      "coverage": "EXISTING_FRONTIER_SUFFICIENT",
+      "unproven_remainder": "Full frozen-DP6 named-library standard-cell PPA, RW5 ASIC PPA, memory-interface/package coefficients and specialist LCVW remain incomplete.",
+      "actual_gap": "The specialized bound remains unproven, but it is already explicitly owned and gated; BrowserCoin reveals no second ASIC frontier.",
+      "cii_admission_decision": "NO_ACTION",
+      "required_action": "Continue only RP-B3-T1 when its non-production tool/library evidence gate is available; keep ASIC Lab HOLD otherwise.",
+      "target_frontier": "RP-B3-T1 — Frozen-DP6 Named-Library Standard-Cell PPA Calibration",
+      "authority_impact": "No DP6/consensus change and no AWS/FPGA/AFI/F2/paid-provider run authorized.",
+      "residual_uncertainty": "STRONG_HEURISTIC_NEEDS_SPECIALIZED_BOUND_EVIDENCE remains the controlling classification."
+    },
+    {
+      "id": "normal-use-browser-lifecycle-parity",
+      "browsercoin_observation": "Foreground benchmark competitiveness does not establish browser lifecycle, background scheduling, thermal, screen-state or normal-use parity.",
+      "existing_fae_owner": "Representative Device Evidence + Representative Device Physical Autopilot",
+      "premise": "Representative devices must sustain FAE mining under normal use and lifecycle transitions with provenance-bound physical evidence.",
+      "evidence": [
+        "lab/representative-device-evidence-readiness/acceptance-contract.json",
+        "docs/FAE_REPRESENTATIVE_DEVICE_PHYSICAL_AUTOPILOT_CLOSURE.json",
+        "events/fae-rde-physical-autopilot-bootstrap-001.json in Waterfound/General-Execution"
+      ],
+      "coverage": "EXISTING_FRONTIER_SUFFICIENT",
+      "unproven_remainder": "The frozen four-class PHYSICAL_EVIDENCE portfolio has not yet been completed.",
+      "actual_gap": "No design-assurance ownership gap. The existing contract already requires sustained mining, normal-use coexistence, lifecycle recovery, thermal/energy evidence and recovery bounds.",
+      "cii_admission_decision": "NO_ACTION",
+      "required_action": "Continue the existing physical frontier only when real selected devices execute the frozen protocol.",
+      "target_frontier": "Representative Device Physical Autopilot / RPA-X1",
+      "authority_impact": "No synthetic physical PASS and no provider spending authorized.",
+      "residual_uncertainty": "Real device-class results remain an external physical-evidence gate."
+    },
+    {
+      "id": "wallet-origin-key-compromise",
+      "browsercoin_observation": "A browser wallet must treat delivered code/origin and signing substitution as distinct from cryptographic key-at-rest protection.",
+      "existing_fae_owner": "Persistent Vault / Wallet Onboarding + Public Code Security + Release Provenance",
+      "premise": "For an honest runtime executing the exact admitted release artifact, the user-reviewed send intent must equal the payload actually signed and the delivered artifact must be provenance-bound.",
+      "evidence": [
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md",
+        "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.json",
+        "wallet.js",
+        "core.js",
+        "lab/wallet-delivery-signing-integrity/acceptance-contract.json",
+        "lab/wallet-delivery-signing-integrity/wallet-delivery-signing-integrity.test.mjs",
+        "GitHub Actions cross-lab-integration-gate run 36653906275"
+      ],
+      "coverage": "HARDEN_EXISTING_FRONTIER",
+      "unproven_remainder": "The dedicated intent-freeze/substitution regression and exact reviewed-intent-to-signing-payload gate remain to be implemented and independently verified; arbitrary malicious same-origin JavaScript remains explicitly outside the claim.",
+      "actual_gap": "A narrow assurance gap exists between current direct DOM intent capture and the exact payload signed; at-rest vault hardening alone does not close it.",
+      "cii_admission_decision": "HARDEN_EXISTING_FRONTIER",
+      "required_action": "Keep the acceptance contract/probe; serialize any signing-path implementation with the active Persistent Vault owner instead of creating a second wallet implementation.",
+      "target_frontier": "Wallet Persistent Vault / Public Code Security signing-integrity hardening",
+      "authority_impact": "No wallet key/spend authority, release or deployment authority consumed.",
+      "residual_uncertainty": "Implementation is blocked by shared-state serialization, not by lack of a defined assurance requirement."
+    },
+    {
+      "id": "long-horizon-full-node-survivability",
+      "browsercoin_observation": "Browser-first nodes need evidence that bootstrap, reconstruction and validation remain viable as chain age and stored history grow; current-age success alone is insufficient.",
+      "existing_fae_owner": "Independent Node + Full-target Headers Sync + Mainnet Readiness",
+      "premise": "A fresh or recovering independently operated node must reconstruct and validate canonical state as history grows without trusting an official snapshot or silently crossing an implementation ceiling.",
+      "evidence": [
+        "sovereign-forge/node/authoritative/fae-v4-peer-node.mjs",
+        "sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs",
+        "lab/independent-operator-readiness/acceptance-contract.json",
+        "lab/long-horizon-node-survivability/acceptance-contract.json",
+        "lab/long-horizon-node-survivability/long-horizon-ceiling.test.mjs",
+        "GitHub Actions cross-lab-integration-gate run 36653906275"
+      ],
+      "coverage": "HARDEN_EXISTING_FRONTIER",
+      "unproven_remainder": "Authoritative peer sync has MAX_BRANCH_BLOCKS=50,000 and fails closed above that branch length; no authoritative long-horizon scale/pruning/archival closure is proven.",
+      "actual_gap": "A real scale ceiling is now explicit. The correct next question is evidence for a bounded scaling strategy, not immediate removal of the safety ceiling.",
+      "cii_admission_decision": "HARDEN_EXISTING_FRONTIER",
+      "required_action": "Research/measure long-horizon scale and recovery inside the existing node owner before selecting iterative sync, persistence, pruning/archival or another implementation.",
+      "target_frontier": "Independent Node long-horizon scale/recovery evidence",
+      "authority_impact": "No consensus-observable pruning/archival semantics or activation change authorized.",
+      "residual_uncertainty": "The correct safe architecture beyond 50,000 blocks is not yet evidence-selected."
+    },
+    {
+      "id": "cold-start-infrastructure-independence",
+      "browsercoin_observation": "Decentralized block production does not itself prove that a fresh node can discover and validate the network when official bootstrap infrastructure is absent.",
+      "existing_fae_owner": "Peer Isolation/Eclipse + Independent Node + Mainnet Readiness",
+      "premise": "A fresh device must have an explicitly specified independently controlled bootstrap path; mathematical zero-seed discovery is not required, but official-infrastructure dependence must not be hidden.",
+      "evidence": [
+        "sovereign-forge/node/authoritative/fae-v4-peer-node.mjs",
+        "sovereign-forge/protocol/PEER_ISOLATION_ECLIPSE_REAL_WAN.md",
+        "lab/independent-operator-readiness/acceptance-contract.json",
+        "lab/cold-start-infrastructure-independence/acceptance-contract.json",
+        "lab/cold-start-infrastructure-independence/cold-start-independence.test.mjs",
+        "GitHub Actions cross-lab-integration-gate run 36653906275"
+      ],
+      "coverage": "HARDEN_EXISTING_FRONTIER",
+      "unproven_remainder": "Production bootstrap roots remain intentionally unset and no independently administered real-WAN official-infrastructure=0 rehearsal is admitted.",
+      "actual_gap": "The zero-seed negative control is proven; independent bootstrap topology plus real-WAN proof remain unproven.",
+      "cii_admission_decision": "HARDEN_EXISTING_FRONTIER",
+      "required_action": "Specify an independently administered bootstrap topology under the existing owner, then obtain external real-WAN evidence; do not invent a new discovery subsystem.",
+      "target_frontier": "Peer Isolation/Eclipse + Independent Node cold-start evidence",
+      "authority_impact": "No production bootstrap selection, paid provider execution or deployment authorized.",
+      "residual_uncertainty": "Real-world administrator/failure-domain independence remains external evidence."
+    },
+    {
+      "id": "protocol-governance-survivability",
+      "browsercoin_observation": "Height/time-gated forks and release mechanics do not alone answer who may authorize changes or how maintainer disagreement/emergency changes are handled.",
+      "existing_fae_owner": "Mainnet Readiness + Activation Boundary + Release Provenance/Independent Verifier",
+      "premise": "Consensus changes must have explicit authority, deterministic activation compatibility, fail-closed version/policy mismatch handling and survivable procedures for disagreement/emergency cases.",
+      "evidence": [
+        "sovereign-forge/protocol/ACTIVATION_BOUNDARY_HARDENING.md",
+        "docs/FAE_MAINNET_READINESS_BUILD_COLONY_RUN.json",
+        "docs/FAE_MAINNET_READINESS_CONSUMPTION_CONTRACT.json",
+        "docs/FAE_MAINNET_READINESS_STATE.json",
+        "docs/FAE_CANONICAL_STATE.md",
+        "docs/security/FAE_PSR13_RELEASE_PROVENANCE_EVIDENCE_V1.json"
+      ],
+      "coverage": "COVERED_NEEDS_MORE_EVIDENCE",
+      "unproven_remainder": "The review did not locate authoritative evidence defining maintainer-disagreement and emergency-change procedure. Missing search evidence is not proof that no such architecture exists.",
+      "actual_gap": "Evidence/documentation gap only at present; a new governance subsystem is not justified.",
+      "cii_admission_decision": "RESEARCH_REQUIRED",
+      "required_action": "Perform bounded evidence reconstruction inside Mainnet Readiness before considering any governance hardening.",
+      "target_frontier": "Mainnet Readiness governance-evidence reconstruction",
+      "authority_impact": "No consensus, activation-height, release or governance authority change authorized.",
+      "residual_uncertainty": "Social/process survivability remains less evidenced than technical activation/release boundaries."
+    }
+  ],
+  "counts": {
+    "challenges_analyzed": 7,
+    "coverage": {
+      "COVERED": 0,
+      "COVERED_NEEDS_MORE_EVIDENCE": 1,
+      "EXISTING_FRONTIER_SUFFICIENT": 3,
+      "HARDEN_EXISTING_FRONTIER": 3,
+      "NEW_FRONTIER_JUSTIFIED": 0,
+      "RESEARCH_REQUIRED": 0,
+      "NO_ACTION": 0
+    },
+    "cii_admission": {
+      "NO_ACTION": 3,
+      "HARDEN_EXISTING_FRONTIER": 3,
+      "NEW_FRONTIER_JUSTIFIED": 0,
+      "RESEARCH_REQUIRED": 1
+    },
+    "covered_or_no_action": 3,
+    "harden_existing_frontier": 3,
+    "new_frontier_justified": 0,
+    "research_required_only": [
+      "protocol-governance-survivability"
+    ]
+  },
+  "verification": {
+    "candidate_revision": "93eaf13a68b3b8000b94499bf7060fe674fda6ca",
+    "github_actions": [
+      {
+        "name": "cross-lab-integration-gate",
+        "run_id": 36653906275,
+        "conclusion": "success"
+      },
+      {
+        "name": "psr15-project-assurance",
+        "run_id": 36653906291,
+        "conclusion": "success"
+      },
+      {
+        "name": "public-code-security-recurring-assurance",
+        "run_id": 36653906309,
+        "conclusion": "success"
+      },
+      {
+        "name": "codeql-security",
+        "run_id": 36653906280,
+        "conclusion": "success"
+      },
+      {
+        "name": "verify-canonical-source",
+        "run_id": 36653906279,
+        "conclusion": "success"
+      }
+    ],
+    "provider_status_note": "Vercel status contexts are outside this bounded review and were observed separately as build-rate-limit failures; no paid-provider action is authorized or required for this assurance result."
+  },
+  "cii": {
+    "systemic_change_admission_required": false,
+    "reason": "No challenge justified new architecture/systemic ownership. Three gaps are bounded hardenings of existing owners; governance is research-only; three challenges require no new action from this review.",
+    "recovered_unmaterialized_references": {
+      "cii_source_tree": "1bcac09cc00774a63fc5ffe5a5ee3788d426facf",
+      "advisory_packet_id": "5e375d532847e9604b92a4ec34f5d0be2d4f029e27b953e6fe2a6031f1b4c197",
+      "build_colony_replan_id": "bc2-efb3feb55efc4c13",
+      "evidentiary_status": "RECOVERED_REFERENCE_NOT_FOUND_AS_PERSISTED_ARTIFACT_IN_THIS_BRANCH_OR_GLOBAL_GITHUB_CODE_SEARCH; NOT_USED_TO_ESTABLISH_FINAL_CLASSIFICATIONS"
+    }
+  },
+  "durable_execution": {
+    "runtime_repository": "Waterfound/General-Execution",
+    "runtime_branch": "runtime/durable-asp-control",
+    "bootstrap_event_id": "fae-browsercoin-design-assurance-bootstrap-002",
+    "bootstrap_trigger_commit": "99064b4fb31d136a2b7b2f38b45b96a4b7df007f",
+    "processed_commit": "896d624f24c3a143f1524930829a16bb9a04fd95",
+    "event_report_digest": "sha256:fdd29d5583bccfbce3d669f77c10f96b509af9a1dfef9afea9449ec911ab17c1",
+    "post_state_digest": "sha256:a319c37f5fa757f3db92422ba4080edf385be4c6ff0df727a6c68b90a0100a77",
+    "authority_created": false
+  },
+  "stop_reasons": {
+    "wallet": "SERIALIZE_SHARED_STATE_WITH_EXISTING_PERSISTENT_VAULT_OWNER",
+    "long_horizon": "RESEARCH_EVIDENCE_REQUIRED_BEFORE_SELECTING_IMPLEMENTATION",
+    "cold_start": "GENUINE_EXTERNAL_REAL_WAN_AND_BOOTSTRAP_ADMINISTRATION_EVIDENCE_GATE",
+    "specialized_hardware": "GENUINE_TOOL_LIBRARY_OR_EXTERNAL_EVIDENCE_GATE_IN_EXISTING_RP_B3_T1",
+    "lifecycle": "GENUINE_PHYSICAL_DEVICE_EVIDENCE_GATE",
+    "governance": "BOUNDED_EVIDENCE_RECONSTRUCTION_REQUIRED"
+  },
+  "prohibited_changes_performed": {
+    "dp6": false,
+    "consensus": false,
+    "economics": false,
+    "halving": false,
+    "activation_height": false,
+    "release": false,
+    "testnet_or_mainnet_deployment": false,
+    "wallet_authority": false,
+    "destructive_infrastructure": false,
+    "paid_provider_execution": false
+  },
+  "terminal_verdict": "DESIGN_ASSURANCE_REVIEW_TECHNICALLY_CLOSED_NO_NEW_FRONTIER_EXISTING_OWNER_HARDENING_AND_EXTERNAL_RESEARCH_GATES_REMAIN"
+}

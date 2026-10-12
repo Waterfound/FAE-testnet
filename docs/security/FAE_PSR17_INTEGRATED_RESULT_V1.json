@@ -1,0 +1,60 @@
+{
+  "schema": "FAE_PSR17_INTEGRATED_RESULT_V1",
+  "psr": "PSR-17",
+  "status": "GREEN_INTEGRATED",
+  "integration_commit": "13e6cfb0ac69ad302fd732b464b70801bfa98ef9",
+  "source_candidate": "fd30fd6fd6556e2b0843ffde5dc6b08b2aff3bdd",
+  "pr": 202,
+  "runs": {
+    "psr17": {
+      "id": 35374352129,
+      "run_number": 1,
+      "status": "SUCCESS"
+    },
+    "canonical": {
+      "id": 35374351998,
+      "run_number": 581,
+      "status": "SUCCESS"
+    },
+    "cross_lab": {
+      "id": 35374352089,
+      "run_number": 39,
+      "status": "SUCCESS"
+    },
+    "codeql": {
+      "id": 35374351966,
+      "run_number": 62,
+      "status": "SUCCESS_SIGNAL_ONLY"
+    },
+    "psr15": {
+      "id": 35374352051,
+      "run_number": 11,
+      "status": "SUCCESS"
+    },
+    "psr16": {
+      "id": 35374351832,
+      "run_number": 7,
+      "status": "SUCCESS"
+    }
+  },
+  "replay_report": {
+    "status": "PASS_FULL_SECURITY_BASELINE_REPLAY",
+    "planned_steps": 17,
+    "passed_steps": 17,
+    "failed_steps": 0,
+    "target_unchanged": true,
+    "retry_violation": false,
+    "artifact_id": 10558903831,
+    "artifact_zip_sha256": "58593393dcb965eafc90e65e15249b2b2ab2de971a7ab258918454a27757c33d",
+    "retention_days": 14
+  },
+  "authority": {
+    "production_actions": false,
+    "consensus_change": false,
+    "economic_change": false,
+    "wallet_or_address_change": false,
+    "deployment": false,
+    "release_authority": false,
+    "mainnet_authority": false
+  }
+}

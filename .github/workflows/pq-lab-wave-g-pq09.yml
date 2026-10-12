@@ -1,0 +1,51 @@
+name: pq-lab-wave-g-pq09
+on:
+  pull_request:
+    paths:
+      - 'lab/post-quantum-signatures/wave-g/pq09/**'
+      - '.github/workflows/pq-lab-wave-g-pq09.yml'
+  push:
+    branches:
+      - 'colony/pq09-*'
+    paths:
+      - 'lab/post-quantum-signatures/wave-g/pq09/**'
+      - '.github/workflows/pq-lab-wave-g-pq09.yml'
+permissions:
+  contents: read
+jobs:
+  resource-economics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24.8.0' }
+      - name: PQ boundary
+        env:
+          PQ_BOUNDARY_BASE: ${{ github.event.pull_request.base.sha }}
+          PQ_BOUNDARY_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PQ_BOUNDARY_BASE" ] && [ -n "$PQ_BOUNDARY_HEAD" ]; then
+            node lab/post-quantum-signatures/boundary-guard.mjs --base "$PQ_BOUNDARY_BASE" --head "$PQ_BOUNDARY_HEAD"
+          else
+            node lab/post-quantum-signatures/boundary-guard.mjs
+          fi
+      - name: Verify frozen prerequisites
+        run: node -e "const s=require('./lab/post-quantum-signatures/gate-status.json'); for(const g of ['PQ-03','PQ-04','PQ-05','PQ-06'])if(s.gates[g]?.status!=='GREEN')process.exit(1); if(s.activation_authorized!==false)process.exit(1)"
+      - name: Install pinned Lab dependencies
+        working-directory: lab/post-quantum-signatures
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Execute frozen resource matrix
+        run: |
+          mkdir -p lab/post-quantum-signatures/evidence/wave-g
+          node --expose-gc lab/post-quantum-signatures/wave-g/pq09/benchmark.mjs | tee lab/post-quantum-signatures/evidence/wave-g/pq09-benchmark.json
+      - name: Browser-facing compatibility smoke
+        env:
+          NODE_OPTIONS: --conditions=browser
+        run: node lab/post-quantum-signatures/wave-g/pq09/browser-smoke.mjs | tee lab/post-quantum-signatures/evidence/wave-g/pq09-browser.json
+      - name: Upload PQ-09 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pq09-resource-economics
+          path: lab/post-quantum-signatures/evidence/wave-g/pq09-*.json
+          if-no-files-found: error

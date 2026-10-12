@@ -1,0 +1,46 @@
+{
+  "format": "FAE_MAINNET_REHEARSAL_TEMPLATE_V2",
+  "status": "candidate-not-authorized-mainnet",
+  "network_id": "fairyelf-mainnet-rehearsal-v2",
+  "economics_candidate": {
+    "target_seconds": 300,
+    "initial_subsidy_fae": 14,
+    "halving_era_blocks": 430000,
+    "theoretical_max_supply_fae": 12040000,
+    "coinbase_maturity_blocks": 200,
+    "status": "not-authorized"
+  },
+  "final_freeze_required": {
+    "genesis_timestamp_ms": null,
+    "initial_target_hex": null,
+    "genesis_miner_address": null,
+    "release_artifact_sha256": null,
+    "release_manifest_sha256": null,
+    "release_source_commit": null,
+    "release_source_tree": null,
+    "release_config_sha256": null,
+    "live_activation_height": null,
+    "bootstrap_requirements": null,
+    "bootstrap_nodes": []
+  },
+  "external_evidence_required": {
+    "physical_hfb": false,
+    "representative_device": false,
+    "operational_soak": false,
+    "independent_operators": false
+  },
+  "authority": {
+    "mainnet_launch_authorized": false,
+    "candidate_to_authoritative": false,
+    "automatic_go_path": false
+  },
+  "release_binding": {
+    "required_format": "FAE_SOURCE_RELEASE_V2",
+    "require_artifact_digest": true,
+    "require_manifest_digest": true,
+    "require_source_commit": true,
+    "require_source_tree": true,
+    "require_config_digest": true,
+    "require_tree_reconstruction": true
+  }
+}

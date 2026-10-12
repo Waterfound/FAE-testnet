@@ -1,0 +1,29 @@
+{
+  "schema": "FAE_MTS_10_BASELINE_EVIDENCE_V1",
+  "status": "GREEN",
+  "candidate_head": "6f322cae954e852b9ef84ae68f9ac92cef3c0e73",
+  "lab_workflow": {
+    "run_id": 35356632431,
+    "job_id": 105637474894,
+    "conclusion": "success",
+    "baseline_tests": "4/4 PASS"
+  },
+  "canonical_workflow": {
+    "run_id": 35356632482,
+    "job_id": 105637475572,
+    "conclusion": "success"
+  },
+  "observed_baseline": {
+    "direct_tip_poll_interval_ms": 2000,
+    "broadcast_channel_acceleration_present": false,
+    "same_device_peer_requires_own_authoritative_observation": true,
+    "worst_case_avoidable_poll_wait_ms": 2000,
+    "mean_uniform_phase_wait_ms": 1000
+  },
+  "optimization_gate": {
+    "measurable_latency_exists": true,
+    "correctness_defect": false,
+    "runtime_patch_may_only_reduce_latency": true,
+    "network_status_remains_authority": true
+  }
+}

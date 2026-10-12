@@ -1,0 +1,86 @@
+{
+  "schema": "FAE_MAINNET_READINESS_CONSUMPTION_CONTRACT_V1",
+  "version": 1,
+  "source": "docs/FAE_MAINNET_READINESS_STATE.json",
+  "consumers": [
+    "Total Systems Steward",
+    "Durable Execution",
+    "Build Colony"
+  ],
+  "global_portfolio_semantics": {
+    "active": "FAE Research — 180s Economic + Block-Time Validation",
+    "secondary": "FAE — Mainnet Readiness & Canonical State Reconciliation",
+    "rule": "Parallelize independence. Serialize shared state."
+  },
+  "source_of_truth_rule": "Consumers read the current canonical ledger and referenced evidence; they must not reconstruct state from chat history.",
+  "state_semantics": {
+    "DONE": "Evidence-backed gate is complete at its declared authority class.",
+    "ACTIVE": "Workstream or live state currently active; does not imply mainnet authority.",
+    "SECONDARY": "Runnable secondary workstream that must yield on shared-state conflict with ACTIVE.",
+    "CONDITION_WAIT": "Machine may resume automatically when the stated condition becomes true.",
+    "SCHEDULED": "Machine may resume at/after the stated checkpoint after revalidation.",
+    "HUMAN_GATE": "Next admissible advancement requires Waterfound physical/account/authority action.",
+    "EXTERNAL_EVIDENCE": "Required evidence is not currently admitted; no PASS may be inferred.",
+    "RESEARCH_ONLY": "Evidence may inform research but cannot change active protocol authority.",
+    "BLOCKED": "No current admissible advancement until dependencies change.",
+    "UNRESOLVED": "Required value/state remains intentionally unset.",
+    "CLOSED": "Bounded project is closed; only its declared recurring/reopen condition remains."
+  },
+  "durable_mapping": {
+    "auto_runnable_states": [
+      "ACTIVE",
+      "SECONDARY",
+      "CONDITION_WAIT",
+      "SCHEDULED"
+    ],
+    "never_auto_promote_states": [
+      "RESEARCH_ONLY",
+      "EXTERNAL_EVIDENCE",
+      "BLOCKED",
+      "UNRESOLVED"
+    ],
+    "human_stop_state": "HUMAN_GATE",
+    "terminal_states": [
+      "DONE",
+      "CLOSED"
+    ],
+    "rule": "can_auto_advance and wake_condition further restrict execution; they never widen authority."
+  },
+  "steward_display_rule": {
+    "always_show": [
+      "ACTIVE",
+      "SECONDARY",
+      "HUMAN_GATE"
+    ],
+    "show_on_wake_or_failure": [
+      "CONDITION_WAIT",
+      "SCHEDULED",
+      "EXTERNAL_EVIDENCE",
+      "BLOCKED"
+    ],
+    "normally_suppress": [
+      "DONE",
+      "CLOSED"
+    ],
+    "unresolved_mainnet_critical": "Show when decision-relevant; do not manufacture urgency before prerequisites are satisfied."
+  },
+  "authority_rules": [
+    "Ledger state changes do not create protocol or mainnet authority.",
+    "HUMAN_GATE may be cleared only by evidence of the exact Waterfound action required.",
+    "Research-only evidence cannot be promoted by mapping it to DONE.",
+    "LAB_VERIFIED, INTEGRATED_MAIN, COMBINED_MAIN_VERIFIED and LIVE remain distinct.",
+    "Frozen historical failure evidence is append-only.",
+    "Before integrating a shared canonical surface, re-resolve current main and serialize against concurrent work."
+  ],
+  "fail_closed_conditions": [
+    "unknown state",
+    "unknown authority class",
+    "missing dependency",
+    "HUMAN_GATE without human_action_required=true",
+    "human_action_required=true on any non-HUMAN_GATE state",
+    "mainnet_ready_claimed=true",
+    "consensus/economic/mainnet authority changes not backed by an explicit separate authority artifact",
+    "evidence ref disappears or changes incompatibly",
+    "current main differs after a shared-state reconciliation candidate was prepared"
+  ]
+}

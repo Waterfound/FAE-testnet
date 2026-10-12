@@ -1,0 +1,46 @@
+{
+  "schema": "FAE_MTS_11_EVIDENCE_RECORD_V1",
+  "status": "GREEN",
+  "protected_miner_sha256": "e75a064030590d12ec4a528bb828360a2ad31eb22b35f33d4fec96a51ce9610c",
+  "lab_workflow": {
+    "run_id": 35361616221,
+    "deterministic_job_id": 105653998631,
+    "real_browser_job_id": 105654073293,
+    "conclusion": "success"
+  },
+  "canonical_workflow": {
+    "run_id": 35361616222,
+    "job_id": 105653994653,
+    "conclusion": "success"
+  },
+  "browser_artifact": {
+    "artifact_id": 10554720984,
+    "digest": "sha256:dcd3b13bf0dce885367640feeaf599384749dfc2ed292498ccb4d2d10f1b5c5e"
+  },
+  "chromium": {
+    "hint_latencies_ms": [8,5,3,4,6],
+    "hint_p95_ms": 8,
+    "hint_max_ms": 8,
+    "poll_fallback_ms": 1976,
+    "poll_minus_hint_max_margin_ms": 1968,
+    "result": "PASS"
+  },
+  "webkit": {
+    "hint_latencies_ms": [12,35,17,9,11],
+    "hint_p95_ms": 35,
+    "hint_max_ms": 35,
+    "poll_fallback_ms": 1949,
+    "poll_minus_hint_max_margin_ms": 1914,
+    "result": "PASS"
+  },
+  "safety": {
+    "forged_hint_false_cancel": false,
+    "hint_outage_false_cancel": false,
+    "broadcast_channel_required_for_correctness": false,
+    "replacement_template_bound_new_parent": true,
+    "stale_submissions_observed": 0
+  },
+  "classification": "REAL_BROWSER_VALIDATED_LATENCY_OPTIMIZATION",
+  "runtime_patch_required": false,
+  "next_frontier": ["MTS-12"]
+}

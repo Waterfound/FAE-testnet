@@ -1,0 +1,55 @@
+{
+  "schema": "FAE_COLD_START_INFRASTRUCTURE_INDEPENDENCE_V1",
+  "status": "CANDIDATE_HARDENING_EXISTING_FRONTIER",
+  "owner": [
+    "Peer Isolation / Eclipse",
+    "Independent Node",
+    "Mainnet Readiness"
+  ],
+  "premise": "With official FAE infrastructure unavailable, a genuinely fresh device must have an independently specified path to discover peers, synchronize, validate, and become mining-capable; post-bootstrap peer gossip alone is not sufficient evidence of cold-start independence.",
+  "phases": [
+    {
+      "id": "CS0",
+      "name": "zero-seed control",
+      "requirement": "fresh node, empty peer set, no persisted descriptors; prove current behavior explicitly"
+    },
+    {
+      "id": "CS1",
+      "name": "independent bootstrap topology",
+      "requirement": "fresh node receives only non-official bootstrap roots and reaches a diverse authenticated peer set"
+    },
+    {
+      "id": "CS2",
+      "name": "sync and validate",
+      "requirement": "node reconstructs preferred chain from those peers with normal validation"
+    },
+    {
+      "id": "CS3",
+      "name": "mining readiness",
+      "requirement": "after sync, node can obtain/create valid mining work without official control-plane dependency"
+    },
+    {
+      "id": "CS4",
+      "name": "real-WAN evidence",
+      "requirement": "repeat over independently administered hosts/networks; external evidence gate"
+    }
+  ],
+  "current_evidence": [
+    "Configured peers can seed authenticated peer discovery; peer descriptors then expand the candidate set.",
+    "Independent Node v1.1 proves coordinator-off operation, partition/reconnect recovery and bootstrap from a manually supplied peer.",
+    "Production bootstrap requirements/nodes remain intentionally unset."
+  ],
+  "acceptance": [
+    "A fresh node with zero peer roots is a negative control, not a required impossible property.",
+    "At least one bootstrap mechanism/root-of-contact must be specified; independence is demonstrated by absence of dependence on official FAE infrastructure, not by discovery from mathematical nothing.",
+    "Bootstrap root failure/compromise must fail closed or preserve a path to diverse independently controlled alternatives."
+  ],
+  "authority": {
+    "consensus_change": false,
+    "economic_change": false,
+    "release": false,
+    "deployment": false,
+    "mainnet": false,
+    "physical_provider_run": false
+  }
+}

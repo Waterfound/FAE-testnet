@@ -1,0 +1,112 @@
+{
+  "schema": "FAE_WALLET_TRANSACTION_UX_WTX07_PUBLICATION_EVIDENCE_V1",
+  "verdict": "PASS",
+  "status": "PUBLICATION_VERIFIED",
+  "date": "2026-09-27",
+  "repository": "Waterfound/FAE-testnet",
+  "merge_pr": 259,
+  "candidate_revision": "a18484c7fc56d914a42105a0be80f9b974ee202f",
+  "integrated_main_revision": "4238e4b6de6a2863d0531ee5d78b526ba4efad92",
+  "merge_commit_revision": "4238e4b6de6a2863d0531ee5d78b526ba4efad92",
+  "candidate_to_merge_compare": {
+    "ahead_by": 1,
+    "behind_by": 0,
+    "changed_files": 0
+  },
+  "combined_main_workflows": [
+    {
+      "name": "verify-canonical-source",
+      "run_id": 36339270407,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "name": "cross-lab-integration-gate",
+      "run_id": 36339270441,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "name": "public-code-security-recurring-assurance",
+      "run_id": 36339270417,
+      "event": "push",
+      "conclusion": "success"
+    },
+    {
+      "name": "codeql-security",
+      "run_id": 36339270406,
+      "event": "push",
+      "conclusion": "success"
+    }
+  ],
+  "deployment": {
+    "provider": "Vercel",
+    "project": "fairyelf-fae-testnet",
+    "id": "dpl_8B4eqYfngFRANcFjiFyX2Q7bgrFM",
+    "state": "READY",
+    "target": "production",
+    "source": "git",
+    "github_commit_ref": "main",
+    "github_commit_sha": "4238e4b6de6a2863d0531ee5d78b526ba4efad92",
+    "canonical_url": "https://fairyelf-fae-testnet.vercel.app",
+    "aliases": [
+      "fairyelf-fae-testnet.vercel.app",
+      "fairyelf-fae-testnet-waterfound.vercel.app",
+      "fairyelf-fae-testnet-git-main-waterfound.vercel.app"
+    ],
+    "alias_error": null
+  },
+  "public_probe": {
+    "root_http_status": 200,
+    "checked_files": [
+      {
+        "path": "index.html",
+        "http_status": 200,
+        "exact_text_match": true,
+        "github_chars": 18905,
+        "served_chars": 18905,
+        "content_type": "text/html; charset=utf-8"
+      },
+      {
+        "path": "wallet.js",
+        "http_status": 200,
+        "exact_text_match": true,
+        "github_chars": 22857,
+        "served_chars": 22857,
+        "content_type": "application/javascript; charset=utf-8"
+      },
+      {
+        "path": "wallet-transactions.js",
+        "http_status": 200,
+        "exact_text_match": true,
+        "github_chars": 7884,
+        "served_chars": 7884,
+        "content_type": "application/javascript; charset=utf-8"
+      },
+      {
+        "path": "core.js",
+        "http_status": 200,
+        "exact_text_match": true,
+        "github_chars": 22583,
+        "served_chars": 22583,
+        "content_type": "application/javascript; charset=utf-8"
+      }
+    ],
+    "all_exact": true
+  },
+  "user_visible_surface_observed": {
+    "txid_result_control_present": true,
+    "full_transaction_id_field_present": true,
+    "copy_transaction_id_control_present": true,
+    "transactions_history_section_present": true,
+    "history_coverage_disclosure_present": true
+  },
+  "authority_boundary": {
+    "changes_consensus": false,
+    "changes_backend": false,
+    "changes_wallet_key_material": false,
+    "explorer_dependency": false,
+    "full_fae_mainnet_live_claim": false,
+    "scope": "Wallet Transaction UX publication only"
+  }
+}

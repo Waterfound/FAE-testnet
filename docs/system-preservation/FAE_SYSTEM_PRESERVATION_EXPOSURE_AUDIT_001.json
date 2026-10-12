@@ -1,0 +1,178 @@
+{
+  "schema_version": "fae.system-preservation-exposure-audit.v1",
+  "audit_id": "FAE-SP-001",
+  "source_revision": "2b9a90f0c96a17ad6945768b99763269bbcdd06d",
+  "doctrine_candidate": "Waterfound/Systems:doctrine/system-preservation-low-exposure-001",
+  "mode": "read-only evidence-bound audit",
+  "authority_created": false,
+  "live_mutation_performed": false,
+  "stability_soak_v3_mutated": false,
+  "dimensions": [
+    "reachability",
+    "external_observability",
+    "authority",
+    "reusable_authority_material",
+    "state_concentration",
+    "provider_coupling",
+    "operator_coupling",
+    "recovery_concentration"
+  ],
+  "findings": [
+    {
+      "id": "FAE-SP-01-PUBLIC-SOURCE",
+      "surface": "public source and documentation",
+      "classification": {
+        "reachability": "MINIMAL",
+        "external_observability": "ELEVATED",
+        "authority": "MINIMAL",
+        "reusable_authority_material": "MINIMAL",
+        "state_concentration": "MINIMAL",
+        "provider_coupling": "BOUNDED",
+        "operator_coupling": "MINIMAL",
+        "recovery_concentration": "MINIMAL"
+      },
+      "evidence": [
+        "SECURITY.md",
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md"
+      ],
+      "disposition": "ACCEPTED_BY_DESIGN",
+      "reason": "FAE explicitly uses a white-box security model. Public knowledge is not treated as a security boundary."
+    },
+    {
+      "id": "FAE-SP-02-BROWSER-DEFAULT-NODE",
+      "surface": "browser default public-testnet node endpoint",
+      "classification": {
+        "reachability": "ELEVATED",
+        "external_observability": "ELEVATED",
+        "authority": "BOUNDED",
+        "reusable_authority_material": "MINIMAL",
+        "state_concentration": "BOUNDED",
+        "provider_coupling": "ELEVATED",
+        "operator_coupling": "MINIMAL",
+        "recovery_concentration": "BOUNDED"
+      },
+      "evidence": [
+        "sovereign-forge/browser/node-config.js"
+      ],
+      "disposition": "HARDEN_EXISTING_FRONTIER",
+      "reason": "A concrete provider endpoint is compiled as the default browser node. Users may select another node, so the endpoint is not protocol authority, but provider identity and topology are externally obvious and the default path concentrates availability."
+    },
+    {
+      "id": "FAE-SP-03-STANDALONE-MINER",
+      "surface": "sovereign standalone miner",
+      "classification": {
+        "reachability": "BOUNDED",
+        "external_observability": "BOUNDED",
+        "authority": "MINIMAL",
+        "reusable_authority_material": "MINIMAL",
+        "state_concentration": "MINIMAL",
+        "provider_coupling": "MINIMAL",
+        "operator_coupling": "MINIMAL",
+        "recovery_concentration": "MINIMAL"
+      },
+      "evidence": [
+        "standalone/README.md"
+      ],
+      "disposition": "COVERED",
+      "reason": "The miner requires only a selected node endpoint and public reward address, rejects wallet secret material from persisted configuration, and reacquires fresh work after restart."
+    },
+    {
+      "id": "FAE-SP-04-SHARE-COORDINATOR",
+      "surface": "dedicated share coordinator candidate",
+      "classification": {
+        "reachability": "BOUNDED",
+        "external_observability": "ELEVATED",
+        "authority": "BOUNDED",
+        "reusable_authority_material": "BOUNDED",
+        "state_concentration": "BOUNDED",
+        "provider_coupling": "BOUNDED",
+        "operator_coupling": "BOUNDED",
+        "recovery_concentration": "BOUNDED"
+      },
+      "evidence": [
+        "sovereign-forge/deploy/coordinator-dedicated/README.md",
+        "sovereign-forge/deploy/coordinator-dedicated/.env.example"
+      ],
+      "disposition": "COVERED_NEEDS_PRESERVATION_REVIEW",
+      "reason": "Only 80/443 are intended public and port 3190 stays internal. The coordinator holds no payout private key or consensus authority, but it intentionally uses a stable public DNS identity and persistent Ed25519 identity/ledger, so recovery and provider migration should be proven rather than assumed."
+    },
+    {
+      "id": "FAE-SP-05-SOAK-V3",
+      "surface": "Stability Soak V3 live/prestart infrastructure",
+      "classification": {
+        "reachability": "BOUNDED",
+        "external_observability": "ELEVATED",
+        "authority": "MINIMAL",
+        "reusable_authority_material": "BOUNDED",
+        "state_concentration": "BOUNDED",
+        "provider_coupling": "ELEVATED",
+        "operator_coupling": "ELEVATED",
+        "recovery_concentration": "BOUNDED"
+      },
+      "evidence": [
+        "General-Execution checkpoint fae-stability-soak-v3-durable-prestart-identity-gate-20261001"
+      ],
+      "disposition": "HOLD_UNTIL_EXISTING_TEST_FRONTIER_CLOSES",
+      "reason": "The frozen five-service test topology and stable node identities are evidence-critical. Preservation work must not mutate topology, identities, source binding or provider state while the V3 prestart/run frontier is open."
+    },
+    {
+      "id": "FAE-SP-06-PUBLIC-CODE-SECURITY",
+      "surface": "security and assurance model",
+      "classification": {
+        "reachability": "MINIMAL",
+        "external_observability": "BOUNDED",
+        "authority": "MINIMAL",
+        "reusable_authority_material": "MINIMAL",
+        "state_concentration": "MINIMAL",
+        "provider_coupling": "MINIMAL",
+        "operator_coupling": "MINIMAL",
+        "recovery_concentration": "MINIMAL"
+      },
+      "evidence": [
+        "docs/security/FAE_PUBLIC_CODE_THREAT_MODEL_V1.md",
+        "docs/security/FAE_ATTACK_SURFACE_MATRIX_V1.md",
+        "docs/security/FAE_PSR18_PUBLIC_CODE_SECURITY_VERDICT_V1.md"
+      ],
+      "disposition": "REUSE_NOT_DUPLICATE",
+      "reason": "Existing public-code security assurance is strong. System Preservation must target residual exposure, authority concentration and reconstruction rather than repeat vulnerability analysis."
+    }
+  ],
+  "priority_candidates": [
+    {
+      "id": "SP-H1-DEFAULT-NODE-INDIRECTION",
+      "priority": 1,
+      "type": "software-only candidate",
+      "goal": "Remove unnecessary provider identity from the browser default-node selection path without making endpoint discovery a security boundary.",
+      "constraints": [
+        "must not change consensus or node trust semantics",
+        "must retain explicit user-selectable node support",
+        "must not mutate live testnet provider state",
+        "must preserve deterministic fallback and diagnostics"
+      ]
+    },
+    {
+      "id": "SP-H2-COORDINATOR-RECOVERY-PROOF",
+      "priority": 2,
+      "type": "documentation/test candidate",
+      "goal": "Prove coordinator reconstruction/migration while preserving stable identity and ledger semantics.",
+      "constraints": [
+        "no live deployment required",
+        "no secret material in evidence",
+        "no activation change"
+      ]
+    },
+    {
+      "id": "SP-H3-EXPOSURE-BUDGET-CHECK",
+      "priority": 3,
+      "type": "repository assurance candidate",
+      "goal": "Create a machine-readable preservation check that flags new hard-coded provider endpoints, long-lived authority-bearing surfaces and undocumented recovery concentration.",
+      "constraints": [
+        "advisory/fail-closed evidence only",
+        "must not infer that every public endpoint is a defect",
+        "must allow justified exceptions with evidence"
+      ]
+    }
+  ],
+  "terminal_classification": "AUDIT_COMPLETE__HARDEN_EXISTING_FRONTIERS",
+  "next_frontier": "SP-H1-DEFAULT-NODE-INDIRECTION"
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "FAE_PQ_WAVE_I_PQ11_FREEZE_V1",
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "recorded_at": "2026-09-18",
+  "base_revision": "ac99bedb04f347d780fa97f6c4265ec8280abba3",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-03": "GREEN",
+    "PQ-04": "GREEN",
+    "PQ-05": "GREEN",
+    "PQ-06": "GREEN",
+    "PQ-07": "GREEN",
+    "PQ-08": "GREEN",
+    "PQ-09": "GREEN",
+    "PQ-10": "GREEN"
+  },
+  "name": "PQ-11 Software-Only Ceiling Verdict",
+  "objective": "Freeze the software-only post-quantum migration evidence into a deterministic evidence ledger, unresolved-boundary list, candidate comparison, migration-risk inventory and terminal shadow verdict without changing active FAE.",
+  "required_outputs": [
+    "machine-readable evidence ledger binding PQ-00 through PQ-10 to exact commits/runs/artifacts",
+    "unresolved software-boundary list",
+    "external-evidence boundary list kept separate from software blockers",
+    "candidate comparison using PQ-09 measurements without post-hoc scoring",
+    "migration risk inventory",
+    "exact reasons for every unresolved item",
+    "frozen software-only terminal verdict"
+  ],
+  "verdict_rules": {
+    "MIGRATION_PATH_TECHNICALLY_VIABLE_IN_SHADOW": "Allowed only when every required software gate PQ-03 through PQ-10 is GREEN, evidence bindings are complete, no unexplained differential disagreement remains, and no unresolved software blocker remains.",
+    "BLOCKED_BY_UNRESOLVED_EVIDENCE": "Required when any required software gate is not GREEN, an evidence binding is missing/inconsistent, or a software-relevant unresolved boundary prevents the viability claim.",
+    "INSUFFICIENT_JUSTIFICATION_FOR_ACTIVATION": "May be used only as an activation disposition; it must never be converted into activation authority. A technically viable shadow path still does not justify activation by itself."
+  },
+  "primary_verdict_field": "software_only_verdict",
+  "activation_disposition_field": "activation_disposition",
+  "activation_disposition_rule": "Activation is outside PQ-11 authority. Regardless of software-only verdict, activation_authorized remains false and production/mainnet decisions remain external.",
+  "external_evidence_not_software_blockers": [
+    "PQ-12 optional physical-device measurements on iPhone/iPad if decision-relevant",
+    "production consensus/economic activation authority",
+    "final production network/release/genesis decisions",
+    "any future explicit governance/authority decision"
+  ],
+  "anti_post_hoc_rules": [
+    "do not invent thresholds after reading PQ-09 measurements",
+    "do not select a winning ML-DSA parameter set unless an already-frozen criterion requires it",
+    "do not erase failed historical runs; use admitted evidence lineage",
+    "distinguish software blockers from optional/external evidence",
+    "no new protocol implementation belongs in PQ-11",
+    "all conclusions must trace to existing immutable evidence"
+  ],
+  "evidence_requirements": [
+    "PQ-00 boundary guard remains PASS",
+    "canonical source verification PASS",
+    "pq-lab-standards PASS",
+    "evidence ledger internally consistent",
+    "private_material_emitted=false",
+    "activation_authorized=false",
+    "active_runtime_files_unchanged=true"
+  ],
+  "next_if_technically_viable": "PQ-12 Physical-Device Evidence remains optional and decision-relevant only; otherwise the post-quantum software research workstream has reached its software-only ceiling."
+}

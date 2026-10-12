@@ -1,0 +1,176 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE06_HOST_HARDENING_CONTRACT_V1",
+  "created": "2026-09-23",
+  "canonical_source_revision": "b75c91dd47a92c129c31db186ecb36962fc2cd30",
+  "prerequisite": "BE-05 software integrated and exact-main verified; Explorer remains PUBLIC_PREBIND / UNBOUND.",
+  "authority": "PREPROVISION_ONLY_NO_SPEND_NO_BINDING_NO_LIVE",
+  "principles": [
+    "Explorer observes FAE; it never authorizes FAE.",
+    "Provider infrastructure is availability/persistence only, never consensus or chain-selection authority.",
+    "Only the read-only gateway may be exposed publicly; the Independent Node remains loopback/private.",
+    "No wallet seed, private key, transaction signing, transaction submission, mining, consensus, or economic authority may enter the host.",
+    "Stability Soak V3 and all other protected workstream infrastructure remain isolated."
+  ],
+  "runtime": {
+    "os": "supported Linux distribution with current security updates",
+    "architectures": [
+      "x86_64",
+      "aarch64"
+    ],
+    "node_js": ">=22",
+    "service_identity": {
+      "dedicated_unprivileged_user": "fae-explorer",
+      "root_runtime_forbidden": true,
+      "home_shell_login_required": false
+    },
+    "directories": {
+      "application": "/opt/fae-explorer",
+      "validated_state": "/var/lib/fae-explorer",
+      "tls_material": "/etc/fae-explorer/tls"
+    }
+  },
+  "process_topology": {
+    "independent_node": {
+      "bind": "127.0.0.1",
+      "preferred_port": 8787,
+      "data_file": "/var/lib/fae-explorer/fae-state.json",
+      "public_exposure": false,
+      "source": "sovereign-forge/node/fae-node.mjs"
+    },
+    "readonly_gateway": {
+      "bind": "127.0.0.1",
+      "preferred_port": 8788,
+      "node_origin": "http://127.0.0.1:8787",
+      "public_exposure": false,
+      "source": "lab/block-explorer/be05-readonly-gateway.mjs"
+    },
+    "https_edge": {
+      "public_ports": [
+        80,
+        443
+      ],
+      "upstream": "http://127.0.0.1:8788",
+      "methods": [
+        "GET",
+        "OPTIONS"
+      ],
+      "cache_policy": "no-store",
+      "direct_node_proxy_forbidden": true
+    }
+  },
+  "network_hardening": {
+    "public_inbound_required": [
+      80,
+      443
+    ],
+    "public_inbound_forbidden": [
+      "Independent Node port",
+      "read-only gateway loopback port",
+      "node mutation/admin routes"
+    ],
+    "administration": {
+      "password_ssh": false,
+      "root_ssh": false,
+      "key_only_if_ssh_used": true,
+      "world_open_tcp_22": false,
+      "preferred_access": [
+        "provider bastion/console",
+        "source-restricted SSH"
+      ]
+    },
+    "cors": {
+      "allow_origin": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai",
+      "allow_methods": [
+        "GET",
+        "OPTIONS"
+      ],
+      "wildcard_origin_forbidden": true,
+      "post_forbidden": true
+    }
+  },
+  "tls": {
+    "publicly_trusted_certificate_required": true,
+    "self_signed_live_forbidden": true,
+    "accepted_identity_modes": [
+      "stable DNS name with automated ACME renewal",
+      "public IP certificate with automated short-lived ACME renewal"
+    ],
+    "ip_certificate_note": "If no stable DNS name exists, a public IP certificate is acceptable only with an ACME client that supports short-lived IP certificates and automatic renewal; renewal failure must fail closed before expiry.",
+    "port_80_use": "ACME validation and HTTPS redirect only"
+  },
+  "persistence": {
+    "durable_state_required": true,
+    "state_file_must_survive": [
+      "process restart",
+      "service restart",
+      "instance reboot"
+    ],
+    "node_state_semantics": "Locally validated derived state; persistence accelerates recovery but never grants provider authority.",
+    "filesystem_permissions": "writeable only by dedicated runtime identity; not world-readable/writeable",
+    "restart_acceptance": [
+      "record validated tip and state-file identity before restart",
+      "restart service and verify same durable state is loaded",
+      "reboot instance and verify state remains present and node resumes local validation",
+      "fresh-bootstrap path remains possible if state is deliberately removed"
+    ]
+  },
+  "service_management": {
+    "supervisor": "systemd or provider-neutral equivalent",
+    "independent_node_restart": "on-failure",
+    "gateway_restart": "on-failure",
+    "https_edge_restart": "on-failure",
+    "start_order": [
+      "network ready",
+      "Independent Node",
+      "read-only gateway",
+      "HTTPS edge"
+    ],
+    "secrets_in_unit_files_forbidden": true
+  },
+  "logging": {
+    "bounded_rotation_required": true,
+    "private_keys_or_seed_material_forbidden": true,
+    "request_body_logging_forbidden": true,
+    "node_state_dump_logging_forbidden": true,
+    "retention_goal": "operational evidence only; avoid unbounded disk growth"
+  },
+  "cost_guard": {
+    "be06_monthly_cost_ceiling_usd": 0,
+    "paid_upgrade_authorized": false,
+    "resource_creation_requires_account_specific_free_tier_proof": true,
+    "mixed_free_and_paid_resource_set_forbidden": true,
+    "forbidden_without_separate_authority": [
+      "paid VM shape",
+      "premium/SSD disk outside free entitlement",
+      "paid load balancer",
+      "managed database",
+      "GPU/accelerator",
+      "paid static IP or networking add-on",
+      "egress plan or overage with expected nonzero charge"
+    ],
+    "protected_capacity_may_be_consumed": false
+  },
+  "provisioning_gate": {
+    "required_before_creation": [
+      "provider account and home/eligible region observed",
+      "selected compute shape is explicitly free-tier eligible",
+      "selected boot/durable storage is inside free entitlement",
+      "network/egress exposure has a fail-closed no-surprise-billing disposition",
+      "provider-specific reclamation/preemption risk has an explicit disposition",
+      "host-preflight reports eligible=true",
+      "no protected FAE workstream capacity is consumed"
+    ],
+    "resource_creation_authorized_by_this_contract": false
+  },
+  "deployment_binding_gate": {
+    "requires_after_provisioning": [
+      "be05-node-deployment-v1.json satisfied",
+      "durable restart acceptance GREEN",
+      "be05-binding-probe.mjs GREEN on exact public HTTPS origin",
+      "mutation/raw node routes unreachable publicly",
+      "only then may later authority permit BOUND_CANDIDATE"
+    ],
+    "explorer_binding_authorized_by_this_contract": false,
+    "explorer_live_authorized_by_this_contract": false
+  }
+}

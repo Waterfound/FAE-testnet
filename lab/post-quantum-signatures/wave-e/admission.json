@@ -1,0 +1,47 @@
+{
+  "schema": "FAE_PQ_WAVE_E_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "admitted_on_main": "62de37222c054e5b5cf392dadbe3af2acee80b73",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "prerequisites": {
+    "PQ-03": "GREEN"
+  },
+  "decision": {
+    "PQ-05": "GREEN",
+    "PQ-06": "GREEN"
+  },
+  "PQ05": {
+    "verified_head": "74290ddaadb96df46320026da90bda97fd11f93b",
+    "integrated_commit": "930d757f7a286eb83be637d32197342c030d63a0",
+    "executor_run_id": 35356157746,
+    "canonical_run_id": 35356157760,
+    "pq_lab_standards_run_id": 35356157668,
+    "artifact": {
+      "id": 10552105696,
+      "sha256": "c4c674349be68dd138cda7d930abb8148b109fce7afb81ea1345b18015b0d086"
+    },
+    "failure_ledger": "lab/post-quantum-signatures/wave-e/pq05/failure-ledger.json"
+  },
+  "PQ06": {
+    "verified_head": "1a23f1202cb5a9df54db5b2e737c44eee848fd93",
+    "integrated_commit": "dd8a6ddf942d526687d223e28da9f0bc30c85999",
+    "executor_run_id": 35356505221,
+    "canonical_run_id": 35356505244,
+    "pq_lab_standards_run_id": 35356505285,
+    "artifact": {
+      "id": 10551698838,
+      "sha256": "73b1c0008d0ad2eee613d4601add980fd742ad1823fff5bc0be1e0f7c0e9e92c"
+    },
+    "failure_ledger": "lab/post-quantum-signatures/wave-e/pq06/failure-ledger.json"
+  },
+  "invariants": {
+    "active_ed25519_unchanged": true,
+    "active_transaction_v2_unchanged": true,
+    "active_faet_addresses_unchanged": true,
+    "active_wallet_unchanged": true,
+    "active_consensus_unchanged": true,
+    "private_material_in_evidence": false
+  },
+  "authority_effect": "NONE"
+}

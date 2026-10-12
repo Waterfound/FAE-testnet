@@ -1,0 +1,96 @@
+{
+  "schema": "FAE_ISSUANCE_ERA_FINAL_RUN_RECEIPT_V1",
+  "recorded_at": "2026-10-04",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "research/fae-issuance-era-5y-vs-6y-20261004",
+  "authority": "RESEARCH_ONLY",
+  "source_binding": {
+    "comparison_source_commit": "24229b4a24e56cf28fd292a5be2918321f0ed596",
+    "comparison_source_blob_sha1": "e3aab0b2c03f64b45273d092cf198dde25196e08",
+    "local_source_sha256": "d0e813fcbd9aff66fb67131d69d382f3bd27b54dd1084c71b1e3db860f408a53",
+    "local_output_sha256": "aa3da9cbe532b285f8fcc993759a95874df565bef3c0f262a4c075f8c0aea85f",
+    "runtime": "Node.js v22.16.0",
+    "output_bytes": 24511
+  },
+  "frozen_question": {
+    "initial_reward_fae": 7,
+    "reduction_per_era_pct": 45,
+    "retention_per_era_pct": 55,
+    "era_candidates_years": [5, 6],
+    "primary_goal": "Bitcoin-oriented finite issuance with materially extended intergenerational participation for general-purpose hardware"
+  },
+  "deterministic_results": {
+    "five_year": {
+      "atom_exact_terminal_supply_fae_at_300s_example": "8181599.83403040",
+      "annualized_equivalent_decay_pct": 11.269579863367396,
+      "equivalent_subsidy_half_life_years": 5.797125133471666
+    },
+    "six_year": {
+      "atom_exact_terminal_supply_fae_at_300s_example": "9817919.80083648",
+      "annualized_equivalent_decay_pct": 9.483632938531727,
+      "equivalent_subsidy_half_life_years": 6.956550160165999
+    },
+    "same_initial_reward_invariants": {
+      "six_year_reward_never_below_five_year_at_same_calendar_time": true,
+      "six_year_never_has_more_subsidy_transitions_by_same_calendar_time": true,
+      "six_year_terminal_supply_vs_five_year_ratio": 1.2,
+      "six_year_terminal_supply_below_prior_12040000_fae_research_candidate": true
+    },
+    "remaining_issuance_pct": {
+      "year_20": {"five": 9.150625, "six": 14.141875, "six_vs_five_ratio": 1.5454545454545452},
+      "year_30": {"five": 2.7680640625, "six": 5.03284375, "six_vs_five_ratio": 1.818181818181818},
+      "year_40": {"five": 0.83733937890625, "six": 1.93764484375, "six_vs_five_ratio": 2.314049586776859}
+    },
+    "distribution_milestones_years": {
+      "50_pct_emitted": {"five": 6.01010101010101, "six": 7.212121212121212},
+      "80_pct_emitted": {"five": 13.76492194674013, "six": 16.517906336088156},
+      "90_pct_emitted": {"five": 19.432757325319304, "six": 23.319308790383168},
+      "95_pct_emitted": {"five": 25.072509812281663, "six": 30.087011774737995},
+      "99_pct_emitted": {"five": 38.812862318496585, "six": 46.5754347821959}
+    },
+    "fixed_12040000_supply_sensitivity": {
+      "five_year_initial_reward_fae": 10.301163586584531,
+      "six_year_initial_reward_fae": 8.584302988820443,
+      "six_vs_five_initial_reward_ratio": 0.8333333333333334,
+      "interpretation": "If terminal supply is externally frozen, six years front-loads less subsidy and loses the same-initial-reward dominance. Current Waterfound question instead freezes 7 FAE initial reward."
+    }
+  },
+  "external_evidence_classes": [
+    {
+      "id": "BTC_CORE",
+      "claim": "Bitcoin mainnet uses a 210000-block subsidy halving interval, approximately four years.",
+      "source": "https://github.com/bitcoin/bitcoin/blob/master/src/kernel/chainparams.cpp"
+    },
+    {
+      "id": "HALVING_SECURITY_SHOCK",
+      "claim": "Research finds discontinuous subsidy halvings can create mining-profitability/security shocks and proposes steadier subsidy reduction as a mitigation.",
+      "source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4801113"
+    },
+    {
+      "id": "HASH_SUPPLY_ELASTICITY",
+      "claim": "Empirical/theoretical research using halving events finds miner hash supply responds to reward changes and can affect PoW stability.",
+      "source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3974376"
+    },
+    {
+      "id": "2024_OBSERVED_HASHRATE",
+      "claim": "Hashrate Index reported Bitcoin 7-day hashrate down about 11% from the 2024 halving date to May 8; the 2020 halving was followed by about a 15% decline.",
+      "source": "https://hashrateindex.com/blog/hashrate-index-q1-24-and-halving-report/"
+    },
+    {
+      "id": "FEE_MARKET_VOLATILITY",
+      "claim": "Hashrate Index reported transaction fees averaged 1.04% of total Bitcoin block reward in 2025 versus 5.60% in 2024, illustrating that fee replacement can remain volatile.",
+      "source": "https://hashrateindex.com/blog/content/files/2026/01/Hashrate-Index---2025-Year-in-Review--Public-.pdf"
+    }
+  ],
+  "correction": {
+    "prior_wording": "6 years makes shocks 20% less frequent",
+    "correct_wording": "6 years makes the interval 20% longer and the event frequency 16.6667% lower than 5 years"
+  },
+  "terminal_disposition": {
+    "verdict": "SIX_YEARS_PREFERRED_DEFINITIVE_WITHIN_FROZEN_ASSUMPTIONS",
+    "five_year_status": "CLOSED_AS_PRIMARY__RETAIN_AS_SENSITIVITY_CHALLENGER",
+    "consensus_changed": false,
+    "economics_activated": false,
+    "mainnet_authority_created": false
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "candidate_code_head": "93eaf13a68b3b8000b94499bf7060fe674fda6ca",
+  "interpretation": {
+    "authorizes_merge_release_deploy_mainnet": false,
+    "bounded_assurance_package_verified": true,
+    "closes_cold_start_real_wan_independence": false,
+    "closes_underlying_long_horizon_gap": false,
+    "closes_wallet_same_origin_compromise": false
+  },
+  "observed_runs": [
+    {
+      "conclusion": "success",
+      "name": "cross-lab-integration-gate",
+      "run_id": 36653906275,
+      "run_number": 255
+    },
+    {
+      "conclusion": "success",
+      "name": "psr15-project-assurance",
+      "run_id": 36653906291,
+      "run_number": 63
+    },
+    {
+      "conclusion": "success",
+      "name": "public-code-security-recurring-assurance",
+      "run_id": 36653906309,
+      "run_number": 190
+    },
+    {
+      "conclusion": "success",
+      "name": "codeql-security",
+      "run_id": 36653906280,
+      "run_number": 280
+    },
+    {
+      "conclusion": "success",
+      "name": "verify-canonical-source",
+      "run_id": 36653906279,
+      "run_number": 797
+    }
+  ],
+  "pull_request": 267,
+  "schema": "FAE_BROWSER_COIN_DESIGN_ASSURANCE_CI_EVIDENCE_V1"
+}

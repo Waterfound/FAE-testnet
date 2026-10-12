@@ -1,0 +1,11 @@
+{
+  "name": "@fairyelf/fae-node",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "start": "node fae-node.mjs",
+    "check": "node --check fae-node.mjs"
+  }
+}

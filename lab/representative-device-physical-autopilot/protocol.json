@@ -1,0 +1,74 @@
+{
+  "schema": "FAE_RDE_PHYSICAL_AUTOPILOT_PROTOCOL_V1",
+  "protocol_id": "FAE-RDE-PHYSICAL-AUTOPILOT-V1-20260928",
+  "parent_contract_id": "FAE-RDE-ACCEPTANCE-V1-20260928",
+  "source_binding": {
+    "tested_source_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+    "tested_miner_blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+    "network": "fairyelf-public-testnet-v4",
+    "api": "https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4"
+  },
+  "campaign": {
+    "pure_mining_sustained": {
+      "repetitions": 3,
+      "warmup_seconds": 600,
+      "measurement_seconds": 1200
+    },
+    "normal_use_coexistence": {
+      "repetitions": 3,
+      "baseline_seconds": 60,
+      "warmup_seconds": 300,
+      "measurement_seconds": 900
+    },
+    "lifecycle_recovery": {
+      "required_classes": [
+        "mobile_tablet_arm",
+        "compact_handheld_consumer"
+      ],
+      "minimum_hidden_visible_cycles": 5
+    }
+  },
+  "physical_mode": {
+    "evidence_class": "PHYSICAL_EVIDENCE",
+    "duration_scaling_allowed": false,
+    "synthetic_events_allowed": false,
+    "real_device_required": true
+  },
+  "rehearsal_mode": {
+    "evidence_class": "REHEARSAL_ONLY",
+    "duration_scaling_allowed": true,
+    "physical_gate_credit": false
+  },
+  "normal_use_script": {
+    "id": "standard_local_interaction_script_v1",
+    "interval_ms": 250,
+    "probe_timer_ms": 50,
+    "operations": [
+      "DOM text mutation",
+      "DOM attribute toggle",
+      "small deterministic sort",
+      "microtask round-trip"
+    ],
+    "failure_rule": "A scripted operation that throws, produces inconsistent state, or misses its hard 1000 ms completion bound is a failed interaction.",
+    "latency_metric": "p95 scheduled-probe delay above the requested timer interval"
+  },
+  "lifecycle": {
+    "source": "real document.visibilitychange/pagehide/pageshow events",
+    "simulated_transition_credit": false,
+    "note": "For iPad Safari the operator may need to physically background and foreground Safari five times. The harness records; it does not fake transitions."
+  },
+  "energy": {
+    "default_source": "UNAVAILABLE",
+    "efficiency_claimed_by_default": false,
+    "manual_wall_power_allowed": true,
+    "machine_readable_telemetry_preferred": true,
+    "no_energy_measurement_blocks_efficiency_only": true
+  },
+  "selection_lock": {
+    "must_precede_measurement": true,
+    "binds_device_class": true,
+    "binds_manufacturer_model": true,
+    "binds_observed_network_tip": true,
+    "locks_fields_after_creation": true
+  }
+}

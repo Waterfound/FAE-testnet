@@ -1,0 +1,94 @@
+name: colony-f-mainnet-rehearsal-package-v2
+
+on:
+  push:
+    branches:
+      - 'colony/f-mainnet-rehearsal-package-v2'
+  pull_request:
+    paths:
+      - 'sovereign-forge/release/mainnet-rehearsal-template.json'
+      - 'sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs'
+      - 'sovereign-forge/tests/mainnet-rehearsal-package-colony-f-v2.mjs'
+      - 'sovereign-forge/protocol/AGENT_BUILD_COLONY_F_MAINNET_REHEARSAL_PACKAGE_V2.md'
+      - '.github/workflows/colony-f-mainnet-rehearsal-package-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mainnet-rehearsal-package-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_SHA: 92088ac1d60043f870b2e1eec06d7a0817325896
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove F v2 is additive only from E v2 baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-status "$BASE_SHA..HEAD" | tee /tmp/colony-f-v2-diff.txt
+          if grep -Ev '^A[[:space:]]' /tmp/colony-f-v2-diff.txt | grep -q .; then
+            echo 'Worker F v2 may not modify pre-existing authority or release code.'
+            exit 1
+          fi
+
+      - name: Reproduce Worker E v2 release ceiling first
+        run: |
+          node --check sovereign-forge/scripts/build-reproducible-release.mjs
+          node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
+
+      - name: Syntax and executable F v2 rehearsal gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs
+          node sovereign-forge/tests/mainnet-rehearsal-package-colony-f-v2.mjs | tee "$RUNNER_TEMP/mainnet-rehearsal-v2-evidence.json"
+
+      - name: Regress post-Colony differential evidence
+        run: |
+          node sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs
+          node sovereign-forge/tests/activation-state-transition-core-differential.mjs
+          node sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
+          node sovereign-forge/tests/agent-build-colony-h-integration.mjs
+
+      - name: Enforce permanent HOLD and unresolved production values
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"mainnet_launch_authorized": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"candidate_to_authoritative": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"automatic_go_path": false' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"live_activation_height": null' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"release_artifact_sha256": null' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"release_source_commit": null' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q '"release_source_tree": null' sovereign-forge/release/mainnet-rehearsal-template.json
+          ! grep -q '"mainnet_launch_authorized": true' sovereign-forge/release/mainnet-rehearsal-template.json
+          grep -q "mainnet_launch_authorized:false" sovereign-forge/node/authoritative/mainnet-rehearsal-package-candidate.mjs
+          echo 'COLONY_F_V2_HOLD_BOUNDARY=PASS'
+
+      - name: Preserve live authority and economic fences
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+      - name: Preserve rehearsal evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-mainnet-rehearsal-package-f-v2
+          path: ${{ runner.temp }}/mainnet-rehearsal-v2-evidence.json
+          if-no-files-found: error
+          retention-days: 7

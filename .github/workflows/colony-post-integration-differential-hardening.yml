@@ -1,0 +1,72 @@
+name: colony-post-integration-differential-hardening
+
+on:
+  push:
+    branches:
+      - 'colony/post-integration-differential-hardening-v1'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs'
+      - 'sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs'
+      - 'sovereign-forge/tests/activation-state-transition-core-differential.mjs'
+      - 'sovereign-forge/tests/activation-network-composition-runtime-differential.mjs'
+      - '.github/workflows/colony-post-integration-differential-hardening.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  differential-hardening:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax check changed candidate and differential gates
+        run: |
+          node --check sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+          node --check sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs
+          node --check sovereign-forge/tests/activation-state-transition-core-differential.mjs
+          node --check sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
+
+      - name: Historical bodies through full-target pipeline
+        run: node sovereign-forge/tests/full-target-genesis-body-replay-regression.mjs
+
+      - name: Colony B oracle versus authoritative v4 core
+        run: node sovereign-forge/tests/activation-state-transition-core-differential.mjs
+
+      - name: Colony D oracle versus real shadow runtime
+        run: node sovereign-forge/tests/activation-network-composition-runtime-differential.mjs
+
+      - name: Reproduce original integrated Colony B C D H gates
+        run: |
+          node sovereign-forge/tests/activation-state-transition-colony-b.mjs
+          node sovereign-forge/tests/compatibility-replay-colony-c.mjs
+          node sovereign-forge/tests/activation-network-composition-colony-d.mjs
+          node sovereign-forge/tests/agent-build-colony-h-integration.mjs
+
+      - name: Preserve pre-colony activation and network evidence
+        run: |
+          node sovereign-forge/tests/activation-boundary-hardening.mjs
+          node sovereign-forge/tests/activation-deep-reorg-fork.mjs
+          node sovereign-forge/tests/full-target-headers-sync-rehearsal.mjs
+          node sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs
+
+      - name: Preserve authority and economic fences
+        run: |
+          set -euo pipefail
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/full-target-headers-sync-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-state-transition-candidate.mjs
+          grep -q "candidate-not-active-consensus" sovereign-forge/node/authoritative/activation-network-composition-candidate.mjs
+          grep -q "INITIAL_SUBSIDY=10n\*COIN" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "HALVING_ERA_BLOCKS=600000" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          grep -q "TARGET_SECONDS=180" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs

@@ -1,0 +1,14 @@
+services:
+  fae-node:
+    build: ./node
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    volumes:
+      - fae-node-data:/data
+    environment:
+      FAE_BOOTSTRAP_FEEDS: https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-chain-feed-v1
+      FAE_UPSTREAM_API: https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4
+      FAE_PEERS: ""
+volumes:
+  fae-node-data:

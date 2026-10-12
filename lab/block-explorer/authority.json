@@ -1,0 +1,525 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_LAB_AUTHORITY_V1",
+  "status": "BE_06_ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
+  "created": "2026-09-18",
+  "project": "FAE",
+  "lab": "FAE – Block Explorer",
+  "source_revision": "c9ca448b5d14b098d761d8e4f89268ab591d9de2",
+  "build_colony_revision": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "current_frontier": "BE-05",
+  "authority_ceiling": "PUBLIC_HTTPS_INDEPENDENT_NODE_DISCOVERY_AND_BINDING_GATE",
+  "explorer_principle": "Explorer observes FAE; it never authorizes FAE.",
+  "current_stage_runtime_write_authorized": false,
+  "node_query_surface_write_authorized": false,
+  "wallet_write_authorized": false,
+  "consensus_change_authorized": false,
+  "monetary_policy_change_authorized": false,
+  "public_testnet_promotion_authorized": false,
+  "mainnet_launch_authorized": false,
+  "private_key_or_seed_access_authorized": false,
+  "transaction_signing_authorized": false,
+  "transaction_submission_authorized": false,
+  "mining_authority_authorized": false,
+  "chain_selection_authority_authorized": false,
+  "allowed_write_prefixes": [
+    "lab/block-explorer/",
+    ".github/workflows/block-explorer-lab.yml",
+    "lab/integration/registry.json"
+  ],
+  "protected_active_paths": [
+    "index.html",
+    "core.js",
+    "wallet.js",
+    "wallet-crypto.js",
+    "mining.js",
+    "network-status.js",
+    "supabase/",
+    "sovereign-forge/node/",
+    "sovereign-forge/protocol/",
+    "sovereign-forge/release/",
+    "tests/",
+    "FAE_FORGE_MAIN.sha256"
+  ],
+  "canonical_data_policy": {
+    "raw_feed_is_authority": false,
+    "independently_validated_node_state_required": true,
+    "explorer_cache_may_be_authority": false,
+    "optional_indexer_state": "DERIVED_DISPOSABLE_ONLY",
+    "corrupted_index_must_be_rebuildable_from_validated_state": true
+  },
+  "live_testnet_binding": {
+    "network": "fairyelf-public-testnet-v4",
+    "target_seconds": 180,
+    "initial_subsidy_fae": "10",
+    "halving_era_blocks": 600000,
+    "max_supply_fae": "12000000",
+    "pplns_coinbase_activation_height": null
+  },
+  "deletion_invariant": "Removing lab/block-explorer and its Lab-only workflow must not change active FAE wallet, mining, consensus, economics, node behavior, public-testnet behavior, or network survival.",
+  "failure_policy": "Fail closed on network identity, tip binding, provenance, or read-model ambiguity. Contract evidence cannot authorize runtime, consensus, wallet, mining, or deployment changes.",
+  "completed_gates": {
+    "BE-01": {
+      "status": "GREEN",
+      "lab_workflow_run_id": 35400808978,
+      "lab_workflow_job_id": 105780014123,
+      "boundary_guard": "PASS",
+      "contract_tests": "6/6 PASS",
+      "codeql_workflow_run_id": 35400808968,
+      "canonical_workflow_run_id": 35400808963,
+      "recurring_assurance_workflow_run_id": 35400808983,
+      "cross_lab_preintegration_workflow_run_id": 35400809055,
+      "note": "Pre-integration gates GREEN on exact candidate 9fce098ad577067aee96039bbc303d2eeb6bee13. Registry serialization follows as a separate shared-state step."
+    },
+    "BE-02": {
+      "status": "GREEN",
+      "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
+      "block_explorer_lab_run_id": 35406136085,
+      "block_explorer_lab_job_id": 105796163820,
+      "query_surface_tests": "11/11 PASS including real HTTP integration",
+      "independent_node_hardening_run_id": 35406136129,
+      "canonical_source_run_id": 35406136145,
+      "codeql_run_id": 35406136116,
+      "recurring_assurance_run_id": 35406136133,
+      "cross_lab_preintegration_run_id": 35406136167,
+      "failures_resolved": [
+        "digit-only 64-hex digest initially misclassified as block height",
+        "Forge integrity manifest initially stale after authorized node-source change",
+        "BE-01 combined guard initially rejected explicit BE-02 bounded query-surface authority"
+      ],
+      "authority_change": "NONE beyond bounded read-only Independent Node Explorer query implementation"
+    },
+    "BE-03": {
+      "status": "GREEN",
+      "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
+      "block_explorer_lab_run_id": 35407126578,
+      "block_explorer_lab_job_id": 105799092827,
+      "application_tests": "12/12 PASS",
+      "be01_regression": "6/6 PASS",
+      "be02_regression": "11/11 PASS",
+      "canonical_source_run_id": 35407126576,
+      "canonical_source_substantive_gates": "40/40 PASS",
+      "codeql_run_id": 35407126583,
+      "recurring_assurance_run_id": 35407126613,
+      "cross_lab_preintegration_run_id": 35407126571,
+      "architecture": "standalone static read-only application under explorer/",
+      "deployment_state": "NOT_LIVE",
+      "authority_change": "NONE; source-only Explorer application candidate"
+    },
+    "BE-04": {
+      "status": "GREEN_PUBLIC_PREBIND_ONLY",
+      "verified_candidate_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+      "block_explorer_lab_run_id": 35849397207,
+      "block_explorer_lab_job_id": 107142650282,
+      "be01_be02_be03_be04_regressions": "PASS",
+      "cross_lab_preintegration_run_id": 35849223850,
+      "canonical_source_run_id": 35849223848,
+      "codeql_run_id": 35849397142,
+      "recurring_assurance_run_id": 35849397136,
+      "psr15_whitebox_run_id": 35849223877,
+      "public_frontend": "READY_PUBLIC_PREBIND",
+      "public_url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
+      "app_id": "fae-block-explorer-e2z4q3",
+      "hosted_snapshot_version": "1789777122012",
+      "hosted_source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+      "node_binding": "UNRESOLVED_PENDING_ELIGIBLE_PERSISTENT_NODE",
+      "live_status": "NOT_LIVE",
+      "evidence_path": "lab/block-explorer/be04-public-prebind-evidence.json",
+      "authority_change": "NONE; public hosting remains non-authoritative and unbound",
+      "candidate_head_revision": "e992db0131e30d9c1220da17f2df34e3cf69907d",
+      "cross_lab_run_id": 35849397172,
+      "project_assurance_run_id": 35849397112,
+      "canonical_success_run_id": 35849223848,
+      "canonical_latest_concurrent_run_id": 35849397225,
+      "canonical_latest_concurrent_run_note": "Run-level conclusion was cancelled by concurrency after all 40 substantive gates and cleanup steps individually completed success; exact same HEAD already has canonical success run 35849223848."
+    },
+    "BE-05": {
+      "status": "GREEN_SOFTWARE_INTEGRATED_EXTERNAL_HOST_BLOCKED",
+      "verified_candidate_revision": "2a9751e8cf0e56a2d020a1f1acd0f7b2f538521c",
+      "block_explorer_lab_run_id": 35853240137,
+      "block_explorer_lab_job_id": 107155614726,
+      "tests": "BE-01/02/03/04 regressions + BE-05 contract/gateway/binding-probe + syntax PASS",
+      "cross_lab_preintegration_run_id": 35853240155,
+      "cross_lab_job_id": 107155615539,
+      "canonical_source_run_id": 35853240118,
+      "canonical_source_job_id": 107155615118,
+      "canonical_source_substantive_gates": "40/40 PASS",
+      "codeql_run_id": 35853240126,
+      "codeql_job_id": 107155614799,
+      "recurring_assurance_run_id": 35853240183,
+      "recurring_assurance_job_id": 107155615661,
+      "psr15_whitebox_run_id": 35853240061,
+      "psr15_whitebox_job_id": 107155614607,
+      "provider_scan": "NO_EXISTING_ELIGIBLE_HOST_DISCOVERED",
+      "gateway": "PREPARED_TESTED",
+      "binding_probe": "PREPARED_TESTED",
+      "deployment_performed": false,
+      "binding_performed": false,
+      "live_status": "NOT_LIVE",
+      "authority_change": "NONE; runtime deployment and public HTTPS binding remain unauthorized",
+      "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+      "integration_pull_request": 238,
+      "verification_pull_request": 239
+    }
+  },
+  "be02_authority": {
+    "state": "LAB_VERIFIED_FROZEN",
+    "prerequisite": "BE-01 is COMBINED_MAIN_VERIFIED at c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "source_revision": "c76c554ec88c153b74ab6a8ac73dc68cad739ede",
+    "intended_scope": "Independent Node read-only /explorer query surface only; no consensus/economic/wallet/mining authority.",
+    "allowed_write_scopes": [
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "sovereign-forge/node/fae-node.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/explorer-read.mjs"
+      },
+      {
+        "path": "sovereign-forge/node/README.md"
+      },
+      {
+        "path": "FAE_FORGE_MAIN.sha256"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      }
+    ],
+    "forbidden_runtime_effects": [
+      "change block validity",
+      "change fork choice",
+      "change transaction validity",
+      "change mining/template semantics",
+      "change wallet or key handling",
+      "change monetary policy",
+      "trust raw feed or Explorer cache as canonical truth",
+      "add Explorer mutation endpoints"
+    ],
+    "explorer_methods": [
+      "GET",
+      "OPTIONS"
+    ],
+    "state_source": "in-memory snapshot of already independently validated node state",
+    "pagination_binding": "address cursors must bind to observed_tip_hash and fail closed across tip change",
+    "integrity_manifest_write_authorization_basis": {
+      "canonical_workflow_run_id": 35405913496,
+      "canonical_workflow_job_id": 105795524721,
+      "failing_gate": "Verify imported Sovereign Forge snapshot",
+      "observed_mismatches": [
+        "sovereign-forge/node/fae-node.mjs",
+        "sovereign-forge/node/README.md"
+      ],
+      "new_runtime_file_to_admit": "sovereign-forge/node/explorer-read.mjs",
+      "scope": "Renew exact SHA-256 entries for BE-02 changed/new Sovereign Forge node files only."
+    },
+    "verified_candidate_revision": "44f918b6cff2409af2a766c2f01738c74ac59975",
+    "runtime_writes_frozen": true
+  },
+  "frontier_source_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+  "current_stage_protected_path_exceptions": [],
+  "explorer_application_write_authorized": false,
+  "explorer_application_live_authorized": false,
+  "public_deployment_authorized": false,
+  "be03_authority": {
+    "state": "LAB_VERIFIED_FROZEN",
+    "prerequisite": "BE-02 is COMBINED_MAIN_VERIFIED at 392569f972c515481aa583ff9f80d611cbbfaa24",
+    "source_revision": "392569f972c515481aa583ff9f80d611cbbfaa24",
+    "intended_scope": "Separate static read-only Explorer application skeleton consuming only the verified Independent Node /explorer/* surface.",
+    "architecture": "static standalone application; no framework, no database, no wallet/mining imports, no same-process node dependency",
+    "allowed_write_scopes": [
+      {
+        "prefix": "explorer/"
+      },
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      }
+    ],
+    "forbidden_runtime_effects": [
+      "change Independent Node behavior",
+      "change block validity",
+      "change fork choice",
+      "change transaction validity or admission",
+      "access private keys or seed phrases",
+      "sign or submit transactions",
+      "start or control mining",
+      "change monetary policy",
+      "change wallet/mining site source",
+      "create authoritative Explorer storage",
+      "claim LIVE deployment without exact deployment evidence"
+    ],
+    "network": "fairyelf-public-testnet-v4",
+    "transport_methods": [
+      "GET"
+    ],
+    "required_ui_boundary": [
+      "read-only identity visible",
+      "testnet identity visible",
+      "network mismatch fails closed",
+      "no wallet, mining, signing, or send controls"
+    ],
+    "live_status": "NOT_AUTHORIZED",
+    "verified_candidate_revision": "fb643eb847a3c40aeb190e04b525d8b31987070d",
+    "application_writes_frozen": true
+  },
+  "public_frontend_prebind_deployment_authorized": false,
+  "public_https_node_binding_authorized": false,
+  "independent_node_public_deployment_authorized": false,
+  "be04_authority": {
+    "state": "LAB_VERIFIED_FROZEN",
+    "prerequisite": "BE-03 is COMBINED_MAIN_VERIFIED at 2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
+    "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
+    "intended_scope": "Create a provider-independent deploy artifact and a separate public Explorer frontend in explicit PREBIND state; prepare but do not synthesize the HTTPS Independent Node binding.",
+    "frontend_architecture": "static standalone Explorer artifact; provider may host bytes but has no FAE authority",
+    "allowed_write_scopes": [
+      {
+        "prefix": "explorer/"
+      },
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      }
+    ],
+    "allowed_external_actions": [
+      "create separate zero-cost static Explorer hosting target",
+      "deploy exact candidate Explorer bytes in PUBLIC_PREBIND state",
+      "inspect existing infrastructure for eligible HTTPS Independent Node endpoints"
+    ],
+    "forbidden_external_actions": [
+      "reuse Wallet/Mining hosting project as the Explorer application",
+      "reuse audit or Lab service as if it were an Independent Node",
+      "consume Stability Soak free-instance budget for Explorer node hosting",
+      "mark Explorer LIVE before exact HTTPS node binding evidence exists",
+      "bind to a node that does not independently validate FAE state"
+    ],
+    "public_frontend_prebind_state": "VERIFIED_FROZEN",
+    "public_https_node_binding_state": "UNRESOLVED_PENDING_ELIGIBLE_PERSISTENT_NODE",
+    "expected_network": "fairyelf-public-testnet-v4",
+    "live_requirements": [
+      "separate public Explorer URL over HTTPS",
+      "exact source/deployment revision evidence",
+      "HTTPS Independent Node endpoint",
+      "GET /explorer/status returns expected network and valid observed tip binding",
+      "mutation probes remain rejected",
+      "CORS permits only read-only Explorer access",
+      "frontend config is bound to the verified HTTPS node origin",
+      "cross-Lab and security gates pass on exact integrated revision"
+    ],
+    "live_status": "NOT_AUTHORIZED",
+    "source_writes_frozen": true,
+    "verified_public_prebind": {
+      "url": "https://fae-block-explorer-e2z4q3.v2.appdeploy.ai/",
+      "provider": "AppDeploy",
+      "app_id": "fae-block-explorer-e2z4q3",
+      "snapshot_version": "1789777122012",
+      "source_revision": "eabddc8db3f79f4ac6a7544316809f3d879954fe",
+      "binding_state": "UNBOUND",
+      "deployment_state": "PUBLIC_PREBIND",
+      "qa": "CLEAN"
+    }
+  },
+  "be05_authority": {
+    "state": "EXTERNAL_BLOCKED_FROZEN",
+    "prerequisite": "BE-04 is integrated and post-merge verified at 0341ed060be0f030d5cb677953cef141ae7eb415",
+    "source_revision": "0341ed060be0f030d5cb677953cef141ae7eb415",
+    "intended_scope": "Discover and prove an eligible persistent HTTPS Independent Node hosting path, then bind the already-public UNBOUND Explorer only after independent validation and live-read gates pass.",
+    "allowed_write_scopes": [
+      {
+        "prefix": "lab/block-explorer/"
+      },
+      {
+        "path": ".github/workflows/block-explorer-lab.yml"
+      },
+      {
+        "path": "lab/integration/registry.json"
+      },
+      {
+        "path": "docs/FAE_CANONICAL_STATE.md"
+      },
+      {
+        "path": "explorer/config.json"
+      },
+      {
+        "path": "explorer/README.md"
+      }
+    ],
+    "discovery_allowed": [
+      "inspect existing connected hosting infrastructure read-only",
+      "inspect zero-cost or already-entitled hosting eligibility",
+      "define deployment manifest and live binding acceptance contract",
+      "probe an already-existing eligible Independent Node if one exists"
+    ],
+    "deployment_forbidden_until_promoted": true,
+    "forbidden_actions": [
+      "consume Stability Soak V3 reserved Render instance-hours",
+      "repurpose Wallet/Mining or audit deployments as Independent Node authority",
+      "create paid infrastructure or consume a separate lab budget without explicit authority",
+      "bind Explorer to raw feed, Supabase database, cache, Vercel function, or any non-validating source",
+      "mark Explorer LIVE before exact HTTPS node and combined-main evidence",
+      "change consensus, economics, fork choice, wallet signing, transaction admission, or mining"
+    ],
+    "minimum_eligible_node_requirements": [
+      "persistent runtime suitable for the reference Independent Node",
+      "persistent node-owned validated state",
+      "HTTPS public origin",
+      "fairyelf-public-testnet-v4 identity",
+      "full local validation of feed/peer inputs rather than trusting upstream truth",
+      "GET /explorer/status returns valid observed tip binding",
+      "Explorer mutation methods remain rejected",
+      "provider can disappear without affecting FAE consensus or chain survival"
+    ],
+    "current_disposition": "SOFTWARE_INTEGRATED_EXTERNAL_HOST_REQUIRED",
+    "live_status": "NOT_AUTHORIZED",
+    "source_writes_frozen": true,
+    "eligible_existing_host_found": false,
+    "external_host_required": true,
+    "discovery_completed": true,
+    "external_unblock_conditions": [
+      "An eligible persistent host is discovered without consuming protected infrastructure envelopes, or explicit authority is granted for a new host with a bounded budget/credit scope.",
+      "The host satisfies lab/block-explorer/be05-node-deployment-v1.json.",
+      "The deployed public origin passes lab/block-explorer/be05-binding-probe.mjs on exact deployment evidence.",
+      "Only then may a later authority transition permit Explorer BOUND_CANDIDATE configuration."
+    ],
+    "prepared_artifacts": [
+      "lab/block-explorer/be05-provider-scan.json",
+      "lab/block-explorer/be05-node-deployment-v1.json",
+      "lab/block-explorer/be05-readonly-gateway.mjs",
+      "lab/block-explorer/be05-binding-probe.mjs"
+    ],
+    "verified_candidate_revision": "f5214aaf0368d5f98c97d2b790fa346ae48c13d9",
+    "reconciled_candidate_branch": "lab/block-explorer-be05-reconciled-20260923",
+    "exact_head_verification": "GREEN",
+    "integrated_main_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+    "integration": {
+      "status": "COMBINED_MAIN_VERIFIED",
+      "pull_request": 238,
+      "verification_pull_request": 239,
+      "merge_revision": "0561c96772a4d2faaf761777537eabe63febc737",
+      "exact_revision_verification": {
+        "block_explorer_lab": {
+          "run_id": 35853240137,
+          "job_id": 107155614726,
+          "status": "GREEN"
+        },
+        "cross_lab": {
+          "run_id": 35853240155,
+          "job_id": 107155615539,
+          "status": "GREEN"
+        },
+        "canonical_source": {
+          "run_id": 35853240118,
+          "job_id": 107155615118,
+          "status": "GREEN",
+          "substantive_gates": "40/40"
+        },
+        "codeql": {
+          "run_id": 35853240126,
+          "job_id": 107155614799,
+          "status": "GREEN"
+        },
+        "recurring_assurance": {
+          "run_id": 35853240183,
+          "job_id": 107155615661,
+          "status": "GREEN"
+        },
+        "psr15_whitebox": {
+          "run_id": 35853240061,
+          "job_id": 107155614607,
+          "status": "GREEN"
+        }
+      }
+    }
+  },
+  "be06_authority": {
+    "state": "ORACLE_HOST_CREATION_AUTHORIZED_ZERO_COST_ONLY",
+    "prerequisite": "BE-06 preprovision package integrated and exact-main verified at e11679cce8697aeeecc89d78454adb123acef563",
+    "intended_scope": "Select and prove one zero-cost persistent host for the Explorer Independent Node without granting provider, Explorer, or hosting infrastructure FAE authority.",
+    "allowed_actions": [
+      "read-only provider/account eligibility inspection",
+      "read-only current-testnet footprint measurement",
+      "provider-neutral hardening and preflight verification",
+      "bounded runtime-capacity/reclamation observation that creates no billable cloud resource"
+    ],
+    "forbidden_actions": [
+      "create a paid or potentially billable cloud resource",
+      "consume Stability Soak V3 or another protected workstream envelope",
+      "generate synthetic CPU/network/memory load solely to evade Oracle idle-reclamation policy",
+      "treat a Google external IPv4 address as zero-cost under current VPC pricing",
+      "bind the Explorer before host preflight and BE-05 binding acceptance are GREEN",
+      "mark Explorer LIVE",
+      "change consensus, economics, wallet signing, transaction admission, or mining"
+    ],
+    "preferred_next_probe": "oracle_cloud",
+    "provider_selection_authorized": true,
+    "host_creation_authorized": true,
+    "explorer_binding_authorized": false,
+    "live_authorized": false,
+    "integrated_main_revision": "c5794bbf190f5848da9ff0289b15d7ac213916b0",
+    "integrated_guard": "lab/block-explorer/be06-provider-precreate-guard.mjs",
+    "integrated_policy": "lab/block-explorer/be06-provider-precreate-policy-v1.json",
+    "source_writes_frozen": true,
+    "account_specific_evidence_authorized_read_only": true,
+    "paid_spend_authorized": false,
+    "next_authority_transition": "After launch, only evidence-gathering and hardening needed for persistent-host eligibility are authorized; Explorer binding and LIVE remain separately closed.",
+    "exact_main_verification": {
+      "pull_request": 247,
+      "revision": "f4d47149f0b089f89754b2a2766b1f868da998e0",
+      "block_explorer_lab_run_id": 35861061648,
+      "cross_lab_run_id": 35861061874,
+      "recurring_assurance_run_id": 35861061634,
+      "codeql_run_id": 35861061793,
+      "canonical_source_run_id": 35861061815,
+      "result": "GREEN"
+    },
+    "selected_provider": "oracle_cloud",
+    "exact_guard_input": "lab/block-explorer/be06-oracle-precreate-input-20260923.json",
+    "exact_guard_result": "ADMITTED_SAFE_TO_REQUEST_HOST_CREATION_AUTHORITY",
+    "monthly_cost_ceiling_usd": 0,
+    "persistent_host_eligible": false,
+    "exact_host_creation_request": {
+      "provider": "oracle_cloud",
+      "region": "sa-saopaulo-1",
+      "ad": "AD-1",
+      "shape": "VM.Standard.A1.Flex",
+      "ocpu": 2,
+      "memory_gb": 12,
+      "image": "Oracle Linux 9",
+      "boot_volume_gb": 46.6,
+      "network": "dedicated VCN/public subnet/public IPv4",
+      "public_ports": [
+        80,
+        443
+      ],
+      "world_open_ssh": false,
+      "paid_upgrade": false,
+      "paid_fallback": false,
+      "trial_credit_reliance": false,
+      "protected_capacity_reuse": false,
+      "out_of_host_capacity_action": "ABORT"
+    },
+    "host_creation_authority_file": "lab/block-explorer/be06-host-creation-authority-20260923.json"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "FAE_PQ11_SOFTWARE_ONLY_CEILING_ADMISSION_V1",
+  "admitted_at": "2026-09-18",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "execution": {
+    "head": "d60494784cc469aff50f525f84523361db3ad662",
+    "integrated_commit": "ed7d6381fa321847694a0078a7e92a163ecb05b8",
+    "pq11_run_id": 35374484304,
+    "canonical_run_id": 35374484287,
+    "pq_lab_standards_run_id": 35374484475,
+    "cross_lab_run_id": 35374484322,
+    "codeql_run_id": 35374484393,
+    "artifact_id": 10559766858,
+    "artifact_sha256": "fb9eff24be649eea9d7b46d7990685eb5c42ccdb93e27b030dafc1554cbf4b36"
+  },
+  "software_only_verdict": "MIGRATION_PATH_TECHNICALLY_VIABLE_IN_SHADOW",
+  "activation_disposition": "INSUFFICIENT_JUSTIFICATION_FOR_ACTIVATION",
+  "evidence_binding_complete": true,
+  "unresolved_software_boundaries": [],
+  "software_only_ceiling_reached": true,
+  "external_or_optional_boundaries": [
+    "PQ-12 optional physical-device measurements if later decision-relevant",
+    "production consensus/economic activation authority",
+    "final production network/release/genesis decisions",
+    "future explicit governance/authority decision"
+  ],
+  "candidate_selection": {
+    "winner_selected": false,
+    "rationale": "PQ-11 preserves the frozen no-post-hoc rule; PQ-09 measurements remain descriptive evidence and do not promote an ML-DSA parameter set."
+  },
+  "active_fae_unchanged": {
+    "ed25519_authoritative": true,
+    "transaction_v2_authoritative": true,
+    "faet_address_authoritative": true,
+    "public_testnet_consensus_changed": false,
+    "wallet_format_changed": false,
+    "mainnet_launch_authorized": false
+  },
+  "private_material_emitted": false,
+  "next_required_software_frontier": null,
+  "pq12_required_for_software_ceiling": false
+}

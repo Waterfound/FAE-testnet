@@ -1,0 +1,37 @@
+{
+  "schema": "FAE_LONG_HORIZON_NODE_SURVIVABILITY_V1",
+  "status": "CANDIDATE_HARDENING_EXISTING_FRONTIER",
+  "owner": [
+    "Independent Node",
+    "Full-target Headers Sync",
+    "Mainnet Readiness"
+  ],
+  "premise": "A fresh or recovering independently operated node remains able to reconstruct and validate canonical state as chain age and stored history grow, without trusting an official snapshot or silently crossing a fixed sync ceiling.",
+  "required_scenarios": [
+    "fresh state with chain-distance 50000",
+    "fresh state with chain-distance 50001 or greater",
+    "interrupted initial synchronization followed by restart/resume",
+    "persistent-state recovery after partial/corrupt write",
+    "storage growth measurement across representative chain ages",
+    "validation continuity across any future pruning/archival boundary"
+  ],
+  "current_evidence": [
+    "Authoritative peer node validates headers before blocks and replays downloaded blocks.",
+    "Independent Node v1.1 has durable recovery/fail-closed recovery tests.",
+    "Authoritative peer sync currently bounds downloaded branch history at MAX_BRANCH_BLOCKS=50000."
+  ],
+  "acceptance": [
+    "No hidden trust in an official state snapshot.",
+    "A scale ceiling must be explicit and evidence-bound; reaching it may not be reported as survivability PASS.",
+    "Any pruning/archival design must preserve enough evidence for trustless validation/recovery and requires separate review if it changes consensus-observable behavior.",
+    "Interrupted sync must resume or safely restart without accepting partially validated state."
+  ],
+  "authority": {
+    "consensus_change": false,
+    "economic_change": false,
+    "dp6_change": false,
+    "release": false,
+    "mainnet": false,
+    "physical_provider_run": false
+  }
+}

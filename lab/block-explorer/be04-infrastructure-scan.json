@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_BLOCK_EXPLORER_BE04_INFRASTRUCTURE_SCAN_V1",
+  "observed_date": "2026-09-18",
+  "source_revision": "2a86043c6e54ac28bb9fdba440c2d86b544c3f6d",
+  "vercel": {
+    "team": "Waterfound",
+    "dedicated_explorer_project_found": false,
+    "relevant_existing_projects": [
+      {
+        "name": "fairyelf-fae-testnet",
+        "disposition": "REJECT_AS_EXPLORER_HOST",
+        "reason": "Wallet/Mining application hosting must remain separate from Explorer."
+      },
+      {
+        "name": "fae-independent-audit-api",
+        "disposition": "REJECT_AS_NODE_OR_EXPLORER_AUTHORITY",
+        "reason": "Audit/preview project is not a persistent independently validating FAE node."
+      }
+    ]
+  },
+  "render": {
+    "workspace": "My Workspace",
+    "persistent_services_observed": 10,
+    "services_suspended_by_billing": true,
+    "representative_services": [
+      "fae-wan-a-oregon",
+      "fae-wan-b-frankfurt",
+      "fae-wan-c-singapore",
+      "fae-stability-soak-96h",
+      "fae-v5-n4-render-oregon-a",
+      "fae-v5-n4-render-frankfurt-b"
+    ],
+    "disposition": "DO_NOT_CREATE_OR_BIND_EXPLORER_NODE_NOW",
+    "reason": "Persistent services are suspended and future free-instance capacity is reserved for Stability Soak V3 evidence; BE-04 must not consume or weaken that envelope."
+  },
+  "eligible_https_independent_node_found": false,
+  "public_frontend_prebind_possible": true,
+  "live_binding_possible_now": false,
+  "resulting_state": "PREPARE_AND_DEPLOY_FRONTEND_PREBIND_ONLY",
+  "invariant": "No public URL, audit service, raw feed, cache, or hosting provider becomes FAE consensus authority."
+}

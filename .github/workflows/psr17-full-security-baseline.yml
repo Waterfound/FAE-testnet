@@ -1,0 +1,69 @@
+name: psr17-full-security-baseline
+
+on:
+  pull_request:
+    paths:
+      - 'docs/security/FAE_PSR17_*'
+      - 'scripts/psr17-full-security-replay.mjs'
+      - 'tests/public-code-security-baseline-replay.mjs'
+      - 'scripts/psr15-project-assurance.mjs'
+      - 'scripts/psr16-finding-closure.mjs'
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json'
+      - 'release/provenance/**'
+      - 'scripts/psr13-*.mjs'
+      - 'tests/public-code-release-provenance.mjs'
+      - '.github/workflows/psr17-full-security-baseline.yml'
+      - '.github/workflows/verify.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/security/FAE_PSR17_*'
+      - 'scripts/psr17-full-security-replay.mjs'
+      - 'tests/public-code-security-baseline-replay.mjs'
+      - 'scripts/psr15-project-assurance.mjs'
+      - 'scripts/psr16-finding-closure.mjs'
+      - 'docs/security/FAE_PSR15_WHITE_BOX_CAMPAIGN_V1.json'
+      - 'docs/security/FAE_PSR16_FINDING_CLOSURE_V1.json'
+      - 'release/provenance/**'
+      - 'scripts/psr13-*.mjs'
+      - 'tests/public-code-release-provenance.mjs'
+      - '.github/workflows/psr17-full-security-baseline.yml'
+      - '.github/workflows/verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fae-psr17-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - name: Checkout exact PSR-17 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify PSR-17 static replay contract
+        run: node --test tests/public-code-security-baseline-replay.mjs
+
+      - name: Execute full baseline replay exactly once
+        run: node scripts/psr17-full-security-replay.mjs --out "$RUNNER_TEMP/psr17-full-security-baseline.json"
+
+      - name: Preserve PSR-17 replay report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-psr17-full-security-baseline
+          path: ${{ runner.temp }}/psr17-full-security-baseline.json
+          if-no-files-found: error
+          retention-days: 14
