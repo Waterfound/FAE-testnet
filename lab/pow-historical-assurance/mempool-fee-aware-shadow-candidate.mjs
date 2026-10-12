@@ -10,6 +10,12 @@ import {stableStringify} from '../../sovereign-forge/node/authoritative/canonica
 
 const fail=(code)=>{throw Object.assign(new Error(code),{code})};
 const sizeOf=(rec)=>Buffer.byteLength(stableStringify(normalizeTx(rec)),'utf8');
+// Pending snapshot values must retain the authoritative positive atom invariant.
+// BigInt alone accepts zero, negatives and noncanonical decimal encodings.
+const positivePendingAtoms=(value)=>{
+  if(typeof value!=='string'||!/^[1-9]\d*$/.test(value))fail('invalid_pending_amount');
+  return BigInt(value);
+};
 const validFee=(rec)=>{
   if(rec?.status!=='pending'||!/^\d+$/.test(String(rec.fee_atoms)))fail('invalid_pending_fee');
   return BigInt(rec.fee_atoms);
@@ -37,9 +43,9 @@ export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
       const source=confirmed&&!confirmed.spent?confirmed:state.mempoolOutputs[input];
       if(!source)fail('missing_input_source');
       if(source.address!==rec.from_address)fail('invalid_pending_input_owner');
-      inputAtoms+=BigInt(source.amount_atoms);
+      inputAtoms+=positivePendingAtoms(source.amount_atoms);
     }
-    for(const output of rec.outputs)outputAtoms+=BigInt(output.amount_atoms);
+    for(const output of rec.outputs)outputAtoms+=positivePendingAtoms(output.amount_atoms);
     if(inputAtoms<outputAtoms||inputAtoms-outputAtoms!==declaredFee)fail('pending_fee_mismatch');
     for(let j=0;j<rec.outputs.length;j++){
       const outpoint=txid+':'+j, indexed=state.mempoolOutputs[outpoint];
