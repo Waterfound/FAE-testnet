@@ -324,3 +324,45 @@ test('PF-12T: 512 parallel authentic eight-deep signed dependency chains preserv
     indicative_only:true,not_worst_case:true,representative_device:false}));
   assert.ok(admissionMs<45000,'candidate admission exceeds coarse nonproduction regression envelope');
 });
+
+function signedMultiple(w,inputs,amountAtoms,feeAtoms=0n){
+  const unsigned={version:2,network:NETWORK,inputs,
+    outputs:[{address:w.address,amount_atoms:(BigInt(amountAtoms)-feeAtoms).toString()}],
+    public_key_spki:w.pub};
+  const signature=signBytes(null,Buffer.from(stable(txPayload({...unsigned,signature:''}))),w.privateKey).toString('base64');
+  return {...unsigned,signature};
+}
+test('PF-12U: two real signed ancestors and a fee-paying join are selected atomically in topological order',()=>{
+  const owner=wallet(),solo=wallet(),state=emptyState(),amount='1000000000';
+  seed(state,owner,'left:0',amount);seed(state,owner,'right:0',amount);
+  seed(state,solo,'solo:0',amount);
+  const left=acceptTxInto(state,signed(owner,'left:0',amount));
+  const right=acceptTxInto(state,signed(owner,'right:0',amount));
+  const soloTx=acceptTxInto(state,signed(solo,'solo:0',amount,1000n));
+  const join=acceptTxInto(state,signedMultiple(owner,[left.txid+':0',right.txid+':0'],2_000_000_000n,1_000_000n));
+  const before=stable(state);
+  assertPendingIndexes(state);
+  const selected=selectFeeSensitiveTemplateCandidate(state,{limit:3,maxCandidateVisits:1024});
+  assert.deepEqual(selected.txids,[left.txid,right.txid,join.txid]);
+  assert.equal(selected.fee_atoms,'1000000');
+  assert.ok(!selected.txids.includes(soloTx.txid));
+  assert.equal(stable(state),before);
+});
+test('PF-12V: signed fan-in descendant closure excludes a shared child when either ancestor is removed',()=>{
+  const owner=wallet(),state=emptyState(),amount='1000000000';
+  seed(state,owner,'p1:0',amount);seed(state,owner,'p2:0',amount);
+  const left=acceptTxInto(state,signed(owner,'p1:0',amount));
+  const right=acceptTxInto(state,signed(owner,'p2:0',amount));
+  const join=acceptTxInto(state,signedMultiple(owner,[left.txid+':0',right.txid+':0'],2_000_000_000n,100n));
+  assertPendingIndexes(state);
+  const before=stable(state);
+  for(const root of [left.txid,right.txid]){
+    const removed=removeDescendantPackageOnClone(state,[root],{cap:MAX_MEMPOOL_TXS});
+    assert.ok(removed.evicted.includes(root));
+    assert.ok(removed.evicted.includes(join.txid));
+    assert.ok(!removed.state.mempoolOrder.includes(join.txid));
+    assert.equal(removed.state.mempoolOrder.length,1);
+    assertPendingIndexes(removed.state);
+  }
+  assert.equal(stable(state),before,'source fan-in state must remain immutable');
+});
