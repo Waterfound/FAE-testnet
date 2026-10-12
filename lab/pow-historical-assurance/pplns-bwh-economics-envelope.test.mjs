@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sourceShareWindow,bwhConditionalPayoff,sourceWindowRolloff,fawConditionalExternalOpportunity}
+import {sourceShareWindow,bwhConditionalPayoff,sourceWindowRolloff,fawConditionalExternalOpportunity,
+  efawConditionalPortfolio}
   from './pplns-bwh-economics-envelope.mjs';
 const R=1_000_000_000n;
 test('HPA-W3-09: true 2048-window 25% infiltration retains payout weight but 100% withheld full-blocks reduces own expected reward',()=>{
@@ -131,4 +132,54 @@ test('HPA-W3-34: exact break-even is not positive attack profit',()=>{
   assert.equal(trial.requiredForkWinBasisPointsCeil,'10000');
   assert.equal(trial.noProfitableForkWinRateUnderDeclaredInputs,true);
   assert.equal(trial.conditionalScenarioAdvantageous,false);
+});
+
+test('HPA-W3-35: EFAW portfolio conserves one attacker allocation across multiple pools',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const trial=efawConditionalPortfolio({ledger,withholdBasisPoints:10000,poolRewardAtoms:R,
+    externalPools:[
+      {rewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:1000,allocationBasisPoints:6000},
+      {rewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:2000,allocationBasisPoints:4000}
+    ]});
+  assert.equal(trial.totalAllocationBasisPoints,10000);
+  assert.equal(trial.unallocatedBasisPoints,0);
+  assert.equal(trial.maximumHypotheticalExternalAtoms,'1000000000');
+  assert.equal(trial.expectedExternalAtoms,'140000000');
+  assert.equal(trial.ownPoolWithholdingCostAtoms,'62500000');
+  assert.equal(trial.expectedNetGainAtoms,'77500000');
+  assert.equal(trial.conditionalPortfolioAdvantageous,true);
+  assert.equal(trial.actualAttackerProfitabilityVerified,false);
+});
+test('HPA-W3-36: duplicated full attacker allocation across EFAW pools fails closed',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  assert.throws(()=>efawConditionalPortfolio({ledger,poolRewardAtoms:R,externalPools:[
+    {rewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:1000,allocationBasisPoints:10000},
+    {rewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:1000,allocationBasisPoints:1}
+  ]}),/efaw_allocation_budget_exceeded/);
+});
+test('HPA-W3-37: declared EFAW portfolio ceiling can falsify profit without claiming empirical security',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const trial=efawConditionalPortfolio({ledger,withholdBasisPoints:10000,poolRewardAtoms:R,
+    extraAttackCostAtoms:10_000_000n,externalPools:[
+      {rewardAtoms:50_000_000n,assumedOpportunities:1,assumedForkWinBasisPoints:10000,allocationBasisPoints:5000},
+      {rewardAtoms:50_000_000n,assumedOpportunities:1,assumedForkWinBasisPoints:10000,allocationBasisPoints:5000}
+    ]});
+  assert.equal(trial.maximumHypotheticalExternalAtoms,'50000000');
+  assert.equal(trial.minimumHypotheticalBenefitRequiredAtoms,'72500000');
+  assert.equal(trial.noProfitablePortfolioUnderDeclaredInputs,true);
+  assert.equal(trial.conditionalPortfolioAdvantageous,false);
+  assert.equal(trial.opportunityRatesVerified,false);
+  assert.equal(trial.actualAttackerProfitabilityVerified,false);
+});
+test('HPA-W3-38: malformed EFAW allocations and fake evidence types are rejected',()=>{
+  const {ledger}=sourceShareWindow({windowSize:2048,attackerShares:512});
+  const good={rewardAtoms:R,assumedOpportunities:1,assumedForkWinBasisPoints:1000,allocationBasisPoints:5000};
+  for(const externalPools of [[],[null],[{...good,rewardAtoms:0n}],
+    [{...good,assumedOpportunities:0}],[{...good,assumedForkWinBasisPoints:10001}],
+    [{...good,allocationBasisPoints:0}],[{...good,allocationBasisPoints:1.5}]]){
+    assert.throws(()=>efawConditionalPortfolio({ledger,poolRewardAtoms:R,externalPools}),
+      /invalid_efaw_portfolio_assumptions/);
+  }
+  assert.throws(()=>efawConditionalPortfolio({ledger,poolRewardAtoms:R,
+    externalPools:[good],extraAttackCostAtoms:1}),/invalid_efaw_portfolio_assumptions/);
 });
