@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {exactSelfishHorizon,exactOneEventTrailHorizon} from './selfish-mining-exact-horizon.mjs';
+import {exactSelfishHorizon,exactOneEventTrailHorizon,exactTieAdvantageThreshold} from './selfish-mining-exact-horizon.mjs';
 
 test('HPA-W3-39: deterministic finite-horizon model conserves probability mass',()=>{
   for(const alpha of [.1,.2,.25,.3,.4])for(const gamma of [0,.25,.5,1]){
@@ -70,4 +70,39 @@ test('HPA-W3-46: trail policy input violations fail closed',()=>{
   for(const args of [{alpha:0,gamma:.5},{alpha:.5,gamma:.5},{alpha:.2,gamma:-1},
     {alpha:.2,gamma:1.1},{alpha:.2,gamma:.5,events:0},{alpha:.2,gamma:.5,events:100001}])
     assert.throws(()=>exactOneEventTrailHorizon(args),/invalid_trail_horizon_assumptions/);
+});
+
+test('HPA-W3-47: exact conditional tie-advantage threshold brackets break-even',()=>{
+  for(const alpha of [.1,.2,.25,.3]){
+    const r=exactTieAdvantageThreshold({alpha,events:5000,tolerance:1e-5});
+    assert.equal(r.classification,'CONDITIONAL_THRESHOLD');
+    assert.ok(r.minimum_declared_gamma>0&&r.minimum_declared_gamma<=1);
+    assert.ok(exactSelfishHorizon({alpha,gamma:r.lower_unprofitable_gamma,events:5000}).profitability_delta<0);
+    assert.ok(exactSelfishHorizon({alpha,gamma:r.upper_profitable_gamma,events:5000}).profitability_delta>=0);
+    assert.ok(r.upper_profitable_gamma-r.lower_unprofitable_gamma<=1e-5);
+  }
+});
+
+test('HPA-W3-48: threshold search is deterministic and preserves epistemic limits',()=>{
+  const a=exactTieAdvantageThreshold({alpha:.25,events:3000,tolerance:1e-6});
+  const b=exactTieAdvantageThreshold({alpha:.25,events:3000,tolerance:1e-6});
+  assert.deepEqual(a,b);
+  assert.equal(a.propagation_gamma_observed,false);
+  assert.equal(a.attacker_can_obtain_threshold_proven,false);
+  assert.equal(a.actual_profitability_proven,false);
+});
+
+test('HPA-W3-49: tie threshold distinguishes already-profitable and no-crossing envelopes',()=>{
+  const already=exactTieAdvantageThreshold({alpha:.4,events:3000});
+  assert.equal(already.classification,'ALREADY_PROFITABLE_AT_ZERO_DECLARED_GAMMA');
+  assert.equal(already.minimum_declared_gamma,0);
+  const none=exactTieAdvantageThreshold({alpha:.001,events:1000});
+  assert.equal(none.classification,'NO_PROFITABILITY_WITHIN_DECLARED_GAMMA_RANGE');
+  assert.equal(none.minimum_declared_gamma,null);
+});
+
+test('HPA-W3-50: tie threshold invalid assumptions fail closed',()=>{
+  for(const args of [{alpha:0},{alpha:.5},{alpha:.2,events:0},{alpha:.2,tolerance:0},
+    {alpha:.2,tolerance:1},{alpha:.2,maxIterations:0},{alpha:.2,maxIterations:129}])
+    assert.throws(()=>exactTieAdvantageThreshold(args),/invalid_tie_advantage_threshold_assumptions/);
 });

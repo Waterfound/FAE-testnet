@@ -137,3 +137,47 @@ export function exactOneEventTrailHorizon({alpha,gamma,events=1000}={}){
     actual_profitability_proven:false
   };
 }
+
+/**
+ * Find the minimum declared tie-propagation advantage that crosses break-even
+ * in the exact classic finite-horizon model.  This is a sensitivity bound,
+ * not a measurement of FAE propagation and not evidence that an attacker can
+ * obtain or sustain the returned gamma.
+ */
+export function exactTieAdvantageThreshold({alpha,events=5000,tolerance=1e-6,maxIterations=64}={}){
+  if(typeof alpha!=='number'||!Number.isFinite(alpha)||alpha<=0||alpha>=0.5||
+     !Number.isSafeInteger(events)||events<1||events>100000||
+     typeof tolerance!=='number'||!Number.isFinite(tolerance)||tolerance<=0||tolerance>=1||
+     !Number.isSafeInteger(maxIterations)||maxIterations<1||maxIterations>128)
+    throw new Error('invalid_tie_advantage_threshold_assumptions');
+  const atZero=exactSelfishHorizon({alpha,gamma:0,events});
+  const atOne=exactSelfishHorizon({alpha,gamma:1,events});
+  if(atZero.profitability_delta>=0)return {
+    schema:'FAE_CLASSIC_SELFISH_TIE_ADVANTAGE_THRESHOLD_V1',alpha,events,
+    classification:'ALREADY_PROFITABLE_AT_ZERO_DECLARED_GAMMA',
+    minimum_declared_gamma:0,lower_unprofitable_gamma:null,upper_profitable_gamma:0,
+    iterations:0,tolerance,propagation_gamma_observed:false,
+    attacker_can_obtain_threshold_proven:false,actual_profitability_proven:false
+  };
+  if(atOne.profitability_delta<0)return {
+    schema:'FAE_CLASSIC_SELFISH_TIE_ADVANTAGE_THRESHOLD_V1',alpha,events,
+    classification:'NO_PROFITABILITY_WITHIN_DECLARED_GAMMA_RANGE',
+    minimum_declared_gamma:null,lower_unprofitable_gamma:1,upper_profitable_gamma:null,
+    iterations:0,tolerance,propagation_gamma_observed:false,
+    attacker_can_obtain_threshold_proven:false,actual_profitability_proven:false
+  };
+  let low=0,high=1,iterations=0;
+  while(high-low>tolerance&&iterations<maxIterations){
+    const mid=(low+high)/2;
+    if(exactSelfishHorizon({alpha,gamma:mid,events}).profitability_delta>=0)high=mid;
+    else low=mid;
+    iterations++;
+  }
+  return {
+    schema:'FAE_CLASSIC_SELFISH_TIE_ADVANTAGE_THRESHOLD_V1',alpha,events,
+    classification:'CONDITIONAL_THRESHOLD',minimum_declared_gamma:high,
+    lower_unprofitable_gamma:low,upper_profitable_gamma:high,iterations,tolerance,
+    propagation_gamma_observed:false,attacker_can_obtain_threshold_proven:false,
+    actual_profitability_proven:false
+  };
+}
