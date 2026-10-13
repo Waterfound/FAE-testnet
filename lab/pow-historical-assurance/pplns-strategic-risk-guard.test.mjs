@@ -574,7 +574,7 @@ test('HPA-W3-83: changed live source weights are refused even if ledger count/he
  * moves while the real createDistributedTemplate() provider is suspended.
  * No network activation or synthetic replacement of production source.
  */
-function tipRaceFixture({mutation='tip'}={}){
+function presignTipRaceFixture({mutation='tip'}={}){
   const x=payoutTemplateAttack({tamper:'none'});
   let statusReads=0,templateCalls=0;
   const original=x.coordinator.distributedTemplateProvider;
@@ -598,7 +598,7 @@ function tipRaceFixture({mutation='tip'}={}){
   return {...x,reads:()=>statusReads,templates:()=>templateCalls};
 }
 test('HPA-W3-90: source provider tip changes during await; obsolete template must not receive signed work',async()=>{
-  const x=tipRaceFixture({mutation:'tip'});
+  const x=presignTipRaceFixture({mutation:'tip'});
   await assert.rejects(x.coordinator.createWork(x.honestAddr),
     /candidate_pplns_chain_state_changed_during_template/);
   assert.equal(x.templates(),1);
@@ -606,27 +606,27 @@ test('HPA-W3-90: source provider tip changes during await; obsolete template mus
   assert.equal(x.coordinator.ledger.summary().totalShares,3);
 });
 test('HPA-W3-91: source height changes independently of tip; obsolete work must not be signed',async()=>{
-  const x=tipRaceFixture({mutation:'height'});
+  const x=presignTipRaceFixture({mutation:'height'});
   await assert.rejects(x.coordinator.createWork(x.honestAddr),
     /candidate_pplns_chain_state_changed_during_template/);
   assert.equal(x.coordinator.jobs.size,0);
   assert.equal(x.coordinator.ledger.summary().totalShares,3);
 });
 test('HPA-W3-92: upstream becomes unavailable after genuine source template; fail closed before signing',async()=>{
-  const x=tipRaceFixture({mutation:'offline'});
+  const x=presignTipRaceFixture({mutation:'offline'});
   await assert.rejects(x.coordinator.createWork(x.honestAddr),
     /hpa_upstream_unavailable/);
   assert.equal(x.coordinator.jobs.size,0);
   assert.equal(x.coordinator.ledger.summary().totalShares,3);
 });
 test('HPA-W3-93: incomplete tip status after genuine source template fails closed',async()=>{
-  const x=tipRaceFixture({mutation:'incomplete'});
+  const x=presignTipRaceFixture({mutation:'incomplete'});
   await assert.rejects(x.coordinator.createWork(x.honestAddr),
     /candidate_pplns_chain_status_incomplete/);
   assert.equal(x.coordinator.jobs.size,0);
 });
 test('HPA-W3-94: unchanged source tip and ledger still yield genuine signed work',async()=>{
-  const x=tipRaceFixture({mutation:'none'});
+  const x=presignTipRaceFixture({mutation:'none'});
   const job=await x.coordinator.createWork(x.honestAddr);
   assert.ok(job.jobId && job.workProof);
   assert.equal(x.reads(),1,'must read independent upstream tip before signing');
