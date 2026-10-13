@@ -70,6 +70,11 @@ test('HPA-W3-71: at 256 distinct source payees, genuine active-height TEST templ
   assert.equal(guard.expected_coinbase_root,template.header.coinbase_root);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
+    // Genuine source-positive work requires an authoritative tip readback.
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',
+      height:Number(template.header.height)-1,
+      tip_hash:template.header.previous_hash,
+      difficulty_bits:Number(template.header.difficulty_bits)}),
     distributedTemplateProvider:provider,candidateHasher:async()=>''});
   coordinator.ledger=ledger;
   const work=await coordinator.createWork(addresses[0]);

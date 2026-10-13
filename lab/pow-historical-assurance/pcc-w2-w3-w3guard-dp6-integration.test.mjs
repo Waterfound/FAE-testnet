@@ -53,12 +53,15 @@ function ledgerWithDistinctPayees(count){
 test('PCC-W2W3DP6-01: signed fee candidate creates source-bound PPLNS test template and exact subsidy-plus-fee payout, without live activation',async()=>{
   const {result,fee}=acceptedW2FeeState();
   const {ledger,addresses}=ledgerWithDistinctPayees(2);
-  let providerCalls=0;
+  let providerCalls=0,latestChain=null;
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,candidateHasher:async()=>{throw new Error('unexpected hash');},
+    statusProvider:async()=>latestChain,
     distributedTemplateProvider:async({weights})=>{
       providerCalls++;
-      return createDistributedTemplate(result.state,weights,{activationHeight:1});
+      const template=createDistributedTemplate(result.state,weights,{activationHeight:1});
+      latestChain={network:NETWORK,height:Number(template.header.height)-1,tip_hash:template.header.previous_hash};
+      return template;
     }
   });
   coordinator.ledger=ledger;
@@ -94,5 +97,66 @@ test('PCC-W2W3DP6-02: W2 signed fee state cannot bypass W3 256-payee admission f
   assert.equal(coordinator.jobs.size,0,'no signed invalid payout job');
   assert.equal(ledger.summary().totalShares,MAX_COINBASE_OUTPUTS+1);
   assert.equal(stableStringify(result.state),before);
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+});
+
+test('PCC-CF11..13: authentic signed W2 fee candidate fails closed under stale tip, height, wrong-network or absent chain status',async()=>{
+  const scenarios=[
+    {name:'tip',code:'candidate_pplns_chain_state_changed_during_template'},
+    {name:'height',code:'candidate_pplns_chain_state_changed_during_template'},
+    {name:'network',code:'candidate_pplns_chain_status_incomplete'},
+    {name:'missing_tip',code:'candidate_pplns_chain_status_incomplete'},
+    {name:'offline',code:'unreachable_authoritative_status'}
+  ];
+  for(const scenario of scenarios){
+    const {result,fee}=acceptedW2FeeState(),{ledger,addresses}=ledgerWithDistinctPayees(2);
+    let chain=null,templateCalls=0;
+    const before=stableStringify(result.state),coordinator=new ShareCoordinator({
+      multiOutputCoinbaseActive:true,
+      candidateHasher:async()=>{throw new Error('unexpected hash')},
+      statusProvider:async()=>{
+        if(scenario.name==='offline')throw new Error('unreachable_authoritative_status');
+        return chain;
+      },
+      distributedTemplateProvider:async({weights})=>{
+        templateCalls++;
+        const template=createDistributedTemplate(result.state,weights,{activationHeight:1});
+        chain={network:NETWORK,height:Number(template.header.height)-1,tip_hash:template.header.previous_hash};
+        if(scenario.name==='tip')chain.tip_hash=(chain.tip_hash[0]==='0'?'1':'0')+chain.tip_hash.slice(1);
+        if(scenario.name==='height')chain.height++;
+        if(scenario.name==='network')chain.network='wrong-network';
+        if(scenario.name==='missing_tip')delete chain.tip_hash;
+        assert.equal(template.header.fee_atoms,fee.toString());
+        return template;
+      }
+    });
+    coordinator.ledger=ledger;
+    await assert.rejects(coordinator.createWork(addresses[0]),e=>e.code===scenario.code||e.message===scenario.code,scenario.name);
+    assert.equal(templateCalls,1,scenario.name);
+    assert.equal(coordinator.jobs.size,0,'no stale or unauthorized source job may be signed');
+    assert.equal(stableStringify(result.state),before,'W2 signed mempool state must remain intact');
+    assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+  }
+});
+
+test('PCC-CF14: valid signed W2 fee candidate cannot sign stale source PPLNS share window changed during template construction',async()=>{
+  const {result}=acceptedW2FeeState(),{ledger,addresses}=ledgerWithDistinctPayees(2);
+  let chain=null;
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    candidateHasher:async()=>{throw new Error('unexpected hash')},
+    statusProvider:async()=>chain,
+    distributedTemplateProvider:async({weights})=>{
+      const template=createDistributedTemplate(result.state,weights,{activationHeight:1});
+      chain={network:NETWORK,height:Number(template.header.height)-1,tip_hash:template.header.previous_hash};
+      ledger.append({jobId:'PCC-CF14-concurrent',address:addresses[0],nonce:911,hash:'0'.repeat(64),
+        shareDifficultyBits:8,blockDifficultyBits:18,height:1,previousBlockHash:'0'.repeat(64)});
+      return template;
+    }
+  });
+  coordinator.ledger=ledger;
+  await assert.rejects(coordinator.createWork(addresses[0]),e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.equal(coordinator.jobs.size,0);
+  assert.equal(ledger.summary().totalShares,3,'new legitimate share is not silently discarded');
   assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
 });
