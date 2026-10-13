@@ -509,3 +509,59 @@ test('HPA-W3-78: full rolling window replacement changes weights at constant win
     'the signed old payout weights are no longer authoritative');
   assert.equal(x.coordinator.jobs.size,0);
 });
+
+test('HPA-W3-82: stale async template must not sign a job and genuine appended share remains durably recoverable after restart',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-w3-stale-durable-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const x=payoutTemplateAttack({tamper:'none'});
+  const durable=new ShareLedger({logFile,windowSize:3});
+  for(const entry of x.coordinator.ledger.shares)durable.append({
+    jobId:entry.jobId,address:entry.address,nonce:entry.nonce,hash:entry.hash,
+    shareDifficultyBits:entry.shareDifficultyBits,
+    blockDifficultyBits:entry.blockDifficultyBits,height:entry.height,
+    previousBlockHash:entry.previousBlockHash
+  });
+  x.coordinator.ledger=durable;
+  const original=x.coordinator.distributedTemplateProvider;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    await Promise.resolve();
+    durable.append({
+      jobId:'HPA-W3-82-durable-during-template',address:x.attackerAddr,
+      nonce:8282,hash:'0'.repeat(64),shareDifficultyBits:4,
+      blockDifficultyBits:8,height:template.header.height,
+      previousBlockHash:template.header.previous_hash
+    });
+    return template;
+  };
+  const before=durable.summary();
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  const after=durable.summary();
+  assert.equal(after.totalShares,before.totalShares+1);
+  assert.equal(x.coordinator.jobs.size,0);
+  const recovered=new ShareLedger({logFile,windowSize:3});
+  assert.deepEqual(recovered.summary(),after,
+    'exact appended source share must be replayable from the fsync-backed hash chain');
+  assert.deepEqual(recovered.weights(x.honestAddr),durable.weights(x.honestAddr));
+  assert.equal(recovered.shares.at(-1).jobId,'HPA-W3-82-durable-during-template');
+});
+
+test('HPA-W3-83: changed live source weights are refused even if ledger count/head are deceitfully left unchanged',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  const summaryBefore=x.coordinator.ledger.summary();
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    await Promise.resolve();
+    // Adversarial memory corruption: not a valid persisted ledger operation.
+    // Snapshot length/head alone are insufficient for this safety predicate.
+    x.coordinator.ledger.shares[0].address=x.attackerAddr;
+    return template;
+  };
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.deepEqual(x.coordinator.ledger.summary(),summaryBefore);
+  assert.equal(x.coordinator.jobs.size,0);
+});
