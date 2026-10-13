@@ -15,7 +15,7 @@ export function findPostInsertRejections(sql){
  const body=functionBody(sql),insert=/\binsert\s+into\s+public\.fae_v4_blocks\s*\(/ig;
  const ins=insert.exec(body);
  if(!ins)return ['MISSING_INSERT_BOUNDARY'];
- const post=body.slice(ins.index+ins[0].length);
+ const post=body.slice(ins.index+ins[0].length).split(/\nexception\s+when\b/i)[0];
  return [...post.matchAll(/\breturn\s+jsonb_build_object\s*\(\s*'ok'\s*,\s*false\s*,\s*'reason'\s*,\s*'([^']+)'/gi)]
    .map(m=>m[1]);
 }
@@ -37,7 +37,7 @@ test('detector does not misclassify failure checks that precede INSERT',()=>{
 });
 test('expected corrected source with rollback exception has no normal return-after-insert',()=>{
  const fixed=src.replace(/(if not found then )return jsonb_build_object\('ok',false,'reason','tx_not_pending','txid',v_txid\);/i,
- '$1raise exception using message = ''tx_not_pending'';');
+ "$1raise exception using message = 'tx_not_pending';");
  const original=findPostInsertRejections(src),modified=findPostInsertRejections(fixed);
  assert.equal(original.includes('tx_not_pending'),true);
  assert.equal(modified.includes('tx_not_pending'),false);
