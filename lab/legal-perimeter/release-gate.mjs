@@ -53,7 +53,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
 
 export function reviewPublicCopy(copy){
   const errors=[];
-  for(const clause of String(copy).normalize('NFKC').replace(/[\u200b-\u200d\ufeff]/g,'').toLowerCase().split(/[.!?;\n]+/)){
+  for(const clause of String(copy).normalize('NFKC').replace(/[\u200b-\u200d\ufeff]/g,'').replace(/[*_`~]+/g,'').toLowerCase().split(/[.!?;\n]+/)){
     if(!clause.trim()||/^\s*(?:>|\/\/)/.test(clause))continue;
     const pats=[
       ['financial promise',/\b(?:guaranteed\s+(?:profits?|returns?|yield)|risk[- ]free|fixed\s+yield|profits?\s+(?:are\s+)?guaranteed|lucros?\s+garantidos?|retornos?\s+garantidos?|rendas?\s+garantidas?|rentabilidades?\s+garantidas?|sem\s+risco|risco\s+zero|garantimos\s+(?:lucro|renda|retorno|rentabilidade))\b/u],
