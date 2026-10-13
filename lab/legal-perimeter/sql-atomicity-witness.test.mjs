@@ -42,4 +42,26 @@ test('expected corrected source with rollback exception has no normal return-aft
  assert.equal(original.includes('tx_not_pending'),true);
  assert.equal(modified.includes('tx_not_pending'),false);
 });
-console.log(tests+'/'+tests+' canonical SQL atomicity risk witnesses passed; finding remains with HPA/consensus owner');
+
+const txBody=(()=>{
+ const m=/create\s+or\s+replace\s+function\s+public\.fae_v4_accept_tx\s*\([\s\S]*?\)\s*returns\s+jsonb\s+language\s+plpgsql\s+security\s+definer\s+set\s+search_path\s+to\s+'public'\s+as\s+\$\$([\s\S]*?)\$\$;/i.exec(src);
+ assert.ok(m,'canonical transaction RPC source unavailable');return m[1];
+})();
+test('SQL direct RPC persists caller-supplied signature without verifying it',()=>{
+ assert.match(txBody,/v_address\s*<>\s*p_from_address/i);
+ assert.match(txBody,/insert\s+into\s+public\.fae_v4_transactions/i);
+ assert.equal((txBody.match(/\bp_signature\b/g)||[]).length,1,
+   'expected signature to appear only as unverified stored input inside function body');
+});
+test('real pinned Edge gateway verifies signature before its privileged transaction RPC',()=>{
+ const edge=execFileSync('git',['show',BASE+':supabase/functions/fae-public-testnet-v4/index.ts'],
+  {encoding:'utf8',timeout:15000});
+ assert.match(edge,/crypto\.subtle\.verify\s*\(/);
+ assert.match(edge,/async function submitTx\(body\)\{const t=body\?\.tx\|\|body,v=await verifyTx\(t\)/);
+ assert.match(edge,/rpc\/fae_v4_accept_tx/);
+});
+test('SQL migration explicitly revokes PUBLIC RPC execution and grants service_role',()=>{
+ assert.match(src,/revoke all on function public\.fae_v4_accept_tx\([^;]+from public;/i);
+ assert.match(src,/grant execute on function public\.fae_v4_accept_tx\([^;]+to service_role;/i);
+});
+console.log(tests+'/'+tests+' canonical SQL boundary and atomicity witnesses passed; findings remain with node/consensus owner');
