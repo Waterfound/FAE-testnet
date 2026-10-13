@@ -64,7 +64,7 @@ jobs:
           node lab/post-quantum-signatures/wave-e/pq05/test.mjs | tee lab/post-quantum-signatures/evidence/wave-e/pq05.json
       - name: Upload PQ-05 evidence
         if: always() && steps.binding.outputs.bound == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pq05-hybrid-transaction-shadow
           path: lab/post-quantum-signatures/evidence/wave-e/pq05.json

@@ -110,7 +110,7 @@ jobs:
         run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.provider }}'
       - name: Upload ordinary peer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eclipse-wan-${{ matrix.role }}-${{ github.run_id }}
           path: /tmp/fae-eclipse-wan-${{ matrix.role }}
@@ -135,7 +135,7 @@ jobs:
         run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-host.sh ANCHOR cloudflare
       - name: Upload anchor evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eclipse-wan-anchor-${{ github.run_id }}
           path: /tmp/fae-eclipse-wan-ANCHOR
@@ -159,7 +159,7 @@ jobs:
         run: bash sovereign-forge/tests/peer-isolation-eclipse-real-wan-observer.sh
       - name: Upload observer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eclipse-wan-observer-${{ github.run_id }}
           path: /tmp/fae-eclipse-wan-observer
@@ -183,7 +183,7 @@ jobs:
         run: node sovereign-forge/tests/peer-isolation-eclipse-real-wan-controller.mjs
       - name: Upload controller evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eclipse-wan-controller-${{ github.run_id }}
           path: /tmp/fae-eclipse-wan-controller

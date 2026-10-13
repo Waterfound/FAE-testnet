@@ -64,7 +64,7 @@ jobs:
           node lab/post-quantum-signatures/wave-e/pq06/test.mjs | tee lab/post-quantum-signatures/evidence/wave-e/pq06.json
       - name: Upload PQ-06 evidence
         if: always() && steps.binding.outputs.bound == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pq06-wallet-migration-shadow
           path: lab/post-quantum-signatures/evidence/wave-e/pq06.json

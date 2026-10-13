@@ -44,7 +44,7 @@ jobs:
       - name: Independent native verifier replay
         run: node lab/post-quantum-signatures/wave-g/pq08/check-independent.mjs lab/post-quantum-signatures/evidence/wave-g/pq08-corpus.json | tee lab/post-quantum-signatures/evidence/wave-g/pq08-independent.json
       - name: Upload PQ-08 evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pq08-independent-differential
           path: lab/post-quantum-signatures/evidence/wave-g/pq08-*.json

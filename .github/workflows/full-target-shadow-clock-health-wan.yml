@@ -123,7 +123,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-host.sh '${{ matrix.role }}' '${{ matrix.profile }}'
       - name: Upload host evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-host-${{ matrix.role }}-${{ github.run_id }}
           path: /tmp/fae-real-wan-${{ matrix.role }}
@@ -165,7 +165,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-controller.sh
       - name: Upload controller evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-controller-C-${{ github.run_id }}
           path: /tmp/fae-real-wan-C
@@ -200,7 +200,7 @@ jobs:
         run: bash sovereign-forge/tests/full-target-shadow-free-real-wan-observer.sh
       - name: Upload observer evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: real-wan-observer-D-${{ github.run_id }}
           path: /tmp/fae-real-wan-D
@@ -222,7 +222,7 @@ jobs:
         run: python3 sovereign-forge/tests/wan_clock_health.py verify-bundle clock-evidence --sha '${{ github.sha }}' --run '${{ github.run_id }}' --network-success '${{ needs.hosts.result == 'success' && needs.controller.result == 'success' && needs.observer.result == 'success' && 'yes' || 'no' }}' --out clock-health-result.json
       - name: Preserve aggregate result
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: clock-health-result-${{ github.run_id }}
           path: clock-health-result.json
