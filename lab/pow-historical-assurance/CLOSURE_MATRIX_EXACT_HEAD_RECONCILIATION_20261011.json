@@ -10,7 +10,8 @@
     "dp6_pr312": "0ab6df836695568991f1fb717799571358d9edc8",
     "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971",
     "w3_pr313": "3c0f437bd0d38cd91f43d4715f9fb8252d1cde2c",
-    "w3_pr314": "3dab8012a7c04062ca17bce3f1badbca3f90ccaa"
+    "w3_pr314": "3dab8012a7c04062ca17bce3f1badbca3f90ccaa",
+    "w2_fee_adversarial_pr315": "13e7d127d6901a092101ebaa49c7f2d311719cc5"
   },
   "rows": [
     {
@@ -89,11 +90,13 @@
       "evidence": [
         "PR #310 explicit signed 250000-atom fee tx; current unactivated miner coinbase only subsidy",
         "fee-security-budget-falsification.test.mjs 3/3 in PR #310",
-        "SECURITY_BUDGET_ENVELOPE_RESULT.json deterministic monetary/subsidy decay model"
+        "SECURITY_BUDGET_ENVELOPE_RESULT.json deterministic monetary/subsidy decay model",
+        "PR #315 head 13e7d127d6901a092101ebaa49c7f2d311719cc5: 50/50 exact-source tests across fee assurance workflow and 5/5 exact-head PR CI PASS. C4 confirms unactivated v4 subsidy-only payout across fee-paying block and next empty block; C5/C6 reject independently mined valid-PoW overpaid fee coinbase and repeated authentic txid fee inflation"
       ],
       "remaining": [
         "authorization and activation of final miner fee policy and consensus-compatible verifier",
-        "real fee demand, coin price, honest hashrate, electricity cost, miner and rented ASIC economics"
+        "real fee demand, coin price, honest hashrate, electricity cost, miner and rented ASIC economics",
+        "candidate opt-in v4 fee-credit safety tests are not authorized active fee settlement or a frozen mainnet economic security budget"
       ],
       "not_entire_pow_collapse": true
     },
@@ -218,6 +221,23 @@
       "independent_asic_economics": "EXTERNAL_EVIDENCE_GATE",
       "witnessed_external_identity": "EXTERNAL_EVIDENCE_GATE",
       "unproven_pool_profitability": true
+    },
+    "w2_fee_adversarial": {
+      "pr": 315,
+      "head": "13e7d127d6901a092101ebaa49c7f2d311719cc5",
+      "source_laboratory_test_count": 50,
+      "source_laboratory_test_pass": 50,
+      "exact_head_ci_pass": 5,
+      "exact_head_ci_total": 5,
+      "tests_added": [
+        "HPA-ECON-C4",
+        "HPA-ECON-C5",
+        "HPA-ECON-C6"
+      ],
+      "valid_source_pow_overcredit_rejected": true,
+      "duplicate_signed_tx_fee_overcredit_rejected": true,
+      "actual_v4_miner_fee_revenue_still_collapse": true,
+      "production_activation": false
     }
   }
 }
