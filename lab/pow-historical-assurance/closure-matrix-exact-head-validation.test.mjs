@@ -52,3 +52,31 @@ test('HPA-W4-06: authority flags cannot silently activate mainnet/fee/consensus 
   assert.equal(matrix.interpretation.percent_progress_recalculation,
     'PRIVATE_OWNER_80_PERCENT_WEIGHTED_CANDIDATE_INDICATOR__NOT_MAINNET');
 });
+
+test('HPA-W4-07: this October continuation pins W2, W3, DP6 exact newest checked SHAs separately',()=>{
+  const w=matrix.latest_wave;
+  assert.equal(w.parent_matrix_head,'df64885ed2712f66c3815b2d9d96007f7eec8f99');
+  for(const k of ['w3_pr313','w3_pr314'])
+    assert.match(matrix.source[k],/^[0-9a-f]{40}$/,k);
+  assert.equal(w.w2.head,matrix.source.w2_pr310);
+  assert.equal(w.w3.anchored_head,matrix.source.w3_pr313);
+  assert.equal(w.w3.signed_head,matrix.source.w3_pr314);
+  assert.equal(w.dp6.head,matrix.source.dp6_pr312);
+  assert.ok(rows.get('HP-06').evidence.some(e=>e.includes(w.w3.signed_head)));
+  assert.ok(rows.get('HP-03').evidence.some(e=>e.includes(w.w2.head)));
+  assert.ok(rows.get('HP-01').evidence.some(e=>e.includes(w.dp6.head)));
+});
+test('HPA-W4-08: software PASS and signed witness cannot silently certify independent observation, revenue or ASIC economics',()=>{
+  const w=matrix.latest_wave;
+  assert.equal(w.w3.signed_workflows_success,5);
+  assert.equal(w.w3.independent_witness_observed,false);
+  assert.equal(w.w3.real_pool_enabled,false);
+  assert.equal(w.w2.production_policy_enabled,false);
+  assert.equal(w.w2.initial_failure_preserved,true);
+  assert.equal(w.dp6.hardware_cost_proven,false);
+  assert.equal(w.boundary.witnessed_external_identity,'EXTERNAL_EVIDENCE_GATE');
+  assert.equal(w.boundary.fee_revenue_current_v4,'COLLAPSE');
+  assert.equal(w.boundary.independent_asic_economics,'EXTERNAL_EVIDENCE_GATE');
+  assert.equal(w.boundary.mainnet_green_classes,0);
+  assert.equal(w.boundary.percentage_weighted_candidate,80);
+});
