@@ -62,13 +62,13 @@ test('HPA-W3-131: persisted ledger must refuse cross-job repeated proof and pres
     const base={address:encodeAddress(Buffer.alloc(20,88),'faet'),nonce:7,
       hash:'a'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:16,
       height:1,previousBlockHash:'0'.repeat(64)};
-    ledger.append({...base,jobId:'job-A'});
-    assert.throws(()=>ledger.append({...base,jobId:'job-B'}),
+    ledger.append({...base,jobId:'job-A',rejectRepeatedProof:true});
+    assert.throws(()=>ledger.append({...base,jobId:'job-B',rejectRepeatedProof:true}),
       error=>error.code==='candidate_duplicate_share_pow');
     assert.equal(ledger.summary().totalShares,1);
     const recovered=new ShareLedger({logFile,windowSize:10});
     assert.equal(recovered.summary().totalShares,1);
-    assert.throws(()=>recovered.append({...base,jobId:'job-C'}),
+    assert.throws(()=>recovered.append({...base,jobId:'job-C',rejectRepeatedProof:true}),
       error=>error.code==='candidate_duplicate_share_pow');
   }finally{rmSync(dir,{force:true,recursive:true})}
 });
