@@ -22,7 +22,7 @@ jobs:
       HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout exact candidate
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ env.HEAD_SHA }}
           fetch-depth: 0
