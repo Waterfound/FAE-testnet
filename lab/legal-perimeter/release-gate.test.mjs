@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {checkMatrix,checkProposal,verifyExactSource,reviewPublicCopy} from './release-gate.mjs';
+import {checkMatrix,checkProposal,verifyExactSource,reviewPublicCopy,runCandidateReview} from './release-gate.mjs';
 const m=JSON.parse(readFileSync(new URL('./perimeter.json',import.meta.url)));
 const base={baseline_commit:m.baseline_commit,release_kind:'docs_testnet_candidate',claims:['local_signing','testnet_issuance_parameters'],public_copy:'FAE public testnet. Test coins have no monetary value.'};
 let n=0;const test=(label,fn)=>{fn();n++;console.log('PASS '+label)};
@@ -61,4 +61,22 @@ test('unrelated commentary not blocked',()=>assert.deepEqual(reviewPublicCopy('P
 test('source anchored guard on exact fetched canonical Git objects',()=>assert.deepEqual(verifyExactSource(m,process.cwd()),[]));
 test('matrix status cannot self-certify encrypted-at-rest',()=>{const altered=structuredClone(m);altered.features.find(f=>f.id==='F04').status='TECHNICAL_PROPERTY_VERIFIED';assert.ok(checkProposal(altered,{...base,claims:['encrypted_at_rest']}).length)});
 test('technical matrix cannot self-change reviewed baseline commit',()=>{const altered=structuredClone(m);altered.baseline_commit='0'.repeat(40);assert.ok(checkMatrix(altered).length)});
+test('executable review requires source proof, even for valid proposal',()=>assert.deepEqual(runCandidateReview(m,base,'.',fakeGit),[]));
+test('executable review rejects proof tampering even when metadata and claims pass',()=>{
+  assert.deepEqual(checkProposal(m,base),[]);
+  const errors=runCandidateReview(m,base,'.',(sha,path)=>{
+    const x=fakeGit(sha,path);return path==='wallet-crypto.js'?{...x,blob:'f'.repeat(40)}:x;
+  });
+  assert.match(errors.join('|'),/blob drift F03/);
+});
+test('missing claims array fails closed',()=>assert.match(checkProposal(m,{...base,claims:undefined}).join('|'),/claims must be explicit array/));
+test('missing and non-string public copy fail closed',()=>{
+  assert.match(checkProposal(m,{...base,public_copy:null}).join('|'),/public_copy must be supplied as text/);
+  assert.match(checkProposal(m,{...base,public_copy:undefined}).join('|'),/public_copy must be supplied as text/);
+});
+test('candidate authority escalation fails',()=>{
+  const x=structuredClone(m);x.authority='MAY_APPROVE_MAINNET';assert.match(checkMatrix(x).join('|'),/authority escalation/);
+});
+test('markdown promotion heading cannot bypass financial promise review',()=>assert.match(reviewPublicCopy('# Guaranteed returns!').join('|'),/financial promise/));
+test('markdown informational heading remains permitted',()=>assert.deepEqual(reviewPublicCopy('## Mining documentation: risks and uncertainties'),[]));
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
