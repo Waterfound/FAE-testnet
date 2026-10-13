@@ -91,7 +91,6 @@ test('HTML entity can no longer split guarantee',()=>assert.match(reviewPublicCo
 test('promotional Markdown blockquote is not a bypass',()=>assert.match(reviewPublicCopy('> Guaranteed returns').join('|'),/financial promise/));
 test('negated HTML claim is permitted',()=>assert.deepEqual(reviewPublicCopy('<p>Mining is not <strong>risk-free</strong>.</p>'),[]));
 test('neutral accessibility label is permitted',()=>assert.deepEqual(reviewPublicCopy('<button aria-label="Start mining">Start</button>'),[]));
-test('public marketing template requires rendered proof',()=>assert.match(reviewPublicCopy('Earn 
-+'{dynamic} returns').join('|'),/dynamic interpolation/));
+test('public marketing template requires rendered proof',()=>assert.match(reviewPublicCopy('Earn '+String.fromCharCode(36,123)+'dynamic} returns').join('|'),/dynamic interpolation/));
 test('HTML risk text remains permitted',()=>assert.deepEqual(reviewPublicCopy('<p>Mining involves risk and no guaranteed returns.</p>'),[]));
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
