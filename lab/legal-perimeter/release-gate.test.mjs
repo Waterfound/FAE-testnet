@@ -85,4 +85,13 @@ test('qualified technical description still allowed',()=>assert.deepEqual(review
 test('unsupported unconditional legal conformity copy rejected',()=>assert.match(reviewPublicCopy('We are fully compliant with all crypto regulations.').join('|'),/legal conformity claim/));
 test('Portuguese regulatory guarantee rejected',()=>assert.match(reviewPublicCopy('Oferecemos conformidade regulatória garantida.').join('|'),/legal conformity claim/));
 test('explicit denial of legal certification remains allowed',()=>assert.deepEqual(reviewPublicCopy('We are not fully compliant. Independent legal review is required.'),[]));
+test('HTML split guarantee cannot bypass copy guard',()=>assert.match(reviewPublicCopy('Guaranteed <strong>returns</strong>').join('|'),/financial promise/));
+test('accessible aria-label promise is inspected',()=>assert.match(reviewPublicCopy('<button aria-label="Guaranteed profits">Mine</button>').join('|'),/financial promise/));
+test('HTML entity can no longer split guarantee',()=>assert.match(reviewPublicCopy('<p>Guar&#97;nteed profits</p>').join('|'),/financial promise/));
+test('promotional Markdown blockquote is not a bypass',()=>assert.match(reviewPublicCopy('> Guaranteed returns').join('|'),/financial promise/));
+test('negated HTML claim is permitted',()=>assert.deepEqual(reviewPublicCopy('<p>Mining is not <strong>risk-free</strong>.</p>'),[]));
+test('neutral accessibility label is permitted',()=>assert.deepEqual(reviewPublicCopy('<button aria-label="Start mining">Start</button>'),[]));
+test('public marketing template requires rendered proof',()=>assert.match(reviewPublicCopy('Earn 
++'{dynamic} returns').join('|'),/dynamic interpolation/));
+test('HTML risk text remains permitted',()=>assert.deepEqual(reviewPublicCopy('<p>Mining involves risk and no guaranteed returns.</p>'),[]));
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
