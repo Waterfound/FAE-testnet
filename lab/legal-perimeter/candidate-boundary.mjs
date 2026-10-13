@@ -10,7 +10,8 @@ const RUNS=new Set([
   'node lab/legal-perimeter/release-gate.test.mjs',
   'node lab/legal-perimeter/release-gate.mjs lab/legal-perimeter/perimeter.json lab/legal-perimeter/proposal.example.json',
   'node lab/legal-perimeter/candidate-boundary.test.mjs',
-  'node lab/legal-perimeter/candidate-boundary.mjs'
+  'node lab/legal-perimeter/candidate-boundary.mjs',
+  'node lab/legal-perimeter/source-to-runtime.test.mjs'
 ]);
 const USES=new Set(['actions/checkout@v4','actions/setup-node@v4']);
 function gitCmd(root,args){
