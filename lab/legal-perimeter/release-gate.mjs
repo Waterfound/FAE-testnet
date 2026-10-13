@@ -51,10 +51,27 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   else {const m=JSON.parse(readFileSync(process.argv[2],'utf8')),p=JSON.parse(readFileSync(process.argv[3],'utf8')),errors=runCandidateReview(m,p,process.cwd());console.log(JSON.stringify({verdict:errors.length?'REJECT':'CANDIDATE_REVIEW_PASS_NOT_RELEASE_AUTHORITY',errors,baseline_commit:m.baseline_commit},null,2));if(errors.length)process.exitCode=1}
 }
 
+// Conservative HTML/plaintext projection. Accessible labels are reviewed separately;
+// this does not prove safety of runtime-generated marketing text.
+export function normalizePublicCopy(copy){
+  const raw=String(copy).normalize('NFKC');
+  const withoutScripts=raw.replace(/<\s*(?:script|style)\b[^>]*>[\s\S]*?<\s*\/\s*(?:script|style)\s*>/gi,' ');
+  const labels=[...withoutScripts.matchAll(/\b(?:aria-label|title|alt|placeholder)\s*=\s*(["'])(.*?)\1/gi)].map(m=>m[2]);
+  const text=[withoutScripts.replace(/<[^>]*>/g,' '),...labels].join('\n');
+  const named={amp:'&',nbsp:' ',lt:'<',gt:'>',quot:'"',apos:"'"};
+  return text.replace(/&(?:#x[0-9a-f]+|#\d+|amp|nbsp|lt|gt|quot|apos);/gi,match=>{
+    const name=match.slice(1,-1).toLowerCase();
+    if(!name.startsWith('#'))return named[name]||match;
+    const n=name.startsWith('#x')?parseInt(name.slice(2),16):parseInt(name.slice(1),10);
+    return Number.isInteger(n)&&n>0&&n<=0x10ffff?String.fromCodePoint(n):' ';
+  }).replace(/[\u200b-\u200d\ufeff]/g,'').replace(/[*_\x60~]+/g,'').toLowerCase();
+}
 export function reviewPublicCopy(copy){
   const errors=[];
-  for(const clause of String(copy).normalize('NFKC').replace(/[\u200b-\u200d\ufeff]/g,'').replace(/[*_`~]+/g,'').toLowerCase().split(/[.!?;\n]+/)){
-    if(!clause.trim()||/^\s*(?:>|\/\/)/.test(clause))continue;
+  const source=normalizePublicCopy(copy);
+  if(/\$\{[^{}]*\}/.test(source))errors.push('public_copy: dynamic interpolation requires rendered review');
+  for(const clause of source.split(/[.!?;\n]+/)){
+    if(!clause.trim()||/^\s*\/\//.test(clause))continue;
     const pats=[
       ['financial promise',/\b(?:guaranteed\s+(?:profits?|returns?|yield)|risk[- ]free|fixed\s+yield|profits?\s+(?:are\s+)?guaranteed|lucros?\s+garantidos?|retornos?\s+garantidos?|rendas?\s+garantidas?|rentabilidades?\s+garantidas?|sem\s+risco|risco\s+zero|garantimos\s+(?:lucro|renda|retorno|rentabilidade))\b/u],
       ['regulator approval',/\b(?:approved\s+by\s+(?:the\s+)?(?:cvm|bcb)|(?:cvm|bcb)\s+approved|aprovad[ao]s?\s+pel[ao]\s+cvm|autorizad[ao]s?\s+pel[ao]\s+banco\s+central)\b/u],
