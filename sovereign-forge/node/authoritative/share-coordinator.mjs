@@ -105,6 +105,30 @@ export class ShareCoordinator{
       throw Object.assign(new Error('distributed_payout_commitment_mismatch'),
         {code:'distributed_payout_commitment_mismatch'});
     }
+    // HPA-W3-90..94: ledger atomicity is not chain-tip freshness.
+    // The provider awaited above may have built a legitimate old-tip template
+    // while the authoritative chain height/tip advanced. Never sign/publish
+    // that obsolete work. This is a candidate PPLNS intake check, NOT an
+    // atomic remote-chain lease and NOT consensus-finality evidence.
+    const latestChain=await this.upstreamStatus();
+    const liveTip=latestChain?.tip_hash??latestChain?.tip;
+    const rawHeight=latestChain?.height;
+    const liveHeight=(typeof rawHeight==='number'||
+      (typeof rawHeight==='string'&&/^(0|[1-9][0-9]*)$/.test(rawHeight)))?
+      Number(rawHeight):NaN;
+    if(latestChain?.network!==this.networkId||
+       typeof liveTip!=='string'||!/^[0-9a-f]{64}$/.test(liveTip)||
+       !Number.isSafeInteger(liveHeight)||liveHeight<0||
+       !Number.isSafeInteger(Number(candidate.header.height))||
+       Number(candidate.header.height)<1){
+      throw Object.assign(new Error('candidate_pplns_chain_status_incomplete'),
+        {code:'candidate_pplns_chain_status_incomplete'});
+    }
+    if(liveTip!==candidate.header.previous_hash||
+       liveHeight+1!==Number(candidate.header.height)){
+      throw Object.assign(new Error('candidate_pplns_chain_state_changed_during_template'),
+        {code:'candidate_pplns_chain_state_changed_during_template'});
+    }
     // HPA-W3-76..78: asynchronous distributed template generation must not
     // bind a signed work proof to PPLNS shares displaced in the meantime.
     // Both count/head AND current-window weights are rechecked, so a rolling
