@@ -1,5 +1,5 @@
 /**
- * HPA-W3-70..75: real source PPLNS cap/primary admission regressions.
+ * HPA-W3-70..75/79..81: real source PPLNS cap/primary admission regressions.
  * No activation of v4 consensus economics, never a claim of production payout.
  */
 import test from 'node:test';
@@ -138,7 +138,7 @@ test('HPA-W3-75: historical PoW-authentic known tips change public lottery winne
   // it is NOT evidence an attacker could mine and choose those tips.
 });
 
-test('HPA-W3-76: capacity admission rejects 257 distinct source participants BEFORE invoking a hostile template provider',async()=>{
+test('HPA-W3-79: capacity admission rejects 257 distinct source participants BEFORE invoking a hostile template provider',async()=>{
   const {ledger,addresses}=populated(257);
   let invocations=0;
   const coordinator=new ShareCoordinator({
@@ -156,7 +156,7 @@ test('HPA-W3-76: capacity admission rejects 257 distinct source participants BEF
   assert.equal(coordinator.jobs.size,0);
   assert.equal(ledger.summary().totalShares,257);
 });
-test('HPA-W3-77: a fully allocated source template with forged primary address is rejected before signed work or ledger mutation',async()=>{
+test('HPA-W3-80: a fully allocated source template with forged primary address is rejected before signed work or ledger mutation',async()=>{
   const {ledger,addresses}=populated(3);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
@@ -173,7 +173,7 @@ test('HPA-W3-77: a fully allocated source template with forged primary address i
   assert.equal(coordinator.jobs.size,0);
   assert.deepEqual(ledger.summary(),before);
 });
-test('HPA-W3-78: future tiny-reward projection cannot become a signed invalid primary job in actual source coordinator',async()=>{
+test('HPA-W3-81: future tiny-reward projection cannot become a signed invalid primary job in actual source coordinator',async()=>{
   const {ledger,addresses}=populated(3);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
