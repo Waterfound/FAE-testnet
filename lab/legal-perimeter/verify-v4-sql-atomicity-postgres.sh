@@ -18,23 +18,56 @@ for _ in $(seq 1 100); do
   sleep 0.3
 done
 [[ $ready == 1 ]] || { echo "ABORT postgres startup"; exit 3; }
-docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL' >/dev/null
+# The Docker entrypoint can briefly accept connections during initdb and restart.
+# Buffer each SQL input and retry ONLY temporary socket/startup transport errors.
+psql_safe(){
+  local db="$1" attempt err rc input
+  input="$(mktemp)"; err="$(mktemp)"
+  cat > "$input"
+  for attempt in 1 2 3 4 5; do
+    set +e
+    docker exec -i "$NAME" psql -X -1 -v ON_ERROR_STOP=1 -U postgres -d "$db" < "$input" 2> "$err"
+    rc=$?
+    set -e
+    if [[ $rc == 0 ]]; then rm -f "$input" "$err"; return 0; fi
+    # Semantic SQL failures must never be retried or masked.
+    if grep -Eq '(^|[[:space:]])ERROR:' "$err"; then
+      cat "$err" >&2; rm -f "$input" "$err"; return "$rc"
+    fi
+    if ! grep -Eqi 'connection to server .* failed|server closed the connection unexpectedly|No such file or directory|could not connect to server|database system is starting up|terminating connection due to administrator command' "$err"; then
+      cat "$err" >&2; rm -f "$input" "$err"; return "$rc"
+    fi
+    echo "postgres_startup_transient_retry attempt=$attempt" >&2
+    sleep 1
+  done
+  cat "$err" >&2; rm -f "$input" "$err"; return 2
+}
+createdb_safe(){
+  local db="$1" attempt
+  for attempt in 1 2 3 4 5; do
+    if docker exec "$NAME" createdb -U postgres "$db"; then return 0; fi
+    echo "postgres_createdb_transient_retry attempt=$attempt" >&2
+    sleep 1
+  done
+  return 2
+}
+psql_safe postgres <<'SQL' >/dev/null
 CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE ROLE service_role;
 SQL
 for CASE in tx_not_pending reservation_missing input_already_spent; do
   DB="case_$CASE"
-  docker exec "$NAME" createdb -U postgres "$DB"
-  docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d "$DB" < "$ROOT/$MIGRATION" >/dev/null
-  docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d "$DB" <<'SQL' >/dev/null
+  createdb_safe "$DB"
+  psql_safe "$DB" < "$ROOT/$MIGRATION" >/dev/null
+  psql_safe "$DB" <<'SQL' >/dev/null
 INSERT INTO public.fae_v4_blocks(height,hash,previous_hash,timestamp_ms,difficulty_bits,nonce,miner_address,reward_atoms,header_json,txids)
 VALUES(1,repeat('a',64),repeat('0',64),1000,18,1,'original-miner',1000,'{}'::jsonb,'[]'::jsonb);
 SQL
   if [[ "$CASE" != "tx_not_pending" ]]; then
     SPENT=false
     [[ "$CASE" == "input_already_spent" ]] && SPENT=true
-    docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d "$DB" <<SQL >/dev/null
+    psql_safe "$DB" <<SQL >/dev/null
 INSERT INTO public.fae_v4_utxos(outpoint,address,amount_atoms,created_height,spent)
 VALUES('fund:0','sender',1000,1,$SPENT);
 INSERT INTO public.fae_v4_transactions(txid,network,from_address,public_key_spki,signature,inputs,outputs,fee_atoms,status)
@@ -43,14 +76,14 @@ VALUES('tx1','fairyelf-public-testnet-v4','sender','public','signature',
 SQL
   fi
   if [[ "$CASE" == "input_already_spent" ]]; then
-    docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d "$DB" <<'SQL' >/dev/null
+    psql_safe "$DB" <<'SQL' >/dev/null
 INSERT INTO public.fae_v4_mempool_spends(outpoint,txid) VALUES('fund:0','tx1');
 SQL
   fi
   TXID=tx1
   [[ "$CASE" == "tx_not_pending" ]] && TXID=missing_tx
   # Invalid block call runs ONLY against the disposable DB, never hosted.
-  docker exec -i "$NAME" psql -X -v ON_ERROR_STOP=1 -U postgres -d "$DB" <<SQL >/dev/null
+  psql_safe "$DB" <<SQL >/dev/null
 DO \$\$
 DECLARE result jsonb;
 BEGIN
