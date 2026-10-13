@@ -4,10 +4,12 @@ import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 const officialSourcePaths=new Set(['README.md','index.html']);
+const FROZEN_BASELINE='6d0c3956fdf72cd2e7543eee2539397ed5c0e699';
+const FROZEN_UNVERIFIED_CLAIMS=new Set(['encrypted_at_rest','absolute_non_custody','pplns_active']);
 const STATUSES=new Set(['TECHNICAL_PROPERTY_VERIFIED','NO_TRIGGER_IDENTIFIED_IN_REVIEWED_SCOPE','POTENTIAL_TRIGGER','LEGAL_INTERPRETATION_REQUIRED','TECHNICAL_REPAIR_REQUIRED','EXTERNAL_AUTHORITY_GATE','INSUFFICIENT_EVIDENCE']);
 export function checkMatrix(matrix){
   const errors=[];
-  if(matrix?.schema!=='FAE_LRP_001_PERIMETER_V2'||!/^([a-f0-9]{40})$/.test(matrix?.baseline_commit||''))errors.push('invalid matrix schema/baseline');
+  if(matrix?.schema!=='FAE_LRP_001_PERIMETER_V2'||matrix?.baseline_commit!==FROZEN_BASELINE||!/^([a-f0-9]{40})$/.test(matrix?.baseline_commit||''))errors.push('invalid matrix schema/baseline');
   if(!Array.isArray(matrix?.features)||!matrix.features.length)errors.push('missing matrix features');
   const ids=new Set();
   for(const row of matrix?.features||[]){
@@ -32,6 +34,7 @@ export function checkProposal(matrix,proposal){
   const features=new Map((matrix.features||[]).map(f=>[f.id,f]));
   for(const c of proposal.claims||[]){
     if(typeof c!=='string') {errors.push('invalid claim');continue}
+    if(FROZEN_UNVERIFIED_CLAIMS.has(c)){errors.push('candidate baseline cannot self-certify unverified property: '+c);continue}
     if(['regulatory_compliant','approved_by_bcb','approved_by_cvm','guaranteed_returns','risk_free','premine_fully_audited'].includes(c)){errors.push('prohibited/unproven absolute claim: '+c);continue}
     if(!Object.hasOwn(CLAIM_FEATURES,c)){errors.push('unrecognized claim: '+c);continue}
     const f=features.get(CLAIM_FEATURES[c]);
