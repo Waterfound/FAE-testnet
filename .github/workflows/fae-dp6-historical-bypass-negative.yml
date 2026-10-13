@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp'
+      - 'sovereign-forge/node/authoritative/share-coordinator.mjs'
+      - 'lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs'
       - 'labs/asic-f2-pre-go/path-binding/**'
       - '.github/workflows/fae-dp6-historical-bypass-negative.yml'
   workflow_dispatch:
