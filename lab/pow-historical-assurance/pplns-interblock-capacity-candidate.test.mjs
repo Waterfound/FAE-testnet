@@ -135,3 +135,129 @@ test('HPA-W3-118: malformed, overbudget and duplicated payout model inputs fail 
     weights:many,rewardAtomsPerBlock:'256',blocks:100}),
     /interblock_simulation_work_budget_exceeded/);
 });
+
+test('HPA-W3-119: source-valid two-share identity splitting gains one atom in a three-block deficit horizon',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const baseline=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},{address:unsplit.address,weight:2n}],
+    rewardAtomsPerBlock:1n,blocks:3
+  });
+  const split=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},
+      {address:splitA.address,weight:1n},{address:splitB.address,weight:1n}],
+    rewardAtomsPerBlock:1n,blocks:3
+  });
+  const baselineAttacker=BigInt(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms);
+  const splitAttacker=split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n);
+  assert.equal(baselineAttacker,1n);
+  assert.equal(splitAttacker,2n);
+  assert.equal(splitAttacker-baselineAttacker,1n);
+  assert.equal(split.total_atoms,baseline.total_atoms);
+  assert.equal(split.sybil_resistant,false);
+  assert.equal(split.guaranteed_non_custodial_entitlement,false);
+});
+
+test('HPA-W3-120: the demonstrated identity-splitting edge is horizon-dependent, not infinite profit',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const baseline=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},{address:unsplit.address,weight:2n}],
+    rewardAtomsPerBlock:1n,blocks:4
+  });
+  const split=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},
+      {address:splitA.address,weight:1n},{address:splitB.address,weight:1n}],
+    rewardAtomsPerBlock:1n,blocks:4
+  });
+  assert.equal(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms,'2');
+  assert.equal(split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n),2n);
+  assert.equal(baseline.total_atoms,split.total_atoms);
+});
+
+test('HPA-W3-121: identity split is realizable as distinct accepted source ShareLedger shares',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const mkLedger=(addresses)=>{
+    const ledger=new ShareLedger({windowSize:2048});
+    addresses.forEach((address,i)=>ledger.append({
+      jobId:'HPA-W3-121-'+i,address,nonce:i,hash:'0'.repeat(64),
+      shareDifficultyBits:4,blockDifficultyBits:8,height:1,
+      previousBlockHash:'0'.repeat(64)
+    }));
+    return ledger;
+  };
+  const baselineLedger=mkLedger([honest.address,honest.address,unsplit.address,unsplit.address]);
+  const splitLedger=mkLedger([honest.address,honest.address,splitA.address,splitB.address]);
+  assert.deepEqual(baselineLedger.weights(honest.address).map(w=>w.weight),[2n,2n]);
+  assert.deepEqual(splitLedger.weights(honest.address).map(w=>w.weight),[2n,1n,1n]);
+  const baseline=simulateDirectAtomRounds({
+    weights:baselineLedger.weights(honest.address),rewardAtomsPerBlock:1n,blocks:3
+  });
+  const split=simulateDirectAtomRounds({
+    weights:splitLedger.weights(honest.address),rewardAtomsPerBlock:1n,blocks:3
+  });
+  assert.equal(BigInt(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms),1n);
+  assert.equal(split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n),2n);
+  assert.equal(baselineLedger.summary().totalShares,splitLedger.summary().totalShares);
+  assert.equal(baseline.guaranteed_future_payment,false);
+  assert.equal(split.policy_activated,false);
+});
+
+test('HPA-W3-122: real v4 consensus does not enforce PPLNS weights or future inter-block payout debts',async()=>{
+  // Shadow activationHeight=1 is an isolated source-test override, NOT an
+  // active FAE v4 policy or a change to production consensus/economics.
+  const {emptyState,createDistributedTemplate,appendBlockFromSubmission}=
+    await import('../../sovereign-forge/node/authoritative/fae-v4-core.mjs');
+  const {hashHex,leadingZeroBits}=
+    await import('../../sovereign-forge/node/authoritative/crypto.mjs');
+  const {weights}=sourceWindow(2);
+  const [honest,attacker]=weights;
+  const sourceWeights=[
+    {address:honest.address,weight:2n},
+    {address:attacker.address,weight:2n}
+  ];
+  const pristine=emptyState();
+  const honestTemplate=createDistributedTemplate(pristine,sourceWeights,{activationHeight:1});
+  assert.equal(honestTemplate.header.coinbase_mode,'pplns-direct');
+  assert.equal(honestTemplate.coinbase_outputs.length,2);
+  assert.equal(honestTemplate.coinbase_outputs[0].address,honest.address);
+  // A competing PoW producer can use a different payout vector that
+  // conserves the full reward, signs its own commitments, and makes no
+  // previous-debt commitments. The generic consensus verifier cannot infer
+  // historical ShareLedger weights from this block.
+  const maliciousOutputs=[{
+    address:attacker.address,amount_atoms:honestTemplate.header.reward_atoms
+  }];
+  const maliciousHeader={
+    ...honestTemplate.header,
+    miner_address:attacker.address,
+    coinbase_root:hashHex(maliciousOutputs),
+    coinbase_count:1,
+    coinbase_mode:'pplns-direct'
+  };
+  let nonce=-1,hash='';
+  for(let i=0;i<5_000_000;i++){
+    const h=hashHex({...maliciousHeader,nonce:i});
+    if(leadingZeroBits(h)>=Number(maliciousHeader.difficulty_bits)){
+      nonce=i;hash=h;break;
+    }
+  }
+  assert.ok(nonce>=0,'bounded genuine 18-bit source PoW search completed');
+  const accepted=appendBlockFromSubmission(pristine,{
+    header:maliciousHeader,nonce,hash,txids:honestTemplate.txids,
+    coinbase_outputs:maliciousOutputs
+  },{activationHeight:1});
+  assert.equal(accepted.chain.length,1);
+  assert.equal(accepted.chain[0].coinbase_mode,'pplns-direct');
+  assert.equal(accepted.utxos[hash+':0'].address,attacker.address);
+  assert.equal(accepted.utxos[hash+':0'].amount_atoms,honestTemplate.header.reward_atoms);
+  assert.equal(accepted.utxos[hash+':1'],undefined);
+  assert.equal(pristine.chain.length,0);
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+  // This is a SOURCE_VERIFIED non-enforcement counterexample, not
+  // an observed deployed exploit or a policy decision.
+});
