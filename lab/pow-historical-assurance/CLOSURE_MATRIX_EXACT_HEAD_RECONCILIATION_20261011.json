@@ -5,10 +5,14 @@
   "source": {
     "legacy_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json",
     "historical_pr297": "fae5120f5b123aa8dc8cc0e6153e65c6d0c4e9ee",
-    "w2_pr310": "5b9f5aad280053e50df5aea9efa41f2df6775bdd",
+    "w2_pr310": "b577e2c49aee445b2c1122225a04f387acbff9a2",
     "w3_pr311": "4eae6d339cefed9368522336f6fe0d8232d85802",
-    "dp6_pr312": "04a34cde293509b679874447b51b28f79d0f8b22",
-    "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971"
+    "dp6_pr312": "0ab6df836695568991f1fb717799571358d9edc8",
+    "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971",
+    "w3_pr313": "3c0f437bd0d38cd91f43d4715f9fb8252d1cde2c",
+    "w3_pr314": "3dab8012a7c04062ca17bce3f1badbca3f90ccaa",
+    "w2_fee_adversarial_pr315": "13e7d127d6901a092101ebaa49c7f2d311719cc5",
+    "w3_payout_integrity_pr317": "abd7e646df1c93e3508e95cb02170ca3bd685d4b"
   },
   "rows": [
     {
@@ -18,9 +22,9 @@
       "candidate": "PASS_VERIFIED_FROZEN_SOURCE",
       "mainnet": "CONDITION_WAIT",
       "evidence": [
-        "PR #312 exact head 04a34cde293509b679874447b51b28f79d0f8b22 8/8 workflows GREEN",
-        "Independent 16/16 semantic vectors, 6/6 negative, 4/4 selector invalid and frozen bypass regression",
-        "Conditional specialist model 11/11 including full 256MiB resident-context integrity; ASIC memory economics unmeasured"
+        "PR #312 exact head 0ab6df836695568991f1fb717799571358d9edc8: 8/8 exact-head GitHub Actions SUCCESS; 18/18 source-owned RP-B3-T3 economic intake validations",
+        "Independent 16/16 semantic vectors, 6/6 proof negatives, 4/4 malformed-selector negatives and historical bypass regression",
+        "Evidence manifests with byte-length/hash checks do not authenticate a real provider, observed memory access, capex or physical power"
       ],
       "remaining": [
         "final production network/height/version DP6 path wiring and exact replay",
@@ -49,13 +53,14 @@
       "candidate": "PASS_CANDIDATE_LATEST_HEAD",
       "mainnet": "HOLD",
       "evidence": [
-        "PR #310 exact head 5b9f5aad280053e50df5aea9efa41f2df6775bdd: 46/46 focused, 10/10 CI GREEN",
+        "PR #310 exact head b577e2c49aee445b2c1122225a04f387acbff9a2: 47/47 focused tests and 10/10 workflow final SUCCESS; peer-isolation-eclipse-gate2 run 38310284424 initially ECONNRESET, one bounded failed-job retry SUCCESS (original failure preserved)",
         "Source-signed full 4096 pool, real authenticated reorg/relay and fee-aware candidate template",
         "Signed 512x8 parallel chain, two-parent join and descendant closure; single CI performance and repeated flat pool observations",
         "PF-12W rejects duplicate pending outpoint fee inflation in a corrupt snapshot while preserving accepted source state",
         "LIVE_NODE_BROWNOUT_RESULT.json historical isolated source-run at 4096",
         "PF-12X/Y candidate snapshot: nonpositive signed pending output / source amount cannot inflate fees; forged fee+index value on poisoned clone fails closed",
-        "PF-12Z/AA: chosen pending fee eviction package and emitted template cryptographically verify original Ed25519 signature, hash-derived txid and key-bound address; mutated-but-consistent signed records fail closed"
+        "PF-12Z/AA: chosen pending fee eviction package and emitted template cryptographically verify original Ed25519 signature, hash-derived txid and key-bound address; mutated-but-consistent signed records fail closed",
+        "PF-12AB rejects noncanonical persisted fee/UTXO/output type coercion on original state; still candidate-only"
       ],
       "remaining": [
         "sustained source node resource/latency under mixed topology bursts and inter-node reorg floods, independent device evidence",
@@ -86,11 +91,13 @@
       "evidence": [
         "PR #310 explicit signed 250000-atom fee tx; current unactivated miner coinbase only subsidy",
         "fee-security-budget-falsification.test.mjs 3/3 in PR #310",
-        "SECURITY_BUDGET_ENVELOPE_RESULT.json deterministic monetary/subsidy decay model"
+        "SECURITY_BUDGET_ENVELOPE_RESULT.json deterministic monetary/subsidy decay model",
+        "PR #315 head 13e7d127d6901a092101ebaa49c7f2d311719cc5: 50/50 exact-source tests across fee assurance workflow and 5/5 exact-head PR CI PASS. C4 confirms unactivated v4 subsidy-only payout across fee-paying block and next empty block; C5/C6 reject independently mined valid-PoW overpaid fee coinbase and repeated authentic txid fee inflation"
       ],
       "remaining": [
         "authorization and activation of final miner fee policy and consensus-compatible verifier",
-        "real fee demand, coin price, honest hashrate, electricity cost, miner and rented ASIC economics"
+        "real fee demand, coin price, honest hashrate, electricity cost, miner and rented ASIC economics",
+        "candidate opt-in v4 fee-credit safety tests are not authorized active fee settlement or a frozen mainnet economic security budget"
       ],
       "not_entire_pow_collapse": true
     },
@@ -103,12 +110,17 @@
       "evidence": [
         "PR #311 exact head 4eae6d339cefed9368522336f6fe0d8232d85802: 50/50 focused, 7/7 CI GREEN",
         "2048-share source-ledger, conditional BWH/FAW/EFAW ceilings and deterministic finite-horizon classic selfish-release expectation, bounded one-event trail counterfactual and exact conditional tie-advantage threshold cannot prove observed propagation, full stubborn-strategy equivalence or network attack profitability",
-        "source tip race, credit-once receipt, malformed ACK, independently validated chain inclusion/non-inclusion uncertainty"
+        "source tip race, credit-once receipt, malformed ACK, independently validated chain inclusion/non-inclusion uncertainty",
+        "PR #313 exact head 3c0f437bd0d38cd91f43d4715f9fb8252d1cde2c: 5/5 CI SUCCESS; source-ledger hash-chain replay must match separately retained hash+count, HPA-W3-51..54",
+        "PR #314 exact head 3dab8012a7c04062ca17bce3f1badbca3f90ccaa: 5/5 CI SUCCESS; signed Ed25519 witness checked against caller-supplied out-of-band pinned SPKI hash, witness ID, ledger ID and sequence floor, HPA-W3-55..59; no genuine independent witness identity is proven",
+        "PR #317 exact head abd7e646df1c93e3508e95cb02170ca3bd685d4b: 8/8 CI and 63/63 W3 focused checks; independently reproduced RED at d795e4fff1f7f8b152bf12156cd6132055a51b44 before source fix. Real ShareCoordinator.createWork now rejects coherent payout theft, one-atom weight shift and incorrect coinbase commitment BEFORE signing work; legitimate source createDistributedTemplate remains accepted. Inactive pool candidate only."
       ],
       "remaining": [
         "actual full-target source payout reconciliation and BWH/FAW/EFAW network opportunity/tie evidence",
         "empirical propagation, attacker capex/opex and external pool benefit with provenance",
-        "final pool incentive policy and PPLNS separately authorized"
+        "final pool incentive policy and PPLNS separately authorized",
+        "independent witness trust admission, actual key custody, external observational provenance and anti-collusion proof before any independence claim",
+        "Future permitted operator integration and signed share-to-actual-payout settlement/inclusion replay on final active pool/source, without inferring economic BWH/FAW resistance"
       ],
       "attack_profitability_proven": false
     },
@@ -170,5 +182,84 @@
     "allow_inference_of_actual_specialization_resistance": false,
     "retain_previous_failed_ci_history": true,
     "weighted_score_epistemic_boundary": "Candidate W1 10 / W2 30 / W3 40 / W4 20, privately owner-scored 80; not final mainnet or ASIC economic proof"
+  },
+  "latest_wave": {
+    "schema": "HPA_20261012_CANDIDATE_EVIDENCE_CHECKPOINT_V1",
+    "parent_matrix_head": "df64885ed2712f66c3815b2d9d96007f7eec8f99",
+    "source_owner_updates_only": true,
+    "reference_heads_reverified_via_connected_github": true,
+    "w2": {
+      "pr": 310,
+      "head": "b577e2c49aee445b2c1122225a04f387acbff9a2",
+      "focused_pass": 47,
+      "focused_total": 47,
+      "final_workflows_success": 10,
+      "final_workflows_total": 10,
+      "failed_job_retry_run": 38310284424,
+      "initial_failure_preserved": true,
+      "production_policy_enabled": false
+    },
+    "w3": {
+      "anchored_pr": 313,
+      "anchored_head": "3c0f437bd0d38cd91f43d4715f9fb8252d1cde2c",
+      "signed_pr": 314,
+      "signed_head": "3dab8012a7c04062ca17bce3f1badbca3f90ccaa",
+      "signed_workflows_success": 5,
+      "signed_workflows_total": 5,
+      "independent_witness_observed": false,
+      "real_pool_enabled": false,
+      "source_payout_integrity": {
+        "pr": 317,
+        "head": "abd7e646df1c93e3508e95cb02170ca3bd685d4b",
+        "pre_fix_head": "d795e4fff1f7f8b152bf12156cd6132055a51b44",
+        "independent_red_failures": [
+          "HPA-W3-60",
+          "HPA-W3-61",
+          "HPA-W3-62"
+        ],
+        "focused_source_tests_pass": 63,
+        "focused_source_tests_total": 63,
+        "exact_head_workflows_success": 8,
+        "exact_head_workflows_total": 8,
+        "source_recomputed_pplns_distribution_enforced": true,
+        "honest_template_remains_admissible": true,
+        "production_pool_activated": false,
+        "economic_attack_profitability_proven": false,
+        "independent_witness_proven": false
+      }
+    },
+    "dp6": {
+      "pr": 312,
+      "head": "0ab6df836695568991f1fb717799571358d9edc8",
+      "software_evidence_pass": 18,
+      "software_evidence_total": 18,
+      "hardware_cost_proven": false
+    },
+    "boundary": {
+      "status": "CANDIDATE_SOURCE_EVIDENCE_ONLY",
+      "mainnet_green_classes": 0,
+      "percentage_weighted_candidate": 80,
+      "fee_revenue_current_v4": "COLLAPSE",
+      "independent_asic_economics": "EXTERNAL_EVIDENCE_GATE",
+      "witnessed_external_identity": "EXTERNAL_EVIDENCE_GATE",
+      "unproven_pool_profitability": true
+    },
+    "w2_fee_adversarial": {
+      "pr": 315,
+      "head": "13e7d127d6901a092101ebaa49c7f2d311719cc5",
+      "source_laboratory_test_count": 50,
+      "source_laboratory_test_pass": 50,
+      "exact_head_ci_pass": 5,
+      "exact_head_ci_total": 5,
+      "tests_added": [
+        "HPA-ECON-C4",
+        "HPA-ECON-C5",
+        "HPA-ECON-C6"
+      ],
+      "valid_source_pow_overcredit_rejected": true,
+      "duplicate_signed_tx_fee_overcredit_rejected": true,
+      "actual_v4_miner_fee_revenue_still_collapse": true,
+      "production_activation": false
+    }
   }
 }

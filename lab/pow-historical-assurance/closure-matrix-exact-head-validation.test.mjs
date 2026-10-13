@@ -52,3 +52,69 @@ test('HPA-W4-06: authority flags cannot silently activate mainnet/fee/consensus 
   assert.equal(matrix.interpretation.percent_progress_recalculation,
     'PRIVATE_OWNER_80_PERCENT_WEIGHTED_CANDIDATE_INDICATOR__NOT_MAINNET');
 });
+
+test('HPA-W4-07: this October continuation pins W2, W3, DP6 exact newest checked SHAs separately',()=>{
+  const w=matrix.latest_wave;
+  assert.equal(w.parent_matrix_head,'df64885ed2712f66c3815b2d9d96007f7eec8f99');
+  for(const k of ['w3_pr313','w3_pr314'])
+    assert.match(matrix.source[k],/^[0-9a-f]{40}$/,k);
+  assert.equal(w.w2.head,matrix.source.w2_pr310);
+  assert.equal(w.w3.anchored_head,matrix.source.w3_pr313);
+  assert.equal(w.w3.signed_head,matrix.source.w3_pr314);
+  assert.equal(w.dp6.head,matrix.source.dp6_pr312);
+  assert.ok(rows.get('HP-06').evidence.some(e=>e.includes(w.w3.signed_head)));
+  assert.ok(rows.get('HP-03').evidence.some(e=>e.includes(w.w2.head)));
+  assert.ok(rows.get('HP-01').evidence.some(e=>e.includes(w.dp6.head)));
+});
+test('HPA-W4-08: software PASS and signed witness cannot silently certify independent observation, revenue or ASIC economics',()=>{
+  const w=matrix.latest_wave;
+  assert.equal(w.w3.signed_workflows_success,5);
+  assert.equal(w.w3.independent_witness_observed,false);
+  assert.equal(w.w3.real_pool_enabled,false);
+  assert.equal(w.w2.production_policy_enabled,false);
+  assert.equal(w.w2.initial_failure_preserved,true);
+  assert.equal(w.dp6.hardware_cost_proven,false);
+  assert.equal(w.boundary.witnessed_external_identity,'EXTERNAL_EVIDENCE_GATE');
+  assert.equal(w.boundary.fee_revenue_current_v4,'COLLAPSE');
+  assert.equal(w.boundary.independent_asic_economics,'EXTERNAL_EVIDENCE_GATE');
+  assert.equal(w.boundary.mainnet_green_classes,0);
+  assert.equal(w.boundary.percentage_weighted_candidate,80);
+});
+
+test('HPA-W4-09: a real PoW mined fee-consensus negative does not erase the active v4 miner fee collapse',()=>{
+ const a=matrix.latest_wave.w2_fee_adversarial;
+ assert.match(a.head,/^[0-9a-f]{40}$/);
+ assert.equal(a.head,matrix.source.w2_fee_adversarial_pr315);
+ assert.equal(a.source_laboratory_test_count,50);
+ assert.equal(a.source_laboratory_test_pass,50);
+ assert.equal(a.exact_head_ci_pass,5);
+ assert.equal(a.exact_head_ci_total,5);
+ assert.equal(a.valid_source_pow_overcredit_rejected,true);
+ assert.equal(a.duplicate_signed_tx_fee_overcredit_rejected,true);
+ assert.equal(a.actual_v4_miner_fee_revenue_still_collapse,true);
+ assert.equal(a.production_activation,false);
+ assert.ok(rows.get('HP-05').evidence.some(e=>e.includes(a.head)));
+ assert.equal(rows.get('HP-05').candidate,'COLLAPSE_CURRENT_V4_MINER_FEE_REVENUE_PREMISE');
+ assert.equal(rows.get('HP-05').mainnet,'HOLD');
+});
+
+test('HPA-W4-10: proven W3 payout-redirection repair cannot certify pool economic security or mainnet',()=>{
+ const w=matrix.latest_wave.w3.source_payout_integrity;
+ assert.equal(w.pr,317);
+ assert.equal(w.head,matrix.source.w3_payout_integrity_pr317);
+ assert.match(w.pre_fix_head,/^[0-9a-f]{40}$/);
+ assert.equal(w.independent_red_failures.length,3);
+ assert.equal(w.focused_source_tests_pass,63);
+ assert.equal(w.focused_source_tests_total,63);
+ assert.equal(w.exact_head_workflows_success,8);
+ assert.equal(w.exact_head_workflows_total,8);
+ assert.equal(w.source_recomputed_pplns_distribution_enforced,true);
+ assert.equal(w.honest_template_remains_admissible,true);
+ assert.equal(w.production_pool_activated,false);
+ assert.equal(w.economic_attack_profitability_proven,false);
+ assert.equal(w.independent_witness_proven,false);
+ assert.ok(rows.get('HP-06').evidence.some(e=>e.includes(w.head)));
+ assert.notEqual(rows.get('HP-06').mainnet,'GREEN');
+ assert.equal(matrix.interpretation.mainnet_terminal_green_count,0);
+ assert.equal(matrix.interpretation.percent_progress_last_formal,80);
+});
