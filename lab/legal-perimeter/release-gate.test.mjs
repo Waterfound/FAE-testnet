@@ -59,4 +59,6 @@ test('unverified pool active claim detected',()=>assert.ok(reviewPublicCopy('PPL
 test('unverified ASIC claim detected',()=>assert.ok(reviewPublicCopy('Fully ASIC-resistant.').length));
 test('unrelated commentary not blocked',()=>assert.deepEqual(reviewPublicCopy('Potential classification of hosted transaction relays requires review.'),[]));
 test('source anchored guard on exact fetched canonical Git objects',()=>assert.deepEqual(verifyExactSource(m,process.cwd()),[]));
+test('matrix status cannot self-certify encrypted-at-rest',()=>{const altered=structuredClone(m);altered.features.find(f=>f.id==='F04').status='TECHNICAL_PROPERTY_VERIFIED';assert.ok(checkProposal(altered,{...base,claims:['encrypted_at_rest']}).length)});
+test('technical matrix cannot self-change reviewed baseline commit',()=>{const altered=structuredClone(m);altered.baseline_commit='0'.repeat(40);assert.ok(checkMatrix(altered).length)});
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
