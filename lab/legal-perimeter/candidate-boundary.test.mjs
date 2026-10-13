@@ -35,7 +35,9 @@ const wf=[
 '      - name: Candidate boundary regressions',
 '        run: node lab/legal-perimeter/candidate-boundary.test.mjs',
 '      - name: Verify actual candidate diff and workflow boundary',
-'        run: node lab/legal-perimeter/candidate-boundary.mjs'
+'        run: node lab/legal-perimeter/candidate-boundary.mjs',
+'      - name: Bounded real-source wallet and hosted relay behavior',
+'        run: node lab/legal-perimeter/source-to-runtime.test.mjs'
 ].join('\n')+'\n';
 const allowed='A\tlab/legal-perimeter/candidate-boundary.mjs\nM\t.github/workflows/fae-lrp-001-candidate.yml';
 test('admissible isolated PR diff',()=>assert.deepEqual(reviewDiff(allowed).errors,[]));
