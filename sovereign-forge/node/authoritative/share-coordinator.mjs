@@ -116,7 +116,9 @@ export class ShareCoordinator{
     const liveHeight=(typeof rawHeight==='number'||
       (typeof rawHeight==='string'&&/^(0|[1-9][0-9]*)$/.test(rawHeight)))?
       Number(rawHeight):NaN;
-    if(latestChain?.network!==this.networkId||
+    // Network is optional in legacy source status; when present it must match.
+    // Tip and height are mandatory even for that legacy provider shape.
+    if((latestChain?.network!=null&&latestChain.network!==this.networkId)||
        typeof liveTip!=='string'||!/^[0-9a-f]{64}$/.test(liveTip)||
        !Number.isSafeInteger(liveHeight)||liveHeight<0||
        !Number.isSafeInteger(Number(candidate.header.height))||
