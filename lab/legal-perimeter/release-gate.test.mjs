@@ -117,4 +117,12 @@ test('wrong CVM 40 link rejected even with official domain',()=>{
   const x=structuredClone(m);x.norms.CVM40='https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare035.html';
   assert.match(checkMatrix(x).join('|'),/CVM40: source identity/);
 });
+test('RED: unsupported live Explorer claim must fail against NOT_LIVE baseline',()=>{
+  const p={...base,public_copy:'The Explorer reads coherent snapshots from the Independent Node.'};
+  assert.match(checkProposal(m,p).join('|'),/Explorer.*NOT_LIVE|explorer.*unbound/i);
+});
+test('RED: indirect independently validated node state claim must fail',()=>{
+  const p={...base,public_copy:'Blocks, transactions, addresses, rewards and network status from independently validated node state.'};
+  assert.match(checkProposal(m,p).join('|'),/Explorer.*NOT_LIVE|explorer.*unbound/i);
+});
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
