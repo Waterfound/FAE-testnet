@@ -79,4 +79,7 @@ test('candidate authority escalation fails',()=>{
 });
 test('markdown promotion heading cannot bypass financial promise review',()=>assert.match(reviewPublicCopy('# Guaranteed returns!').join('|'),/financial promise/));
 test('markdown informational heading remains permitted',()=>assert.deepEqual(reviewPublicCopy('## Mining documentation: risks and uncertainties'),[]));
+test('Markdown emphasis must not conceal a guaranteed return',()=>assert.match(reviewPublicCopy('Earn **guaranteed** returns.').join('|'),/financial promise/));
+test('Markdown split tokens must not conceal a guaranteed return',()=>assert.match(reviewPublicCopy('**Guaranteed** **profits**.').join('|'),/financial promise/));
+test('qualified technical description still allowed',()=>assert.deepEqual(reviewPublicCopy('Mining has no guaranteed returns.'),[]));
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
