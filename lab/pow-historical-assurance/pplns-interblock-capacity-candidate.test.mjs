@@ -206,3 +206,58 @@ test('HPA-W3-121: identity split is realizable as distinct accepted source Share
   assert.equal(baseline.guaranteed_future_payment,false);
   assert.equal(split.policy_activated,false);
 });
+
+test('HPA-W3-122: real v4 consensus does not enforce PPLNS weights or future inter-block payout debts',async()=>{
+  // Shadow activationHeight=1 is an isolated source-test override, NOT an
+  // active FAE v4 policy or a change to production consensus/economics.
+  const {emptyState,createDistributedTemplate,appendBlockFromSubmission}=
+    await import('../../sovereign-forge/node/authoritative/fae-v4-core.mjs');
+  const {hashHex,leadingZeroBits}=
+    await import('../../sovereign-forge/node/authoritative/crypto.mjs');
+  const {weights}=sourceWindow(2);
+  const [honest,attacker]=weights;
+  const sourceWeights=[
+    {address:honest.address,weight:2n},
+    {address:attacker.address,weight:2n}
+  ];
+  const pristine=emptyState();
+  const honestTemplate=createDistributedTemplate(pristine,sourceWeights,{activationHeight:1});
+  assert.equal(honestTemplate.header.coinbase_mode,'pplns-direct');
+  assert.equal(honestTemplate.coinbase_outputs.length,2);
+  assert.equal(honestTemplate.coinbase_outputs[0].address,honest.address);
+  // A competing PoW producer can use a different payout vector that
+  // conserves the full reward, signs its own commitments, and makes no
+  // previous-debt commitments. The generic consensus verifier cannot infer
+  // historical ShareLedger weights from this block.
+  const maliciousOutputs=[{
+    address:attacker.address,amount_atoms:honestTemplate.header.reward_atoms
+  }];
+  const maliciousHeader={
+    ...honestTemplate.header,
+    miner_address:attacker.address,
+    coinbase_root:hashHex(maliciousOutputs),
+    coinbase_count:1,
+    coinbase_mode:'pplns-direct'
+  };
+  let nonce=-1,hash='';
+  for(let i=0;i<5_000_000;i++){
+    const h=hashHex({...maliciousHeader,nonce:i});
+    if(leadingZeroBits(h)>=Number(maliciousHeader.difficulty_bits)){
+      nonce=i;hash=h;break;
+    }
+  }
+  assert.ok(nonce>=0,'bounded genuine 18-bit source PoW search completed');
+  const accepted=appendBlockFromSubmission(pristine,{
+    header:maliciousHeader,nonce,hash,txids:honestTemplate.txids,
+    coinbase_outputs:maliciousOutputs
+  },{activationHeight:1});
+  assert.equal(accepted.chain.length,1);
+  assert.equal(accepted.chain[0].coinbase_mode,'pplns-direct');
+  assert.equal(accepted.utxos[hash+':0'].address,attacker.address);
+  assert.equal(accepted.utxos[hash+':0'].amount_atoms,honestTemplate.header.reward_atoms);
+  assert.equal(accepted.utxos[hash+':1'],undefined);
+  assert.equal(pristine.chain.length,0);
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+  // This is a SOURCE_VERIFIED non-enforcement counterexample, not
+  // an observed deployed exploit or a policy decision.
+});
