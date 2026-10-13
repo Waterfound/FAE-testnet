@@ -9,6 +9,7 @@ import {emptyState,createDistributedTemplate} from '../../sovereign-forge/node/a
 import {MAX_COINBASE_OUTPUTS,normalizeCoinbaseOutputs} from '../../sovereign-forge/node/authoritative/pplns-activation.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
+import {hashHex} from '../../sovereign-forge/node/authoritative/crypto.mjs';
 import {allocateLargestRemainderCandidate} from './pplns-atom-remainder-candidate.mjs';
 import {assessSourcePplnsCoinbaseAdmission as assess} from './pplns-coinbase-admission-candidate.mjs';
 
@@ -43,7 +44,8 @@ test('HPA-W3-70: 257 source ShareLedger payees exhaust v4 256-output consensus t
     candidateHasher:async()=>{throw new Error('not called')}
   });
   coordinator.ledger=ledger;
-  await assert.rejects(coordinator.createWork(addresses[0]),/invalid_payout_weights/);
+  await assert.rejects(coordinator.createWork(addresses[0]),
+    e=>e.code==='candidate_pplns_output_capacity_exceeded');
   assert.equal(coordinator.jobs.size,0);
   assert.equal(coordinator.ledger.summary().totalShares,257);
   const guard=assess({weights,totalRewardAtoms:'1000000000',
@@ -134,4 +136,63 @@ test('HPA-W3-75: historical PoW-authentic known tips change public lottery winne
     'different genuinely recorded PoW tips may select distinct recipients');
   // This is conditional sensitivity to historical *observed* tips;
   // it is NOT evidence an attacker could mine and choose those tips.
+});
+
+test('HPA-W3-76: capacity admission rejects 257 distinct source participants BEFORE invoking a hostile template provider',async()=>{
+  const {ledger,addresses}=populated(257);
+  let invocations=0;
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    distributedTemplateProvider:async args=>{
+      invocations++;
+      return provider(args);
+    },
+    candidateHasher:async()=>{throw Error('not called')}
+  });
+  coordinator.ledger=ledger;
+  await assert.rejects(coordinator.createWork(addresses[0]),
+    e=>e.code==='candidate_pplns_output_capacity_exceeded');
+  assert.equal(invocations,0);
+  assert.equal(coordinator.jobs.size,0);
+  assert.equal(ledger.summary().totalShares,257);
+});
+test('HPA-W3-77: a fully allocated source template with forged primary address is rejected before signed work or ledger mutation',async()=>{
+  const {ledger,addresses}=populated(3);
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    distributedTemplateProvider:async args=>{
+      const template=provider(args);
+      return {...template,header:{...template.header,miner_address:addresses[2]}};
+    },
+    candidateHasher:async()=>{throw Error('not called')}
+  });
+  coordinator.ledger=ledger;
+  const before=ledger.summary();
+  await assert.rejects(coordinator.createWork(addresses[0]),
+    e=>e.code==='candidate_pplns_primary_coinbase_incompatible');
+  assert.equal(coordinator.jobs.size,0);
+  assert.deepEqual(ledger.summary(),before);
+});
+test('HPA-W3-78: future tiny-reward projection cannot become a signed invalid primary job in actual source coordinator',async()=>{
+  const {ledger,addresses}=populated(3);
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    distributedTemplateProvider:async args=>{
+      const original=provider(args);
+      const tiny=allocatePplnsOutputs(1n,args.weights);
+      assert.equal(tiny.length,1);
+      assert.notEqual(tiny[0].address,original.header.miner_address);
+      return {...original,payouts:tiny,coinbase_outputs:tiny,
+        header:{...original.header,reward_atoms:'1',fee_atoms:'0',
+          coinbase_count:tiny.length,coinbase_root:hashHex(tiny)}};
+    },
+    candidateHasher:async()=>{throw Error('not called')}
+  });
+  coordinator.ledger=ledger;
+  await assert.rejects(coordinator.createWork(addresses[0]),
+    e=>e.code==='candidate_pplns_primary_coinbase_incompatible');
+  assert.equal(coordinator.jobs.size,0);
+  assert.equal(ledger.summary().totalShares,3);
+  // A template for a one-atom future era is intentionally NOT a valid
+  // currently-active v4 block. This guards coordinator signature hygiene.
 });
