@@ -4,6 +4,8 @@ on:
     paths:
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.mjs
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
+      - sovereign-forge/node/authoritative/share-coordinator.mjs
       - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.mjs
       - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
       - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
@@ -30,6 +32,8 @@ jobs:
           node-version: '22'
       - name: Isolated PPLNS activation hold and real ShareLedger withholding test
         run: node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - name: Real source W3 submit network binding adversarial regression
+        run: node --test lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
       - name: Falsify source PPLNS atomic remainder bias on real finite ShareLedger
         run: node --test lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
       - name: Source PPLNS 256-output cap and future zero-primary admission negatives

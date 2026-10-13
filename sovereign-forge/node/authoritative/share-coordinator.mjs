@@ -181,12 +181,29 @@ export class ShareCoordinator{
       throw Object.assign(new Error(code),{code});
     }
     const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
-    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
+    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;
+    // HPA-W3-123: tip and height are not a complete chain identity.
+    // A provider explicitly reporting another network cannot credit a share
+    // for this coordinator, even if its tip/height happen to be identical.
+    // Preserve compatibility with legacy status providers omitting network.
+    if(current.network!=null&&current.network!==this.networkId){
+      this.jobs.delete(jobId);
+      throw Object.assign(new Error('candidate_pplns_share_network_mismatch'),
+        {code:'candidate_pplns_share_network_mismatch'});
+    }
+    if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     // Candidate-only opt-in: revalidate tip after asynchronous hashing,
     // before the synchronous source-owned share ledger append.
     if(this.candidateTipRecheck){
       const latest=await this.upstreamStatus(),latestTip=latest.tip_hash??latest.tip;
+      // HPA-W3-124: hashing is async; rebind the latest explicit network
+      // before adding share weight or sending full-target proof upstream.
+      if(latest.network!=null&&latest.network!==this.networkId){
+        this.jobs.delete(jobId);
+        throw Object.assign(new Error('candidate_pplns_share_network_mismatch'),
+          {code:'candidate_pplns_share_network_mismatch'});
+      }
       if(latestTip!==job.candidate.header.previous_hash||
          Number(latest.height)+1!==Number(job.candidate.header.height)){
         this.jobs.delete(jobId);
