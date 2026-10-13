@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import {ShareLedger,allocatePplnsOutputs} from '../../sovereign-forge/node/authoritative/share-coordinator.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {allocateLargestRemainderCandidate as alternative} from './pplns-atom-remainder-candidate.mjs';
+import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
 
 function sourceWindow(){
   const ledger=new ShareLedger({windowSize:2048});
@@ -89,4 +90,64 @@ test('HPA-W3-69: malformed weights, address spoofing, source-type coercion and a
   }
   // Neither the original nor the alternative proves anti-Sybil economics.
   // Publicly known tie seeds could themselves create address-grinding incentives.
+});
+
+test('HPA-W3-80: under a PUBLIC recorded PoW tip, changing only an attacker payout address selects winner of one-atom tie',()=>{
+  const tipHash=legacyBlocks[0].hash;
+  assert.match(tipHash,/^[0-9a-f]{64}$/);
+  const honest=encodeAddress(Buffer.alloc(20,96),'faet');
+  let win=null,loss=null;
+  for(let i=0;i<128;i++){
+    const bytes=Buffer.alloc(20);bytes.writeUInt16BE(i+512,18);
+    const attacker=encodeAddress(bytes,'faet');
+    const weights=[{address:honest,weight:1n},{address:attacker,weight:1n}]
+      .sort((a,b)=>a.address.localeCompare(b.address));
+    const payout=alternative(1n,weights,{tipHash});
+    assert.equal(sum(payout),1n);
+    if(payout[0].address===attacker)win??=attacker;
+    else loss??=attacker;
+  }
+  assert.ok(win&&loss,'public tie determinism allows a chooser to screen winning and losing payout identities');
+  assert.notEqual(win,loss);
+  // Conditional known-tip payout identity selection, NOT measured on-chain
+  // address-grinding profitability or proof of active PPLNS exploitation.
+});
+
+test('HPA-W3-81: splitting the SAME two attacker shares into two addresses can improve their 3-atom largest-remainder payout',()=>{
+  const honest=encodeAddress(Buffer.alloc(20,111),'faet');
+  const attacker=encodeAddress(Buffer.alloc(20,112),'faet');
+  const split1=encodeAddress(Buffer.alloc(20,113),'faet');
+  const split2=encodeAddress(Buffer.alloc(20,114),'faet');
+  const makeLedger=addresses=>{
+    const ledger=new ShareLedger({windowSize:2048});
+    addresses.forEach((address,i)=>ledger.append({
+      jobId:'HPA-W3-81-share-'+i,address,nonce:i,
+      hash:'0'.repeat(64),shareDifficultyBits:8,blockDifficultyBits:12,
+      height:12,previousBlockHash:legacyBlocks.at(-1).hash
+    }));
+    return ledger;
+  };
+  const before=makeLedger([honest,honest,attacker,attacker]);
+  const after=makeLedger([honest,honest,split1,split2]);
+  assert.equal(before.summary().totalShares,after.summary().totalShares);
+  const beforeWeights=before.weights(honest),afterWeights=after.weights(honest);
+  assert.equal(beforeWeights.reduce((s,w)=>s+w.weight,0n),4n);
+  assert.equal(afterWeights.reduce((s,w)=>s+w.weight,0n),4n);
+  let counterexample=null;
+  for(const block of legacyBlocks){
+    const initial=distribution(alternative(3n,beforeWeights,{tipHash:block.hash}));
+    const sybil=distribution(alternative(3n,afterWeights,{tipHash:block.hash}));
+    const directAtoms=initial.get(attacker)??0n;
+    const splitAtoms=(sybil.get(split1)??0n)+(sybil.get(split2)??0n);
+    assert.equal(splitAtoms,2n,'split receives both largest individual remainders despite same source shares');
+    assert.equal(sum(alternative(3n,afterWeights,{tipHash:block.hash})),3n);
+    if(directAtoms===1n){
+      counterexample={tip:block.hash,directAtoms,splitAtoms};
+      break;
+    }
+  }
+  assert.ok(counterexample,'an authentic recorded tip demonstrates +1 atom Sybil gain in isolated candidate');
+  assert.equal(counterexample.splitAtoms-counterexample.directAtoms,1n);
+  // Demonstrates conditional address-splitting incentive, not current-v4
+  // pool activation, per-share profit, final identity policy or ASIC safety.
 });
