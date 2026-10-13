@@ -3,7 +3,9 @@
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-const officialSourcePaths=new Set(['README.md','index.html']);
+const officialSourcePaths=new Set(['README.md','index.html','explorer/index.html']);
+const requiredDynamicPaths=new Set(['explorer/app.mjs','core.js','wallet.js','mining.js','docs/FAE_MANIFESTO_EDITORIAL_CHARTER.md']);
+const officialCvm40='https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare040.html';
 const FROZEN_BASELINE='6d0c3956fdf72cd2e7543eee2539397ed5c0e699';
 const FROZEN_UNVERIFIED_CLAIMS=new Set(['encrypted_at_rest','absolute_non_custody','pplns_active']);
 const STATUSES=new Set(['TECHNICAL_PROPERTY_VERIFIED','NO_TRIGGER_IDENTIFIED_IN_REVIEWED_SCOPE','POTENTIAL_TRIGGER','LEGAL_INTERPRETATION_REQUIRED','TECHNICAL_REPAIR_REQUIRED','EXTERNAL_AUTHORITY_GATE','INSUFFICIENT_EVIDENCE']);
@@ -11,6 +13,16 @@ export function checkMatrix(matrix){
   const errors=[];
   if(matrix?.schema!=='FAE_LRP_001_PERIMETER_V2'||matrix?.baseline_commit!==FROZEN_BASELINE||!/^([a-f0-9]{40})$/.test(matrix?.baseline_commit||''))errors.push('invalid matrix schema/baseline');
   if(matrix?.authority!=='PASSIVE_CANDIDATE_ONLY_NO_MAINNET_OR_COMMERCIAL_RELEASE')errors.push('matrix authority escalation');
+  if(matrix?.norms?.CVM40!==officialCvm40)errors.push('CVM40: source identity must be canonical official act');
+  if(!Array.isArray(matrix?.public_surfaces)||matrix.public_surfaces.length!==officialSourcePaths.size||
+     new Set((matrix.public_surfaces||[]).map(x=>x.path)).size!==officialSourcePaths.size||
+     (matrix.public_surfaces||[]).some(x=>!officialSourcePaths.has(x.path)||!/^[a-f0-9]{40}$/.test(x.blob_sha||'')))
+    errors.push('public: incomplete/invalid static source inventory');
+  if(!Array.isArray(matrix?.dynamic_public_surfaces)||matrix.dynamic_public_surfaces.length!==requiredDynamicPaths.size||
+     new Set((matrix.dynamic_public_surfaces||[]).map(x=>x.path)).size!==requiredDynamicPaths.size||
+     (matrix.dynamic_public_surfaces||[]).some(x=>!requiredDynamicPaths.has(x.path)||!/^[a-f0-9]{40}$/.test(x.blob_sha||'')||!['RUNTIME_RENDERED_NOT_VERIFIED','EDITORIAL_INTERNAL_NOT_PUBLIC_RELEASE_COPY'].includes(x.coverage)))
+    errors.push('public: incomplete/invalid dynamic coverage inventory');
+  if(!String(matrix?.coverage_statement||'').includes('remain unverified'))errors.push('public: missing runtime coverage boundary');
   if(!Array.isArray(matrix?.features)||!matrix.features.length)errors.push('missing matrix features');
   const ids=new Set();
   for(const row of matrix?.features||[]){
@@ -103,7 +115,7 @@ export function verifyExactSource(matrix,root,reader){
       for(const assertion of t.source_assertions)if(assertion.kind!=='contains'||!source.content.includes(assertion.text))errors.push('source: missing predicate '+row.id);
     }catch{errors.push('source: unavailable '+row.id)}
   }
-  if(!Array.isArray(matrix.public_surfaces)||matrix.public_surfaces.length!==2)errors.push('public: missing source surfaces');
+  // Static surfaces are source-copy reviewed; dynamic surfaces are SHA-bound as UNVERIFIED, not scanned as rendered user output.
   for(const surface of matrix.public_surfaces||[]){
     if(!officialSourcePaths.has(surface.path))errors.push('public: unreviewed path');
     try{
@@ -111,6 +123,12 @@ export function verifyExactSource(matrix,root,reader){
       if(source.blob!==surface.blob_sha)errors.push('public: blob drift '+surface.path);
       errors.push(...reviewPublicCopy(source.content).map(x=>'public: '+surface.path+' '+x));
     }catch{errors.push('public: unavailable '+surface.path)}
+  }
+  for(const surface of matrix.dynamic_public_surfaces||[]){
+    try{
+      const source=gitReader(matrix.baseline_commit,surface.path);
+      if(source.blob!==surface.blob_sha)errors.push('public: dynamic source blob drift '+surface.path);
+    }catch{errors.push('public: dynamic source unavailable '+surface.path)}
   }
   return [...new Set(errors)];
 }
