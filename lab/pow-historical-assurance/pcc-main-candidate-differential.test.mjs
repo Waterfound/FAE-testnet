@@ -121,3 +121,37 @@ test('PCC-DIFF-04: candidate source-only bounded admission changes are explicit 
   // Real 4096-transaction signed-saturation and authenticated hooks were already
   // exercised by source-owned W2 tests; do not substitute synthetic invalid state.
 });
+
+test('PCC-DIFF-05: genuine loopback FAE peer default status/template and invalid remote transaction agree across canonical main and candidate',async()=>{
+  const seen=[];
+  for(const m of [main,candidate]){
+    const node=m.peer.createAuthoritativeV4PeerNode({
+      host:'127.0.0.1',port:0,syncIntervalMs:0
+    });
+    try{
+      await node.start();
+      const base=node.baseUrl();
+      const statusResp=await fetch(base+'/status');
+      assert.equal(statusResp.status,200);
+      const status=await statusResp.json();
+      const templateResp=await fetch(base+'/template?address='+encodeURIComponent(owner));
+      assert.equal(templateResp.status,200);
+      const template=await templateResp.json();
+      const badResp=await fetch(base+'/submit-tx',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({network:m.core.NETWORK,inputs:[],outputs:[],signature:'AA=='})
+      });
+      const bad=await badResp.json();
+      assert.equal(badResp.status,400);
+      seen.push({
+        network:status.network,height:status.height,tip_hash:status.tip_hash,
+        pplns_coinbase_activation_height:status.pplns_coinbase_activation_height,
+        template:semTemplate(template),denied:{status:badResp.status,error:bad.error}
+      });
+    }finally{
+      await node.close();
+    }
+  }
+  assert.deepEqual(seen[0],seen[1]);
+  assert.equal(seen[1].pplns_coinbase_activation_height,null);
+});
