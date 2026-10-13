@@ -2,7 +2,7 @@
 
 **PASSIVE / CANDIDATE ONLY.** This is a source-bound technical claim guard, **not a legal opinion**, certification, BCB/CVM authorization, mainnet gate or commercial-release permission.
 
-Source-locked canonical main: `6d0c3956fdf72cd2e7543eee2539397ed5c0e699`. The 13-feature `perimeter.json` separates technical observations from possible legal triggers. `release-gate.mjs` verifies Git blob IDs and source predicates against exact committed objects (`git show`), not mutable working-tree text, and checks pinned README/index snapshots and an explicit candidate proposal. Missing source objects or proof fail closed. Negative whole-system claims (no exfiltration, no custody, no legal duties) are **not** established by presence of a few source fragments.
+Source-locked canonical main: `6d0c3956fdf72cd2e7543eee2539397ed5c0e699`. The 13-feature `perimeter.json` separates technical observations from possible legal triggers. `release-gate.mjs` verifies Git blob IDs and source predicates against exact committed objects (`git show`), not mutable working-tree text, and checks pinned README/main UI/Explorer HTML snapshots, explicit dynamic-surface NOT-VERIFIED inventory and a candidate proposal. Missing source objects or proof fail closed. Negative whole-system claims (no exfiltration, no custody, no legal duties) are **not** established by presence of a few source fragments.
 
 ### Source facts and ownership
 - Canonical `wallet.js` persists private JWK via `localStorage` without at-rest encryption. The Wallet #266 IndexedDB AES-GCM proposal is an **unmerged candidate**. Repair belongs to Wallet / Privacy P0.
@@ -18,8 +18,11 @@ Consult official source URLs in `perimeter.json`: Lei 14.478/2022, Decreto 11.56
 ```sh
 node lab/legal-perimeter/release-gate.test.mjs
 node lab/legal-perimeter/release-gate.mjs lab/legal-perimeter/perimeter.json lab/legal-perimeter/proposal.example.json
+node lab/legal-perimeter/candidate-boundary.test.mjs
+node lab/legal-perimeter/candidate-boundary.mjs
+node lab/legal-perimeter/source-to-runtime.test.mjs
 ```
-The second command needs the original main Git objects; CI uses a full checkout. CI runs only for changes touching this candidate area/workflow; no scheduler, mainnet activation, release or canonical required status is created. A green check establishes only technical claims consistency in the **reviewed** scope, not compliance.
+The second command needs the original main Git objects; CI uses a full checkout. Source-to-runtime bounded VM tests execute real pinned `sendFAE()` and hosted `submitTx()` function bodies with stubbed APIs and injected secret sentinels; they do not prove full-stack absence of exfiltration or a deployed runtime. `explorer/app.mjs`, `core.js`, `wallet.js`, `mining.js` runtime-rendered copy and unpublished manifesto remain explicitly outside verified live public-claims coverage. CI runs only for changes touching this candidate area/workflow; no scheduler, mainnet activation, release or canonical required status is created. A green check establishes only technical claims consistency in the **reviewed** scope, not compliance.
 
 Adversarial assurance includes rejections of false approvals, guaranteed returns, inactive PPLNS, unverified encryption and whole-stack custody claims, fabricated mainnet claims, wrong commit, missing source, altered Git blob and unverified public README assertions. Explicit negations and neutral technical discussion are permitted; the grammar cannot replace manual review of other publicity or future interfaces.
 
