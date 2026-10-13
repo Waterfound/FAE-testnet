@@ -129,4 +129,9 @@ test('HPA-W3-118: malformed, overbudget and duplicated payout model inputs fail 
     weights:[weights[0],weights[0]],rewardAtomsPerBlock:'1',blocks:1}),/duplicate_interblock_payee/);
   assert.throws(()=>simulateDirectAtomRounds({
     weights,rewardAtomsPerBlock:0n,blocks:1}),/invalid_interblock_simulation_inputs/);
+  // 2048 * 256 * 100 potential deficit comparisons exceed candidate CPU ceiling.
+  const {weights:many}=sourceWindow(2048);
+  assert.throws(()=>simulateDirectAtomRounds({
+    weights:many,rewardAtomsPerBlock:'256',blocks:100}),
+    /interblock_simulation_work_budget_exceeded/);
 });
