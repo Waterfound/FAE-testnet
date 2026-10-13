@@ -26,16 +26,17 @@ function fixture(){
     if(zeros>=bits&&zeros<Number(template.header.difficulty_bits))proofs.push({nonce,hash});
   }
   assert.equal(proofs.length,2,'bounded genuine non-full-target proofs');
+  let upstreamNetwork=NETWORK;
   const coordinator=new ShareCoordinator({
     networkId:NETWORK,multiOutputCoinbaseActive:true,candidateTipRecheck:true,
     statusProvider:async()=>({
-      network:NETWORK,height:Number(template.header.height)-1,
+      network:upstreamNetwork,height:Number(template.header.height)-1,
       tip_hash:template.header.previous_hash,difficulty_bits:template.header.difficulty_bits
     }),
     distributedTemplateProvider:async()=>template,
     candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
   });
-  return{address,coordinator,template,proofs};
+  return{address,coordinator,template,proofs,setNetwork(value){upstreamNetwork=value}};
 }
 
 test('HPA-W3-130: two individually signed jobs must not double-credit identical real PoW proof',async()=>{
@@ -81,4 +82,35 @@ test('HPA-W3-132: distinct genuine PoW proofs under the same job retain two legi
   }
   assert.notEqual(x.proofs[0].hash,x.proofs[1].hash);
   assert.equal(x.coordinator.ledger.summary().totalShares,2);
+});
+
+test('PCC-W3-COMPOSED-01: network drift cannot double-credit replayed genuine PoW after recovery',async()=>{
+  const x=fixture();
+  const first=await x.coordinator.createWork(x.address);
+  const replay=await x.coordinator.createWork(x.address);
+  assert.notEqual(first.jobId,replay.jobId);
+  const proof=x.proofs[0];
+  assert.equal((await x.coordinator.submitShare({jobId:first.jobId,...proof})).accepted,true);
+
+  x.setNetwork('wrong-chain-for-this-coordinator');
+  await assert.rejects(
+    x.coordinator.submitShare({jobId:replay.jobId,...proof}),
+    e=>e.code==='candidate_pplns_share_network_mismatch'
+  );
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.coordinator.jobs.has(replay.jobId),false);
+
+  x.setNetwork(NETWORK);
+  const resumed=await x.coordinator.createWork(x.address);
+  await assert.rejects(
+    x.coordinator.submitShare({jobId:resumed.jobId,...proof}),
+    e=>e.code==='candidate_duplicate_share_pow'
+  );
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+
+  assert.equal((await x.coordinator.submitShare({
+    jobId:resumed.jobId,...x.proofs[1]
+  })).accepted,true);
+  assert.equal(x.coordinator.ledger.summary().totalShares,2);
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
 });
