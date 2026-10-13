@@ -7,6 +7,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {generateKeyPairSync, sign} from 'node:crypto';
+import {mkdtemp, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createAuthoritativeV4PeerNode} from '../../sovereign-forge/node/authoritative/fae-v4-peer-node.mjs';
 import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
 import {
   NETWORK,emptyState,appendBlockFromFeed,appendBlockFromSubmission,
@@ -147,4 +151,50 @@ test('HP05-FC-07 mutually exclusive same-parent valid forks credit fee only to r
   assert.equal(two.next.utxos[one.hash+':0'],undefined);
   assert.equal(stableStringify(state),original);
   // This tests fork-local monetary integrity, not winner selection or the peer reorg protocol.
+});
+
+
+test('HP05-FC-08: actual HTTP peer fee-only mined block survives disk restart; default peer refuses it',async()=>{
+  const {state,miner,tx,fee}=fixture(),height=state.chain.length+1,subsidy=expectedReward(state,height);
+  const tempDir=await mkdtemp(join(tmpdir(),'fae-hp05-shadow-')),dataFile=join(tempDir,'node.json');
+  let peer=null,restarted=null;
+  try{
+    peer=createAuthoritativeV4PeerNode({
+      host:'127.0.0.1',port:0,dataFile,initialState:state,syncIntervalMs:0,
+      activationHeight:null,feeCreditActivationHeight:height
+    });
+    await peer.start();
+    const url=peer.baseUrl();
+    const response=await fetch(url+'/template?address='+encodeURIComponent(miner.address));
+    assert.equal(response.status,200);
+    const template=await response.json();
+    assert.ok(template.txids.includes(tx.txid));
+    assert.equal(template.header.fee_atoms,fee.toString(),'actual HTTP peer must supply fee-paying template');
+    assert.equal(template.header.coinbase_mode,'direct');
+    assert.equal(template.coinbase_outputs[0].amount_atoms,(subsidy+fee).toString());
+    const {nonce,hash}=solve(template.header);
+    const accepted=await fetch(url+'/submit-block',{method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({header:template.header,nonce,hash,txids:template.txids,coinbase_outputs:template.coinbase_outputs})});
+    assert.equal(accepted.status,200,'source HTTP node must accept real PoW block with exact fee settlement');
+    const balance=await fetch(url+'/balance?address='+encodeURIComponent(miner.address)).then(x=>x.json());
+    assert.equal(balance.balance_atoms,(subsidy+fee).toString());
+    await peer.close();peer=null;
+
+    restarted=createAuthoritativeV4PeerNode({host:'127.0.0.1',port:0,dataFile,syncIntervalMs:0,
+      activationHeight:null,feeCreditActivationHeight:height});
+    await restarted.start();
+    const balanceAfter=await fetch(restarted.baseUrl()+'/balance?address='+encodeURIComponent(miner.address)).then(x=>x.json());
+    assert.equal(balanceAfter.balance_atoms,(subsidy+fee).toString());
+    await restarted.close();restarted=null;
+
+    const defaultPeer=createAuthoritativeV4PeerNode({host:'127.0.0.1',port:0,dataFile,syncIntervalMs:0});
+    await assert.rejects(defaultPeer.start(),/premature_coinbase_v1_fields/,
+      'default v4 must not silently accept an opt-in fee-credit chain');
+    await defaultPeer.close().catch(()=>{});
+  }finally{
+    if(peer)await peer.close().catch(()=>{});
+    if(restarted)await restarted.close().catch(()=>{});
+    await rm(tempDir,{recursive:true,force:true});
+  }
 });
