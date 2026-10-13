@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {validateBridge} from '../product-data/verify-element-product-bridge.mjs';
+const file=new URL('../docs/product/FAE_ELEMENT_PRODUCT_GATE_BRIDGE.json',import.meta.url);
+const original=JSON.parse(readFileSync(fileURLToPath(file),'utf8'));
+const fresh=()=>structuredClone(original);
+test('full contract has complete surface coverage and honest candidate state',()=>{const r=validateBridge(original);assert.equal(r.ok,true,r.errors.join(', '));assert.equal(r.gate_count,14);assert.deepEqual(r.surface_gate_counts,{mining:3,wallet:3,explorer:4,operations:4});});
+test('cannot silently declare mainnet ready',()=>{const x=fresh();x.mainnet_ready=true;assert.equal(validateBridge(x).ok,false)});
+test('cannot erase unknown-vs-zero balance guard',()=>{const x=fresh();x.universal_guards=x.universal_guards.filter(v=>v!=='UNKNOWN_NOT_ZERO');assert.equal(validateBridge(x).ok,false)});
+test('cannot present unverified candidate as DONE_CANONICAL',()=>{const x=fresh();x.gates[0].status='DONE_CANONICAL';assert.equal(validateBridge(x).ok,false)});
+test('cannot leave Explorer without gate owners',()=>{const x=fresh();x.gates=x.gates.filter(g=>g.surface!=='explorer');assert.equal(validateBridge(x).ok,false)});
+test('cannot erase data provenance',()=>{const x=fresh();x.gates[0].source='';assert.equal(validateBridge(x).ok,false)});
+test('cannot map gate to unknown Element',()=>{const x=fresh();x.gates[0].elements=[99];assert.equal(validateBridge(x).ok,false)});
+test('cannot declassify synthetic-Studio isolation',()=>{const x=fresh();x.universal_guards=x.universal_guards.filter(v=>v!=='SYNTHETIC_STUDIO_ONLY');assert.equal(validateBridge(x).ok,false)});
