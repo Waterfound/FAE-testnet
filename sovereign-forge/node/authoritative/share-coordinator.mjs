@@ -95,7 +95,15 @@ export class ShareCoordinator{
       throw Object.assign(new Error('candidate_pplns_template_network_mismatch'),
         {code:'candidate_pplns_template_network_mismatch'});
     }
-    const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
+    const blockBits=Number(candidate.header?.difficulty_bits);
+    // HPA-W3-150..152: a zero/negative block target marks every passing
+    // share as a full block, and >256 bits cannot be reached by SHA-256.
+    // These are mathematical intake sanity bounds, NOT an assertion that
+    // the claimed target matches FAE's next retargeted consensus difficulty.
+    if(!Number.isInteger(blockBits)||blockBits<4||blockBits>256){
+      throw Object.assign(new Error('candidate_pplns_block_target_out_of_bounds'),
+        {code:'candidate_pplns_block_target_out_of_bounds'});
+    }
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
     // HPA-W3: source-owned PPLNS economic integrity. Correct aggregate total
