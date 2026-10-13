@@ -27,3 +27,5 @@ jobs:
         run: node lab/legal-perimeter/candidate-boundary.test.mjs
       - name: Verify actual candidate diff and workflow boundary
         run: node lab/legal-perimeter/candidate-boundary.mjs
+      - name: Bounded real-source wallet and hosted relay behavior
+        run: node lab/legal-perimeter/source-to-runtime.test.mjs
