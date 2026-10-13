@@ -97,3 +97,24 @@ test('HPA-W4-09: a real PoW mined fee-consensus negative does not erase the acti
  assert.equal(rows.get('HP-05').candidate,'COLLAPSE_CURRENT_V4_MINER_FEE_REVENUE_PREMISE');
  assert.equal(rows.get('HP-05').mainnet,'HOLD');
 });
+
+test('HPA-W4-10: proven W3 payout-redirection repair cannot certify pool economic security or mainnet',()=>{
+ const w=matrix.latest_wave.w3.source_payout_integrity;
+ assert.equal(w.pr,317);
+ assert.equal(w.head,matrix.source.w3_payout_integrity_pr317);
+ assert.match(w.pre_fix_head,/^[0-9a-f]{40}$/);
+ assert.equal(w.independent_red_failures.length,3);
+ assert.equal(w.focused_source_tests_pass,63);
+ assert.equal(w.focused_source_tests_total,63);
+ assert.equal(w.exact_head_workflows_success,8);
+ assert.equal(w.exact_head_workflows_total,8);
+ assert.equal(w.source_recomputed_pplns_distribution_enforced,true);
+ assert.equal(w.honest_template_remains_admissible,true);
+ assert.equal(w.production_pool_activated,false);
+ assert.equal(w.economic_attack_profitability_proven,false);
+ assert.equal(w.independent_witness_proven,false);
+ assert.ok(rows.get('HP-06').evidence.some(e=>e.includes(w.head)));
+ assert.notEqual(rows.get('HP-06').mainnet,'GREEN');
+ assert.equal(matrix.interpretation.mainnet_terminal_green_count,0);
+ assert.equal(matrix.interpretation.percent_progress_last_formal,80);
+});
