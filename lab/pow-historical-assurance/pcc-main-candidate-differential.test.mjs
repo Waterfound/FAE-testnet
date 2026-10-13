@@ -15,14 +15,15 @@ const source='sovereign-forge/node/authoritative/';
 async function modules(root){
   const base=resolve(root);
   const file=name=>pathToFileURL(join(base,source,name)).href;
-  const [core,canonical,address,activation,peer]=await Promise.all([
+  const [core,canonical,address,activation,peer,crypto]=await Promise.all([
     import(file('fae-v4-core.mjs')),
     import(file('canonical.mjs')),
     import(file('address.mjs')),
     import(file('pplns-activation.mjs')),
-    import(file('fae-v4-peer-node.mjs'))
+    import(file('fae-v4-peer-node.mjs')),
+    import(file('crypto.mjs'))
   ]);
-  return {core,canonical,address,activation,peer};
+  return {core,canonical,address,activation,peer,crypto};
 }
 const [main,candidate]=await Promise.all([modules(mainRoot),modules(process.cwd())]);
 const {privateKey,publicKey}=generateKeyPairSync('ed25519');
@@ -154,4 +155,36 @@ test('PCC-DIFF-05: genuine loopback FAE peer default status/template and invalid
   }
   assert.deepEqual(seen[0],seen[1]);
   assert.equal(seen[1].pplns_coinbase_activation_height,null);
+});
+
+
+test('PCC-DIFF-06: authentic PoW cannot smuggle inactive PPLNS coinbase into main or composed candidate',()=>{
+  // Main and PCC each load their own complete FAE source module graph.
+  // Unlike PCC-DIFF-03, the forged header commits a genuine PPLNS payout
+  // and has a valid real PoW solution: only the INACTIVE consensus rule
+  // can reject the premature fee/coinbase fields.
+  const normal=main.core.createMiningTemplate(main.core.emptyState(),owner);
+  assert.deepEqual(normal.txids,[]);
+  assert.equal(normal.header.coinbase_mode,undefined);
+  const outputs=[{address:owner,amount_atoms:String(normal.header.reward_atoms)}];
+  const forged={...normal.header,fee_atoms:'0',coinbase_mode:'pplns-direct',
+    coinbase_count:1,coinbase_root:main.crypto.hashHex(outputs)};
+  let proof=null;
+  for(let nonce=0;nonce<4_000_000;nonce++){
+    const hash=main.crypto.hashHex({...forged,nonce});
+    if(main.crypto.leadingZeroBits(hash)>=forged.difficulty_bits){
+      proof={nonce,hash};break;
+    }
+  }
+  assert.ok(proof,'bounded genuine FAE PoW solution for adversarial coinbase');
+  for(const m of [main,candidate]){
+    assert.equal(m.activation.PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+    const state=m.core.emptyState(),before=snapshot(m,state);
+    assert.throws(()=>m.core.appendBlockFromSubmission(state,
+      {header:forged,...proof,txids:[],coinbase_outputs:outputs}),
+      /premature_coinbase_v1_fields/,
+      'default v4 must reject even valid-PoW inactive distributed payout');
+    assert.equal(snapshot(m,state),before,
+      'premature fee or PPLNS coinbase must never mutate chain/UTXO state');
+  }
 });
