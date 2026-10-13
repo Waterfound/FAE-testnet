@@ -56,7 +56,16 @@ function mine(template,{maxNonce=8_000_000}={}){
 }
 
 async function json(url,options={}){
-  const response=await fetch(url,options);
+  // Local independent-node PoW can block the caller between HTTP requests:
+  // avoid idle Undici keepalive reuse without weakening differential checks.
+  let response;
+  try{
+    response=await fetch(url,{...options,
+      headers:{connection:'close',...(options.headers||{})}});
+  }catch(error){
+    const code=error?.cause?.code||error?.code||'unknown_transport';
+    throw new Error('psr11_local_transport_failed:'+new URL(url).pathname+':'+code,{cause:error});
+  }
   const payload=await response.json().catch(()=>({}));
   return{response,payload};
 }
