@@ -12,6 +12,17 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {assessCurrentPplnsAdmission,requireFreshStrategicAuthority} from './pplns-strategic-risk-guard.mjs';
 const honest='honest',infiltrator='infiltrator';
+function attachValidCandidateCoinbase(candidate){
+  // Existing source-owned negative fixtures predated the v4 multi-output
+  // coinbase commitments; populate their genuine one-miner payout encoding,
+  // without weakening the coordinator's payout-consistency validation.
+  const outputs=candidate.coinbase_outputs;
+  candidate.header.fee_atoms='0';
+  candidate.header.coinbase_root=hashHex(outputs);
+  candidate.header.coinbase_count=outputs.length;
+  candidate.header.coinbase_mode='pplns-direct';
+  return candidate;
+}
 function share(log,address,i){
   return log.append({jobId:'job-'+i,address,nonce:i,hash:'0'.repeat(64),
     shareDifficultyBits:12,blockDifficultyBits:18,height:1,previousBlockHash:'0'.repeat(64)});
@@ -80,6 +91,7 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
     miner_address:address,timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header:candidateHeader,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
     statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,tip_hash:prev,difficulty_bits:8}),
@@ -113,6 +125,7 @@ test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended'
   const candidate={header:{height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
     txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
     statusProvider:async()=>({height:100,tip_hash:currentTip,difficulty_bits:8}),
@@ -137,6 +150,7 @@ function tipRaceFixture({recheck=false,changeDuringHash=true}={}){
     miner_address:address,timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,candidateTipRecheck:recheck,
     statusProvider:async()=>({height:99,tip_hash:currentTip,difficulty_bits:8}),
@@ -190,6 +204,7 @@ function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
     timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   let attempts=0;
   const coordinator=new ShareCoordinator({
     logFile,multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
