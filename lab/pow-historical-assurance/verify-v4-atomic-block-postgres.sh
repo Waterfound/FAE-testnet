@@ -59,7 +59,7 @@ CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE ROLE service_role;
 SQL
-for CASE in tx_not_pending reservation_missing input_already_spent partial_tx_commit; do
+for CASE in tx_not_pending reservation_missing input_already_spent partial_tx_commit parent_not_materialized; do
   DB="case_$CASE"
   createdb_safe "$DB"
   psql_safe "$DB" < "$ROOT/$MIGRATION" >/dev/null
@@ -82,6 +82,19 @@ SQL
   if [[ "$CASE" == "input_already_spent" || "$CASE" == "partial_tx_commit" ]]; then
     psql_safe "$DB" <<'SQL' >/dev/null
 INSERT INTO public.fae_v4_mempool_spends(outpoint,txid) VALUES('fund:0','tx1');
+SQL
+  fi
+  if [[ "$CASE" == "parent_not_materialized" ]]; then
+    # A pending parent advertises an output absent from confirmed UTXOs;
+    # the child has a reserved input, so the late parent-materialization guard fires.
+    psql_safe "$DB" <<'SQL' >/dev/null
+UPDATE public.fae_v4_transactions SET inputs='["future:0"]'::jsonb WHERE txid='tx1';
+INSERT INTO public.fae_v4_transactions(txid,network,from_address,public_key_spki,signature,inputs,outputs,fee_atoms,status)
+VALUES('future','fairyelf-public-testnet-v4','sender','public','signature',
+'[]'::jsonb,'[{"address":"sender","amount_atoms":"1000"}]'::jsonb,0,'pending');
+INSERT INTO public.fae_v4_mempool_outputs(outpoint,txid,output_index,address,amount_atoms)
+VALUES('future:0','future',0,'sender',1000);
+INSERT INTO public.fae_v4_mempool_spends(outpoint,txid) VALUES('future:0','tx1');
 SQL
   fi
   TXID=tx1
@@ -212,4 +225,4 @@ for DB in valid_empty valid_signed_tx; do
   COUNT="$(docker exec "$NAME" psql -X -A -t -v ON_ERROR_STOP=1 -U postgres -d "$DB" -c 'select count(*)::text from public.fae_v4_blocks where height=2;')"
   [[ "$COUNT" == 1 ]] || { echo "FAIL restart lost committed block in $DB"; exit 1; }
 done
-echo '{"verdict":"REAL_POSTGRES_16_ATOMIC_BLOCK_ACCEPTANCE_GREEN","negative_scenarios":4,"positive_controls":2,"restart":true,"production_db_touched":false}'
+echo '{"verdict":"REAL_POSTGRES_16_ATOMIC_BLOCK_ACCEPTANCE_GREEN","negative_scenarios":5,"positive_controls":2,"restart":true,"production_db_touched":false}'
