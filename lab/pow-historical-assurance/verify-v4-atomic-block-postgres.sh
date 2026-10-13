@@ -163,7 +163,7 @@ INSERT INTO public.fae_v4_mempool_spends(outpoint,txid) VALUES('fund:0','tx1');
 SQL
   fi
   psql_safe "$DB" <<SQL >/dev/null
-DO \\\$\\\$
+DO \$\$
 DECLARE result jsonb;
 BEGIN
  result:=public.fae_v4_accept_block_v2(2,repeat('b',64),repeat('a',64),2000,18,2,'miner',1000,'{}'::jsonb,'$TXIDS'::jsonb);
@@ -171,7 +171,7 @@ BEGIN
   RAISE EXCEPTION 'valid block rejected: %',result;
  END IF;
 END
-\\\$\\\$;
+\$\$;
 SQL
   # Separate backend connection proves the valid block and coinbase were committed.
   RESULT="$(docker exec "$NAME" psql -X -A -t -v ON_ERROR_STOP=1 -U postgres -d "$DB" -c "
@@ -186,7 +186,7 @@ SQL
   [[ "$RESULT" == "$WANT" ]] || { echo "FAIL $MODE expected=$WANT actual=$RESULT"; exit 1; }
   # Replaying the same block/tx cannot create another confirmation or coinbase.
   psql_safe "$DB" <<SQL >/dev/null
-DO \\\$\\\$
+DO \$\$
 DECLARE result jsonb;
 BEGIN
  result:=public.fae_v4_accept_block_v2(2,repeat('b',64),repeat('a',64),2000,18,2,'miner',1000,'{}'::jsonb,'$TXIDS'::jsonb);
@@ -194,7 +194,7 @@ BEGIN
   RAISE EXCEPTION 'same-block replay unexpectedly accepted: %',result;
  END IF;
 END
-\\\$\\\$;
+\$\$;
 SQL
   RESULT2="$(docker exec "$NAME" psql -X -A -t -v ON_ERROR_STOP=1 -U postgres -d "$DB" -c "select count(*)::text from public.fae_v4_blocks where height=2;")"
   [[ "$RESULT2" == "1" ]] || { echo "FAIL replay mutated chain $MODE"; exit 1; }
