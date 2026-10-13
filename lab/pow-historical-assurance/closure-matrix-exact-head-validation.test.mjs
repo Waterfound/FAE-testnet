@@ -80,3 +80,20 @@ test('HPA-W4-08: software PASS and signed witness cannot silently certify indepe
   assert.equal(w.boundary.mainnet_green_classes,0);
   assert.equal(w.boundary.percentage_weighted_candidate,80);
 });
+
+test('HPA-W4-09: a real PoW mined fee-consensus negative does not erase the active v4 miner fee collapse',()=>{
+ const a=matrix.latest_wave.w2_fee_adversarial;
+ assert.match(a.head,/^[0-9a-f]{40}$/);
+ assert.equal(a.head,matrix.source.w2_fee_adversarial_pr315);
+ assert.equal(a.source_laboratory_test_count,50);
+ assert.equal(a.source_laboratory_test_pass,50);
+ assert.equal(a.exact_head_ci_pass,5);
+ assert.equal(a.exact_head_ci_total,5);
+ assert.equal(a.valid_source_pow_overcredit_rejected,true);
+ assert.equal(a.duplicate_signed_tx_fee_overcredit_rejected,true);
+ assert.equal(a.actual_v4_miner_fee_revenue_still_collapse,true);
+ assert.equal(a.production_activation,false);
+ assert.ok(rows.get('HP-05').evidence.some(e=>e.includes(a.head)));
+ assert.equal(rows.get('HP-05').candidate,'COLLAPSE_CURRENT_V4_MINER_FEE_REVENUE_PREMISE');
+ assert.equal(rows.get('HP-05').mainnet,'HOLD');
+});
