@@ -13,7 +13,7 @@
     "BCB520": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=520&tipo=Resolu%C3%A7%C3%A3o+BCB",
     "BCB521": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=521&tipo=Resolu%C3%A7%C3%A3o+BCB",
     "BCB589": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=589&tipo=Resolu%C3%A7%C3%A3o+BCB",
-    "CVM40": "https://www.gov.br/cvm/pt-br/Treinamento/legislacao/pareceres-de-orientacao/copy2_of_portaria-conjunta-mf-cvm-no-92-de-21-de-marco-de-2018",
+    "CVM40": "https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare040.html",
     "CDC": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
     "LGPD": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm",
     "L6385": "https://www.planalto.gov.br/ccivil_03/leis/l6385compilada.htm"
@@ -472,6 +472,50 @@
       "path": "index.html",
       "blob_sha": "23148e9fbbcf5a4eea82f7277a267ab5e40f1838",
       "reviewed_scope": "canonical browser public testnet UI (not deployed version)"
+    },
+    {
+      "path": "explorer/index.html",
+      "blob_sha": "5130efd7e3625e81e52517fb9a834697ebf6fc1f",
+      "reviewed_scope": "canonical Explorer HTML static content (not runtime/deployed text)"
     }
-  ]
+  ],
+  "dynamic_public_surfaces": [
+    {
+      "path": "explorer/app.mjs",
+      "blob_sha": "baf56fcc991cf488e7f8db5f45798d42072213ef",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "UI populates DOM text from live node state and error paths; no browser-rendered proof in LRP-001",
+      "owner": "Explorer / Project Assurance"
+    },
+    {
+      "path": "core.js",
+      "blob_sha": "4689358f75caf9b5349a600cd42d484deec9e9d4",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Dynamic main UI status and API responses are outside static source-copy review",
+      "owner": "FAE Product / Nodes"
+    },
+    {
+      "path": "wallet.js",
+      "blob_sha": "7ab3ac9a24a7a42228ee11cfbefa15ddcd52b7e5",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Wallet dynamic strings and secret flow require Wallet/Privacy owner verification",
+      "owner": "FAE Wallet / Privacy P0"
+    },
+    {
+      "path": "mining.js",
+      "blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Mining status strings, coordinator responses and runtime not proven",
+      "owner": "FAE Mining / HPA-UC-001"
+    },
+    {
+      "path": "docs/FAE_MANIFESTO_EDITORIAL_CHARTER.md",
+      "blob_sha": "f8aaede7a4a2eb7ee02bbe3a8a689204025e77df",
+      "coverage": "EDITORIAL_INTERNAL_NOT_PUBLIC_RELEASE_COPY",
+      "reason": "Editorial charter is not evidence that a future published manifesto was reviewed",
+      "owner": "FAE Visual Language / Project Assurance"
+    }
+  ],
+  "coverage_statement": "Source-blob anchored static review of README.md, index.html, explorer/index.html only. Dynamic rendering, deployments, runtime communications and future publications remain unverified and MUST NOT be presented as covered.",
+  "normative_review_note": "CVM40 canonical official CVM legislative index URL rechecked 2026-10-12; legal links alone do not prove live regulatory applicability."
 }
