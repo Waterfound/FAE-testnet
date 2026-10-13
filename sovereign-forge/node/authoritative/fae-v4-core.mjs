@@ -6,6 +6,9 @@ import {allocatePplnsOutputs} from './share-coordinator.mjs';
 import {PPLNS_COINBASE_ACTIVATION_HEIGHT,MAX_COINBASE_OUTPUTS,isPplnsCoinbaseActive,normalizeCoinbaseOutputs,sumCoinbaseOutputs} from './pplns-activation.mjs';
 
 export const NETWORK='fairyelf-public-testnet-v4';
+// HP-05 isolated future consensus candidate: default is strictly inactive.
+// This is NOT an adopted fee policy, live activation or mainnet authority.
+export const FEE_CREDIT_ACTIVATION_HEIGHT=null;
 export const COIN=100000000n;
 export const INITIAL_SUBSIDY=10n*COIN;
 export const HALVING_ERA_BLOCKS=600000;
@@ -95,6 +98,10 @@ export function transactionFees(state,txids,{records=null,requirePending=false}=
   let total=0n;for(const txid of txids){const record=records?records.get(String(txid)):state.transactions[String(txid)];if(!record)throw new Error(`missing_tx:${txid}`);if(requirePending&&record.status!=='pending')throw new Error(`tx_not_pending:${txid}`);total+=BigInt(record.fee_atoms||0)}return total;
 }
 function consensusActivationHeight(override){return override===undefined?PPLNS_COINBASE_ACTIVATION_HEIGHT:override}
+function isMinerFeeCreditActive(height,override=undefined){
+  const activation=override===undefined?FEE_CREDIT_ACTIVATION_HEIGHT:override;
+  return Number.isSafeInteger(activation)&&activation>=1&&height>=activation;
+}
 function validateActiveCoinbase(state,height,header,outputs,fees,activationHeight){
   const normalized=normalizeCoinbaseOutputs(outputs,{validAddress:a=>isValidAddress(a,'faet'),maxOutputs:MAX_COINBASE_OUTPUTS});
   if(String(header.fee_atoms)!==fees.toString())throw new Error('fee_commitment_mismatch');if(Number(header.coinbase_count)!==normalized.length)throw new Error('coinbase_count_mismatch');if(header.coinbase_root!==hashHex(normalized))throw new Error('coinbase_commitment_mismatch');
@@ -102,36 +109,43 @@ function validateActiveCoinbase(state,height,header,outputs,fees,activationHeigh
   const required=expectedReward(state,height)+fees;if(sumCoinbaseOutputs(normalized)!==required)throw new Error('invalid_coinbase_value');if(header.coinbase_mode==='direct'&&normalized.length!==1)throw new Error('direct_coinbase_requires_one_output');return normalized;
 }
 
-export function validateBlockEnvelope(state,header,nonce,hash,txids,{coinbaseOutputs=null,allowFutureClock=true,legacyFeed=false,activationHeight=undefined,feeRecords=null}={}){
+export function validateBlockEnvelope(state,header,nonce,hash,txids,{coinbaseOutputs=null,allowFutureClock=true,legacyFeed=false,activationHeight=undefined,feeCreditActivationHeight=undefined,feeRecords=null}={}){
   const previous=tip(state),height=previous?Number(previous.height)+1:1,activation=consensusActivationHeight(activationHeight);
   if(!header||header.network!==NETWORK||!Number.isSafeInteger(nonce)||nonce<0||!/^[0-9a-f]{64}$/.test(hash)||!isValidAddress(header.miner_address,'faet'))throw new Error('malformed_submission');if(!Array.isArray(txids)||txids.length>MAX_TXS_PER_BLOCK||new Set(txids).size!==txids.length)throw new Error('invalid_tx_list');if(Number(header.height)!==height||header.previous_hash!==(previous?.hash||ZERO_HASH))throw new Error('stale_tip');
   const bits=nextDifficulty(state.chain);if(Number(header.difficulty_bits)!==bits||String(header.reward_atoms)!==expectedReward(state,height).toString())throw new Error('invalid_consensus_fields');
   if(legacyFeed&&height<=LEGACY_TESTNET_LAST_HEIGHT){if(hash!==LEGACY_TESTNET_HASHES[height])throw new Error('legacy_checkpoint_mismatch');if(txids.length!==0||header.tx_root!==undefined||header.tx_count!==undefined)throw new Error('invalid_legacy_block')}
   else if(hashHex(txids)!==header.tx_root||Number(header.tx_count)!==txids.length)throw new Error('tx_commitment_mismatch');
-  let normalizedCoinbase=null;if(isPplnsCoinbaseActive(height,activation)){const fees=transactionFees(state,txids,{records:feeRecords,requirePending:!feeRecords});normalizedCoinbase=validateActiveCoinbase(state,height,header,coinbaseOutputs,fees,activation)}else if(header.fee_atoms!==undefined||header.coinbase_root!==undefined||header.coinbase_count!==undefined||header.coinbase_mode!==undefined||coinbaseOutputs!==null&&coinbaseOutputs!==undefined){throw new Error('premature_coinbase_v1_fields')}
+  let normalizedCoinbase=null;const pplnsActive=isPplnsCoinbaseActive(height,activation),feeOnlyActive=isMinerFeeCreditActive(height,feeCreditActivationHeight);
+  if(pplnsActive||feeOnlyActive){
+    const fees=transactionFees(state,txids,{records:feeRecords,requirePending:!feeRecords});
+    normalizedCoinbase=validateActiveCoinbase(state,height,header,coinbaseOutputs,fees,activation);
+    // Fee-credit activation grants exactly ONE miner output; it must never
+    // silently activate the unrelated PPLNS multi-payee consensus regime.
+    if(!pplnsActive&&header.coinbase_mode!=='direct')throw new Error('fee_credit_requires_direct_coinbase');
+  }else if(header.fee_atoms!==undefined||header.coinbase_root!==undefined||header.coinbase_count!==undefined||header.coinbase_mode!==undefined||coinbaseOutputs!==null&&coinbaseOutputs!==undefined){throw new Error('premature_coinbase_v1_fields')}
   const now=Date.now();if(!Number.isSafeInteger(Number(header.timestamp_ms))||(allowFutureClock&&Number(header.timestamp_ms)>now+120000)||(previous&&Number(header.timestamp_ms)<Number(previous.timestamp_ms)))throw new Error('invalid_timestamp');const computed=hashHex({...header,nonce});if(computed!==hash||leadingZeroBits(hash)<bits)throw new Error('invalid_proof_of_work');return{height,bits,coinbaseOutputs:normalizedCoinbase};
 }
 
-function materializeCoinbase(state,hash,height,header,normalizedCoinbase,activationHeight){
-  if(isPplnsCoinbaseActive(height,consensusActivationHeight(activationHeight))){normalizedCoinbase.forEach((output,index)=>{state.utxos[`${hash}:${index}`]={outpoint:`${hash}:${index}`,address:output.address,amount_atoms:String(output.amount_atoms),created_height:height,spent:false,spent_by:null}});return}
+function materializeCoinbase(state,hash,height,header,normalizedCoinbase,activationHeight,feeCreditActivationHeight=undefined){
+  if(isPplnsCoinbaseActive(height,consensusActivationHeight(activationHeight))||isMinerFeeCreditActive(height,feeCreditActivationHeight)){normalizedCoinbase.forEach((output,index)=>{state.utxos[`${hash}:${index}`]={outpoint:`${hash}:${index}`,address:output.address,amount_atoms:String(output.amount_atoms),created_height:height,spent:false,spent_by:null}});return}
   state.utxos[`${hash}:0`]={outpoint:`${hash}:0`,address:header.miner_address,amount_atoms:String(header.reward_atoms),created_height:height,spent:false,spent_by:null};
 }
-export function appendBlockFromSubmission(state,{header,nonce,hash,txids,coinbase_outputs=null},{activationHeight=undefined}={}){
-  const validated=validateBlockEnvelope(state,header,nonce,hash,txids,{coinbaseOutputs:coinbase_outputs,activationHeight}),temp=cloneState(state);for(const txid of txids){const record=temp.transactions[txid];if(!record||record.status!=='pending')throw new Error('tx_not_pending:'+txid);applyConfirmedTx(temp,record,validated.height)}materializeCoinbase(temp,hash,validated.height,header,validated.coinbaseOutputs,activationHeight);
+export function appendBlockFromSubmission(state,{header,nonce,hash,txids,coinbase_outputs=null},{activationHeight=undefined,feeCreditActivationHeight=undefined}={}){
+  const validated=validateBlockEnvelope(state,header,nonce,hash,txids,{coinbaseOutputs:coinbase_outputs,activationHeight,feeCreditActivationHeight}),temp=cloneState(state);for(const txid of txids){const record=temp.transactions[txid];if(!record||record.status!=='pending')throw new Error('tx_not_pending:'+txid);applyConfirmedTx(temp,record,validated.height)}materializeCoinbase(temp,hash,validated.height,header,validated.coinbaseOutputs,activationHeight,feeCreditActivationHeight);
   temp.chain.push({height:validated.height,hash,previous_hash:header.previous_hash,timestamp_ms:Number(header.timestamp_ms),difficulty_bits:Number(header.difficulty_bits),nonce:Number(nonce),miner_address:header.miner_address,reward_atoms:String(header.reward_atoms),header_json:{...header,nonce:Number(nonce)},txids:[...txids],...(validated.coinbaseOutputs?{coinbase_outputs:validated.coinbaseOutputs,fee_atoms:String(header.fee_atoms),coinbase_mode:header.coinbase_mode}:{})});return temp;
 }
-export function appendBlockFromFeed(state,block,txMap,{activationHeight=undefined}={}){
+export function appendBlockFromFeed(state,block,txMap,{activationHeight=undefined,feeCreditActivationHeight=undefined}={}){
   const header=block.header_json;if(!header||Number(header.nonce)!==Number(block.nonce))throw new Error(`missing_header:${block.height}`);const bare={...header},nonce=Number(bare.nonce);delete bare.nonce;
-  const validated=validateBlockEnvelope(state,bare,nonce,String(block.hash),(block.txids||[]).map(String),{coinbaseOutputs:block.coinbase_outputs??null,allowFutureClock:false,legacyFeed:true,activationHeight,feeRecords:txMap});
+  const validated=validateBlockEnvelope(state,bare,nonce,String(block.hash),(block.txids||[]).map(String),{coinbaseOutputs:block.coinbase_outputs??null,allowFutureClock:false,legacyFeed:true,activationHeight,feeCreditActivationHeight,feeRecords:txMap});
   if(Number(block.height)!==Number(bare.height)||String(block.previous_hash)!==String(bare.previous_hash)||Number(block.timestamp_ms)!==Number(bare.timestamp_ms)||Number(block.difficulty_bits)!==Number(bare.difficulty_bits)||String(block.miner_address)!==String(bare.miner_address)||String(block.reward_atoms)!==String(bare.reward_atoms))throw new Error(`block_field_mismatch:${block.height}`);
-  const temp=cloneState(state);for(const txid of block.txids||[]){const record=txMap.get(String(txid));if(!record)throw new Error(`missing_tx:${txid}`);applyConfirmedTx(temp,{...record,txid:String(txid)},Number(block.height))}materializeCoinbase(temp,String(block.hash),Number(block.height),bare,validated.coinbaseOutputs,activationHeight);
+  const temp=cloneState(state);for(const txid of block.txids||[]){const record=txMap.get(String(txid));if(!record)throw new Error(`missing_tx:${txid}`);applyConfirmedTx(temp,{...record,txid:String(txid)},Number(block.height))}materializeCoinbase(temp,String(block.hash),Number(block.height),bare,validated.coinbaseOutputs,activationHeight,feeCreditActivationHeight);
   temp.chain.push({height:Number(block.height),hash:String(block.hash),previous_hash:String(block.previous_hash),timestamp_ms:Number(block.timestamp_ms),difficulty_bits:Number(block.difficulty_bits),nonce:Number(block.nonce),miner_address:String(block.miner_address),reward_atoms:String(block.reward_atoms),header_json:header,txids:(block.txids||[]).map(String),...(validated.coinbaseOutputs?{coinbase_outputs:validated.coinbaseOutputs,fee_atoms:String(header.fee_atoms),coinbase_mode:header.coinbase_mode}:{})});return temp;
 }
 
 function selectedPending(state){return state.mempoolOrder.filter(id=>state.transactions[id]?.status==='pending').slice(0,MAX_TXS_PER_BLOCK)}
 function baseTemplate(state,address,txids){const last=tip(state),height=last?Number(last.height)+1:1,reward=expectedReward(state,height);if(reward<=0n)throw new Error('supply_cap_reached');return{height,reward,header:{network:NETWORK,height,previous_hash:last?.hash||ZERO_HASH,timestamp_ms:Date.now(),difficulty_bits:nextDifficulty(state.chain),miner_address:address,reward_atoms:reward.toString(),tx_root:hashHex(txids),tx_count:txids.length}}}
-export function createMiningTemplate(state,address,{activationHeight=undefined}={}){
-  if(!isValidAddress(address,'faet'))throw new Error('invalid_address');const txids=selectedPending(state),base=baseTemplate(state,address,txids),activation=consensusActivationHeight(activationHeight);if(!isPplnsCoinbaseActive(base.height,activation))return{ok:true,template_policy:'snapshot',header:base.header,txids};
+export function createMiningTemplate(state,address,{activationHeight=undefined,feeCreditActivationHeight=undefined}={}){
+  if(!isValidAddress(address,'faet'))throw new Error('invalid_address');const txids=selectedPending(state),base=baseTemplate(state,address,txids),activation=consensusActivationHeight(activationHeight);if(!isPplnsCoinbaseActive(base.height,activation)&&!isMinerFeeCreditActive(base.height,feeCreditActivationHeight))return{ok:true,template_policy:'snapshot',header:base.header,txids};
   const fees=transactionFees(state,txids,{requirePending:true}),coinbase_outputs=[{address,amount_atoms:(base.reward+fees).toString()}],header={...base.header,fee_atoms:fees.toString(),coinbase_root:hashHex(coinbase_outputs),coinbase_count:1,coinbase_mode:'direct'};return{ok:true,template_policy:'snapshot',header,txids,coinbase_outputs};
 }
 export function createDistributedTemplate(state,weights,{activationHeight=undefined}={}){
