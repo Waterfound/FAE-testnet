@@ -21,6 +21,7 @@ function attachValidCandidateCoinbase(candidate){
   candidate.header.coinbase_root=hashHex(outputs);
   candidate.header.coinbase_count=outputs.length;
   candidate.header.coinbase_mode='pplns-direct';
+  candidate.header.miner_address=outputs[0].address;
   return candidate;
 }
 function share(log,address,i){
