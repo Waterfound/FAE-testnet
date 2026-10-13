@@ -23,7 +23,7 @@ jobs:
       E_MERGE_SHA: 92088ac1d60043f870b2e1eec06d7a0817325896
       F_MERGE_SHA: 20a37c26125c5a11ba4c6808c1b4e1d6a07afd88
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4

@@ -24,7 +24,7 @@ jobs:
       BASE_SHA: cfd08a88f0f4f2e66560811cdd7eac6f8eec9cf9
     steps:
       - name: Checkout Worker E v2
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           path: primary
@@ -50,19 +50,19 @@ jobs:
           node sovereign-forge/tests/release-reproducibility-colony-e-v2.mjs
 
       - name: Independent clean-room checkout A
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           path: clean-a
       - name: Independent clean-room checkout B
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           path: clean-b
       - name: Dirty-room negative control
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
