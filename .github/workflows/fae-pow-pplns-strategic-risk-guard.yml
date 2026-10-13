@@ -53,3 +53,54 @@ jobs:
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
       - name: PCC-001 real W2 signed fee to W3 source-bound work
         run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+  pcc-canonical-admission:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: PCC-001 rehearsal merge into current main without remote write
+        env:
+          PCC_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "$PCC_HEAD^{commit}"
+          git fetch --no-tags origin main
+          MAIN_SHA="$(git rev-parse refs/remotes/origin/main)"
+          MAIN_MERGE_BASE="$(git merge-base "$MAIN_SHA" "$PCC_HEAD")"
+          if [ "$MAIN_MERGE_BASE" != "$MAIN_SHA" ] || [ "$PCC_HEAD" = "$MAIN_SHA" ]; then
+            echo "::error::PCC admission HOLD: canonical main is not the strict ancestor of candidate head"
+            echo "PCC_MAIN=$MAIN_SHA PCC_HEAD=$PCC_HEAD PCC_MERGE_BASE=$MAIN_MERGE_BASE"
+            exit 1
+          fi
+          EXPECTED_TREE="$(git rev-parse "$PCC_HEAD^{tree}")"
+          TEMPDIR="$(mktemp -d "${RUNNER_TEMP}/pcc-canonical-XXXXXXXX")"
+          cleanup() {
+            if git -C "$TEMPDIR" rev-parse --git-dir >/dev/null 2>&1; then
+              git -C "$TEMPDIR" merge --abort >/dev/null 2>&1 || true
+              git worktree remove --force "$TEMPDIR" >/dev/null 2>&1 || true
+            fi
+            rmdir "$TEMPDIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          git worktree add --detach "$TEMPDIR" "$MAIN_SHA"
+          git -C "$TEMPDIR" -c core.hooksPath=/dev/null merge --no-commit --no-ff "$PCC_HEAD"
+          COMPOSED_TREE="$(git -C "$TEMPDIR" write-tree)"
+          if [ "$COMPOSED_TREE" != "$EXPECTED_TREE" ]; then
+            echo "::error::PCC admission FAIL: dry merged tree differs from exact candidate tree"
+            echo "Expected $EXPECTED_TREE received $COMPOSED_TREE"
+            exit 1
+          fi
+          git -C "$TEMPDIR" cat-file -e 'HEAD^{commit}'
+          test -f "$TEMPDIR/lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs"
+          test -f "$TEMPDIR/sovereign-forge/node/authoritative/share-coordinator.mjs"
+          echo "PCC_CANONICAL_ADMISSION_MERGE_TREE_VERIFIED=true"
+          echo "PCC_MAIN=$MAIN_SHA"
+          echo "PCC_CANDIDATE=$PCC_HEAD"
+          echo "PCC_MERGED_TREE=$COMPOSED_TREE"
+          echo 'No merge commit, remote write, runtime or policy activation was performed.'
