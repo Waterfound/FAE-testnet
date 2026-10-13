@@ -24,6 +24,9 @@ const fakeGit=(rev,path)=>{
   if(rev!==m.baseline_commit)throw Error('wrong revision');
   if(path==='README.md')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:'FAE public testnet. Testnet FAE has no monetary value.'};
   if(path==='index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:sourceMap.get(path).technical_evidence.source_assertions.map(a=>a.text).join('\n')};
+  if(path==='explorer/index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:'Explorer public testnet. Blocks, transactions, addresses and network status.'};
+  const dynamic=m.dynamic_public_surfaces.find(s=>s.path===path);
+  if(dynamic)return{blob:dynamic.blob_sha,content:'Dynamic UI data requires rendered verification'};
   const f=sourceMap.get(path);if(!f)throw Error('not found');
   return{blob:f.technical_evidence.blob_sha,content:f.technical_evidence.source_assertions.map(a=>a.text).join('\n')};
 };
@@ -93,4 +96,25 @@ test('negated HTML claim is permitted',()=>assert.deepEqual(reviewPublicCopy('<p
 test('neutral accessibility label is permitted',()=>assert.deepEqual(reviewPublicCopy('<button aria-label="Start mining">Start</button>'),[]));
 test('public marketing template requires rendered proof',()=>assert.match(reviewPublicCopy('Earn '+String.fromCharCode(36,123)+'dynamic} returns').join('|'),/dynamic interpolation/));
 test('HTML risk text remains permitted',()=>assert.deepEqual(reviewPublicCopy('<p>Mining involves risk and no guaranteed returns.</p>'),[]));
+test('Explorer static source included as pinned public surface',()=>assert.ok(m.public_surfaces.some(x=>x.path==='explorer/index.html')));
+test('Explorer static false financial copy rejected',()=>{
+  const errors=verifyExactSource(m,'.',(rev,path)=>{const x=fakeGit(rev,path);return path==='explorer/index.html'?{...x,content:'Guaranteed profits from every block!'}:x});
+  assert.match(errors.join('|'),/public: explorer\/index.html .*financial promise/);
+});
+test('removing Explorer inventory cannot self-certify coverage',()=>{
+  const x=structuredClone(m);x.public_surfaces=x.public_surfaces.filter(v=>v.path!=='explorer/index.html');
+  assert.match(checkMatrix(x).join('|'),/incomplete\/invalid static source inventory/);
+});
+test('dynamic wallet runtime coverage cannot self-promote',()=>{
+  const x=structuredClone(m);x.dynamic_public_surfaces.find(v=>v.path==='wallet.js').coverage='RUNTIME_RENDERED_VERIFIED';
+  assert.match(checkMatrix(x).join('|'),/incomplete\/invalid dynamic coverage inventory/);
+});
+test('dynamic Explorer script blob drift rejects proof',()=>{
+  const errors=verifyExactSource(m,'.',(rev,path)=>{const x=fakeGit(rev,path);return path==='explorer/app.mjs'?{...x,blob:'0'.repeat(40)}:x});
+  assert.match(errors.join('|'),/public: dynamic source blob drift explorer\/app.mjs/);
+});
+test('wrong CVM 40 link rejected even with official domain',()=>{
+  const x=structuredClone(m);x.norms.CVM40='https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare035.html';
+  assert.match(checkMatrix(x).join('|'),/CVM40: source identity/);
+});
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
