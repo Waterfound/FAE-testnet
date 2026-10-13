@@ -58,6 +58,7 @@ export function reviewPublicCopy(copy){
     const pats=[
       ['financial promise',/\b(?:guaranteed\s+(?:profits?|returns?|yield)|risk[- ]free|fixed\s+yield|profits?\s+(?:are\s+)?guaranteed|lucros?\s+garantidos?|retornos?\s+garantidos?|rendas?\s+garantidas?|rentabilidades?\s+garantidas?|sem\s+risco|risco\s+zero|garantimos\s+(?:lucro|renda|retorno|rentabilidade))\b/u],
       ['regulator approval',/\b(?:approved\s+by\s+(?:the\s+)?(?:cvm|bcb)|(?:cvm|bcb)\s+approved|aprovad[ao]s?\s+pel[ao]\s+cvm|autorizad[ao]s?\s+pel[ao]\s+banco\s+central)\b/u],
+      ['legal conformity claim',/\b(?:fully\s+(?:regulatory\s+)?compliant|100%\s+(?:regulatory\s+)?compliant|totally\s+compliant|totalmente\s+em\s+conformidade\s+com\s+(?:a\s+)?regula(?:ção|cao)|conformidade\s+regulatória\s+garantida)\b/u],
       ['unsupported feature activation',/\b(?:mainnet\s+(?:is\s+)?(?:live|launched|ready)|(?:asic[- ]proof|fully\s+asic[- ]resistant)|(?:wallet\s+(?:keys?\s+)?(?:is|are)\s+encrypted)|(?:pplns\s+pool\s+(?:is\s+)?active))\b/u]
     ];
     for(const [label,re] of pats){
