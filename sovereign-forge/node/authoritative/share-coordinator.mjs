@@ -25,20 +25,29 @@ function durableAppendLine(path,line){
 
 export class ShareLedger{
   constructor({logFile=null,windowSize=DEFAULT_WINDOW}={}){
-    this.logFile=logFile;this.windowSize=Math.max(1,Math.min(100_000,Number(windowSize)||DEFAULT_WINDOW));this.shares=[];this.seen=new Set();this.lastHash='0'.repeat(64);if(logFile)this.load();
+    this.logFile=logFile;this.windowSize=Math.max(1,Math.min(100_000,Number(windowSize)||DEFAULT_WINDOW));this.shares=[];this.seen=new Set();this.seenProofHashes=new Set();this.lastHash='0'.repeat(64);if(logFile)this.load();
   }
   load(){
     if(!existsSync(this.logFile))return;
     const lines=readFileSync(this.logFile,'utf8').split(/\r?\n/).filter(Boolean);if(lines.length>MAX_LOG_REPLAY)throw new Error('Share log exceeds replay ceiling');
     let previous='0'.repeat(64),expectedSeq=1;
-    for(const line of lines){const entry=JSON.parse(line);if(entry.seq!==expectedSeq)throw new Error('Share log sequence gap');if(entry.previousEntryHash!==previous)throw new Error('Share log hash-chain mismatch');if(entry.entryHash!==entryHash(entry))throw new Error('Share log entry hash mismatch');const duplicateKey=`${entry.jobId}:${entry.nonce}`;if(this.seen.has(duplicateKey))throw new Error('Duplicate share in persisted log');this.seen.add(duplicateKey);this.shares.push(entry);previous=entry.entryHash;expectedSeq++}
+    for(const line of lines){const entry=JSON.parse(line);if(entry.seq!==expectedSeq)throw new Error('Share log sequence gap');if(entry.previousEntryHash!==previous)throw new Error('Share log hash-chain mismatch');if(entry.entryHash!==entryHash(entry))throw new Error('Share log entry hash mismatch');const duplicateKey=`${entry.jobId}:${entry.nonce}`;if(this.seen.has(duplicateKey))throw new Error('Duplicate share in persisted log');this.seen.add(duplicateKey);this.seenProofHashes.add(entry.hash);this.shares.push(entry);previous=entry.entryHash;expectedSeq++}
     this.lastHash=previous;
   }
-  append({jobId,address,nonce,hash,shareDifficultyBits,blockDifficultyBits,height,previousBlockHash}){
+  append({jobId,address,nonce,hash,shareDifficultyBits,blockDifficultyBits,height,previousBlockHash,rejectRepeatedProof=false}){
     const duplicateKey=`${jobId}:${nonce}`;if(this.seen.has(duplicateKey))throw new Error('Duplicate share');
+    // Candidate coordinator intake: work identity is a cryptographic PoW digest,
+    // not the coordinator-issued jobId. Independently signed jobs may commit
+    // identical headers and reuse one nonce/hash without repeating hashing.
+    // Opt-in preserves historic synthetic ShareLedger fixtures; persisted hashes
+    // are indexed on cold replay, so no second credit follows restart.
+    if(rejectRepeatedProof&&this.seenProofHashes.has(hash)){
+      throw Object.assign(new Error('candidate_duplicate_share_pow'),
+        {code:'candidate_duplicate_share_pow'});
+    }
     const entry={version:1,seq:this.shares.length+1,jobId,address,nonce,hash,shareDifficultyBits,blockDifficultyBits,height,previousBlockHash,previousEntryHash:this.lastHash};entry.entryHash=entryHash(entry);
     if(this.logFile)durableAppendLine(this.logFile,`${JSON.stringify(entry)}\n`);
-    this.shares.push(entry);this.seen.add(duplicateKey);this.lastHash=entry.entryHash;
+    this.shares.push(entry);this.seen.add(duplicateKey);this.seenProofHashes.add(hash);this.lastHash=entry.entryHash;
     return entry;
   }
   window(){return this.shares.slice(-this.windowSize)}
@@ -181,12 +190,29 @@ export class ShareCoordinator{
       throw Object.assign(new Error(code),{code});
     }
     const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
-    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
+    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;
+    // HPA-W3-123: tip and height are not a complete chain identity.
+    // A provider explicitly reporting another network cannot credit a share
+    // for this coordinator, even if its tip/height happen to be identical.
+    // Preserve compatibility with legacy status providers omitting network.
+    if(current.network!=null&&current.network!==this.networkId){
+      this.jobs.delete(jobId);
+      throw Object.assign(new Error('candidate_pplns_share_network_mismatch'),
+        {code:'candidate_pplns_share_network_mismatch'});
+    }
+    if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     // Candidate-only opt-in: revalidate tip after asynchronous hashing,
     // before the synchronous source-owned share ledger append.
     if(this.candidateTipRecheck){
       const latest=await this.upstreamStatus(),latestTip=latest.tip_hash??latest.tip;
+      // HPA-W3-124: hashing is async; rebind the latest explicit network
+      // before adding share weight or sending full-target proof upstream.
+      if(latest.network!=null&&latest.network!==this.networkId){
+        this.jobs.delete(jobId);
+        throw Object.assign(new Error('candidate_pplns_share_network_mismatch'),
+          {code:'candidate_pplns_share_network_mismatch'});
+      }
       if(latestTip!==job.candidate.header.previous_hash||
          Number(latest.height)+1!==Number(job.candidate.header.height)){
         this.jobs.delete(jobId);
@@ -209,7 +235,7 @@ export class ShareCoordinator{
           throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
       }
     }
-    const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
+    const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash,rejectRepeatedProof:true});
     if(this.candidateFullTargetReceiptProtection&&fullTarget)this.fullTargetReceipts.set(receiptKey,{
       jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
       status:'submission_in_flight',attempts:1
