@@ -115,3 +115,36 @@ test('HP05-FC-05 fee from a confirmed block cannot be paid again in a subsequent
   assert.equal(second.template.header.fee_atoms,'0');
   assert.equal(second.next.utxos[second.hash+':0'].amount_atoms,expectedReward(first.next,height+1).toString());
 });
+
+
+test('HP05-FC-06 valid fee settlement replays from genuine source feed; pre-activation replay fails closed',()=>{
+  const {state,miner,tx,fee}=fixture(),height=state.chain.length+1;
+  const opts={activationHeight:null,feeCreditActivationHeight:height},before=stableStringify(state);
+  const mined=mine(state,miner.address,{feeCreditActivationHeight:height});
+  const block=mined.next.chain.at(-1),authenticatedTx=new Map([[tx.txid,structuredClone(state.transactions[tx.txid])]]);
+  const recovered=appendBlockFromFeed(state,block,authenticatedTx,opts);
+  assert.equal(stableStringify(recovered),stableStringify(mined.next),'feed replay must reconstruct exactly the same canonical state');
+  assert.equal(recovered.utxos[mined.hash+':0'].amount_atoms,
+    (expectedReward(state,height)+fee).toString());
+  assert.throws(()=>appendBlockFromFeed(state,block,authenticatedTx,
+    {activationHeight:null,feeCreditActivationHeight:null}),/premature_coinbase_v1_fields/);
+  assert.equal(stableStringify(state),before,'replay and rejected reactivation must not mutate source');
+});
+
+test('HP05-FC-07 mutually exclusive same-parent valid forks credit fee only to respective canonical candidate',()=>{
+  const {state,miner,tx,fee}=fixture(),rival=wallet(),height=state.chain.length+1,subsidy=expectedReward(state,height);
+  const original=stableStringify(state);
+  const one=mine(state,miner.address,{feeCreditActivationHeight:height});
+  const two=mine(state,rival.address,{feeCreditActivationHeight:height});
+  assert.notEqual(one.hash,two.hash,'distinct destination generates distinct valid PoW block');
+  assert.equal(one.next.utxos[one.hash+':0'].address,miner.address);
+  assert.equal(two.next.utxos[two.hash+':0'].address,rival.address);
+  assert.equal(one.next.utxos[one.hash+':0'].amount_atoms,(subsidy+fee).toString());
+  assert.equal(two.next.utxos[two.hash+':0'].amount_atoms,(subsidy+fee).toString());
+  assert.equal(one.next.transactions[tx.txid].status,'confirmed');
+  assert.equal(two.next.transactions[tx.txid].status,'confirmed');
+  assert.equal(one.next.utxos[two.hash+':0'],undefined,'different noncanonical fork cannot pay into selected branch');
+  assert.equal(two.next.utxos[one.hash+':0'],undefined);
+  assert.equal(stableStringify(state),original);
+  // This tests fork-local monetary integrity, not winner selection or the peer reorg protocol.
+});
