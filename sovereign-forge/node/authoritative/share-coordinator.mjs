@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {hashHex,leadingZeroBits} from './crypto.mjs';
 import {isValidAddress} from './address.mjs';
 import {generateNodeIdentity,signEnvelope} from './node-identity.mjs';
+import {MAX_COINBASE_OUTPUTS} from './pplns-activation.mjs';
 
 const DEFAULT_WINDOW=2048;
 const DEFAULT_SHARE_DIFFICULTY_DELTA=6;
@@ -70,6 +71,13 @@ export class ShareCoordinator{
     if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
     this.pruneJobs();
     const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
+    // The share window is allowed 2,048 entries, but consensus can encode
+    // only 256 DISTINCT coinbase outputs. Never ask an external template
+    // provider to work around this by dropping an owed payee.
+    if(weights.length>MAX_COINBASE_OUTPUTS){
+      throw Object.assign(new Error('candidate_pplns_output_capacity_exceeded'),
+        {code:'candidate_pplns_output_capacity_exceeded'});
+    }
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
@@ -80,6 +88,14 @@ export class ShareCoordinator{
     // Compare the exact payout distribution to this coordinator's durable
     // window weights BEFORE publishing a signed work proof or a mining job.
     const expectedPayouts=allocatePplnsOutputs(expectedTotal,weights);
+    // PPLNS zero-atom pruning can change the FIRST actual payee in a
+    // low-reward era. FAE's active coinbase verifier demands miner_address
+    // match output[0]; refuse to sign a mining job guaranteed to be rejected.
+    if(!expectedPayouts.length||
+       candidate.header.miner_address!==expectedPayouts[0].address){
+      throw Object.assign(new Error('candidate_pplns_primary_coinbase_incompatible'),
+        {code:'candidate_pplns_primary_coinbase_incompatible'});
+    }
     const expectedCoinbaseRoot=hashHex(expectedPayouts);
     if(!Array.isArray(candidate.coinbase_outputs)||
        hashHex(candidate.payouts)!==expectedCoinbaseRoot||
