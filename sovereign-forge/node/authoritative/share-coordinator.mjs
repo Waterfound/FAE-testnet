@@ -88,6 +88,13 @@ export class ShareCoordinator{
         {code:'candidate_pplns_output_capacity_exceeded'});
     }
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
+    // HPA-W3-140..141: a remote template header must match the coordinator's
+    // network even when upstream tip/height are fresh. No signature on foreign
+    // or network-omitted block headers.
+    if(candidate?.header?.network!==this.networkId){
+      throw Object.assign(new Error('candidate_pplns_template_network_mismatch'),
+        {code:'candidate_pplns_template_network_mismatch'});
+    }
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
