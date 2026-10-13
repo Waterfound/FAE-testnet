@@ -1,0 +1,20 @@
+name: fae-dp6-independent-semantic-replay
+on:
+  pull_request:
+    paths:
+      - 'labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp'
+      - 'labs/asic-f2-pre-go/independent-verifier/**'
+      - '.github/workflows/fae-dp6-independent-semantic-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-independent-verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build independent semantic verifier from exact pinned external Argon2 source
+        run: bash labs/asic-f2-pre-go/independent-verifier/build-independent-verifier.sh /tmp/fae-dp6-exact-head-independent-verifier
+      - name: Replay sixteen frozen positive and six negative DP6 proofs plus malformed selectors
+        run: python3 labs/asic-f2-pre-go/independent-verifier/test-independent-verifier.py /tmp/fae-dp6-exact-head-independent-verifier
