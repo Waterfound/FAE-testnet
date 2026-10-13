@@ -41,7 +41,9 @@ const wf=[
 '      - name: Canonical deployed SQL atomicity risk witness',
 '        run: node lab/legal-perimeter/sql-atomicity-witness.test.mjs',
 '      - name: Real Edge Ed25519 signature boundary',
-'        run: node lab/legal-perimeter/edge-real-signature.test.mjs'
+'        run: node lab/legal-perimeter/edge-real-signature.test.mjs',
+'      - name: Canonical SQL atomicity RED proof on disposable PostgreSQL 16',
+'        run: bash lab/legal-perimeter/verify-v4-sql-atomicity-postgres.sh'
 ].join('\n')+'\n';
 const allowed='A\tlab/legal-perimeter/candidate-boundary.mjs\nM\t.github/workflows/fae-lrp-001-candidate.yml';
 test('admissible isolated PR diff',()=>assert.deepEqual(reviewDiff(allowed).errors,[]));
