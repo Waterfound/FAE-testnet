@@ -4,6 +4,8 @@ on:
     paths:
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.mjs
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
       - lab/pow-historical-assurance/full-target-chain-inclusion-candidate.mjs
@@ -26,6 +28,8 @@ jobs:
           node-version: '22'
       - name: Isolated PPLNS activation hold and real ShareLedger withholding test
         run: node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - name: Falsify source PPLNS atomic remainder bias on real finite ShareLedger
+        run: node --test lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
       - name: Bounded economic BWH break-even envelope from authentic PPLNS share window
         run: node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
       - name: Independently replay full-target inclusion before any lost-ack classification
