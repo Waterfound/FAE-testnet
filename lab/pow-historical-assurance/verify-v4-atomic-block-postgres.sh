@@ -71,12 +71,14 @@ SQL
   if [[ "$CASE" != "tx_not_pending" ]]; then
     SPENT=false
     [[ "$CASE" == "input_already_spent" ]] && SPENT=true
+    INPUTS='["fund:0"]'
+    [[ "$CASE" == "parent_not_materialized" ]] && INPUTS='["future:0"]'
     psql_safe "$DB" <<SQL >/dev/null
 INSERT INTO public.fae_v4_utxos(outpoint,address,amount_atoms,created_height,spent)
 VALUES('fund:0','sender',1000,1,$SPENT);
 INSERT INTO public.fae_v4_transactions(txid,network,from_address,public_key_spki,signature,inputs,outputs,fee_atoms,status)
 VALUES('tx1','fairyelf-public-testnet-v4','sender','public','signature',
-'["fund:0"]'::jsonb,'[{"address":"receiver","amount_atoms":"990"}]'::jsonb,10,'pending');
+'$INPUTS'::jsonb,'[{"address":"receiver","amount_atoms":"990"}]'::jsonb,10,'pending');
 SQL
   fi
   if [[ "$CASE" == "input_already_spent" || "$CASE" == "partial_tx_commit" ]]; then
@@ -88,7 +90,6 @@ SQL
     # A pending parent advertises an output absent from confirmed UTXOs;
     # the child has a reserved input, so the late parent-materialization guard fires.
     psql_safe "$DB" <<'SQL' >/dev/null
-UPDATE public.fae_v4_transactions SET inputs='["future:0"]'::jsonb WHERE txid='tx1';
 INSERT INTO public.fae_v4_transactions(txid,network,from_address,public_key_spki,signature,inputs,outputs,fee_atoms,status)
 VALUES('future','fairyelf-public-testnet-v4','sender','public','signature',
 '[]'::jsonb,'[{"address":"sender","amount_atoms":"1000"}]'::jsonb,0,'pending');
