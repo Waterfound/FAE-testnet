@@ -3,6 +3,7 @@
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import {reviewExplorerClaim,verifyPinnedConfig,FROZEN} from './explorer-truth-guard.mjs';
 const officialSourcePaths=new Set(['README.md','index.html','explorer/index.html']);
 const requiredDynamicPaths=new Set(['explorer/app.mjs','core.js','wallet.js','mining.js','docs/FAE_MANIFESTO_EDITORIAL_CHARTER.md']);
 const officialCvm40='https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare040.html';
@@ -54,7 +55,10 @@ export function checkProposal(matrix,proposal){
     if(!f?.technical_evidence.verified||f.status!=='TECHNICAL_PROPERTY_VERIFIED')errors.push('claim not exact-head independently verified: '+c);
     if(c==='pplns_active')errors.push('pplns is not activated in reviewed baseline');
   }
-  if(typeof proposal.public_copy==='string')errors.push(...reviewPublicCopy(proposal.public_copy));
+  if(typeof proposal.public_copy==='string'){
+    errors.push(...reviewPublicCopy(proposal.public_copy));
+    errors.push(...reviewExplorerClaim(proposal.public_copy));
+  }
   else errors.push('public_copy must be supplied as text for review');
   return [...new Set(errors)];
 }
@@ -130,6 +134,12 @@ export function verifyExactSource(matrix,root,reader){
       if(source.blob!==surface.blob_sha)errors.push('public: dynamic source blob drift '+surface.path);
     }catch{errors.push('public: dynamic source unavailable '+surface.path)}
   }
+  // Source-pinned, explicit HOLD: NOT_LIVE Explorer public copy is not node-backed proof.
+  try{
+    const cfg=gitReader(matrix.baseline_commit,'explorer/config.json');
+    if(cfg.blob!==FROZEN.explorer_config_blob)errors.push('explorer-config: source blob drift');
+    errors.push(...verifyPinnedConfig(cfg.content));
+  }catch{errors.push('explorer-config: source unavailable')}
   return [...new Set(errors)];
 }
 
