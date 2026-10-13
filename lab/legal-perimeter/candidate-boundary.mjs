@@ -12,7 +12,8 @@ const RUNS=new Set([
   'node lab/legal-perimeter/candidate-boundary.test.mjs',
   'node lab/legal-perimeter/candidate-boundary.mjs',
   'node lab/legal-perimeter/source-to-runtime.test.mjs',
-  'node lab/legal-perimeter/sql-atomicity-witness.test.mjs'
+  'node lab/legal-perimeter/sql-atomicity-witness.test.mjs',
+  'node lab/legal-perimeter/edge-real-signature.test.mjs'
 ]);
 const USES=new Set(['actions/checkout@v4','actions/setup-node@v4']);
 function gitCmd(root,args){
