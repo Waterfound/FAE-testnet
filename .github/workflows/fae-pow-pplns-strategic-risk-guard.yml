@@ -89,7 +89,7 @@ jobs:
           }
           trap cleanup EXIT
           git worktree add --detach "$TEMPDIR" "$MAIN_SHA"
-          git -C "$TEMPDIR" -c core.hooksPath=/dev/null merge --no-commit --no-ff "$PCC_HEAD"
+          git -C "$TEMPDIR" -c core.hooksPath=/dev/null -c user.name="PCC Isolated Rehearsal" -c user.email="pcc-rehearsal@invalid.example" merge --no-commit --no-ff "$PCC_HEAD"
           COMPOSED_TREE="$(git -C "$TEMPDIR" write-tree)"
           if [ "$COMPOSED_TREE" != "$EXPECTED_TREE" ]; then
             echo "::error::PCC admission FAIL: dry merged tree differs from exact candidate tree"
