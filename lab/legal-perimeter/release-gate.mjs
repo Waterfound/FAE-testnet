@@ -10,6 +10,7 @@ const STATUSES=new Set(['TECHNICAL_PROPERTY_VERIFIED','NO_TRIGGER_IDENTIFIED_IN_
 export function checkMatrix(matrix){
   const errors=[];
   if(matrix?.schema!=='FAE_LRP_001_PERIMETER_V2'||matrix?.baseline_commit!==FROZEN_BASELINE||!/^([a-f0-9]{40})$/.test(matrix?.baseline_commit||''))errors.push('invalid matrix schema/baseline');
+  if(matrix?.authority!=='PASSIVE_CANDIDATE_ONLY_NO_MAINNET_OR_COMMERCIAL_RELEASE')errors.push('matrix authority escalation');
   if(!Array.isArray(matrix?.features)||!matrix.features.length)errors.push('missing matrix features');
   const ids=new Set();
   for(const row of matrix?.features||[]){
@@ -30,7 +31,7 @@ export function checkProposal(matrix,proposal){
   if(proposal.baseline_commit!==matrix.baseline_commit)errors.push('proposal not pinned to reviewed commit');
   if(proposal.release_kind!=='docs_testnet_candidate')errors.push('mainnet, production, paid and commercial release not authorized by LRP-001');
   if(proposal.request_mainnet||proposal.request_commercial||proposal.actual_activation)errors.push('activation request outside LRP-001 authority');
-  if(proposal.claims===null||!Array.isArray(proposal.claims))errors.push('claims must be explicit array');
+  if(!Array.isArray(proposal.claims))errors.push('claims must be explicit array');
   const features=new Map((matrix.features||[]).map(f=>[f.id,f]));
   for(const c of proposal.claims||[]){
     if(typeof c!=='string') {errors.push('invalid claim');continue}
@@ -42,18 +43,18 @@ export function checkProposal(matrix,proposal){
     if(c==='pplns_active')errors.push('pplns is not activated in reviewed baseline');
   }
   if(typeof proposal.public_copy==='string')errors.push(...reviewPublicCopy(proposal.public_copy));
-  if(proposal.public_copy===undefined)errors.push('public_copy must be supplied for review');
+  else errors.push('public_copy must be supplied as text for review');
   return [...new Set(errors)];
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   if(process.argv.length!==4){console.error('Usage: node release-gate.mjs perimeter.json proposal.json');process.exitCode=2}
-  else {const m=JSON.parse(readFileSync(process.argv[2],'utf8')),p=JSON.parse(readFileSync(process.argv[3],'utf8')),errors=checkProposal(m,p);console.log(JSON.stringify({verdict:errors.length?'REJECT':'CANDIDATE_REVIEW_PASS_NOT_RELEASE_AUTHORITY',errors,baseline_commit:m.baseline_commit},null,2));if(errors.length)process.exitCode=1}
+  else {const m=JSON.parse(readFileSync(process.argv[2],'utf8')),p=JSON.parse(readFileSync(process.argv[3],'utf8')),errors=runCandidateReview(m,p,process.cwd());console.log(JSON.stringify({verdict:errors.length?'REJECT':'CANDIDATE_REVIEW_PASS_NOT_RELEASE_AUTHORITY',errors,baseline_commit:m.baseline_commit},null,2));if(errors.length)process.exitCode=1}
 }
 
 export function reviewPublicCopy(copy){
   const errors=[];
   for(const clause of String(copy).normalize('NFKC').replace(/[\u200b-\u200d\ufeff]/g,'').toLowerCase().split(/[.!?;\n]+/)){
-    if(!clause.trim()||/^\s*(?:>|\/\/|#)/.test(clause))continue;
+    if(!clause.trim()||/^\s*(?:>|\/\/)/.test(clause))continue;
     const pats=[
       ['financial promise',/\b(?:guaranteed\s+(?:profits?|returns?|yield)|risk[- ]free|fixed\s+yield|profits?\s+(?:are\s+)?guaranteed|lucros?\s+garantidos?|retornos?\s+garantidos?|rendas?\s+garantidas?|rentabilidades?\s+garantidas?|sem\s+risco|risco\s+zero|garantimos\s+(?:lucro|renda|retorno|rentabilidade))\b/u],
       ['regulator approval',/\b(?:approved\s+by\s+(?:the\s+)?(?:cvm|bcb)|(?:cvm|bcb)\s+approved|aprovad[ao]s?\s+pel[ao]\s+cvm|autorizad[ao]s?\s+pel[ao]\s+banco\s+central)\b/u],
@@ -94,4 +95,9 @@ export function verifyExactSource(matrix,root,reader){
     }catch{errors.push('public: unavailable '+surface.path)}
   }
   return [...new Set(errors)];
+}
+
+// The CLI must enforce source proof, not just review matrix assertions.
+export function runCandidateReview(matrix,proposal,root,reader){
+  return [...new Set([...checkProposal(matrix,proposal),...verifyExactSource(matrix,root,reader)])];
 }
