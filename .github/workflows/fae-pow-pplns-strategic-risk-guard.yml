@@ -6,6 +6,8 @@ on:
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
       - lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
       - lab/pow-historical-assurance/pplns-cross-job-proof-replay.test.mjs
+      - lab/pow-historical-assurance/pplns-presign-template-network.test.mjs
+      - lab/pow-historical-assurance/pplns-degenerate-template-difficulty.test.mjs
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
       - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
@@ -45,6 +47,10 @@ jobs:
         run: node --test lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
       - name: PCC-owned composite HPA W3 cross-job proof-replay regression #333
         run: node --test lab/pow-historical-assurance/pplns-cross-job-proof-replay.test.mjs
+      - name: PCC compositional pre-sign template network rejection #334
+        run: node --test lab/pow-historical-assurance/pplns-presign-template-network.test.mjs
+      - name: PCC compositional degenerate difficulty bounds #335
+        run: node --test lab/pow-historical-assurance/pplns-degenerate-template-difficulty.test.mjs
       - name: PCC-001 real ShareLedger finite atom and permutation regressions from W3 #324
         run: node --test lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
       - name: PCC-001 source PPLNS payee capacity and zero-primary guards from W3 #324
