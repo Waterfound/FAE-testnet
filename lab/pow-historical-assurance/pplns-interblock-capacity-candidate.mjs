@@ -52,6 +52,9 @@ export function simulateDirectAtomRounds({weights,rewardAtomsPerBlock,blocks}={}
      !Number.isSafeInteger(blocks)||blocks<1||blocks>2048||
      atoms===null||atoms<1n||atoms>BigInt(MAX_COINBASE_OUTPUTS))
     fail('invalid_interblock_simulation_inputs');
+  // Strict lab-work bound: a caller must not request unbounded BigInt loops.
+  if(BigInt(weights.length)*atoms*BigInt(blocks)>16_777_216n)
+    fail('interblock_simulation_work_budget_exceeded');
   const participants=weights.map(w=>{
     const a=w?.address,v=atomic(w?.weight);
     if(typeof a!=='string'||!isValidAddress(a,'faet')||v===null||v<1n)
@@ -86,6 +89,6 @@ export function simulateDirectAtomRounds({weights,rewardAtomsPerBlock,blocks}={}
     total_atoms:(atoms*BigInt(blocks)).toString(),
     maximum_outputs:MAX_COINBASE_OUTPUTS,
     policy_activated:false,guaranteed_future_payment:false,
-    sybil_resistant:false,tip_independent_but_address_order_sensitive:true
+    guaranteed_non_custodial_entitlement:false,sybil_resistant:false,tip_independent_but_address_order_sensitive:true
   };
 }
