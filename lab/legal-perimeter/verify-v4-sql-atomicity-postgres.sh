@@ -56,7 +56,7 @@ CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE ROLE service_role;
 SQL
-for CASE in tx_not_pending reservation_missing input_already_spent; do
+for CASE in tx_not_pending reservation_missing input_already_spent partial_tx_commit; do
   DB="case_$CASE"
   createdb_safe "$DB"
   psql_safe "$DB" < "$ROOT/$MIGRATION" >/dev/null
@@ -75,13 +75,21 @@ VALUES('tx1','fairyelf-public-testnet-v4','sender','public','signature',
 '["fund:0"]'::jsonb,'[{"address":"receiver","amount_atoms":"990"}]'::jsonb,10,'pending');
 SQL
   fi
-  if [[ "$CASE" == "input_already_spent" ]]; then
+  if [[ "$CASE" == "input_already_spent" || "$CASE" == "partial_tx_commit" ]]; then
     psql_safe "$DB" <<'SQL' >/dev/null
 INSERT INTO public.fae_v4_mempool_spends(outpoint,txid) VALUES('fund:0','tx1');
 SQL
   fi
   TXID=tx1
+  EXPECTED_REASON="$CASE"
+  CONFIRMED_COUNT=0
   [[ "$CASE" == "tx_not_pending" ]] && TXID=missing_tx
+  TXIDS="[\"$TXID\"]"
+  if [[ "$CASE" == "partial_tx_commit" ]]; then
+    TXIDS='["tx1","missing_tx"]'
+    EXPECTED_REASON=tx_not_pending
+    CONFIRMED_COUNT=1
+  fi
   # Invalid block call runs ONLY against the disposable DB, never hosted.
   psql_safe "$DB" <<SQL >/dev/null
 DO \$\$
@@ -89,9 +97,9 @@ DECLARE result jsonb;
 BEGIN
   result:=public.fae_v4_accept_block_v2(
     2,repeat('b',64),repeat('a',64),2000,18,2,'miner',1000,
-    '{}'::jsonb,'["$TXID"]'::jsonb
+    '{}'::jsonb,'$TXIDS'::jsonb
   );
-  IF result->>'ok'<>'false' OR result->>'reason'<>'$CASE' THEN
+  IF result->>'ok'<>'false' OR result->>'reason'<>'$EXPECTED_REASON' THEN
     RAISE EXCEPTION 'unexpected v4 reject path: %',result;
   END IF;
 END
@@ -102,10 +110,10 @@ SQL
     SELECT (SELECT count(*) FROM public.fae_v4_blocks WHERE height=2)::text
       || '|' || (SELECT count(*) FROM public.fae_v4_utxos WHERE outpoint=repeat('b',64)||':0')::text
       || '|' || (SELECT count(*) FROM public.fae_v4_transactions WHERE confirmed_height=2)::text;")"
-  if [[ "$RESULT" != "1|0|0" ]]; then
-    echo "ABORT witness changed: scenario=$CASE observed=$RESULT expected=1|0|0"
+  if [[ "$RESULT" != "1|0|$CONFIRMED_COUNT" ]]; then
+    echo "ABORT witness changed: scenario=$CASE observed=$RESULT expected=1|0|$CONFIRMED_COUNT"
     exit 1
   fi
-  echo "RED_REPRODUCED scenario=$CASE reject_ok_false=true block_persisted=1 coinbase_missing=1 confirmed_transactions=0"
+  echo "RED_REPRODUCED scenario=$CASE reason=$EXPECTED_REASON reject_ok_false=true block_persisted=1 coinbase_missing=1 confirmed_transactions=$CONFIRMED_COUNT"
 done
-echo '{"verdict":"REAL_POSTGRES_16_ATOMICITY_RED_REPRODUCED_OWNER_HOLD","scenarios":3,"production_db_touched":false,"consensus_repaired":false}'
+echo '{"verdict":"REAL_POSTGRES_16_ATOMICITY_RED_REPRODUCED_OWNER_HOLD","scenarios":4,"production_db_touched":false,"consensus_repaired":false}'
