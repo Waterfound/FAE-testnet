@@ -26,7 +26,7 @@ const fakeGit=(rev,path)=>{
   if(path==='index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:sourceMap.get(path).technical_evidence.source_assertions.map(a=>a.text).join('\n')};
   if(path==='explorer/index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:'Explorer public testnet. Blocks, transactions, addresses and network status.'};
   const dynamic=m.dynamic_public_surfaces.find(s=>s.path===path);
-  if(dynamic)return{blob:dynamic.blob_sha,content:'Dynamic UI data requires rendered verification'};
+  if(dynamic && !sourceMap.has(path))return{blob:dynamic.blob_sha,content:'Dynamic UI data requires rendered verification'};
   const f=sourceMap.get(path);if(!f)throw Error('not found');
   return{blob:f.technical_evidence.blob_sha,content:f.technical_evidence.source_assertions.map(a=>a.text).join('\n')};
 };
