@@ -11,6 +11,11 @@ on:
       - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
       - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
+      - sovereign-forge/node/authoritative/share-coordinator.mjs
+      - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
+      - .github/workflows/fae-pow-pplns-strategic-risk-guard.yml
       - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
       - .github/workflows/fae-pow-mempool-shadow-assurance.yml
