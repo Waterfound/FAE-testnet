@@ -587,6 +587,7 @@ function presignTipRaceFixture({mutation='tip'}={}){
       difficulty_bits:Number(candidate.header.difficulty_bits)};
     if(mutation==='tip')normal.tip_hash='f'.repeat(64);
     if(mutation==='height')normal.height+=1;
+    if(mutation==='network')normal.network='unrelated-public-network';
     if(mutation==='incomplete')delete normal.tip_hash;
     x.coordinator.statusProvider=async()=>{
       statusReads++;
@@ -632,4 +633,39 @@ test('HPA-W3-94: unchanged source tip and ledger still yield genuine signed work
   assert.equal(x.reads(),1,'must read independent upstream tip before signing');
   assert.equal(x.templates(),1);
   assert.equal(x.coordinator.jobs.size,1);
+});
+
+
+test('HPA-W3-95: upstream reports explicit wrong network; candidate source rejects prior to work signing',async()=>{
+  const x=presignTipRaceFixture({mutation:'network'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_chain_status_incomplete');
+  assert.equal(x.coordinator.jobs.size,0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,3);
+});
+test('HPA-W3-96: continuous genuine ShareLedger churn starves work safely; stabilization restores liveness',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  let churn=0;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const candidate=await original(args);
+    await Promise.resolve();
+    x.coordinator.ledger.append({
+      jobId:'HPA-W3-96-churn-'+churn,address:churn%2?x.attackerAddr:x.honestAddr,
+      nonce:9600+churn++,hash:'0'.repeat(64),shareDifficultyBits:4,
+      blockDifficultyBits:8,height:candidate.header.height,
+      previousBlockHash:candidate.header.previous_hash});
+    return candidate;
+  };
+  for(let i=0;i<16;i++)await assert.rejects(
+    x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.equal(churn,16,'bounded attempts do not provide indefinite-churn liveness');
+  assert.equal(x.coordinator.jobs.size,0,'never sign a stale payout to improve liveness');
+  assert.equal(x.coordinator.ledger.summary().totalShares,19,'all sixteen real source shares preserved');
+  x.coordinator.distributedTemplateProvider=original;
+  const job=await x.coordinator.createWork(x.honestAddr);
+  assert.equal(job.ledgerState.totalShares,19);
+  assert.equal(job.pplnsWeights.reduce((s,w)=>s+BigInt(w.weight),0n),19n);
+  assert.equal(x.coordinator.jobs.size,1,'eventual quiet window recovers work production');
 });
