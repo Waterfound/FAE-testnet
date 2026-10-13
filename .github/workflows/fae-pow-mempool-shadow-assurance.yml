@@ -11,6 +11,9 @@ on:
       - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
       - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.mjs
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
       - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
@@ -51,3 +54,5 @@ jobs:
           node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
           node --test lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
           node --test lab/pow-historical-assurance/selfish-mining-exact-horizon.test.mjs
+      - name: PCC-001 source-real W2 fee to W3 PPLNS work and cap regression
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs

@@ -18,6 +18,7 @@ on:
       - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
@@ -50,3 +51,5 @@ jobs:
         run: node --test lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - name: PCC-001 W2 fee source regressions under composed W3 coordinator
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - name: PCC-001 real W2 signed fee to W3 source-bound work
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
