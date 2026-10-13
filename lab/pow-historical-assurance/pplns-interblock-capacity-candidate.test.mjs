@@ -115,7 +115,7 @@ test('HPA-W3-117: a reorg discards hypothetical previous coinbase outputs; a pas
   assert.deepEqual(before.rounds.slice(0,2),replay.rounds);
   assert.notDeepEqual(before.paid,replay.paid);
   assert.equal(replay.guaranteed_future_payment,false);
-  assert.equal(replay.guaranteed_non_custodial_entitlement,undefined);
+  assert.equal(replay.guaranteed_non_custodial_entitlement,false);
 });
 test('HPA-W3-118: malformed, overbudget and duplicated payout model inputs fail closed',()=>{
   const {weights}=sourceWindow(2);
