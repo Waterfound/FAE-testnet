@@ -22,6 +22,7 @@ test('false verified row without source rejected',()=>{const altered=structuredC
 const sourceMap=new Map(m.features.filter(f=>f.technical_evidence?.verified).map(f=>[f.technical_evidence.path,f]));
 const fakeGit=(rev,path)=>{
   if(rev!==m.baseline_commit)throw Error('wrong revision');
+  if(path==='explorer/config.json')return{blob:'66ce29d1c50715d9f1d4b4edca206f6c3a695aad',content:readFileSync(new URL('./explorer-config.snapshot.json',import.meta.url),'utf8')};
   if(path==='README.md')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:'FAE public testnet. Testnet FAE has no monetary value.'};
   if(path==='index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:sourceMap.get(path).technical_evidence.source_assertions.map(a=>a.text).join('\n')};
   if(path==='explorer/index.html')return{blob:m.public_surfaces.find(s=>s.path===path).blob_sha,content:'Explorer public testnet. Blocks, transactions, addresses and network status.'};
@@ -124,5 +125,15 @@ test('RED: unsupported live Explorer claim must fail against NOT_LIVE baseline',
 test('RED: indirect independently validated node state claim must fail',()=>{
   const p={...base,public_copy:'Blocks, transactions, addresses, rewards and network status from independently validated node state.'};
   assert.match(checkProposal(m,p).join('|'),/Explorer.*NOT_LIVE|explorer.*unbound/i);
+});
+test('Explorer unbound note explicitly permitted',()=>assert.deepEqual(checkProposal(m,{...base,public_copy:'Explorer is NOT LIVE. API is not connected.'}),[]));
+test('future conditional Explorer independent-read statement allowed',()=>assert.deepEqual(checkProposal(m,{...base,public_copy:'The Explorer will read snapshots from independently validated node state.'}),[]));
+test('Explorer config sha counterfeit is rejected by exact Git reader',()=>{
+ const result=verifyExactSource(m,'.',(sha,path)=>{const v=fakeGit(sha,path);return path==='explorer/config.json'?{...v,blob:'0'.repeat(40)}:v});
+ assert.match(result.join('|'),/explorer-config: source blob drift/);
+});
+test('Explorer non-live config cannot be silently upgraded in source proof',()=>{
+ const result=verifyExactSource(m,'.',(sha,path)=>{const v=fakeGit(sha,path);return path==='explorer/config.json'?{...v,content:v.content.replace('LOCAL_DEV','BOUND_CANDIDATE')}:v});
+ assert.match(result.join('|'),/explorer-config: source blob drift|explorer-config: unverified operational binding/);
 });
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
