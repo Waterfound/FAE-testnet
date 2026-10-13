@@ -33,3 +33,5 @@ jobs:
         run: node lab/legal-perimeter/sql-atomicity-witness.test.mjs
       - name: Real Edge Ed25519 signature boundary
         run: node lab/legal-perimeter/edge-real-signature.test.mjs
+      - name: Canonical SQL atomicity RED proof on disposable PostgreSQL 16
+        run: bash lab/legal-perimeter/verify-v4-sql-atomicity-postgres.sh
