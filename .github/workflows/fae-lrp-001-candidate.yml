@@ -1,0 +1,24 @@
+name: FAE LRP-001 Candidate Technical Claims Guard
+on:
+  pull_request:
+    paths:
+      - 'lab/legal-perimeter/**'
+      - '.github/workflows/fae-lrp-001-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  lrp-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source-bound adversarial regressions
+        run: node lab/legal-perimeter/release-gate.test.mjs
+      - name: Exact-source candidate proposal
+        run: node lab/legal-perimeter/release-gate.mjs lab/legal-perimeter/perimeter.json lab/legal-perimeter/proposal.example.json
