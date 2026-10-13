@@ -13,6 +13,11 @@ on:
       - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
       - .github/workflows/fae-pow-mempool-shadow-assurance.yml
   workflow_dispatch:
 permissions:
@@ -46,3 +51,5 @@ jobs:
           node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
           node --test lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
           node --test lab/pow-historical-assurance/selfish-mining-exact-horizon.test.mjs
+      - name: PCC-001 composite source fee plus W3 coordinator-cap / reward regressions
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs

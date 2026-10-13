@@ -6,6 +6,8 @@ on:
       - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-memory-economics-falsifier.test.mjs'
       - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs'
       - 'labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.test.mjs'
+      - 'sovereign-forge/node/authoritative/share-coordinator.mjs'
+      - 'lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs'
       - '.github/workflows/fae-dp6-rp-b3-t3-software-bound.yml'
   workflow_dispatch:
 permissions:

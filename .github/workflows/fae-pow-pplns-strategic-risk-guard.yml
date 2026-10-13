@@ -17,6 +17,11 @@ on:
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
       - .github/workflows/fae-pow-pplns-strategic-risk-guard.yml
   workflow_dispatch:
 permissions:
@@ -42,3 +47,7 @@ jobs:
         run: node --test lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - name: PCC-001 W2 fee source regressions under composed W3 coordinator
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - name: PCC-001 composed W2-W3-source safety under frozen DP6
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+      - name: W3 candidate 256-payee and rounding counterexample regressions
+        run: node --test lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
