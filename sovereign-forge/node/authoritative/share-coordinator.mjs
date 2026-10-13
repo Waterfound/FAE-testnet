@@ -53,9 +53,9 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 }
 
 export class ShareCoordinator{
-  constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
+  constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null,candidateTipRecheck=false,candidateFullTargetReceiptProtection=false}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=Boolean(candidateTipRecheck);this.candidateFullTargetReceiptProtection=Boolean(candidateFullTargetReceiptProtection);this.fullTargetReceipts=new Map();this.jobs=new Map();
   }
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
@@ -74,18 +74,122 @@ export class ShareCoordinator{
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
+    // HPA-W3: source-owned PPLNS economic integrity. Correct aggregate total
+    // is insufficient: an upstream template could silently divert the honest
+    // miners' portions and still recompute a self-consistent coinbase root.
+    // Compare the exact payout distribution to this coordinator's durable
+    // window weights BEFORE publishing a signed work proof or a mining job.
+    const expectedPayouts=allocatePplnsOutputs(expectedTotal,weights);
+    const expectedCoinbaseRoot=hashHex(expectedPayouts);
+    if(!Array.isArray(candidate.coinbase_outputs)||
+       hashHex(candidate.payouts)!==expectedCoinbaseRoot||
+       hashHex(candidate.coinbase_outputs)!==expectedCoinbaseRoot||
+       candidate.header.coinbase_root!==expectedCoinbaseRoot||
+       candidate.header.coinbase_count!==expectedPayouts.length||
+       candidate.header.coinbase_mode!=='pplns-direct'){
+      throw Object.assign(new Error('distributed_payout_commitment_mismatch'),
+        {code:'distributed_payout_commitment_mismatch'});
+    }
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
     const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
     const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
     this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment,weightsCommitment,templateCommitment});
     return{...candidate,jobId,coordinatorId:this.identity.id,requestAddress:address,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,expiresAt:new Date(expiresAt).toISOString(),workProof};
   }
+  fullTargetReceipt({jobId,nonce}={}){
+    const key=String(jobId)+':'+String(nonce);
+    const receipt=this.fullTargetReceipts.get(key);
+    if(receipt)return structuredClone(receipt);
+    // Candidate-only crash reconciliation: persisted ShareLedger proves that
+    // this exact proof was credited once, but never proves node inclusion.
+    if(!this.candidateFullTargetReceiptProtection||!this.ledger.seen.has(key))return null;
+    for(let i=this.ledger.shares.length-1;i>=0;i--){
+      const entry=this.ledger.shares[i];
+      if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
+      if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)return null;
+      return {jobId,nonce,hash:entry.hash,shareSeq:entry.seq,
+        entryHash:entry.entryHash,status:'submission_outcome_unknown_after_restart',
+        attempts:1};
+    }
+    return null;
+  }
   async submitShare({jobId,nonce,hash}){
-    this.pruneJobs();const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
+    this.pruneJobs();
+    // Opt-in source-receipt check before job lookup: a failed submission may
+    // survive expired job pruning. It is never safe to infer non-inclusion.
+    const receiptKey=String(jobId)+':'+String(nonce);
+    const prior=this.candidateFullTargetReceiptProtection?this.fullTargetReceipt({jobId,nonce}):null;
+    if(prior){
+      const code=prior.hash!==hash?'candidate_full_target_receipt_hash_mismatch':
+        'candidate_full_target_submission_requires_reconciliation';
+      throw Object.assign(new Error(code),{code});
+    }
+    const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
     const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
+    // Candidate-only opt-in: revalidate tip after asynchronous hashing,
+    // before the synchronous source-owned share ledger append.
+    if(this.candidateTipRecheck){
+      const latest=await this.upstreamStatus(),latestTip=latest.tip_hash??latest.tip;
+      if(latestTip!==job.candidate.header.previous_hash||
+         Number(latest.height)+1!==Number(job.candidate.header.height)){
+        this.jobs.delete(jobId);
+        throw new Error('Stale share job after hashing chain-tip change');
+      }
+    }
+    const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
+    if(this.candidateFullTargetReceiptProtection&&fullTarget){
+      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      // Do not credit a share when its dedupe/recovery receipt cannot fit.
+      // No automatic eviction of unknown receipts.
+      if(this.fullTargetReceipts.size>=MAX_JOBS){
+        for(const [key,old] of this.fullTargetReceipts){
+          if(old.status==='acknowledged_not_confirmed'){
+            this.fullTargetReceipts.delete(key);
+            if(this.fullTargetReceipts.size<MAX_JOBS)break;
+          }
+        }
+        if(this.fullTargetReceipts.size>=MAX_JOBS)
+          throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
+      }
+    }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
-    let block=null;if(zeroBits>=Number(job.candidate.header.difficulty_bits)){if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');block=await this.blockSubmitter({...job.candidate,nonce,hash});this.jobs.clear()}
+    if(this.candidateFullTargetReceiptProtection&&fullTarget)this.fullTargetReceipts.set(receiptKey,{
+      jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
+      status:'submission_in_flight',attempts:1
+    });
+    let block=null;
+    if(fullTarget){
+      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      try{
+        block=await this.blockSubmitter({...job.candidate,nonce,hash});
+        if(this.candidateFullTargetReceiptProtection){
+          const receipt=this.fullTargetReceipts.get(receiptKey);
+          // A resolved Promise is not a signed block acceptance, and even
+          // a negative provider ACK is not proof of chain non-inclusion.
+          if(!block||typeof block!=='object'||
+             (block.ok!==true&&block.accepted!==true)||
+             block.ok===false||block.accepted===false){
+            const explicitlyRejected=block&&typeof block==='object'&&
+              (block.ok===false||block.accepted===false);
+            receipt.status=explicitlyRejected?
+              'upstream_reported_rejected_unconfirmed':'submission_outcome_unknown';
+            const code=explicitlyRejected?
+              'candidate_full_target_provider_rejected_unconfirmed':
+              'candidate_full_target_missing_positive_ack';
+            throw Object.assign(new Error(code),{code});
+          }
+          receipt.status='acknowledged_not_confirmed';
+        }
+        this.jobs.clear();
+      }catch(error){
+        if(this.candidateFullTargetReceiptProtection){
+          const receipt=this.fullTargetReceipts.get(receiptKey);
+          if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
+        }
+        throw error;
+      }
+    }
     return{accepted:true,share:{seq:entry.seq,entryHash:entry.entryHash,zeroBits,targetDifficultyBits:job.shareDifficultyBits},block,payoutCommitment:job.payoutCommitment,weightsCommitment:job.weightsCommitment,templateCommitment:job.templateCommitment};
   }
 }

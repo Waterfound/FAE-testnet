@@ -1,0 +1,108 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {exactSelfishHorizon,exactOneEventTrailHorizon,exactTieAdvantageThreshold} from './selfish-mining-exact-horizon.mjs';
+
+test('HPA-W3-39: deterministic finite-horizon model conserves probability mass',()=>{
+  for(const alpha of [.1,.2,.25,.3,.4])for(const gamma of [0,.25,.5,1]){
+    const r=exactSelfishHorizon({alpha,gamma,events:1000});
+    assert.ok(Math.abs(r.probability_mass-1)<1e-11,{alpha,gamma,mass:r.probability_mass});
+    assert.ok(r.expected_attacker_accepted_blocks>=0);
+    assert.ok(r.expected_honest_accepted_blocks>=0);
+    assert.equal(r.actual_profitability_proven,false);
+  }
+});
+
+test('HPA-W3-40: conditional tie propagation advantage is monotonic within the declared model',()=>{
+  const rows=[0,.25,.5,.75,1].map(gamma=>exactSelfishHorizon({alpha:.25,gamma,events:3000}));
+  for(let i=1;i<rows.length;i++)
+    assert.ok(rows[i].attacker_revenue_share>=rows[i-1].attacker_revenue_share-1e-12);
+  assert.equal(rows[0].propagation_gamma_observed,false);
+  assert.equal(rows.at(-1).final_tie_policy_selected,false);
+});
+
+test('HPA-W3-41: longer exact horizons converge without Monte Carlo seed dependence',()=>{
+  const short=exactSelfishHorizon({alpha:.3,gamma:.25,events:500});
+  const long=exactSelfishHorizon({alpha:.3,gamma:.25,events:5000});
+  const repeat=exactSelfishHorizon({alpha:.3,gamma:.25,events:5000});
+  assert.deepEqual(long,repeat);
+  assert.ok(long.unresolved_terminal_probability<.5);
+  assert.ok(Math.abs(long.attacker_revenue_share-short.attacker_revenue_share)<.01);
+});
+
+test('HPA-W3-42: threshold sensitivity remains conditional and invalid assumptions fail closed',()=>{
+  const below=exactSelfishHorizon({alpha:.2,gamma:.5,events:5000});
+  const above=exactSelfishHorizon({alpha:.3,gamma:.5,events:5000});
+  assert.ok(below.profitability_delta<0);
+  assert.ok(above.profitability_delta>0);
+  assert.equal(below.actual_profitability_proven,false);
+  for(const args of [{alpha:0,gamma:.5},{alpha:.5,gamma:.5},{alpha:.2,gamma:-1},
+    {alpha:.2,gamma:1.1},{alpha:.2,gamma:.5,events:0},{alpha:.2,gamma:.5,events:100001}])
+    assert.throws(()=>exactSelfishHorizon(args),/invalid_selfish_horizon_assumptions/);
+});
+
+test('HPA-W3-43: one-event trail counterfactual conserves mass and retains epistemic limits',()=>{
+  for(const alpha of [.1,.2,.3,.4])for(const gamma of [0,.5,1]){
+    const r=exactOneEventTrailHorizon({alpha,gamma,events:2000});
+    assert.ok(Math.abs(r.probability_mass-1)<1e-11,{alpha,gamma,mass:r.probability_mass});
+    assert.equal(r.full_literature_strategy_equivalence_proven,false);
+    assert.equal(r.propagation_gamma_observed,false);
+    assert.equal(r.actual_profitability_proven,false);
+  }
+});
+
+test('HPA-W3-44: trail counterfactual is deterministic and bounded against classic release',()=>{
+  const classic=exactSelfishHorizon({alpha:.25,gamma:.5,events:5000});
+  const trail=exactOneEventTrailHorizon({alpha:.25,gamma:.5,events:5000});
+  assert.deepEqual(trail,exactOneEventTrailHorizon({alpha:.25,gamma:.5,events:5000}));
+  assert.ok(Number.isFinite(trail.attacker_revenue_share));
+  assert.ok(Math.abs(trail.attacker_revenue_share-classic.attacker_revenue_share)<.1);
+  assert.ok(trail.trail_or_second_race_terminal_probability>=0);
+});
+
+test('HPA-W3-45: conditional gamma advantage remains monotonic for the explicit trail policy',()=>{
+  const rows=[0,.25,.5,.75,1].map(gamma=>
+    exactOneEventTrailHorizon({alpha:.25,gamma,events:3000}));
+  for(let i=1;i<rows.length;i++)
+    assert.ok(rows[i].attacker_revenue_share>=rows[i-1].attacker_revenue_share-1e-12);
+});
+
+test('HPA-W3-46: trail policy input violations fail closed',()=>{
+  for(const args of [{alpha:0,gamma:.5},{alpha:.5,gamma:.5},{alpha:.2,gamma:-1},
+    {alpha:.2,gamma:1.1},{alpha:.2,gamma:.5,events:0},{alpha:.2,gamma:.5,events:100001}])
+    assert.throws(()=>exactOneEventTrailHorizon(args),/invalid_trail_horizon_assumptions/);
+});
+
+test('HPA-W3-47: exact conditional tie-advantage threshold brackets break-even',()=>{
+  for(const alpha of [.1,.2,.25,.3]){
+    const r=exactTieAdvantageThreshold({alpha,events:5000,tolerance:1e-5});
+    assert.equal(r.classification,'CONDITIONAL_THRESHOLD');
+    assert.ok(r.minimum_declared_gamma>0&&r.minimum_declared_gamma<=1);
+    assert.ok(exactSelfishHorizon({alpha,gamma:r.lower_unprofitable_gamma,events:5000}).profitability_delta<0);
+    assert.ok(exactSelfishHorizon({alpha,gamma:r.upper_profitable_gamma,events:5000}).profitability_delta>=0);
+    assert.ok(r.upper_profitable_gamma-r.lower_unprofitable_gamma<=1e-5);
+  }
+});
+
+test('HPA-W3-48: threshold search is deterministic and preserves epistemic limits',()=>{
+  const a=exactTieAdvantageThreshold({alpha:.25,events:3000,tolerance:1e-6});
+  const b=exactTieAdvantageThreshold({alpha:.25,events:3000,tolerance:1e-6});
+  assert.deepEqual(a,b);
+  assert.equal(a.propagation_gamma_observed,false);
+  assert.equal(a.attacker_can_obtain_threshold_proven,false);
+  assert.equal(a.actual_profitability_proven,false);
+});
+
+test('HPA-W3-49: tie threshold distinguishes already-profitable and no-crossing envelopes',()=>{
+  const already=exactTieAdvantageThreshold({alpha:.4,events:3000});
+  assert.equal(already.classification,'ALREADY_PROFITABLE_AT_ZERO_DECLARED_GAMMA');
+  assert.equal(already.minimum_declared_gamma,0);
+  const none=exactTieAdvantageThreshold({alpha:.001,events:1000});
+  assert.equal(none.classification,'NO_PROFITABILITY_WITHIN_DECLARED_GAMMA_RANGE');
+  assert.equal(none.minimum_declared_gamma,null);
+});
+
+test('HPA-W3-50: tie threshold invalid assumptions fail closed',()=>{
+  for(const args of [{alpha:0},{alpha:.5},{alpha:.2,events:0},{alpha:.2,tolerance:0},
+    {alpha:.2,tolerance:1},{alpha:.2,maxIterations:0},{alpha:.2,maxIterations:129}])
+    assert.throws(()=>exactTieAdvantageThreshold(args),/invalid_tie_advantage_threshold_assumptions/);
+});
