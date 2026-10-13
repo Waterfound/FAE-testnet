@@ -4,6 +4,7 @@ import {randomUUID} from 'node:crypto';
 import {hashHex,leadingZeroBits} from './crypto.mjs';
 import {isValidAddress} from './address.mjs';
 import {generateNodeIdentity,signEnvelope} from './node-identity.mjs';
+import {MAX_COINBASE_OUTPUTS} from './pplns-activation.mjs';
 
 const DEFAULT_WINDOW=2048;
 const DEFAULT_SHARE_DIFFICULTY_DELTA=6;
@@ -70,6 +71,13 @@ export class ShareCoordinator{
     if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
     this.pruneJobs();
     const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
+    // FAE's 2,048-share window may contain more distinct addresses than its
+    // 256 coinbase slots. Do not delegate impossible payouts to an upstream
+    // template provider or create a misleading signed job.
+    if(weights.length>MAX_COINBASE_OUTPUTS){
+      throw Object.assign(new Error('candidate_pplns_output_capacity_exceeded'),
+        {code:'candidate_pplns_output_capacity_exceeded'});
+    }
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
@@ -80,6 +88,13 @@ export class ShareCoordinator{
     // Compare the exact payout distribution to this coordinator's durable
     // window weights BEFORE publishing a signed work proof or a mining job.
     const expectedPayouts=allocatePplnsOutputs(expectedTotal,weights);
+    // Late-era zero-atom filtering may eliminate the header's first miner.
+    // Source active consensus requires miner_address = first positive output.
+    if(!expectedPayouts.length||
+       candidate.header.miner_address!==expectedPayouts[0].address){
+      throw Object.assign(new Error('candidate_pplns_primary_coinbase_incompatible'),
+        {code:'candidate_pplns_primary_coinbase_incompatible'});
+    }
     const expectedCoinbaseRoot=hashHex(expectedPayouts);
     if(!Array.isArray(candidate.coinbase_outputs)||
        hashHex(candidate.payouts)!==expectedCoinbaseRoot||
