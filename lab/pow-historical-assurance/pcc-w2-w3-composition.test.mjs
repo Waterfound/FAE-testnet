@@ -68,7 +68,7 @@ test('PCC-W2W3-03: real signed W2 fee shadow cannot activate or fund unearned W3
   const unsigned={version:2,network:NETWORK,inputs:[input],
     outputs:[{address,amount_atoms:(BigInt(atoms)-fee).toString()}],
     public_key_spki:spki.toString('base64')};
-  const signature=signBytes(null,Buffer.from(stableStringify(txPayload({...unsigned,signature:''}))),privateKey).toString('base64');
+  const signature=edSign(null,Buffer.from(stableStringify(txPayload({...unsigned,signature:''}))),privateKey).toString('base64');
   const admitted=acceptTxInto(state,{...unsigned,signature});
   const before=stableStringify(state);
   const selected=selectFeeSensitiveTemplateCandidate(state);
