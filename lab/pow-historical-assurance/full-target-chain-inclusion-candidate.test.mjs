@@ -4,10 +4,15 @@ import {ShareLedger} from '../../sovereign-forge/node/authoritative/share-coordi
 import {emptyState,appendBlockFromFeed} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
 import {reconcileFullTargetAgainstVerifiedChain as reconcile,
-  reconcileFullTargetAgainstAnchoredLedger as reconcileAnchored} from './full-target-chain-inclusion-candidate.mjs';
+  reconcileFullTargetAgainstAnchoredLedger as reconcileAnchored,
+  reconcileFullTargetAgainstPinnedSignedWitness as reconcileSigned,
+  verifyPinnedSignedLedgerWitness as verifyWitness} from './full-target-chain-inclusion-candidate.mjs';
 import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {generateKeyPairSync,createHash,sign as edSign} from 'node:crypto';
+import {NETWORK} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
 
 function sourceScenario(){
   const target=legacyBlocks[5],ledger=new ShareLedger();
@@ -159,5 +164,112 @@ test('HPA-W3-54: even anchored real share proof is INCONCLUSIVE at a shorter val
     assert.equal(r.safe_to_auto_resubmit,false);
     assert.equal(r.external_checkpoint_authenticity_verified_here,false);
     assert.equal(r.source_ledger_replayed_and_anchor_matched,true);
+  }finally{await rm(s.dir,{recursive:true,force:true})}
+});
+
+function signedWitnessFixture(s){
+  const {publicKey,privateKey}=generateKeyPairSync('ed25519');
+  const spki=publicKey.export({type:'spki',format:'der'});
+  const trustedWitness={
+    witnessId:'fixture-separately-pinned-witness',
+    ledgerId:'source-ledger-specific-fixture',
+    minimumSequence:7,
+    spkiDerBase64:spki.toString('base64'),
+    spkiSha256:createHash('sha256').update(spki).digest('hex')
+  };
+  const payload={
+    domain:'FAE_HPA_DURABLE_LEDGER_WITNESS_V1',network:NETWORK,
+    witnessId:trustedWitness.witnessId,ledgerId:trustedWitness.ledgerId,
+    sequence:7,shareCount:s.persistent.shares.length,lastEntryHash:s.persistent.lastHash
+  };
+  const seal=(next)=>({
+    payload:next,
+    signatureBase64:edSign(null,Buffer.from(stableStringify(next),'utf8'),privateKey).toString('base64')
+  });
+  return {trustedWitness,privateKey,witnessReceipt:seal(payload),seal};
+}
+test('HPA-W3-55: out-of-band pinned Ed25519 key verifies source-backed durable chain only, never independent third-party authority',async()=>{
+  const s=await anchoredScenario();
+  try{
+    const w=signedWitnessFixture(s);
+    const r=reconcileSigned({logFile:s.logFile,witnessReceipt:w.witnessReceipt,
+      trustedWitness:w.trustedWitness,...s.proof,rawChainState:s.includedState});
+    assert.equal(r.verdict,'INCLUDED_IN_THIS_VERIFIED_CHAIN_ONLY');
+    assert.equal(r.witness_signature_valid,true);
+    assert.equal(r.source_ledger_replayed_and_anchor_matched,true);
+    assert.equal(r.actual_independent_witness_observation_proven,false);
+    assert.equal(r.independent_witness_identity_authenticated,false);
+    assert.equal(r.external_evidence_gate_open,true);
+    assert.equal(r.finality_guaranteed,false);
+    assert.equal(r.safe_to_auto_resubmit,false);
+  }finally{await rm(s.dir,{recursive:true,force:true})}
+});
+test('HPA-W3-56: missing trusted key and substitution with attacker-controlled signed key cannot satisfy independently pinned fingerprint',async()=>{
+  const s=await anchoredScenario();
+  try{
+    const w=signedWitnessFixture(s);
+    assert.throws(()=>verifyWitness({witnessReceipt:w.witnessReceipt}),
+      e=>e.code==='invalid_pinned_witness_inputs');
+    const impostor=signedWitnessFixture(s);
+    assert.throws(()=>verifyWitness({witnessReceipt:impostor.witnessReceipt,
+      trustedWitness:w.trustedWitness}),e=>e.code==='pinned_witness_signature_invalid');
+    const mismatched={...w.trustedWitness,spkiDerBase64:impostor.trustedWitness.spkiDerBase64};
+    assert.throws(()=>verifyWitness({witnessReceipt:impostor.witnessReceipt,
+      trustedWitness:mismatched}),e=>e.code==='pinned_witness_key_fingerprint_mismatch');
+    // The caller could supply their OWN matching key+signature. Cryptography
+    // cannot attest that the key was independently admitted out of band.
+    assert.equal(verifyWitness({witnessReceipt:impostor.witnessReceipt,
+      trustedWitness:impostor.trustedWitness}).witness_external_independence_verified_here,false);
+  }finally{await rm(s.dir,{recursive:true,force:true})}
+});
+test('HPA-W3-57: stale sequence and cross-network/ledger/witness substitutions fail closed',async()=>{
+  const s=await anchoredScenario();
+  try{
+    const w=signedWitnessFixture(s);
+    for(const payload of [
+      {...w.witnessReceipt.payload,sequence:6},
+      {...w.witnessReceipt.payload,network:'hostile-network'},
+      {...w.witnessReceipt.payload,ledgerId:'other-ledger'},
+      {...w.witnessReceipt.payload,witnessId:'other-witness'},
+      {...w.witnessReceipt.payload,unusedClaim:true}
+    ]){
+      assert.throws(()=>verifyWitness({witnessReceipt:w.seal(payload),
+        trustedWitness:w.trustedWitness}),e=>
+          ['witness_scope_or_sequence_mismatch','witness_payload_shape_mismatch'].includes(e.code));
+    }
+  }finally{await rm(s.dir,{recursive:true,force:true})}
+});
+test('HPA-W3-58: tampered signed head/count, signature and source-log truncation fail before chain inclusion assertion',async()=>{
+  const s=await anchoredScenario();
+  try{
+    const w=signedWitnessFixture(s);
+    for(const key of ['shareCount','lastEntryHash']){
+      const corrupted={...w.witnessReceipt.payload,
+        [key]:key==='shareCount'?2:'f'.repeat(64)};
+      assert.throws(()=>verifyWitness({
+        witnessReceipt:{...w.witnessReceipt,payload:corrupted},
+        trustedWitness:w.trustedWitness}),e=>e.code==='pinned_witness_signature_invalid');
+    }
+    const badSig={...w.witnessReceipt,signatureBase64:'A'+w.witnessReceipt.signatureBase64.slice(1)};
+    assert.throws(()=>verifyWitness({witnessReceipt:badSig,
+      trustedWitness:w.trustedWitness}),e=>e.code==='pinned_witness_signature_invalid');
+    const original=await readFile(s.logFile,'utf8');
+    await writeFile(s.logFile,'');
+    assert.throws(()=>reconcileSigned({logFile:s.logFile,witnessReceipt:w.witnessReceipt,
+      trustedWitness:w.trustedWitness,...s.proof,rawChainState:s.includedState}),
+      e=>e.code==='share_ledger_anchor_mismatch');
+    await writeFile(s.logFile,original);
+  }finally{await rm(s.dir,{recursive:true,force:true})}
+});
+test('HPA-W3-59: authenticated pinned signer is not proof of inclusion at shorter verified tip or safe retransmission',async()=>{
+  const s=await anchoredScenario();
+  try{
+    const w=signedWitnessFixture(s);
+    const r=reconcileSigned({logFile:s.logFile,witnessReceipt:w.witnessReceipt,
+      trustedWitness:w.trustedWitness,...s.proof,rawChainState:s.notYetSeenState});
+    assert.equal(r.verdict,'NOT_OBSERVED_AT_THIS_VERIFIED_TIP');
+    assert.equal(r.inclusion_unknown,true);
+    assert.equal(r.safe_to_auto_resubmit,false);
+    assert.equal(r.external_evidence_gate_open,true);
   }finally{await rm(s.dir,{recursive:true,force:true})}
 });
