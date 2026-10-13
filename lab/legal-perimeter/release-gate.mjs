@@ -3,6 +3,7 @@
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+const officialSourcePaths=new Set(['README.md','index.html']);
 const STATUSES=new Set(['TECHNICAL_PROPERTY_VERIFIED','NO_TRIGGER_IDENTIFIED_IN_REVIEWED_SCOPE','POTENTIAL_TRIGGER','LEGAL_INTERPRETATION_REQUIRED','TECHNICAL_REPAIR_REQUIRED','EXTERNAL_AUTHORITY_GATE','INSUFFICIENT_EVIDENCE']);
 export function checkMatrix(matrix){
   const errors=[];
@@ -46,7 +47,6 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   else {const m=JSON.parse(readFileSync(process.argv[2],'utf8')),p=JSON.parse(readFileSync(process.argv[3],'utf8')),errors=checkProposal(m,p);console.log(JSON.stringify({verdict:errors.length?'REJECT':'CANDIDATE_REVIEW_PASS_NOT_RELEASE_AUTHORITY',errors,baseline_commit:m.baseline_commit},null,2));if(errors.length)process.exitCode=1}
 }
 
-const officialSourcePaths=new Set(['README.md','index.html']);
 export function reviewPublicCopy(copy){
   const errors=[];
   for(const clause of String(copy).normalize('NFKC').replace(/[\u200b-\u200d\ufeff]/g,'').toLowerCase().split(/[.!?;\n]+/)){
