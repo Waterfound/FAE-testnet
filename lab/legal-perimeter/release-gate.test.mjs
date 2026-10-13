@@ -82,4 +82,7 @@ test('markdown informational heading remains permitted',()=>assert.deepEqual(rev
 test('Markdown emphasis must not conceal a guaranteed return',()=>assert.match(reviewPublicCopy('Earn **guaranteed** returns.').join('|'),/financial promise/));
 test('Markdown split tokens must not conceal a guaranteed return',()=>assert.match(reviewPublicCopy('**Guaranteed** **profits**.').join('|'),/financial promise/));
 test('qualified technical description still allowed',()=>assert.deepEqual(reviewPublicCopy('Mining has no guaranteed returns.'),[]));
+test('unsupported unconditional legal conformity copy rejected',()=>assert.match(reviewPublicCopy('We are fully compliant with all crypto regulations.').join('|'),/legal conformity claim/));
+test('Portuguese regulatory guarantee rejected',()=>assert.match(reviewPublicCopy('Oferecemos conformidade regulatória garantida.').join('|'),/legal conformity claim/));
+test('explicit denial of legal certification remains allowed',()=>assert.deepEqual(reviewPublicCopy('We are not fully compliant. Independent legal review is required.'),[]));
 console.log(n+'/'+n+' candidate tests passed; Git source/object validation also covered');
