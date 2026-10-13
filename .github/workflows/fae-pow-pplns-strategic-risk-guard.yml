@@ -19,6 +19,7 @@ on:
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
       - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+      - lab/pow-historical-assurance/pcc-main-candidate-differential.test.mjs
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
@@ -63,6 +64,26 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PCC-001 real main-versus-candidate runtime differential
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          BASE_DIR="$(mktemp -d "${RUNNER_TEMP}/pcc-diff-main-XXXXXXXX")"
+          cleanup() {
+            if git -C "$BASE_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+              git worktree remove --force "$BASE_DIR" >/dev/null 2>&1 || true
+            fi
+            rmdir "$BASE_DIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          git worktree add --detach "$BASE_DIR" refs/remotes/origin/main
+          echo "PCC_DIFF_MAIN=$(git -C "$BASE_DIR" rev-parse HEAD)"
+          echo "PCC_DIFF_CANDIDATE=$(git rev-parse HEAD)"
+          PCC_CANONICAL_MAIN_WORKTREE="$BASE_DIR" node --test lab/pow-historical-assurance/pcc-main-candidate-differential.test.mjs
       - name: PCC-001 rehearsal merge into current main without remote write
         env:
           PCC_HEAD: ${{ github.event.pull_request.head.sha }}
