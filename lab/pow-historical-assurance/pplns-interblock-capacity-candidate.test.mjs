@@ -135,3 +135,74 @@ test('HPA-W3-118: malformed, overbudget and duplicated payout model inputs fail 
     weights:many,rewardAtomsPerBlock:'256',blocks:100}),
     /interblock_simulation_work_budget_exceeded/);
 });
+
+test('HPA-W3-119: source-valid two-share identity splitting gains one atom in a three-block deficit horizon',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const baseline=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},{address:unsplit.address,weight:2n}],
+    rewardAtomsPerBlock:1n,blocks:3
+  });
+  const split=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},
+      {address:splitA.address,weight:1n},{address:splitB.address,weight:1n}],
+    rewardAtomsPerBlock:1n,blocks:3
+  });
+  const baselineAttacker=BigInt(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms);
+  const splitAttacker=split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n);
+  assert.equal(baselineAttacker,1n);
+  assert.equal(splitAttacker,2n);
+  assert.equal(splitAttacker-baselineAttacker,1n);
+  assert.equal(split.total_atoms,baseline.total_atoms);
+  assert.equal(split.sybil_resistant,false);
+  assert.equal(split.guaranteed_non_custodial_entitlement,false);
+});
+
+test('HPA-W3-120: the demonstrated identity-splitting edge is horizon-dependent, not infinite profit',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const baseline=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},{address:unsplit.address,weight:2n}],
+    rewardAtomsPerBlock:1n,blocks:4
+  });
+  const split=simulateDirectAtomRounds({
+    weights:[{address:honest.address,weight:2n},
+      {address:splitA.address,weight:1n},{address:splitB.address,weight:1n}],
+    rewardAtomsPerBlock:1n,blocks:4
+  });
+  assert.equal(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms,'2');
+  assert.equal(split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n),2n);
+  assert.equal(baseline.total_atoms,split.total_atoms);
+});
+
+test('HPA-W3-121: identity split is realizable as distinct accepted source ShareLedger shares',()=>{
+  const {weights}=sourceWindow(4);
+  const [honest,unsplit,splitA,splitB]=weights;
+  const mkLedger=(addresses)=>{
+    const ledger=new ShareLedger({windowSize:2048});
+    addresses.forEach((address,i)=>ledger.append({
+      jobId:'HPA-W3-121-'+i,address,nonce:i,hash:'0'.repeat(64),
+      shareDifficultyBits:4,blockDifficultyBits:8,height:1,
+      previousBlockHash:'0'.repeat(64)
+    }));
+    return ledger;
+  };
+  const baselineLedger=mkLedger([honest.address,honest.address,unsplit.address,unsplit.address]);
+  const splitLedger=mkLedger([honest.address,honest.address,splitA.address,splitB.address]);
+  assert.deepEqual(baselineLedger.weights(honest.address).map(w=>w.weight),[2n,2n]);
+  assert.deepEqual(splitLedger.weights(honest.address).map(w=>w.weight),[2n,1n,1n]);
+  const baseline=simulateDirectAtomRounds({
+    weights:baselineLedger.weights(honest.address),rewardAtomsPerBlock:1n,blocks:3
+  });
+  const split=simulateDirectAtomRounds({
+    weights:splitLedger.weights(honest.address),rewardAtomsPerBlock:1n,blocks:3
+  });
+  assert.equal(BigInt(baseline.paid.find(p=>p.address===unsplit.address).amount_atoms),1n);
+  assert.equal(split.paid.filter(p=>p.address!==honest.address)
+    .reduce((s,p)=>s+BigInt(p.amount_atoms),0n),2n);
+  assert.equal(baselineLedger.summary().totalShares,splitLedger.summary().totalShares);
+  assert.equal(baseline.guaranteed_future_payment,false);
+  assert.equal(split.policy_activated,false);
+});
