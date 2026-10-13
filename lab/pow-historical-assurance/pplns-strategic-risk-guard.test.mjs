@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PPLNS_COINBASE_ACTIVATION_HEIGHT,activationConfigured,isPplnsCoinbaseActive} from '../../sovereign-forge/node/authoritative/pplns-activation.mjs';
 import {ShareLedger,ShareCoordinator,allocatePplnsOutputs} from '../../sovereign-forge/node/authoritative/share-coordinator.mjs';
+import {emptyState,appendBlockFromFeed,createDistributedTemplate} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {legacyBlocks} from '../../sovereign-forge/tests/legacy-testnet-fixture.mjs';
 import {encodeAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {hashHex,leadingZeroBits} from '../../sovereign-forge/node/authoritative/crypto.mjs';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -10,6 +12,17 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {assessCurrentPplnsAdmission,requireFreshStrategicAuthority} from './pplns-strategic-risk-guard.mjs';
 const honest='honest',infiltrator='infiltrator';
+function attachValidCandidateCoinbase(candidate){
+  // Existing source-owned negative fixtures predated the v4 multi-output
+  // coinbase commitments; populate their genuine one-miner payout encoding,
+  // without weakening the coordinator's payout-consistency validation.
+  const outputs=candidate.coinbase_outputs;
+  candidate.header.fee_atoms='0';
+  candidate.header.coinbase_root=hashHex(outputs);
+  candidate.header.coinbase_count=outputs.length;
+  candidate.header.coinbase_mode='pplns-direct';
+  return candidate;
+}
 function share(log,address,i){
   return log.append({jobId:'job-'+i,address,nonce:i,hash:'0'.repeat(64),
     shareDifficultyBits:12,blockDifficultyBits:18,height:1,previousBlockHash:'0'.repeat(64)});
@@ -78,6 +91,7 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
     miner_address:address,timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header:candidateHeader,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
     statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,tip_hash:prev,difficulty_bits:8}),
@@ -111,6 +125,7 @@ test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended'
   const candidate={header:{height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
     txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
     statusProvider:async()=>({height:100,tip_hash:currentTip,difficulty_bits:8}),
@@ -135,6 +150,7 @@ function tipRaceFixture({recheck=false,changeDuringHash=true}={}){
     miner_address:address,timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,candidateTipRecheck:recheck,
     statusProvider:async()=>({height:99,tip_hash:currentTip,difficulty_bits:8}),
@@ -188,6 +204,7 @@ function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
     timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
   const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  attachValidCandidateCoinbase(candidate);
   let attempts=0;
   const coordinator=new ShareCoordinator({
     logFile,multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
@@ -341,4 +358,89 @@ test('HPA-W3-31: explicitly accepted upstream result is acknowledged, still not 
   assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
   assert.equal(x.attempts(),1);
+});
+
+/**
+ * HPA-W3-60..63: RED baseline against the real ShareCoordinator.createWork()
+ * plus actual FAE createDistributedTemplate(); no invented payout calculator.
+ * A coherent forged coinbase may still divert honest PPLNS weights.
+ * Pool remains candidate/inactive: test-only activationHeight override.
+ */
+function payoutTemplateAttack({tamper='redirect'}={}){
+  const honestAddr=encodeAddress(Buffer.alloc(20,71),'faet');
+  const attackerAddr=encodeAddress(Buffer.alloc(20,72),'faet');
+  let state=emptyState();
+  for(const b of legacyBlocks)
+    state=appendBlockFromFeed(state,b,new Map(),{activationHeight:null});
+  const height=state.chain.length+1;
+  let sourceTemplate;
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:height-1,
+      tip_hash:state.chain.at(-1).hash,difficulty_bits:state.chain.at(-1).difficulty_bits}),
+    candidateHasher:async()=>hashHex({fixture:true}),
+    distributedTemplateProvider:async({weights})=>{
+      const genuine=createDistributedTemplate(state,weights,{activationHeight:height});
+      sourceTemplate=genuine;
+      if(tamper==='none')return genuine;
+      if(tamper==='redirect'){
+        const sum=genuine.payouts.reduce((s,p)=>s+BigInt(p.amount_atoms),0n);
+        const redirected=[{address:attackerAddr,amount_atoms:sum.toString()}];
+        return {...genuine,payouts:redirected,coinbase_outputs:redirected,
+          header:{...genuine.header,coinbase_root:hashHex(redirected),
+            coinbase_count:1,coinbase_mode:'pplns-direct'}};
+      }
+      if(tamper==='split'){
+        const redirect=genuine.payouts.map((p,i)=>i===0?
+          {...p,amount_atoms:(BigInt(p.amount_atoms)-1n).toString()}:
+          i===1?{...p,amount_atoms:(BigInt(p.amount_atoms)+1n).toString()}:p);
+        return {...genuine,payouts:redirect,
+          coinbase_outputs:redirect,header:{...genuine.header,coinbase_root:hashHex(redirect)}};
+      }
+      if(tamper==='root')return {...genuine,
+        header:{...genuine.header,coinbase_root:'a'.repeat(64)}};
+      throw new Error('unexpected fixture mutation');
+    }
+  });
+  // Actual persisted-window accounting code: two honest shares and one
+  // attacker share create real 2:1 weights, not caller-assigned payout weights.
+  for(let i=0;i<3;i++)coordinator.ledger.append({
+    jobId:'hpa-payout-source-share-'+i,
+    address:i<2?honestAddr:attackerAddr,nonce:i,
+    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,
+    height,previousBlockHash:state.chain.at(-1).hash
+  });
+  return {coordinator,honestAddr,attackerAddr,getSource:()=>sourceTemplate};
+}
+
+test('HPA-W3-60: coherent template steals honest weights with recalculated root and unchanged total — reject before coordinator work signature',async()=>{
+  const x=payoutTemplateAttack({tamper:'redirect'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /distributed_payout_commitment_mismatch/);
+  assert.equal(x.coordinator.jobs.size,0,'no signed work for stolen payouts');
+  assert.equal(x.coordinator.ledger.summary().totalShares,3,'no share loss');
+});
+
+test('HPA-W3-61: even one atom shifted between honest and attacker must not be signed despite exact total',async()=>{
+  const x=payoutTemplateAttack({tamper:'split'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /distributed_payout_commitment_mismatch/);
+  assert.equal(x.coordinator.jobs.size,0);
+});
+
+test('HPA-W3-62: correct outputs with a wrong signed-header coinbase root must not produce a mining job',async()=>{
+  const x=payoutTemplateAttack({tamper:'root'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /distributed_payout_commitment_mismatch/);
+  assert.equal(x.coordinator.jobs.size,0);
+});
+
+test('HPA-W3-63: genuine FAE source output distribution for real PPLNS window remains usable without production activation',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const work=await x.coordinator.createWork(x.honestAddr);
+  assert.ok(work.jobId);
+  assert.equal(work.payoutCommitment,hashHex(x.getSource().payouts));
+  assert.equal(x.coordinator.jobs.size,1);
+  assert.equal(x.coordinator.multiOutputCoinbaseActive,true,'fixture opt-in only');
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null,'public production stays inactive');
 });

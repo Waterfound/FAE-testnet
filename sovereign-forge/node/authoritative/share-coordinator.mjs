@@ -74,6 +74,22 @@ export class ShareCoordinator{
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
+    // HPA-W3: source-owned PPLNS economic integrity. Correct aggregate total
+    // is insufficient: an upstream template could silently divert the honest
+    // miners' portions and still recompute a self-consistent coinbase root.
+    // Compare the exact payout distribution to this coordinator's durable
+    // window weights BEFORE publishing a signed work proof or a mining job.
+    const expectedPayouts=allocatePplnsOutputs(expectedTotal,weights);
+    const expectedCoinbaseRoot=hashHex(expectedPayouts);
+    if(!Array.isArray(candidate.coinbase_outputs)||
+       hashHex(candidate.payouts)!==expectedCoinbaseRoot||
+       hashHex(candidate.coinbase_outputs)!==expectedCoinbaseRoot||
+       candidate.header.coinbase_root!==expectedCoinbaseRoot||
+       candidate.header.coinbase_count!==expectedPayouts.length||
+       candidate.header.coinbase_mode!=='pplns-direct'){
+      throw Object.assign(new Error('distributed_payout_commitment_mismatch'),
+        {code:'distributed_payout_commitment_mismatch'});
+    }
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
     const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
     const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
