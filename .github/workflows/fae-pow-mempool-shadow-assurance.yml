@@ -1,0 +1,47 @@
+name: fae-pow-mempool-shadow-assurance
+on:
+  pull_request:
+    paths:
+      - lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-template-node.test.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.mjs
+      - lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
+      - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
+      - lab/pow-historical-assurance/MEMPOOL_SHADOW_REPLAY_HANDOFF_20261011.md
+      - .github/workflows/fae-pow-mempool-shadow-assurance.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  shadow-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Signed production-core mempool shadow replay (no node mutation)
+        run: node --test lab/pow-historical-assurance/mempool-production-shadow-replay.test.mjs
+      - name: Dependency-closed fee-aware admission policy on isolated state
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs
+      - name: Local HTTP authoritative peer and cold persistence replay (candidate only)
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-node-persistence-rehearsal.test.mjs
+      - name: Source-owned fee-sensitive ancestor template and valid mined block (test opt-in)
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-template-node.test.mjs
+      - name: Valid higher-work reorg and bounded detached fee-aware salvage (research only)
+        run: node --test lab/pow-historical-assurance/mempool-fee-aware-reorg-candidate.test.mjs
+      - name: Fee payout falsification and premature activation boundary
+        run: node --test lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - name: PCC-001 source-composed W2 fee-shadow x W3 signed PPLNS allocation
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
+      - name: PCC-001 W3 source-suite regression on combined W2 tree
+        run: |
+          node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+          node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
+          node --test lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
+          node --test lab/pow-historical-assurance/selfish-mining-exact-horizon.test.mjs
