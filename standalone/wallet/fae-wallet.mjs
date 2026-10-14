@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {buildSignedTransaction,deriveRecords,newMnemonic,NETWORK,parseAtoms} from './crypto.mjs';
-import {readVault,unlockVault,writeVault} from './vault.mjs';
+import {unlockVault,writeVault} from './vault.mjs';
 
 const HELP='FAE Sovereign Wallet (Node 22+)\n'+
   'Commands: create | recover | address | receive | balance | send | history | status\n'+
@@ -133,7 +133,15 @@ async function main(argv){
   }
   const base=normalizeNode(opt['--node']);
   if(cmd==='status'){present({node:base,...(await statusForNode(base))});return}
-  const address=opt['--watch']||((await readVault(vault)).public_addresses[idx].address);
+  // Metadata stored beside ciphertext is not independently authenticated.
+  // Never display or use a saved receive address until its encrypted recovery
+  // material is unlocked and re-derived. Explicit --watch is public-only.
+  let unlocked=null;
+  if(!opt['--watch']){
+    const password=await passwordPrompt();
+    unlocked=await unlockVault(vault,password);
+  }
+  const address=opt['--watch']||unlocked[idx].address;
   if(cmd==='address'||cmd==='receive'){present({network:NETWORK,address,watch_only:Boolean(opt['--watch'])});return}
   const view=await outputsForNode(base,address);
   if(cmd==='balance'){present({address,confirmed_balance_atoms:view.balance_atoms,
@@ -168,8 +176,7 @@ async function main(argv){
       }catch(err){if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err}
     }
     const plan=planSpend(spendable,address,opt['--to'],amount,fee);
-    const password=await passwordPrompt();
-    const record=(await unlockVault(vault,password))[idx];
+    const record=unlocked[idx];
     if(record.address!==address)throw Error('vault_identity_mismatch');
     const {tx,txid}=buildSignedTransaction(record,plan.inputs,plan.outputs);
     const result=await nodeRequest(base,'/submit-tx','POST',{tx});
