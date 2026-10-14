@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {chmod,mkdtemp,readFile,rm,stat} from 'node:fs/promises';
+import {chmod,mkdtemp,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
@@ -88,6 +88,10 @@ test('encrypted vault create/read/recover, corruption, wrong password, permissio
     await chmod(p,0o644);
     await assert.rejects(readVault(p),/private_0600/);
     await chmod(p,0o600);
+    const corrupted=JSON.parse(bytes);
+    corrupted.encryption.tag='AAAAAAAAAAAAAAAAAAAAAA==';
+    await writeFile(p,JSON.stringify(corrupted)+'\n',{mode:0o600});
+    await assert.rejects(unlockVault(p,password),/incorrect_password_or_corrupt_vault/);
   }finally{await rm(dir,{recursive:true,force:true})}
 });
 
