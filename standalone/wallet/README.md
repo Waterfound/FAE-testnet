@@ -37,6 +37,48 @@ The CLI queries the selected node, checks network identity and uses confirmed, u
 
 The legacy standalone node supplies `/transactions` with limited recent transfers, not lifetime history. The modern authoritative P2P node currently lacks `/transactions`; the CLI explicitly reports only unspent outputs and **does not fabricate history, reorg proofs or chain confirmations**. On reorg, treat historical status as unknown unless a full indexed and independently validated chain proves otherwise.
 
+### Interrupted send — durable encrypted outbox (candidate)
+
+Before making any `POST /submit-tx`, the CLI creates a **single-flight outbox**
+at `<vault>.outbox.json`, mode `0600`, using exclusive creation (it refuses
+to overwrite unresolved intent). It encrypts the deterministic signed-TXID,
+selected node URL, recipient-side sender address, amount, fee and observed chain
+tip with separate scrypt/AES-256-GCM under the vault password, then fsyncs the
+file **and containing directory** before the network POST. The outbox contains
+**no seed, private key or executable signed transaction**. No automatic
+resubmission is performed even if the HTTP acknowledgement is lost.
+
+After a process interruption, use:
+
+```sh
+node standalone/wallet/fae-wallet.mjs outbox --vault ./my-wallet.vault.json
+```
+
+This asks for the vault password using a no-echo interactive terminal and
+queries the originally selected node's `/status` and `/transactions` before
+and after the history lookup. The answer is only
+`pending_node_reported`, `confirmed_node_reported` or `outcome_unknown`.
+A missing history endpoint, contradictory response, reorg during observation,
+node outage or missing historical record is **unknown**, not proof of rejection.
+There is **never** an automatic retry. The CLI blocks any second `send` while
+the outbox exists; this prevents accidental duplicate intent after a crash.
+
+Only **after the selected node reports confirmed** and the user independently
+checks the chain, the user may explicitly acknowledge the exact locally
+recorded TXID to release the send lock:
+
+```sh
+node standalone/wallet/fae-wallet.mjs settle --vault ./my-wallet.vault.json --txid <64_hex_txid>
+```
+
+Settlement removes the local outbox **only**, not blockchain records or
+transactions. It does not undo or reverse a sent transaction, and a selected
+node's claim is not a cryptographic finality proof. If no reliable node
+history is available, retain the outbox and do not treat omission as a safe
+rejection. Test harnesses use only disposable seeds, passwords and local nodes.
+The filesystem threat model does not include malicious kernel/admin access,
+power-loss guarantees on every filesystem, or hardware-backed key custody.
+
 ### Evidence command
 
 ```sh
