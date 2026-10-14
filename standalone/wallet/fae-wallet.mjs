@@ -2,9 +2,10 @@
 import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {buildSignedTransaction,deriveRecords,newMnemonic,NETWORK,parseAtoms} from './crypto.mjs';
 import {unlockVault,writeVault} from './vault.mjs';
+import {intentPath,writeIntent,readIntent,acknowledgeConfirmedIntent} from './outbox.mjs';
 
 const HELP='FAE Sovereign Wallet (Node 22+)\n'+
-  'Commands: create | recover | address | receive | balance | send | history | status\n'+
+  'Commands: create | recover | address | receive | balance | send | history | status | outbox | settle\n'+
   'Public options: --vault PATH --node URL --index 0..4 --watch faet1...\n'+
   'Send options: --to faet1... --amount DECIMAL [--fee DECIMAL]\n'+
   'Secrets are accepted ONLY through an interactive no-echo TTY; never via args/env.\n'+
@@ -13,18 +14,21 @@ const DEFAULT_NODE='http://127.0.0.1:8787';
 
 export function parseCli(argv){
   const [cmd,...tokens]=argv;
-  const allowed=new Set(['--vault','--node','--index','--watch','--to','--amount','--fee']);
+  const allowed=new Set(['--vault','--node','--index','--watch','--to','--amount','--fee','--txid']);
   const opt={};
   for(let i=0;i<tokens.length;i+=2){
     const key=tokens[i];
     if(!allowed.has(key)||i+1===tokens.length||opt[key]!==undefined)throw Error('invalid_or_duplicate_option');
     opt[key]=tokens[i+1];
   }
-  if(!['create','recover','address','receive','balance','send','history','status','help'].includes(cmd))throw Error('unknown_command');
+  if(!['create','recover','address','receive','balance','send','history','status','outbox','settle','help'].includes(cmd))throw Error('unknown_command');
   if(opt['--index']!==undefined&&!/^[0-4]$/.test(opt['--index']))throw Error('index_must_be_0_to_4');
   if(opt['--watch']!==undefined&&!isValidAddress(opt['--watch']))throw Error('invalid_watch_address');
   if(opt['--watch']&&['create','recover','send'].includes(cmd))throw Error('watch_only_cannot_create_recover_or_send');
   if(cmd==='send'&&(!opt['--amount']||!isValidAddress(opt['--to'])))throw Error('send_requires_amount_and_valid_address');
+  if(['outbox','settle'].includes(cmd)&&opt['--watch'])throw Error('outbox_requires_owned_vault');
+  if(cmd==='settle'&&!/^[0-9a-f]{64}$/.test(opt['--txid']||''))throw Error('settle_requires_exact_txid');
+  if(cmd!=='settle'&&opt['--txid'])throw Error('txid_option_only_for_settle');
   return{cmd,opt,idx:Number(opt['--index']||0),vault:opt['--vault']||'./fae-wallet.vault.json'};
 }
 export function normalizeNode(raw){
@@ -108,6 +112,36 @@ export async function historyForNode(base,address,view){
     pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'};
 }
 
+export async function reconcileIntent(record){
+  const node=normalizeNode(record.node);
+  let before,history,after;
+  try{
+    before=await statusForNode(node);
+    history=await nodeRequest(node,'/transactions?address='+encodeURIComponent(record.address));
+    after=await statusForNode(node);
+    assertSameNodeTip(before,after);
+  }catch(error){
+    if(String(error.message).startsWith('wrong_node_network'))throw error;
+    return {state:'outcome_unknown',txid:record.txid,
+      reason:String(error.message)==='node_tip_changed_during_read'?'node_tip_changed':'node_unavailable_or_history_unverifiable',
+      provenance:'no_independent_chain_proof'};
+  }
+  if(!Array.isArray(history.transactions))return{state:'outcome_unknown',txid:record.txid,reason:'invalid_history'};
+  const entry=history.transactions.find(x=>x.txid===record.txid);
+  if(!entry)return{state:'outcome_unknown',txid:record.txid,reason:'tx_not_in_recent_node_history',
+    provenance:'selected_node_untrusted_until_independently_synced'};
+  if(entry.status==='confirmed'&&Number.isSafeInteger(Number(entry.confirmed_height))&&Number(entry.confirmed_height)>0 &&
+    Number(entry.confirmed_height)<=before.height)
+    return{state:'confirmed_node_reported',txid:record.txid,confirmed_height:Number(entry.confirmed_height),
+      node_tip_height:before.height,node_tip_hash:before.tip_hash,
+      provenance:'selected_node_untrusted_until_independently_synced'};
+  if(entry.status==='pending'&&entry.confirmed_height==null)
+    return{state:'pending_node_reported',txid:record.txid,node_tip_height:before.height,
+      provenance:'selected_node_untrusted_until_independently_synced'};
+  return{state:'outcome_unknown',txid:record.txid,reason:'inconsistent_or_reorganized_history',
+    provenance:'selected_node_untrusted_until_independently_synced'};
+}
+
 export function planSpend(utxos,from,to,amount,fee=0n){
   if(!isValidAddress(from)||!isValidAddress(to)||amount<=0n||fee<0n)throw Error('invalid_payment');
   const inputs=[];let total=0n;
@@ -181,6 +215,26 @@ async function main(argv){
     present({ok:true,action:cmd,vault,addresses:addresses.map(x=>x.address),encrypted:true});
     return;
   }
+  if(cmd==='outbox'||cmd==='settle'){
+    const password=await passwordPrompt();
+    // An outbox belongs to one wallet file. Full wallet authentication must
+    // succeed before relying on any stored intent.
+    const records=await unlockVault(vault,password);
+    const p=intentPath(vault),record=await readIntent(p,password);
+    if(!records.some(r=>r.address===record.address))throw Error('outbox_address_not_owned');
+    const result=await reconcileIntent(record);
+    if(cmd==='settle'){
+      if(opt['--txid']!==record.txid)throw Error('outbox_txid_mismatch');
+      await acknowledgeConfirmedIntent(p,password,record.txid,result);
+      present({state:'confirmed_record_acknowledged',txid:record.txid,
+        warning:'selected_node_confirmation_only_not_cryptographic_finality'});
+      return;
+    }
+    present({...result,stored_before_submit:true,automatic_retry:false,
+      journal_guard:'a_new_send_is_blocked_until_explicit_settlement'});
+    if(!result.state.startsWith('confirmed'))process.exitCode=2;
+    return;
+  }
   const base=normalizeNode(opt['--node']);
   if(cmd==='status'){present({node:base,...(await statusForNode(base))});return}
   // Metadata stored beside ciphertext is not independently authenticated.
@@ -216,6 +270,12 @@ async function main(argv){
     const record=unlocked[idx];
     if(record.address!==address)throw Error('vault_identity_mismatch');
     const {tx,txid}=buildSignedTransaction(record,plan.inputs,plan.outputs);
+    // The durable encrypted single-flight intent MUST fsync before HTTP POST;
+    // losing the CLI process cannot erase the local deterministic TXID.
+    const outbox=intentPath(vault);
+    await writeIntent(outbox,{network:NETWORK,txid,node:base,address,amount_atoms:String(amount),
+      fee_atoms:plan.fee_atoms,tip_height:view.observed_tip.height,
+      tip_hash:view.observed_tip.tip_hash},password);
     const result=await submitSignedWithReceipt(base,tx,txid,plan.fee_atoms);
     present({...result,address,amount_atoms:String(amount),node:base});
     if(result.state==='submission_outcome_unknown')process.exitCode=2;
