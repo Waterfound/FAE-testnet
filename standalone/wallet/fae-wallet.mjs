@@ -75,7 +75,6 @@ export function planSpend(utxos,from,to,amount,fee=0n){
 }
 async function secretPrompt(label){
   if(!process.stdin.isTTY||!process.stderr.isTTY||typeof process.stdin.setRawMode!=='function')throw Error('interactive_tty_required_for_secrets');
-  process.stderr.write(label);
   const stdin=process.stdin,prior=stdin.isRaw;
   return await new Promise((resolve,reject)=>{
     const bytes=[];
@@ -104,7 +103,10 @@ async function secretPrompt(label){
         bytes.push(byte);
       }
     }
+    // Enter no-echo mode BEFORE publishing the prompt: otherwise a fast
+    // terminal/pseudoterminal responder can echo recovery words in the gap.
     stdin.setRawMode(true);stdin.resume();stdin.on('data',handle);
+    process.stderr.write(label);
   });
 }
 async function passwordPrompt({confirm=false}={}){
