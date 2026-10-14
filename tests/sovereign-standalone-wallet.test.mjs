@@ -7,11 +7,12 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
 import vm from 'node:vm';
+import {createServer} from 'node:http';
 import {encodeAddress} from '../sovereign-forge/node/authoritative/address.mjs';
 import {verifyTxCrypto} from '../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {entropyToMnemonic,mnemonicToEntropy,deriveRecords,buildSignedTransaction,parseAtoms,NETWORK} from '../standalone/wallet/crypto.mjs';
 import {readVault,unlockVault,writeVault} from '../standalone/wallet/vault.mjs';
-import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode} from '../standalone/wallet/fae-wallet.mjs';
+import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode,submitSignedWithReceipt} from '../standalone/wallet/fae-wallet.mjs';
 
 const root=resolve(new URL('..',import.meta.url).pathname);
 const mnemonic=entropyToMnemonic(Buffer.alloc(32));
@@ -108,6 +109,47 @@ test('CLI fails closed on secret argv, watch-only spend, wrong endpoint and no T
   assert.equal(normalizeNode('http://127.0.0.1:8787'),'http://127.0.0.1:8787');
   const out=execFileSync(process.execPath,[join(root,'standalone','wallet','fae-wallet.mjs'),'help'],{encoding:'utf8'});
   assert.match(out,/FAE Sovereign Wallet/);
+});
+
+test('real HTTP drop AFTER accepting signed payload returns deterministic submission-outcome-unknown, never auto-retries',async()=>{
+  const from=deriveRecords(mnemonic)[0],to=deriveRecords(phrase2)[0];
+  const {tx,txid}=buildSignedTransaction(from,['synthetic-disposable:0'],[
+    {address:to.address,amount_atoms:'100000000'}]);
+  const deliveries=[];
+  let mode='drop_after_read';
+  const server=createServer(async(req,res)=>{
+    const chunks=[];
+    for await(const chunk of req)chunks.push(chunk);
+    deliveries.push(JSON.parse(Buffer.concat(chunks).toString('utf8')).tx);
+    if(mode==='drop_after_read'){req.socket.destroy();return}
+    res.writeHead(mode==='reject'?409:mode==='duplicate'?409:200,
+      {'content-type':'application/json'});
+    if(mode==='reject')res.end(JSON.stringify({ok:false,error:'invalid_signature'}));
+    else if(mode==='duplicate')res.end(JSON.stringify({ok:false,error:'duplicate_txid'}));
+    else res.end(JSON.stringify({ok:true,txid:'f'.repeat(64),fee_atoms:'0'}));
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base='http://127.0.0.1:'+server.address().port;
+  try{
+    const uncertain=await submitSignedWithReceipt(base,tx,txid,'0');
+    assert.equal(uncertain.state,'submission_outcome_unknown');
+    assert.equal(uncertain.txid,txid);
+    assert.equal(uncertain.reason,'receipt_lost_or_duplicate_unknown');
+    assert.equal(deliveries.length,1,'never retry transport-unknown automatically');
+    assert.deepEqual(deliveries[0],tx,'original signed transaction retained without exposing keys');
+    mode='duplicate';
+    const duplicate=await submitSignedWithReceipt(base,tx,txid,'0');
+    assert.equal(duplicate.state,'submission_outcome_unknown');
+    assert.equal(duplicate.txid,txid);
+    mode='wrong_receipt';
+    const falseAck=await submitSignedWithReceipt(base,tx,txid,'0');
+    assert.equal(falseAck.state,'submission_outcome_unknown');
+    assert.equal(falseAck.reason,'node_receipt_mismatch');
+    mode='reject';
+    await assert.rejects(submitSignedWithReceipt(base,tx,txid,'0'),/node_rejected_request:invalid_signature/);
+  }finally{
+    await new Promise(resolve=>server.close(resolve));
+  }
 });
 
 async function waitNode(base){
