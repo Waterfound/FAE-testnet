@@ -78,22 +78,30 @@ async function secretPrompt(label){
   process.stderr.write(label);
   const stdin=process.stdin,prior=stdin.isRaw;
   return await new Promise((resolve,reject)=>{
-    let bytes='';
+    const bytes=[];
     const finish=(err)=>{
       stdin.removeListener('data',handle);
       stdin.setRawMode(prior||false);
       stdin.pause();
       process.stderr.write('\n');
-      if(err)reject(err);else resolve(bytes);
+      if(err){reject(err);return}
+      try{resolve(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(bytes)));}
+      catch{reject(Error('invalid_secret_utf8'))}
     };
     function handle(data){
       for(const byte of data){
         if(byte===3||byte===4){finish(Error('cancelled'));return}
         if(byte===10||byte===13){finish();return}
-        if(byte===127||byte===8){bytes=bytes.slice(0,-1);continue}
+        if(byte===127||byte===8){
+          if(bytes.length){
+            bytes.pop();
+            while(bytes.length&&(bytes.at(-1)&0xc0)===0x80)bytes.pop();
+          }
+          continue;
+        }
         if(byte<32)continue;
-        if(bytes.length>512){finish(Error('secret_input_too_long'));return}
-        bytes+=String.fromCharCode(byte);
+        if(bytes.length>=2048){finish(Error('secret_input_too_long'));return}
+        bytes.push(byte);
       }
     }
     stdin.setRawMode(true);stdin.resume();stdin.on('data',handle);
