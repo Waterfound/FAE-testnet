@@ -248,6 +248,14 @@ test('REAL isolated independent node: mine to A, signed A->B, reject mutation an
     assert.equal(accepted.state,'accepted_unconfirmed');
     const historyBefore=await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address));
     assert.equal(historyBefore.transactions.find(x=>x.txid===txid).status,'pending');
+    // Crash/restart AFTER accepted receipt but BEFORE mining: persisted mempool
+    // must not become a fictitious confirmation or allow the same spend again.
+    await killNode(node);node=null;
+    node=spawnNode(port,stateFile);
+    assert.equal((await waitNode(base)).height,1);
+    const restoredPending=await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address));
+    assert.equal(restoredPending.transactions.find(x=>x.txid===txid).status,'pending');
+    assert.equal((await outputsForNode(base,b.address)).balance_atoms,'0');
     await assert.rejects(nodeRequest(base,'/submit-tx','POST',{tx}),/node_rejected_request/);
     const double={...buildSignedTransaction(a,plan.inputs,[{address:b.address,amount_atoms:'90000000'},
       {address:a.address,amount_atoms:'910000000'}]).tx};
