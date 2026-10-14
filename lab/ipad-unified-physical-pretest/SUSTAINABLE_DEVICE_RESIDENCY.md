@@ -8,6 +8,17 @@ O usuário observou que um outro minerador (BrowserCoin) continuava drenando a b
 
 **Não confundir algoritmos:** HFB usa o DP6 v0.7; o RDE usa o minerador SHA256 da testnet. Duas horas e 33 minutos de RDE não constituem evidência de duas horas e 33 minutos de DP6.
 
+## Mandatory screen-awake preflight — repeat before EVERY physical test phase
+**OPERATOR REMINDER / not remotely verifiable:** Before starting the non-mining baseline, HFB DP6 capture, RDE timed campaign, and MTS-12 V3 residual-only:
+1. iPad **Settings → Display & Brightness → Auto-Lock → Never** (`Ajustes → Tela e Brilho → Bloqueio Automático → Nunca`). Verify the value is actually selected, not just presumed from a previous stage. If `Never` is unavailable, check Low Power Mode and record any settings change.
+2. Keep **Low Power Mode off** where admissible, record this condition, and preserve the same ordinary device power policy through each run.
+3. While running HFB or RDE **timed foreground phases**, keep the screen awake, Safari visible and the device unlocked; no switching apps, Control Center, screen lock, power-button press or dim-to-lock interruption. Observe/photograph power and battery using a **second device** only.
+4. **Exception by design:** RDE's five real hidden→visible lifecycle transitions and MTS-12 V3's deliberately commanded background→foreground test MUST happen **only at their respective lifecycle steps**. Auto-Lock Never prevents accidental timeout but does NOT prohibit the specifically required physical background test.
+5. If accidental lock/sleep interrupts HFB, **stop and export the interrupted attempt**, mark it `INTERRUPTED_INVALID_FOR_SUSTAINED`, revalidate before starting a clean new timed capture. Do not silently combine separated attempts or redo the independent completed COD baseline.
+6. After all testing, **restore the user's prior Auto-Lock value**. Record that a manual operator check occurred; GitHub CI cannot observe the real iPad setting.
+
+**Measurement-boundary note:** The photographed HiDANCE HDC-085C inline USB-C meter provides **DC input-to-iPad V/A/W/mWh**, not AC wall input. Preserve the raw USB-C observations as a distinct class and **do not claim official AC work/W or wattmeter-at-outlet evidence** from USB-C DC alone.
+
 ## Setup único
 Registrar iPad exato, iPadOS, saúde da bateria (ou desconhecida), política de limite de 80% ligada/desligada, carregador modelo e potência nominal, cabo, wattímetro, unidade Wh/kWh, temperatura ambiente e brilho. Manter a mesma fonte e resfriamento normal. Não inferir que a potência nominal do carregador seja a potência realmente entregue.
 

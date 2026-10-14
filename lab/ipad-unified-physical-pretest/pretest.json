@@ -289,5 +289,30 @@
     "nominal_total_minutes": 233,
     "frozen_acceptance_unchanged": true,
     "empirical_evidence_obtained": false
+  },
+  "operator_screen_awake_preflight": {
+    "status": "OPERATOR_MUST_VERIFY_BEFORE_EACH_PHYSICAL_PHASE",
+    "auto_lock_menu_pt_br": "Ajustes → Tela e Brilho → Bloqueio Automático → Nunca",
+    "required_auto_lock_setting": "Never",
+    "check_before": [
+      "NORMAL_HEAVY_NO_MINING",
+      "HFB_DP6_V07",
+      "RDE_TESTNET_SHA256",
+      "MTS12_V3_RESIDUAL"
+    ],
+    "preserve_foreground_uninterrupted": [
+      "HFB_DP6_V07",
+      "RDE_TESTNET_SHA256_TIMED_ONLY"
+    ],
+    "deliberate_lifecycle_exceptions": [
+      "RDE_FIVE_REAL_HIDDEN_VISIBLE",
+      "MTS12_V3_RESIDUAL_BACKGROUND_FOREGROUND"
+    ],
+    "on_accidental_sleep": "STOP_EXPORT_INVALID_ATTEMPT_REVALIDATE_BEFORE_NEW_CAPTURE",
+    "previous_compliant_baseline_must_not_be_repeated": true,
+    "restore_previous_auto_lock_setting_after_campaign": true,
+    "remote_os_setting_verified": false,
+    "evidence_only_no_acceptance_mutation": true,
+    "energy_meter_class": "USB_C_DC_NOT_AC_WALL"
   }
 }
