@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { createHash, generateKeyPairSync, sign } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -27,6 +27,24 @@ function convertBits(data,fromBits,toBits,pad=true){let acc=0,bits=0;const out=[
 function addressFromSpki(spki){const payload=sha256(spki).subarray(0,20),data5=convertBits(payload,8,5,true),mod=(polymod([...hrpExpand(HRP),...data5,0,0,0,0,0,0])^BECH32M_CONST)>>>0,checksum=Array.from({length:6},(_,i)=>(mod>>>(5*(5-i)))&31);return HRP+'1'+[...data5,...checksum].map(v=>CHARSET[v]).join('')}
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 async function json(url,options){const r=await fetch(url,options);const body=await r.json();if(!r.ok)throw Error(`${r.status} ${url}: ${JSON.stringify(body)}`);return body}
+// Exercise the ACTUAL source Node wallet CLI against the existing real
+// three-node partition fixture. No duplicate node or consensus implementation.
+function walletObservation(node,address){
+  const walletPath=join(root,'..','standalone','wallet','fae-wallet.mjs');
+  const opts=['--watch',address,'--node',bases[node]];
+  const status=JSON.parse(execFileSync(process.execPath,[walletPath,'status','--node',bases[node]],{encoding:'utf8',timeout:12000}));
+  const balance=JSON.parse(execFileSync(process.execPath,[walletPath,'balance',...opts],{encoding:'utf8',timeout:12000}));
+  const history=JSON.parse(execFileSync(process.execPath,[walletPath,'history',...opts],{encoding:'utf8',timeout:12000}));
+  return{status,balance,history};
+}
+function expectWalletTransaction(observation,txid,state,height,balanceAtoms){
+  const record=observation.history.transactions.find(row=>row.txid===txid);
+  if(!record)throw Error('wallet_missing_reorg_transaction:'+state);
+  if(record.state!==state)throw Error('wallet_reorg_state_mismatch:'+record.state+':'+state);
+  if(record.confirmed_height!==height)throw Error('wallet_reorg_height_mismatch:'+record.confirmed_height+':'+height);
+  if(observation.balance.confirmed_balance_atoms!==balanceAtoms)throw Error('wallet_reorg_balance_mismatch');
+  if(observation.history.provenance!=='selected_node_untrusted_until_independently_synced')throw Error('wallet_reorg_provenance_not_explicit');
+}
 async function waitFor(name,height,mempool){for(let i=0;i<160;i++){try{const s=await json(bases[name]+'/status');if((height===undefined||s.height===height)&&(mempool===undefined||s.mempool_size===mempool))return s}catch{}await delay(50)}throw Error(`node ${name} did not reach expected state height=${height} mempool=${mempool}`)}
 async function start(name,{sync='0',peers='',feeds=''}={}){const child=spawn(process.execPath,[nodeFile],{env:{...process.env,FAE_PORT:String(ports[name]),FAE_HOST:'127.0.0.1',FAE_DATA_FILE:data[name],FAE_SYNC:sync,FAE_SYNC_MS:'5000',FAE_UPSTREAM_API:'',FAE_PEERS:peers,FAE_BOOTSTRAP_FEEDS:feeds},stdio:['ignore','pipe','pipe']});let stderr='';child.stderr.on('data',d=>stderr+=d);child._stderr=()=>stderr;children.set(name,child);return child}
 async function stop(name){const child=children.get(name);if(!child)return;child.kill('SIGTERM');await Promise.race([new Promise(r=>child.once('exit',r)),delay(500)]);children.delete(name)}
@@ -57,6 +75,8 @@ try{
   const orphan=await mine('a',minerAddress);
   if(!orphan.txids.includes(txid))throw Error('orphan branch did not confirm test transaction');
   await waitFor('a',13,0);
+  const walletInitiallyConfirmed=walletObservation('a',recipientAddress);
+  expectWalletTransaction(walletInitiallyConfirmed,txid,'confirmed',13,'1000000000');
 
   await mine('b',minerAddress);await mine('b',minerAddress);await waitFor('b',14,0);
   if((await json(bases.a+'/status')).tip_hash===(await json(bases.b+'/status')).tip_hash)throw Error('partition did not create divergent tips');
@@ -65,6 +85,11 @@ try{
   const recovered=await waitFor('a',14,1);
   if(recovered.tip_hash!==(await json(bases.b+'/status')).tip_hash)throw Error('node A did not adopt higher-work branch');
   await waitFor('b',14,1);
+  const walletAfterReorg=walletObservation('a',recipientAddress);
+  if(walletAfterReorg.status.height!==14||walletAfterReorg.status.tip_hash!==(await json(bases.b+'/status')).tip_hash)throw Error('wallet_not_observing_adopted_chain');
+  expectWalletTransaction(walletAfterReorg,txid,'pending',null,'0');
+  // A previously confirmed payment MUST NOT remain spendable/confirmed after
+  // the orphaned block is discarded; this is a reorg, not a process restart.
 
   await stop('c');await start('c',{sync:'1',peers:bases.b});await waitFor('c',14);
   const finalBlock=await mine('a',minerAddress);
@@ -76,7 +101,13 @@ try{
   const tips=new Set(statuses.map(s=>s.tip_hash));if(tips.size!==1)throw Error('three nodes did not converge');
   const histories=await Promise.all(['a','b','c'].map(n=>json(`${bases[n]}/transactions?address=${encodeURIComponent(recipientAddress)}`)));
   for(const h of histories){const record=h.transactions.find(t=>t.txid===txid);if(!record||record.status!=='confirmed'||record.confirmed_height!==15)throw Error('transaction recovery confirmation mismatch')}
-  console.log(JSON.stringify({ok:true,nodes:3,height:15,tip_hash:statuses[0].tip_hash,recovered_txid:txid,reconfirmed_height:15}));
+  const walletReconfirmed=walletObservation('a',recipientAddress);
+  expectWalletTransaction(walletReconfirmed,txid,'confirmed',15,'1000000000');
+  console.log(JSON.stringify({ok:true,nodes:3,height:15,tip_hash:statuses[0].tip_hash,recovered_txid:txid,reconfirmed_height:15,
+    wallet_cli_real_reorg_states:['confirmed','pending','confirmed'],
+    wallet_cli_confirmed_balance_atoms:['1000000000','0','1000000000'],
+    wallet_client_built_from_source:true,
+    cross_node_independent_lifecycle:true}));
 } finally {
   for(const name of [...children.keys()])await stop(name);
   try{feed.close()}catch{}
