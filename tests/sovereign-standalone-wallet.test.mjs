@@ -88,6 +88,11 @@ test('encrypted vault create/read/recover, corruption, wrong password, permissio
     await chmod(p,0o644);
     await assert.rejects(readVault(p),/private_0600/);
     await chmod(p,0o600);
+    const redirected=JSON.parse(bytes);
+    redirected.public_addresses[0].address=deriveRecords(phrase2)[0].address;
+    await writeFile(p,JSON.stringify(redirected)+'\n',{mode:0o600});
+    await assert.rejects(unlockVault(p,password),/incorrect_password_or_corrupt_vault/);
+    await writeFile(p,bytes,{mode:0o600});
     const corrupted=JSON.parse(bytes);
     corrupted.encryption.tag='AAAAAAAAAAAAAAAAAAAAAA==';
     await writeFile(p,JSON.stringify(corrupted)+'\n',{mode:0o600});
@@ -156,8 +161,8 @@ async function actualInteractiveCli(args,promptsAndAnswers){
   });
   assert.equal(code,0,'interactive CLI execution failed (secret output redacted)');
   assert.equal(step,promptsAndAnswers.length,'interactive CLI missed required private prompts');
-  const json=output.split(/\r?\n/).find(line=>line.trim().startsWith('{"ok":true,"action":'));
-  assert.ok(json,'interactive CLI must return a public account receipt');
+  const json=output.split(/\r?\n/).find(line=>line.trim().startsWith('{"'));
+  assert.ok(json,'interactive CLI must return a public receipt');
   return{receipt:JSON.parse(json.trim()),output};
 }
 test('actual interactive create -> 24-word backup -> recover creates identical encrypted independent address identities',{timeout:90000},async()=>{
@@ -184,9 +189,11 @@ test('actual interactive create -> 24-word backup -> recover creates identical e
     assert.deepEqual(restored.receipt.addresses,created.receipt.addresses);
     assert.equal(restored.output.includes(generated),false,'recovery must never echo input mnemonic');
     assert.equal((await unlockVault(a,password))[0].address,(await unlockVault(b,password))[0].address);
-    const addr=JSON.parse(execFileSync(process.execPath,[join(root,'standalone','wallet','fae-wallet.mjs'),
-      'address','--vault',b],{encoding:'utf8'}));
-    assert.equal(addr.address,created.receipt.addresses[0]);
+    const checked=await actualInteractiveCli(['address','--vault',b],[
+      ['Vault password (hidden): ',password]
+    ]);
+    assert.equal(checked.receipt.address,created.receipt.addresses[0]);
+    assert.equal(checked.output.includes(password),false,'verified receive address must never echo password');
   }finally{await rm(dir,{recursive:true,force:true})}
 });
 
