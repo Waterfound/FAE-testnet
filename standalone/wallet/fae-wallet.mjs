@@ -240,9 +240,9 @@ async function main(argv){
   // Metadata stored beside ciphertext is not independently authenticated.
   // Never display or use a saved receive address until its encrypted recovery
   // material is unlocked and re-derived. Explicit --watch is public-only.
-  let unlocked=null;
+  let unlocked=null,password=null;
   if(!opt['--watch']){
-    const password=await passwordPrompt();
+    password=await passwordPrompt();
     unlocked=await unlockVault(vault,password);
   }
   const address=opt['--watch']||unlocked[idx].address;
