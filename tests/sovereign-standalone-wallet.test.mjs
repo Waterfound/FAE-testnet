@@ -135,6 +135,61 @@ async function mineOne(base,address){
   assert.match(stdout,/WORK_ACCEPTED/);
 }
 
+
+async function actualInteractiveCli(args,promptsAndAnswers){
+  const cmd=[process.execPath,join(root,'standalone','wallet','fae-wallet.mjs'),...args];
+  const child=spawn('script',['-q','-e','-c',cmd.join(' '),'/dev/null'],{stdio:['pipe','pipe','pipe']});
+  let output='',step=0;
+  child.stdout.on('data',chunk=>{
+    output+=chunk.toString();
+    if(step<promptsAndAnswers.length&&output.includes(promptsAndAnswers[step][0])){
+      const answer=promptsAndAnswers[step][1];
+      step++;
+      child.stdin.write(answer+'\n');
+      if(step===promptsAndAnswers.length)child.stdin.end();
+    }
+  });
+  const code=await new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{child.kill('SIGKILL');reject(Error('interactive_CLI_timeout'))},20000);
+    child.once('exit',n=>{clearTimeout(timer);resolve(n)});
+    child.once('error',reject);
+  });
+  assert.equal(code,0,'interactive CLI execution failed (secret output redacted)');
+  assert.equal(step,promptsAndAnswers.length,'interactive CLI missed required private prompts');
+  const json=output.split(/\r?\n/).find(line=>line.trim().startsWith('{"ok":true,"action":'));
+  assert.ok(json,'interactive CLI must return a public account receipt');
+  return{receipt:JSON.parse(json.trim()),output};
+}
+test('actual interactive create -> 24-word backup -> recover creates identical encrypted independent address identities',{timeout:90000},async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-wallet-creation-'));
+  const a=join(dir,'a.vault.json'),b=join(dir,'b.vault.json');
+  const password='correct horse battery staple';
+  try{
+    const created=await actualInteractiveCli(['create','--vault',a],[
+      ['FAE derivation passphrase (optional, hidden): ','Tést 123'],
+      ['Vault password (hidden): ',password],
+      ['Repeat vault password (hidden): ',password]
+    ]);
+    const match=/RECOVERY PHRASE[^\r\n]*\r?\n([a-z ]+)\r?\n/.exec(created.output);
+    assert.ok(match,'create must display 24 words only on interactive terminal');
+    const generated=match[1].trim();
+    assert.equal(generated.split(' ').length,24);
+    assert.equal((await stat(a)).mode&0o777,0o600);
+    const restored=await actualInteractiveCli(['recover','--vault',b],[
+      ['24-word recovery phrase (hidden): ',generated],
+      ['FAE derivation passphrase (optional, hidden): ','Tést 123'],
+      ['Vault password (hidden): ',password],
+      ['Repeat vault password (hidden): ',password]
+    ]);
+    assert.deepEqual(restored.receipt.addresses,created.receipt.addresses);
+    assert.equal(restored.output.includes(generated),false,'recovery must never echo input mnemonic');
+    assert.equal((await unlockVault(a,password))[0].address,(await unlockVault(b,password))[0].address);
+    const addr=JSON.parse(execFileSync(process.execPath,[join(root,'standalone','wallet','fae-wallet.mjs'),
+      'address','--vault',b],{encoding:'utf8'}));
+    assert.equal(addr.address,created.receipt.addresses[0]);
+  }finally{await rm(dir,{recursive:true,force:true})}
+});
+
 async function sendViaActualCliPty(base,vault,destination,password){
   // util-linux "script" gives the real Node CLI a controlling interactive TTY;
   // only synthetic, disposable test passwords flow over this local pipe.
