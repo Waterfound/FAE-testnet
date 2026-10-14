@@ -1,0 +1,111 @@
+{
+  "schema": "FAE_PLUGGED_SUSTAINED_POWER_EQUILIBRIUM_SIDECAR_V1",
+  "created": "2026-10-09",
+  "status": "SOFTWARE_PREPARED_PHYSICAL_EVIDENCE_PENDING",
+  "principle": "Mining should be able to live on the device, not consume the device",
+  "evidence_role": "ADVISORY_ONLY_NOT_RDE_HFB_OR_MTS_ACCEPTANCE",
+  "frozen_contract_mutation": false,
+  "physical_evidence_claimed": false,
+  "separate_workloads": [
+    "NORMAL_HEAVY_NO_MINING",
+    "HFB_DP6_V07",
+    "RDE_TESTNET_SHA256",
+    "MTS12_V3_RESIDUAL"
+  ],
+  "design": {
+    "baseline_min": 20,
+    "dp6_observation_min": 60,
+    "hfb_frozen_min_unchanged": 30,
+    "hfb_prior_preferred_min": 35,
+    "dp6_optional_extension_min": 90,
+    "rde_frozen_seconds": 9180,
+    "mts_local_start_gate_ms": 1500,
+    "scheduled_combined_min": 233,
+    "baseline_times_min": [
+      0,
+      10,
+      20
+    ],
+    "dp6_times_min": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "dp6_optional_times_min": [
+      75,
+      90
+    ],
+    "rde_times_min": [
+      0,
+      30,
+      60,
+      90,
+      111,
+      132,
+      153
+    ]
+  },
+  "required_metadata": [
+    "exact_ipad_model",
+    "ipados_version",
+    "battery_health_known_or_unknown",
+    "charging_limit_80_on_off_unknown",
+    "charger_model",
+    "charger_rated_w",
+    "cable_model",
+    "charger_connection_usb_pd_unknown_or_verified",
+    "wattmeter_model",
+    "meter_unit_wh_or_kwh",
+    "ambient_or_unknown",
+    "brightness_or_unknown",
+    "representative_heavy_workload"
+  ],
+  "sample_fields": [
+    "workload",
+    "elapsed_min",
+    "timestamp_iso",
+    "battery_pct",
+    "external_power",
+    "charging_status",
+    "wall_w_instant_optional",
+    "wall_integrated_wh_optional",
+    "thermal_observation",
+    "thermal_warning",
+    "photo_ref"
+  ],
+  "observation_method": "Use iPhone as passive logger; never background iPad Safari during HFB or six timed RDE runs; snapshots from visible iPad status bar and wall meter, not OS navigation.",
+  "power_boundary": "Paired integrated AC Wh over exactly matching HFB run; compute mean W from delta Wh / hours, no idle subtraction; wall W alone does not prove net battery charging.",
+  "charging_caveat": "Apple iPad 80-percent charging limit may naturally show 80 to 75 percent before charging restarts; avoid false failure.",
+  "result_states": [
+    "SUSTAINABLE_WITHIN_OBSERVED_WINDOW",
+    "MARGINAL_TRANSIENT_OR_OS_HYSTERESIS",
+    "SUSTAINED_DISCHARGE_TREND_OBSERVED",
+    "INCONCLUSIVE",
+    "INVALID_ENVIRONMENT",
+    "CRITICAL_EVENT_STOP"
+  ],
+  "interpretation": {
+    "sustainable": "Late SOC stable or increasing with continuing real DP6 throughput and no critical event; NOT 24h or 24/7 certification.",
+    "marginal": "SOC initially declines then plateaus or shows bounded charge-policy oscillation; do not force a FAIL.",
+    "unsustainable": "Repeated post-warmup SOC samples persistently decline with power connected and credible heavy-normal baseline; risk evidence, NOT mathematical proof of eventual shutdown.",
+    "inconclusive": "SOC display quantization, 80-percent charge-limit hysteresis, missing samples, 100-percent plateau masking, changes in power/ambient or uncertain adequacy.",
+    "invalid": "Normal heavy baseline also drains continuously, known faulty battery/cable/adapter or abnormal thermal/charger environment; do not blame DP6 alone.",
+    "critical": "Stop and preserve evidence at OS thermal alert, shutdown, abnormal excessive heat, disconnection or rapid severe drain; never demand a destructive endurance test."
+  },
+  "thresholds": "No new numeric frozen PASS/FAIL gate. A post-warmup fall of 3 percentage points over >=30m is a review flag only.",
+  "apple_support": [
+    "https://support.apple.com/pt-br/118418",
+    "https://support.apple.com/pt-br/120548"
+  ],
+  "boundaries": [
+    "RDE runs testnet SHA256 not DP6; never claim 153min DP6",
+    "No re-run previous MTS tip gate",
+    "No changes to mining algorithm/consensus/economics",
+    "No work/W from unmatched charging state",
+    "No 24-7 sustainability claim from 60min"
+  ]
+}
