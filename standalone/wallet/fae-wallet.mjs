@@ -121,21 +121,43 @@ async function main(argv){
     present({ok:true,action:cmd,vault,addresses:addresses.map(x=>x.address),encrypted:true});
     return;
   }
+  const base=normalizeNode(opt['--node']);
+  if(cmd==='status'){present({node:base,...(await statusForNode(base))});return}
   const address=opt['--watch']||((await readVault(vault)).public_addresses[idx].address);
   if(cmd==='address'||cmd==='receive'){present({network:NETWORK,address,watch_only:Boolean(opt['--watch'])});return}
-  const base=normalizeNode(opt['--node']);
-  if(cmd==='status'){present({network:NETWORK,node:base,...(await statusForNode(base)),wallet_address:address});return}
   const view=await outputsForNode(base,address);
   if(cmd==='balance'){present({address,confirmed_balance_atoms:view.balance_atoms,
     available_confirmed_utxos:view.utxos.filter(x=>x.source==='confirmed'),node:base});return}
-  if(cmd==='history'){present({address,node:base,coverage:'unspent_outputs_only_not_transaction_history',
-    status:'partial',unspent_confirmed_outputs:view.utxos.filter(x=>x.source==='confirmed'),
-    pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'});return}
+  if(cmd==='history'){
+    try{
+      const history=await nodeRequest(base,'/transactions?address='+encodeURIComponent(address));
+      if(!Array.isArray(history.transactions))throw Error('invalid_transaction_history');
+      const rows=history.transactions.map(tx=>{
+        const height=tx.confirmed_height;
+        const status=tx.status==='confirmed'&&Number.isSafeInteger(Number(height))&&Number(height)>0
+          ?'confirmed':tx.status==='pending'&&height==null?'pending':'unknown_or_reorganized';
+        return{txid:tx.txid,state:status,confirmed_height:status==='confirmed'?height:null};
+      });
+      present({address,node:base,coverage:'recent_node_reported_transfers_not_full_history',
+        provenance:'selected_node_untrusted_until_independently_synced',transactions:rows});return;
+    }catch(err){if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err}
+    present({address,node:base,coverage:'unspent_outputs_only_not_transaction_history',
+      status:'partial',confirmed_outputs:view.utxos.filter(x=>x.source==='confirmed'),
+      pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'});return;
+  }
   if(cmd==='send'){
     if(opt['--watch'])throw Error('watch_only_cannot_sign');
     const amount=parseAtoms(opt['--amount']);
     const fee=opt['--fee']===undefined?0n:parseAtoms(opt['--fee']);
-    const plan=planSpend(view.utxos,address,opt['--to'],amount,fee);
+    let spendable=view.utxos;
+    if(!spendable.some(o=>o.source==='confirmed')){
+      try{
+        const candidate=await nodeRequest(base,'/spendable?address='+encodeURIComponent(address));
+        if(candidate.address!==address||!Array.isArray(candidate.utxos))throw Error('node_spendable_inconsistent');
+        spendable=candidate.utxos;
+      }catch(err){if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err}
+    }
+    const plan=planSpend(spendable,address,opt['--to'],amount,fee);
     const password=await passwordPrompt();
     const record=(await unlockVault(vault,password))[idx];
     if(record.address!==address)throw Error('vault_identity_mismatch');
