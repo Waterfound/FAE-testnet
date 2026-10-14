@@ -134,6 +134,35 @@ async function mineOne(base,address){
   });
   assert.match(stdout,/WORK_ACCEPTED/);
 }
+
+async function sendViaActualCliPty(base,vault,destination,password){
+  // util-linux "script" gives the real Node CLI a controlling interactive TTY;
+  // only synthetic, disposable test passwords flow over this local pipe.
+  const args=[
+    process.execPath,join(root,'standalone','wallet','fae-wallet.mjs'),
+    'send','--vault',vault,'--node',base,'--to',destination,'--amount','1'
+  ];
+  const child=spawn('script',['-q','-e','-c',args.join(' '),'/dev/null'],{stdio:['pipe','pipe','pipe']});
+  let output='',stderr='',answered=false;
+  child.stdout.on('data',chunk=>{
+    output+=chunk.toString();
+    if(!answered&&output.includes('Vault password (hidden): ')){
+      answered=true;child.stdin.write(password+'\n');child.stdin.end();
+    }
+  });
+  child.stderr.on('data',chunk=>stderr+=chunk.toString());
+  await new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>{child.kill('SIGKILL');reject(Error('CLI PTY timeout'))},15000);
+    child.once('exit',code=>{clearTimeout(timer);code===0?resolve():reject(Error('CLI PTY rejected '+code+' '+stderr+' '+output.slice(-700)))});
+    child.once('error',reject);
+  });
+  assert.equal(answered,true,'actual CLI had to ask for hidden password');
+  assert.ok(!output.includes(password),'CLI must not echo vault password');
+  const line=output.split(/\r?\n/).find(line=>line.trim().startsWith('{"state":"accepted_unconfirmed"'));
+  assert.ok(line,'actual standalone CLI must emit accepted-but-unconfirmed receipt');
+  return JSON.parse(line.trim());
+}
+
 test('REAL isolated independent node: mine to A, signed A->B, reject mutation and double spend, mine and restart',{timeout:240000},async()=>{
   const dir=await mkdtemp(join(tmpdir(),'fae-wallet-node-'));
   const port=18000+Math.floor(Math.random()*1000),base='http://127.0.0.1:'+port,stateFile=join(dir,'node.json');
@@ -149,9 +178,12 @@ test('REAL isolated independent node: mine to A, signed A->B, reject mutation an
     const {tx,txid}=buildSignedTransaction(a,plan.inputs,plan.outputs);
     assert.equal(verifyTxCrypto(tx).ok,true);
     await assert.rejects(nodeRequest(base,'/submit-tx','POST',{tx:{...tx,signature:'A'+tx.signature.slice(1)}}),/node_rejected_request/);
-    const accepted=await nodeRequest(base,'/submit-tx','POST',{tx});
+    const vault=join(dir,'a.vault.json'),password='correct horse battery staple';
+    await writeVault(vault,mnemonic,'',password);
+    const accepted=await sendViaActualCliPty(base,vault,b.address,password);
     assert.equal(accepted.txid,txid);
     assert.equal(accepted.fee_atoms,'0');
+    assert.equal(accepted.state,'accepted_unconfirmed');
     const historyBefore=await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address));
     assert.equal(historyBefore.transactions.find(x=>x.txid===txid).status,'pending');
     await assert.rejects(nodeRequest(base,'/submit-tx','POST',{tx}),/node_rejected_request/);
