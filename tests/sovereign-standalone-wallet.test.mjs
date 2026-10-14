@@ -12,7 +12,7 @@ import {encodeAddress} from '../sovereign-forge/node/authoritative/address.mjs';
 import {verifyTxCrypto} from '../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {entropyToMnemonic,mnemonicToEntropy,deriveRecords,buildSignedTransaction,parseAtoms,NETWORK} from '../standalone/wallet/crypto.mjs';
 import {readVault,unlockVault,writeVault} from '../standalone/wallet/vault.mjs';
-import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode,submitSignedWithReceipt} from '../standalone/wallet/fae-wallet.mjs';
+import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode,historyForNode,assertSameNodeTip,submitSignedWithReceipt} from '../standalone/wallet/fae-wallet.mjs';
 
 const root=resolve(new URL('..',import.meta.url).pathname);
 const mnemonic=entropyToMnemonic(Buffer.alloc(32));
@@ -150,6 +150,43 @@ test('real HTTP drop AFTER accepting signed payload returns deterministic submis
   }finally{
     await new Promise(resolve=>server.close(resolve));
   }
+});
+
+test('real HTTP reorg between node status and balance/history fails closed without a stale confirmation',async()=>{
+  const address=deriveRecords(phrase2)[0].address;
+  let statusReads=0,moveOnStatus=2;
+  const node=createServer((req,res)=>{
+    const url=new URL(req.url,'http://127.0.0.1');
+    res.setHeader('content-type','application/json');
+    if(url.pathname==='/status'){
+      statusReads++;
+      return res.end(JSON.stringify({ok:true,network:NETWORK,height:statusReads>=moveOnStatus?2:1,
+        tip_hash:(statusReads>=moveOnStatus?'b':'a').repeat(64)}));
+    }
+    if(url.pathname==='/balance')return res.end(JSON.stringify({
+      ok:true,address,balance_atoms:'100000000',utxos:[{source:'confirmed',outpoint:'valid:0',amount_atoms:'100000000'}]
+    }));
+    if(url.pathname==='/transactions')return res.end(JSON.stringify({ok:true,transactions:[{
+      txid:'f'.repeat(64),status:'confirmed',confirmed_height:1
+    }]}));
+    res.statusCode=404;res.end(JSON.stringify({ok:false,error:'not_found'}));
+  });
+  await new Promise(resolve=>node.listen(0,'127.0.0.1',resolve));
+  const base='http://127.0.0.1:'+node.address().port;
+  try{
+    await assert.rejects(outputsForNode(base,address),/node_tip_changed_during_read/);
+    statusReads=0;moveOnStatus=3;
+    const view=await outputsForNode(base,address);
+    assert.equal(view.observed_tip.tip_hash,'a'.repeat(64));
+    await assert.rejects(historyForNode(base,address,view),/node_tip_changed_during_read/);
+    statusReads=0;moveOnStatus=100;
+    const stable=await outputsForNode(base,address);
+    const history=await historyForNode(base,address,stable);
+    assert.equal(history.transactions[0].state,'confirmed');
+    assert.equal(history.provenance,'selected_node_untrusted_until_independently_synced');
+    assert.throws(()=>assertSameNodeTip({height:1,tip_hash:'a'.repeat(64)},
+      {height:1,tip_hash:'b'.repeat(64)}),/node_tip_changed_during_read/);
+  }finally{await new Promise(resolve=>node.close(resolve))}
 });
 
 async function waitNode(base){
