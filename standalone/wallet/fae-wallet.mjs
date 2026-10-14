@@ -41,6 +41,28 @@ export async function nodeRequest(base,path,method='GET',body=null){
   if(!value||typeof value!=='object')throw Error('node_response_invalid');
   return value;
 }
+// A transport error after POST cannot establish that the node did NOT accept
+// the transaction. Keep the deterministic local TXID and NEVER auto-resubmit.
+export async function submitSignedWithReceipt(base,tx,txid,feeAtoms){
+  try{
+    const receipt=await nodeRequest(base,'/submit-tx','POST',{tx});
+    if(receipt.txid!==txid||String(receipt.fee_atoms)!==String(feeAtoms)){
+      return{state:'submission_outcome_unknown',txid,
+        reason:'node_receipt_mismatch',next_action:'check_selected_node_history_before_manual_retry'};
+    }
+    return{state:'accepted_unconfirmed',txid,fee_atoms:String(feeAtoms),
+      confirmation:'NOT_CONFIRMED_until_included_in_a_valid_block'};
+  }catch(error){
+    const message=String(error?.message||error);
+    // Explicit validation failures are definitive rejections, except a
+    // duplicate TXID may be an earlier successful POST with a lost reply.
+    if(message.startsWith('node_rejected_request:')&&!message.includes('duplicate_txid'))throw error;
+    return{state:'submission_outcome_unknown',txid,
+      reason:'receipt_lost_or_duplicate_unknown',
+      next_action:'check_selected_node_history_before_manual_retry'};
+  }
+}
+
 export async function statusForNode(base){
   const status=await nodeRequest(base,'/status');
   if(status.network!==NETWORK)throw Error('wrong_node_network');
@@ -179,11 +201,9 @@ async function main(argv){
     const record=unlocked[idx];
     if(record.address!==address)throw Error('vault_identity_mismatch');
     const {tx,txid}=buildSignedTransaction(record,plan.inputs,plan.outputs);
-    const result=await nodeRequest(base,'/submit-tx','POST',{tx});
-    if(result.txid!==txid||String(result.fee_atoms)!==plan.fee_atoms)throw Error('node_acceptance_receipt_mismatch');
-    present({state:'accepted_unconfirmed',txid,address,fee_atoms:plan.fee_atoms,
-      amount_atoms:String(amount),node:base,
-      confirmation:'NOT_CONFIRMED_until_included_in_a_valid_block'});
+    const result=await submitSignedWithReceipt(base,tx,txid,plan.fee_atoms);
+    present({...result,address,amount_atoms:String(amount),node:base});
+    if(result.state==='submission_outcome_unknown')process.exitCode=2;
     return;
   }
 }
