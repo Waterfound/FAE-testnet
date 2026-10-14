@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {chmod,mkdtemp,readFile,writeFile,rm,stat} from 'node:fs/promises';
+import {chmod,mkdtemp,readFile,writeFile,rm,stat,access} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
@@ -12,7 +12,8 @@ import {encodeAddress} from '../sovereign-forge/node/authoritative/address.mjs';
 import {verifyTxCrypto} from '../sovereign-forge/node/authoritative/fae-v4-core.mjs';
 import {entropyToMnemonic,mnemonicToEntropy,deriveRecords,buildSignedTransaction,parseAtoms,NETWORK} from '../standalone/wallet/crypto.mjs';
 import {readVault,unlockVault,writeVault} from '../standalone/wallet/vault.mjs';
-import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode,historyForNode,assertSameNodeTip,submitSignedWithReceipt} from '../standalone/wallet/fae-wallet.mjs';
+import {normalizeNode,parseCli,planSpend,nodeRequest,statusForNode,outputsForNode,historyForNode,assertSameNodeTip,submitSignedWithReceipt,reconcileIntent} from '../standalone/wallet/fae-wallet.mjs';
+import {intentPath,writeIntent,readIntent,acknowledgeConfirmedIntent} from '../standalone/wallet/outbox.mjs';
 
 const root=resolve(new URL('..',import.meta.url).pathname);
 const mnemonic=entropyToMnemonic(Buffer.alloc(32));
@@ -187,6 +188,126 @@ test('real HTTP reorg between node status and balance/history fails closed witho
     assert.throws(()=>assertSameNodeTip({height:1,tip_hash:'a'.repeat(64)},
       {height:1,tip_hash:'b'.repeat(64)}),/node_tip_changed_during_read/);
   }finally{await new Promise(resolve=>node.close(resolve))}
+});
+
+test('encrypted outbox fsyncs before send; one-flight exclusivity, corruption fail-closed and explicit settlement',{timeout:45000},async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-outbox-unit-')),file=join(dir,'account.outbox.json');
+  const a=deriveRecords(mnemonic)[0],password='correct horse battery staple';
+  const intent={network:NETWORK,txid:'a'.repeat(64),node:'http://127.0.0.1:8787',
+    address:a.address,amount_atoms:'100000000',fee_atoms:'0',tip_height:1,tip_hash:'b'.repeat(64)};
+  try{
+    await writeIntent(file,intent,password);
+    assert.equal((await stat(file)).mode&0o777,0o600);
+    const disk=await readFile(file,'utf8');
+    assert.ok(!disk.includes(intent.txid)&&!disk.includes(a.address),'outbox details must be ciphertext');
+    assert.ok(!disk.includes(password));
+    assert.deepEqual(await readIntent(file,password),intent);
+    await assert.rejects(writeIntent(file,{...intent,txid:'c'.repeat(64)},password),/EEXIST/);
+    await assert.rejects(readIntent(file,'incorrect password'),/outbox_wrong_password_or_corrupt/);
+    await assert.rejects(acknowledgeConfirmedIntent(file,password,intent.txid,
+      {state:'pending_node_reported',txid:intent.txid}),/outbox_not_confirmed/);
+    const tampered=JSON.parse(disk);tampered.encryption.tag='AAAAAAAAAAAAAAAAAAAAAA==';
+    await writeFile(file,JSON.stringify(tampered)+'\n');
+    await assert.rejects(readIntent(file,password),/outbox_wrong_password_or_corrupt/);
+    await writeFile(file,disk);
+    await chmod(file,0o644);
+    await assert.rejects(readIntent(file,password),/outbox_requires_private_0600_file/);
+    await chmod(file,0o600);
+    await acknowledgeConfirmedIntent(file,password,intent.txid,
+      {state:'confirmed_node_reported',txid:intent.txid});
+    await assert.rejects(access(file),/ENOENT/);
+  }finally{await rm(dir,{recursive:true,force:true})}
+});
+
+test('real CLI process SIGKILL after POST preserves encrypted TXID; later process reads outbox without retry',{timeout:65000},async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-outbox-process-'));
+  const vault=join(dir,'sender.vault.json'),pidFile=join(dir,'sender.pid'),scriptPath=join(dir,'killable-sender.sh');
+  const sender=deriveRecords(mnemonic)[0],recipient=deriveRecords(phrase2)[0];
+  const password='correct horse battery staple';
+  let calls=0,receivedTx=null,child=null,nodeState='pending',receiptTxid=null;
+  const server=createServer(async(req,res)=>{
+    const url=new URL(req.url,'http://127.0.0.1');
+    res.setHeader('content-type','application/json');
+    if(url.pathname==='/status')return res.end(JSON.stringify({ok:true,network:NETWORK,height:1,tip_hash:'a'.repeat(64)}));
+    if(url.pathname==='/balance')return res.end(JSON.stringify({ok:true,address:sender.address,
+      balance_atoms:'1000000000',utxos:[{outpoint:'isolated-fixture:0',amount_atoms:'1000000000',source:'confirmed'}]}));
+    if(url.pathname==='/transactions')return res.end(JSON.stringify({ok:true,transactions:receiptTxid?[{
+      txid:receiptTxid,status:nodeState,confirmed_height:nodeState==='confirmed'?1:null
+    }]:[]}));
+    if(url.pathname==='/submit-tx'){
+      calls++;
+      const chunks=[];for await(const chunk of req)chunks.push(chunk);
+      receivedTx=JSON.parse(Buffer.concat(chunks).toString('utf8')).tx;
+      assert.equal(verifyTxCrypto(receivedTx).ok,true);
+      receiptTxid=buildSignedTransaction(sender,receivedTx.inputs,receivedTx.outputs).txid;
+      // Kill the REAL signed-transaction CLI process after its network payload
+      // arrived, but before any acceptance response is returned.
+      const pid=Number((await readFile(pidFile,'utf8')).trim());
+      assert.ok(Number.isSafeInteger(pid)&&pid>1);
+      process.kill(pid,'SIGKILL');
+      req.socket.destroy();
+      return;
+    }
+    res.statusCode=404;res.end(JSON.stringify({ok:false,error:'not_found'}));
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base='http://127.0.0.1:'+server.address().port;
+  try{
+    await writeVault(vault,mnemonic,'',password);
+    const cli=join(root,'standalone','wallet','fae-wallet.mjs');
+    // Test-only executable contains no secret, just our disposable vault path.
+    await writeFile(scriptPath,'#!/bin/sh\necho $ > '+pidFile+'\nexec '+process.execPath+
+      ' '+cli+' send --vault '+vault+' --node '+base+' --to '+recipient.address+' --amount 1\n',{mode:0o700});
+    child=spawn('script',['-q','-e','-c',scriptPath,'/dev/null'],{stdio:['pipe','pipe','pipe']});
+    let output='',answered=false;
+    child.stdout.on('data',chunk=>{
+      output+=chunk.toString();
+      if(!answered&&output.includes('Vault password (hidden): ')){
+        answered=true;child.stdin.write(password+'\n');child.stdin.end()
+      }
+    });
+    const exit=await new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{child.kill('SIGKILL');reject(Error('sender_process_kill_timeout'))},20000);
+      child.once('exit',code=>{clearTimeout(timer);resolve(code)});
+      child.once('error',reject);
+    });
+    assert.notEqual(exit,0,'sender process must be killed mid-send');
+    assert.equal(answered,true);
+    assert.equal(calls,1);
+    assert.ok(receivedTx);
+    assert.ok(!output.includes(password),'TTY must not echo signing password');
+    const record=await readIntent(intentPath(vault),password);
+    assert.equal(record.txid,receiptTxid);
+    assert.equal(record.address,sender.address);
+    assert.equal(record.node,base);
+    assert.equal((await stat(intentPath(vault))).mode&0o777,0o600);
+    assert.equal((await reconcileIntent(record)).state,'pending_node_reported');
+    assert.equal(calls,1,'read-only reconciliation must never resubmit');
+    // Another actual CLI SEND must fail before touching the network, because
+    // the single-flight outbox already exists.
+    const duplicate=spawn('script',['-q','-e','-c',scriptPath,'/dev/null'],{stdio:['pipe','pipe','pipe']});
+    let duplicateOut='',secondAnswered=false;
+    duplicate.stdout.on('data',x=>{duplicateOut+=x.toString();if(!secondAnswered&&duplicateOut.includes('Vault password (hidden): ')){
+      secondAnswered=true;duplicate.stdin.write(password+'\n');duplicate.stdin.end()
+    }});
+    const duplicateExit=await new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>{duplicate.kill('SIGKILL');reject(Error('duplicate_cli_timeout'))},16000);
+      duplicate.once('exit',code=>{clearTimeout(timer);resolve(code)});
+      duplicate.once('error',reject);
+    });
+    assert.notEqual(duplicateExit,0);
+    assert.match(duplicateOut,/EEXIST|file already exists/);
+    assert.equal(calls,1,'duplicate send blocked by existing durable journal');
+    nodeState='confirmed';
+    const confirmation=await reconcileIntent(record);
+    assert.equal(confirmation.state,'confirmed_node_reported');
+    await acknowledgeConfirmedIntent(intentPath(vault),password,receiptTxid,confirmation);
+    await assert.rejects(access(intentPath(vault)),/ENOENT/);
+  }finally{
+    if(child?.exitCode===null)child.kill('SIGKILL');
+    await new Promise(resolve=>server.close(resolve));
+    await rm(dir,{recursive:true,force:true});
+  }
 });
 
 async function waitNode(base){
