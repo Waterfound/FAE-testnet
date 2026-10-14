@@ -256,7 +256,7 @@ test('real CLI process SIGKILL after POST preserves encrypted TXID; later proces
     await writeVault(vault,mnemonic,'',password);
     const cli=join(root,'standalone','wallet','fae-wallet.mjs');
     // Test-only executable contains no secret, just our disposable vault path.
-    await writeFile(scriptPath,'#!/bin/sh\necho $ > '+pidFile+'\nexec '+process.execPath+
+    await writeFile(scriptPath,'#!/bin/sh\necho $$ > '+pidFile+'\nexec '+process.execPath+
       ' '+cli+' send --vault '+vault+' --node '+base+' --to '+recipient.address+' --amount 1\n',{mode:0o700});
     child=spawn('script',['-q','-e','-c',scriptPath,'/dev/null'],{stdio:['pipe','pipe','pipe']});
     let output='',answered=false;
