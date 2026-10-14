@@ -1,0 +1,37 @@
+name: FAE LRP-001 Candidate Technical Claims Guard
+on:
+  pull_request:
+    paths:
+      - 'lab/legal-perimeter/**'
+      - '.github/workflows/fae-lrp-001-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  lrp-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Source-bound adversarial regressions
+        run: node lab/legal-perimeter/release-gate.test.mjs
+      - name: Exact-source candidate proposal
+        run: node lab/legal-perimeter/release-gate.mjs lab/legal-perimeter/perimeter.json lab/legal-perimeter/proposal.example.json
+      - name: Candidate boundary regressions
+        run: node lab/legal-perimeter/candidate-boundary.test.mjs
+      - name: Verify actual candidate diff and workflow boundary
+        run: node lab/legal-perimeter/candidate-boundary.mjs
+      - name: Bounded real-source wallet and hosted relay behavior
+        run: node lab/legal-perimeter/source-to-runtime.test.mjs
+      - name: Canonical deployed SQL atomicity risk witness
+        run: node lab/legal-perimeter/sql-atomicity-witness.test.mjs
+      - name: Real Edge Ed25519 signature boundary
+        run: node lab/legal-perimeter/edge-real-signature.test.mjs
+      - name: Canonical SQL atomicity RED proof on disposable PostgreSQL 16
+        run: bash lab/legal-perimeter/verify-v4-sql-atomicity-postgres.sh

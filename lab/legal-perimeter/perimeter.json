@@ -1,0 +1,521 @@
+{
+  "schema": "FAE_LRP_001_PERIMETER_V2",
+  "review_date": "2026-10-12",
+  "jurisdiction": "BR",
+  "repository": "Waterfound/FAE-testnet",
+  "baseline_commit": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+  "authority": "PASSIVE_CANDIDATE_ONLY_NO_MAINNET_OR_COMMERCIAL_RELEASE",
+  "disclaimer": "Engineering/regulatory issue spotting, not an official regulatory determination or legal opinion.",
+  "norms": {
+    "L14478": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14478.htm",
+    "D11563": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/decreto/d11563.htm",
+    "BCB519": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=519&tipo=Resolu%C3%A7%C3%A3o+BCB",
+    "BCB520": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=520&tipo=Resolu%C3%A7%C3%A3o+BCB",
+    "BCB521": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=521&tipo=Resolu%C3%A7%C3%A3o+BCB",
+    "BCB589": "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=589&tipo=Resolu%C3%A7%C3%A3o+BCB",
+    "CVM40": "https://conteudo.cvm.gov.br/legislacao/pareceres-orientacao/pare040.html",
+    "CDC": "https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm",
+    "LGPD": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm",
+    "L6385": "https://www.planalto.gov.br/ccivil_03/leis/l6385compilada.htm"
+  },
+  "normative_cutover": {
+    "bcb_520_effective": "2026-02-02",
+    "bcb_589_amended_article_91_effective": "2026-10-01",
+    "article_91_future_restriction": "2026-11-06",
+    "bcb_589_other_amendments_effective": "2027-01-01",
+    "warning": "Dates relate to regulated service providers and relationships; not a claim that open-source FAE itself must obtain authorization."
+  },
+  "features": [
+    {
+      "id": "F01",
+      "feature": "Open-source code distribution",
+      "class": "A",
+      "technical_evidence": {
+        "path": "LICENSE",
+        "blob_sha": "ec12b3da10597bb5d3748559ca51e8f3f75a8d96",
+        "verified": true,
+        "observation": "Apache-2.0 license file; README states source publication.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "Apache License"
+          },
+          {
+            "kind": "contains",
+            "text": "Version 2.0, January 2004"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Distribution alone does not establish provision of virtual-asset services; accompanying promoted or hosted commercial activity could.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "CDC"
+      ],
+      "risk_uncertainty": "Scope-specific only: licensing, third-party dependencies, and advertising still require review.",
+      "preventive_control": "Separate software documentation from claims that the operator holds an official license.",
+      "owner": "FAE Project Assurance",
+      "release_disposition": "DOCS_ONLY_CONDITIONAL",
+      "status": "NO_TRIGGER_IDENTIFIED_IN_REVIEWED_SCOPE"
+    },
+    {
+      "id": "F02",
+      "feature": "Local user-device PoW mining",
+      "class": "C/D",
+      "technical_evidence": {
+        "path": "mining.js",
+        "blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+        "verified": true,
+        "observation": "Browser Web Worker hashes local template; user-selected reward address used in submit-block; miner implementation read at pinned main.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "async function mineDirectIteration"
+          },
+          {
+            "kind": "contains",
+            "text": "/template?address="
+          },
+          {
+            "kind": "contains",
+            "text": "/submit-block"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Hosted mining in third parties' names, reward promises or discretionary payout services might change the analysis.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "CVM40"
+      ],
+      "risk_uncertainty": "No conclusion about global deployments, operation as business, tax consequences or laws outside Brazil.",
+      "preventive_control": "Keep mining opt-in; expose reward destination and exclude guaranteed earnings claims.",
+      "owner": "FAE Mining",
+      "release_disposition": "TESTNET_ONLY",
+      "status": "TECHNICAL_PROPERTY_VERIFIED"
+    },
+    {
+      "id": "F03",
+      "feature": "User-controlled signing and key derivation",
+      "class": "F",
+      "technical_evidence": {
+        "path": "wallet-crypto.js",
+        "blob_sha": "184d207b6017976b32e650f4ca184d3f06a2c8b4",
+        "verified": true,
+        "observation": "Local Ed25519 key generation and signature flow read alongside wallet.js sendFAE.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "crypto.subtle.importKey('pkcs8'"
+          },
+          {
+            "kind": "contains",
+            "text": "crypto.subtle.sign('Ed25519'"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Actual operator access to keys or transactions on behalf of users could constitute custody/transfer services.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "BCB521"
+      ],
+      "risk_uncertainty": "Proof of local signing in audited path is not a whole-stack proof of non-custody.",
+      "preventive_control": "Regression tests: no secret material crossing network; user can authorize without service-side private key.",
+      "owner": "FAE Wallet",
+      "release_disposition": "NEEDS_FULL_STACK_KEY_FLOW_EVIDENCE",
+      "status": "TECHNICAL_PROPERTY_VERIFIED"
+    },
+    {
+      "id": "F04",
+      "feature": "Persisted wallet secret storage on current main",
+      "class": "F/I",
+      "technical_evidence": {
+        "path": "wallet.js",
+        "blob_sha": "7ab3ac9a24a7a42228ee11cfbefa15ddcd52b7e5",
+        "verified": true,
+        "observation": "storedAddress includes jwk; saveAccount persists JWK in localStorage under keyring and legacy keys. index.html explicitly discloses lack of encryption.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "jwk:record.jwk"
+          },
+          {
+            "kind": "contains",
+            "text": "localStorage.setItem(KEYRING_KEY"
+          },
+          {
+            "kind": "contains",
+            "text": "localStorage.setItem(WALLET_KEY"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Data/security obligations and misleading security statements; not evidence of custodial operation by itself.",
+      "primary_source": [
+        "LGPD",
+        "CDC"
+      ],
+      "risk_uncertainty": "Actual current-main security gap, not proof of regulatory violation; vault remediation exists as nonmerged draft PR #266.",
+      "preventive_control": "Forward remediation to PR #266 owner; prohibit `encrypted at rest` claim until exact-head vault tests/reconciliation.",
+      "owner": "FAE Wallet / PR #266 / Privacy P0",
+      "release_disposition": "HOLD_SECURITY_CLAIM",
+      "status": "TECHNICAL_REPAIR_REQUIRED"
+    },
+    {
+      "id": "F05",
+      "feature": "Global non-custody claim",
+      "class": "F/G",
+      "technical_evidence": {
+        "path": "wallet.js",
+        "blob_sha": "7ab3ac9a24a7a42228ee11cfbefa15ddcd52b7e5",
+        "verified": false,
+        "observation": "Inspected client shows local signing but not a complete independently traced secret-flow across every hosted/runtime component.",
+        "source_assertions": [],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Custody and administration of keys/assets for others: Law art. 5 IV; BCB 520 arts. 8-9.",
+      "primary_source": [
+        "L14478",
+        "BCB520"
+      ],
+      "risk_uncertainty": "Whole-stack absolute claim not proven.",
+      "preventive_control": "Maintain negative secret-exfiltration tests; isolate third-party integrations; request legal analysis if service takes any key control.",
+      "owner": "FAE Wallet / Project Assurance",
+      "release_disposition": "HOLD_ABSOLUTE_NON_CUSTODY_CLAIM",
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "id": "F06",
+      "feature": "Hosted transaction relay /submit-tx",
+      "class": "B/G",
+      "technical_evidence": {
+        "path": "supabase/functions/fae-public-testnet-v4/index.ts",
+        "blob_sha": "25fa833496a2ab9190e990c64e0a9d88eb2c7134",
+        "verified": true,
+        "observation": "Hosted API verifies user signature then calls rpc/fae_v4_accept_tx; client assembles/signs before sending.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "async function submitTx("
+          },
+          {
+            "kind": "contains",
+            "text": "rpc/fae_v4_accept_tx"
+          },
+          {
+            "kind": "contains",
+            "text": "async function verifyTx("
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Law art. 5 III (transfer in others' names) depending on actual provider function; BCB520 intermediary scope.",
+      "primary_source": [
+        "L14478",
+        "BCB520"
+      ],
+      "risk_uncertainty": "Pure relay vs regulated managed transfer requires precise technical/legal distinction; no conclusive classification here. Signature verification in hosted relay is not, alone, proof of a regulated transfer/custody service.",
+      "preventive_control": "No server-side discretionary movement; publish network-relay boundary and verify independence of node path.",
+      "owner": "FAE Nodes / Independent Operator",
+      "release_disposition": "LEGAL_INTERPRETATION_BEFORE_HOSTED_COMMERCIAL",
+      "status": "LEGAL_INTERPRETATION_REQUIRED"
+    },
+    {
+      "id": "F07",
+      "feature": "Public-testnet proof-of-work issuance parameters",
+      "class": "C/D/H",
+      "technical_evidence": {
+        "path": "sovereign-forge/node/authoritative/fae-v4-core.mjs",
+        "blob_sha": "2cf4e8a12f1cfcec7d2f14d8b742b814c09bbd5f",
+        "verified": true,
+        "observation": "INITIAL_SUBSIDY=10 FAE; HALVING_ERA_BLOCKS=600000; MAX_SUPPLY=12m; expectedReward clamps remaining supply. No global search proof of absence of privileged mint.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "INITIAL_SUBSIDY=10n*COIN"
+          },
+          {
+            "kind": "contains",
+            "text": "HALVING_ERA_BLOCKS=600000"
+          },
+          {
+            "kind": "contains",
+            "text": "MAX_SUPPLY=12000000n*COIN"
+          },
+          {
+            "kind": "contains",
+            "text": "export function expectedReward("
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Different future economics, administrative allocations, presale or issuer undertakings might alter risk.",
+      "primary_source": [
+        "L14478",
+        "CVM40"
+      ],
+      "risk_uncertainty": "Future mainnet design 9 FAE / 630k / -45% is not active; no admin mint is documented but absence not formally proven here.",
+      "preventive_control": "Versioned source/consensus tests for exact issuance; block claim of `verified no privileged paths` until broader evidence.",
+      "owner": "FAE Consensus / HPA-UC-001",
+      "release_disposition": "TESTNET_PARAMETERS_ONLY",
+      "status": "TECHNICAL_PROPERTY_VERIFIED"
+    },
+    {
+      "id": "F08",
+      "feature": "PPLNS coordinator candidate",
+      "class": "E",
+      "technical_evidence": {
+        "path": "sovereign-forge/node/authoritative/pplns-activation.mjs",
+        "blob_sha": "6598dc532bc78a647e289629137abd56b4b9d2b0",
+        "verified": true,
+        "observation": "PPLNS_COINBASE_ACTIVATION_HEIGHT=null on main; source exists but candidate activation disabled.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "PPLNS_COINBASE_ACTIVATION_HEIGHT=null"
+          },
+          {
+            "kind": "contains",
+            "text": "export function isPplnsCoinbaseActive"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Pool coordination, collection/reallocation of shares, operator control of payout or service fees may create intermediary, transfer or contractual duties.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "CVM40"
+      ],
+      "risk_uncertainty": "Not equivalent to user mining; candidate source has known HPA W3 risks; no claim about active pool. Pool operational classification conditional; inactive PPLNS != active mining pool.",
+      "preventive_control": "No pooled commercial activation without new functional + economic + legal gates; defer HPA payout repair to HPA owner.",
+      "owner": "HPA-UC-001 / FAE Pool",
+      "release_disposition": "HOLD_POOL_ACTIVATION",
+      "status": "LEGAL_INTERPRETATION_REQUIRED"
+    },
+    {
+      "id": "F09",
+      "feature": "Operator-controlled custody / hosted key backup (future)",
+      "class": "G",
+      "technical_evidence": {
+        "path": "future-only",
+        "blob_sha": null,
+        "verified": false,
+        "observation": "Not observed as currently activated feature; hypothetical capability.",
+        "source_assertions": [],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Law art. 5 IV; BCB520 arts. 8-9.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "BCB519"
+      ],
+      "risk_uncertainty": "Clear regulatory trigger if introduced as a service; not evidence it presently exists.",
+      "preventive_control": "Feature flag deny by default; do not design operator access to client keys.",
+      "owner": "Future Product / Wallet",
+      "release_disposition": "EXTERNAL_LEGAL_GATE_IF_PROPOSED",
+      "status": "POTENTIAL_TRIGGER"
+    },
+    {
+      "id": "F10",
+      "feature": "Exchange, brokerage, off-ramp and cross-border transfers (future)",
+      "class": "G/I",
+      "technical_evidence": {
+        "path": "future-only",
+        "blob_sha": null,
+        "verified": false,
+        "observation": "No such live function confirmed by this bounded review.",
+        "source_assertions": [],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Law art. 5 I-II; BCB 520 intermediaries and BCB 521 FX/cross-border regime.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "BCB521",
+        "BCB589"
+      ],
+      "risk_uncertainty": "Depends on who offers services, customers/jurisdictions and foreign-exchange use.",
+      "preventive_control": "Provider-/feature-level gate: no exchange UI integration without legal scope review; preserve third-party distinction.",
+      "owner": "Future Services / Release Authority",
+      "release_disposition": "EXTERNAL_LEGAL_GATE_IF_PROPOSED",
+      "status": "POTENTIAL_TRIGGER"
+    },
+    {
+      "id": "F11",
+      "feature": "Financial return/promotion claims",
+      "class": "H",
+      "technical_evidence": {
+        "path": "index.html",
+        "blob_sha": "23148e9fbbcf5a4eea82f7277a267ab5e40f1838",
+        "verified": true,
+        "observation": "Footer states test coins have no monetary value; no guaranteed return phrase identified in inspected main page.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "test coins have no monetary value"
+          },
+          {
+            "kind": "contains",
+            "text": "private keys and Proof of Work stay on your device"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "CVM40 collective-investment contract test and CDC art. 36-38 advertising; actual public offers may change treatment.",
+      "primary_source": [
+        "CVM40",
+        "CDC",
+        "L14478"
+      ],
+      "risk_uncertainty": "Bounded document scan is not certification of all messaging, contributors or deployment URLs. No universal guarantee that other current or future public surfaces avoid financial-promotion claims.",
+      "preventive_control": "Reject guaranteed-yield/risk-free messaging and investment solicitations without specialist review.",
+      "owner": "FAE Visual Language / Manifesto / Project Assurance",
+      "release_disposition": "ALLOW_FACTUAL_TESTNET_MESSAGING_ONLY",
+      "status": "NO_TRIGGER_IDENTIFIED_IN_REVIEWED_SCOPE"
+    },
+    {
+      "id": "F12",
+      "feature": "Hosted logs, analytics and user telemetry",
+      "class": "I",
+      "technical_evidence": {
+        "path": "core.js",
+        "blob_sha": "4689358f75caf9b5349a600cd42d484deec9e9d4",
+        "verified": false,
+        "observation": "Core points to hosted Supabase API; backend/provider log retention and all active telemetry not independently retrieved.",
+        "source_assertions": [],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Personal-data treatment under LGPD, regardless of whether financial services are regulated.",
+      "primary_source": [
+        "LGPD",
+        "CDC"
+      ],
+      "risk_uncertainty": "Cannot assert zero collection or full privacy; P0 owner already handles privacy repairs.",
+      "preventive_control": "Data flow/retention evidence, eliminate unnecessary identifiers and user-facing notice; route to Privacy P0.",
+      "owner": "Privacy P0",
+      "release_disposition": "PRIVACY_OWNER_GATE",
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    {
+      "id": "F13",
+      "feature": "Commercial mainnet or third-party distribution",
+      "class": "H/I",
+      "technical_evidence": {
+        "path": "docs/FAE_CANONICAL_STATE.md",
+        "blob_sha": "91cff0871b85f0861e581f84a82b5054194b95b0",
+        "verified": true,
+        "observation": "Documents future candidate tokenomics and freezes open mainnet parameters; not evidence that any future mainnet is operational.",
+        "source_assertions": [
+          {
+            "kind": "contains",
+            "text": "## Authoritative future tokenomics design"
+          },
+          {
+            "kind": "contains",
+            "text": "fee/security-budget model: **still unresolved**"
+          }
+        ],
+        "proof_scope": "asserted code fragments at git tree of reviewed main; does not prove whole system, runtime behavior or legal classification"
+      },
+      "possible_legal_trigger": "Different offers/benefits, paid products, hosted operations, third-party access or non-Brazil targeting changes law.",
+      "primary_source": [
+        "L14478",
+        "BCB520",
+        "CVM40",
+        "CDC",
+        "LGPD"
+      ],
+      "risk_uncertainty": "No global jurisdiction sweep authorized; exposure outside BR not proved.",
+      "preventive_control": "No mainnet/commercial release; require exact-head legal intake with independently observed actual functionality and target markets.",
+      "owner": "FAE Mainnet Readiness / Waterfound Authority",
+      "release_disposition": "HOLD_MAINNET_AND_COMMERCIAL",
+      "status": "EXTERNAL_AUTHORITY_GATE"
+    }
+  ],
+  "reconciled_prs": [
+    {
+      "number": 266,
+      "url": "https://github.com/Waterfound/FAE-testnet/pull/266",
+      "observed_state": "open_draft_unmerged",
+      "head_sha": "8708b03866f42cf84ba2d01908caec4238928e70",
+      "base_sha": "6719a825b6e12a38824af3edfd03851b5d62eb1c",
+      "note": "Encrypted IndexedDB candidate, not present in canonical main"
+    }
+  ],
+  "continuity": {
+    "general_execution_main_observed": "23f26494ddd63f4d50c587ca5b452cb4602fb5a1",
+    "mechanism": "read-only repository and revision reconciliation; not claimed as a formally executed EP-FC-001 runtime",
+    "runtime_execution": "NOT_OBSERVED",
+    "mode": "read-only evidence reconciliation; no runtime EP-FC activation"
+  },
+  "verification_scope": "git-blob-verified main snapshot; no live/provider/legal determination",
+  "source_assertion_policy": "positive anchored snippets and exact SHA pin only, no absence-of-features universal proof",
+  "release_policy": {
+    "only_authority": "docs_testnet_candidate",
+    "never_equate_technical_proof_to_regulatory_compliance": true,
+    "prelaunch_requires_separate_human_legal_gate": true,
+    "candidate_ci_nonblocking_unrelated": true
+  },
+  "public_surfaces": [
+    {
+      "path": "README.md",
+      "blob_sha": "58f40021e44fdf70e45a94b8e307f8a928a0afc4",
+      "reviewed_scope": "canonical public testnet readme (not entire web)"
+    },
+    {
+      "path": "index.html",
+      "blob_sha": "23148e9fbbcf5a4eea82f7277a267ab5e40f1838",
+      "reviewed_scope": "canonical browser public testnet UI (not deployed version)"
+    },
+    {
+      "path": "explorer/index.html",
+      "blob_sha": "5130efd7e3625e81e52517fb9a834697ebf6fc1f",
+      "reviewed_scope": "canonical Explorer HTML static content (not runtime/deployed text)"
+    }
+  ],
+  "dynamic_public_surfaces": [
+    {
+      "path": "explorer/app.mjs",
+      "blob_sha": "baf56fcc991cf488e7f8db5f45798d42072213ef",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "UI populates DOM text from live node state and error paths; no browser-rendered proof in LRP-001",
+      "owner": "Explorer / Project Assurance"
+    },
+    {
+      "path": "core.js",
+      "blob_sha": "4689358f75caf9b5349a600cd42d484deec9e9d4",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Dynamic main UI status and API responses are outside static source-copy review",
+      "owner": "FAE Product / Nodes"
+    },
+    {
+      "path": "wallet.js",
+      "blob_sha": "7ab3ac9a24a7a42228ee11cfbefa15ddcd52b7e5",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Wallet dynamic strings and secret flow require Wallet/Privacy owner verification",
+      "owner": "FAE Wallet / Privacy P0"
+    },
+    {
+      "path": "mining.js",
+      "blob_sha": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "coverage": "RUNTIME_RENDERED_NOT_VERIFIED",
+      "reason": "Mining status strings, coordinator responses and runtime not proven",
+      "owner": "FAE Mining / HPA-UC-001"
+    },
+    {
+      "path": "docs/FAE_MANIFESTO_EDITORIAL_CHARTER.md",
+      "blob_sha": "f8aaede7a4a2eb7ee02bbe3a8a689204025e77df",
+      "coverage": "EDITORIAL_INTERNAL_NOT_PUBLIC_RELEASE_COPY",
+      "reason": "Editorial charter is not evidence that a future published manifesto was reviewed",
+      "owner": "FAE Visual Language / Project Assurance"
+    }
+  ],
+  "coverage_statement": "Source-blob anchored static review of README.md, index.html, explorer/index.html only. Dynamic rendering, deployments, runtime communications and future publications remain unverified and MUST NOT be presented as covered.",
+  "normative_review_note": "CVM40 canonical official CVM legislative index URL rechecked 2026-10-12; legal links alone do not prove live regulatory applicability."
+}

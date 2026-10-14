@@ -1,0 +1,9 @@
+{
+  "baseline_commit": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+  "release_kind": "docs_testnet_candidate",
+  "claims": [
+    "local_signing",
+    "testnet_issuance_parameters"
+  ],
+  "public_copy": "FAE public testnet. Test coins have no monetary value. Local signing is implemented in the reviewed wallet source."
+}
