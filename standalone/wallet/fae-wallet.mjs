@@ -69,8 +69,12 @@ export async function statusForNode(base){
   if(!Number.isSafeInteger(status.height)||status.height<0||!/^[0-9a-f]{64}$/.test(status.tip_hash))throw Error('invalid_node_tip');
   return status;
 }
+export function assertSameNodeTip(before,after){
+  if(before.height!==after.height||before.tip_hash!==after.tip_hash)
+    throw Error('node_tip_changed_during_read');
+}
 export async function outputsForNode(base,address){
-  await statusForNode(base);
+  const firstTip=await statusForNode(base);
   const view=await nodeRequest(base,'/balance?address='+encodeURIComponent(address));
   if(view.address!==address||!(/^\d+$/.test(String(view.balance_atoms)))||!Array.isArray(view.utxos))throw Error('node_balance_inconsistent');
   const seen=new Set();
@@ -78,8 +82,32 @@ export async function outputsForNode(base,address){
     if(typeof item.outpoint!=='string'||seen.has(item.outpoint)||!/^\d+$/.test(String(item.amount_atoms))||BigInt(item.amount_atoms)<=0n)throw Error('node_utxo_inconsistent');
     seen.add(item.outpoint);
   }
-  return view;
+  assertSameNodeTip(firstTip,await statusForNode(base));
+  return {...view,observed_tip:firstTip};
 }
+export async function historyForNode(base,address,view){
+  if(!view.observed_tip)throw Error('missing_verified_node_tip');
+  try{
+    const history=await nodeRequest(base,'/transactions?address='+encodeURIComponent(address));
+    if(!Array.isArray(history.transactions))throw Error('invalid_transaction_history');
+    assertSameNodeTip(view.observed_tip,await statusForNode(base));
+    const rows=history.transactions.map(tx=>{
+      const height=tx.confirmed_height;
+      const status=tx.status==='confirmed'&&Number.isSafeInteger(Number(height))&&Number(height)>0
+        ?'confirmed':tx.status==='pending'&&height==null?'pending':'unknown_or_reorganized';
+      return{txid:tx.txid,state:status,confirmed_height:status==='confirmed'?height:null};
+    });
+    return{address,node:base,coverage:'recent_node_reported_transfers_not_full_history',
+      provenance:'selected_node_untrusted_until_independently_synced',transactions:rows};
+  }catch(err){
+    if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err;
+  }
+  assertSameNodeTip(view.observed_tip,await statusForNode(base));
+  return{address,node:base,coverage:'unspent_outputs_only_not_transaction_history',
+    status:'partial',confirmed_outputs:view.utxos.filter(x=>x.source==='confirmed'),
+    pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'};
+}
+
 export function planSpend(utxos,from,to,amount,fee=0n){
   if(!isValidAddress(from)||!isValidAddress(to)||amount<=0n||fee<0n)throw Error('invalid_payment');
   const inputs=[];let total=0n;
@@ -168,23 +196,7 @@ async function main(argv){
   const view=await outputsForNode(base,address);
   if(cmd==='balance'){present({address,confirmed_balance_atoms:view.balance_atoms,
     available_confirmed_utxos:view.utxos.filter(x=>x.source==='confirmed'),node:base});return}
-  if(cmd==='history'){
-    try{
-      const history=await nodeRequest(base,'/transactions?address='+encodeURIComponent(address));
-      if(!Array.isArray(history.transactions))throw Error('invalid_transaction_history');
-      const rows=history.transactions.map(tx=>{
-        const height=tx.confirmed_height;
-        const status=tx.status==='confirmed'&&Number.isSafeInteger(Number(height))&&Number(height)>0
-          ?'confirmed':tx.status==='pending'&&height==null?'pending':'unknown_or_reorganized';
-        return{txid:tx.txid,state:status,confirmed_height:status==='confirmed'?height:null};
-      });
-      present({address,node:base,coverage:'recent_node_reported_transfers_not_full_history',
-        provenance:'selected_node_untrusted_until_independently_synced',transactions:rows});return;
-    }catch(err){if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err}
-    present({address,node:base,coverage:'unspent_outputs_only_not_transaction_history',
-      status:'partial',confirmed_outputs:view.utxos.filter(x=>x.source==='confirmed'),
-      pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'});return;
-  }
+  if(cmd==='history'){present(await historyForNode(base,address,view));return}
   if(cmd==='send'){
     if(opt['--watch'])throw Error('watch_only_cannot_sign');
     const amount=parseAtoms(opt['--amount']);
@@ -198,6 +210,9 @@ async function main(argv){
       }catch(err){if(!/node_rejected_request:(404|not_found)/.test(err.message))throw err}
     }
     const plan=planSpend(spendable,address,opt['--to'],amount,fee);
+    // Reject a reorg observed between UTXO selection and signing. This does
+    // not replace the node's authoritative validation at POST admission.
+    assertSameNodeTip(view.observed_tip,await statusForNode(base));
     const record=unlocked[idx];
     if(record.address!==address)throw Error('vault_identity_mismatch');
     const {tx,txid}=buildSignedTransaction(record,plan.inputs,plan.outputs);
