@@ -89,6 +89,9 @@ jobs:
           node --test tests/standalone-miner-behavior.test.mjs
           node --test tests/standalone-miner-process-restart.test.mjs
 
+      - name: Verify sovereign standalone wallet crypto parity and independent mined transfer
+        run: node --test tests/sovereign-standalone-wallet.test.mjs
+
       - name: Verify v4 SQL atomic block acceptance on disposable PostgreSQL 16 (FAE-P0 candidate)
         run: bash lab/pow-historical-assurance/verify-v4-atomic-block-postgres.sh
 
