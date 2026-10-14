@@ -1,0 +1,152 @@
+#!/usr/bin/env node
+import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
+import {buildSignedTransaction,deriveRecords,newMnemonic,NETWORK,parseAtoms} from './crypto.mjs';
+import {readVault,unlockVault,writeVault} from './vault.mjs';
+
+const HELP='FAE Sovereign Wallet (Node 22+)\n'+
+  'Commands: create | recover | address | receive | balance | send | history | status\n'+
+  'Public options: --vault PATH --node URL --index 0..4 --watch faet1...\n'+
+  'Send options: --to faet1... --amount DECIMAL [--fee DECIMAL]\n'+
+  'Secrets are accepted ONLY through an interactive no-echo TTY; never via args/env.\n'+
+  'No public network default: --node defaults to 127.0.0.1:8787.\n';
+const DEFAULT_NODE='http://127.0.0.1:8787';
+
+export function parseCli(argv){
+  const [cmd,...tokens]=argv;
+  const allowed=new Set(['--vault','--node','--index','--watch','--to','--amount','--fee']);
+  const opt={};
+  for(let i=0;i<tokens.length;i+=2){
+    const key=tokens[i];
+    if(!allowed.has(key)||i+1===tokens.length||opt[key]!==undefined)throw Error('invalid_or_duplicate_option');
+    opt[key]=tokens[i+1];
+  }
+  if(!['create','recover','address','receive','balance','send','history','status','help'].includes(cmd))throw Error('unknown_command');
+  if(opt['--index']!==undefined&&!/^[0-4]$/.test(opt['--index']))throw Error('index_must_be_0_to_4');
+  if(opt['--watch']!==undefined&&!isValidAddress(opt['--watch']))throw Error('invalid_watch_address');
+  if(opt['--watch']&&['create','recover','send'].includes(cmd))throw Error('watch_only_cannot_create_recover_or_send');
+  if(cmd==='send'&&(!opt['--amount']||!isValidAddress(opt['--to'])))throw Error('send_requires_amount_and_valid_address');
+  return{cmd,opt,idx:Number(opt['--index']||0),vault:opt['--vault']||'./fae-wallet.vault.json'};
+}
+export function normalizeNode(raw){
+  const u=new URL(String(raw||DEFAULT_NODE));
+  if(u.username||u.password||u.search||u.hash)throw Error('node_url_must_not_include_credentials_or_query');
+  if(u.protocol!=='https:'&&!(u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname)))throw Error('remote_node_must_use_https');
+  return u.href.replace(/\/$/,'');
+}
+export async function nodeRequest(base,path,method='GET',body=null){
+  const response=await fetch(base+path,{method,headers:{'content-type':'application/json'},
+    ...(body===null?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(10000)});
+  const value=await response.json().catch(()=>null);
+  if(!response.ok||value?.ok===false)throw Error('node_rejected_request:'+String(value?.error||value?.reason||response.status));
+  if(!value||typeof value!=='object')throw Error('node_response_invalid');
+  return value;
+}
+export async function statusForNode(base){
+  const status=await nodeRequest(base,'/status');
+  if(status.network!==NETWORK)throw Error('wrong_node_network');
+  if(!Number.isSafeInteger(status.height)||status.height<0||!/^[0-9a-f]{64}$/.test(status.tip_hash))throw Error('invalid_node_tip');
+  return status;
+}
+export async function outputsForNode(base,address){
+  await statusForNode(base);
+  const view=await nodeRequest(base,'/balance?address='+encodeURIComponent(address));
+  if(view.address!==address||!(/^\d+$/.test(String(view.balance_atoms)))||!Array.isArray(view.utxos))throw Error('node_balance_inconsistent');
+  const seen=new Set();
+  for(const item of view.utxos){
+    if(typeof item.outpoint!=='string'||seen.has(item.outpoint)||!/^\d+$/.test(String(item.amount_atoms))||BigInt(item.amount_atoms)<=0n)throw Error('node_utxo_inconsistent');
+    seen.add(item.outpoint);
+  }
+  return view;
+}
+export function planSpend(utxos,from,to,amount,fee=0n){
+  if(!isValidAddress(from)||!isValidAddress(to)||amount<=0n||fee<0n)throw Error('invalid_payment');
+  const inputs=[];let total=0n;
+  for(const o of utxos){
+    if(o.source!=='confirmed')continue;
+    inputs.push(o.outpoint);total+=BigInt(o.amount_atoms);
+    if(total>=amount+fee)break;
+    if(inputs.length>64)throw Error('too_many_inputs');
+  }
+  if(total<amount+fee)throw Error('insufficient_confirmed_inputs');
+  if(inputs.length>64)throw Error('too_many_inputs');
+  const outputs=[{address:to,amount_atoms:String(amount)}];
+  if(total>amount+fee)outputs.push({address:from,amount_atoms:String(total-amount-fee)});
+  return{inputs,outputs,fee_atoms:String(fee)};
+}
+async function secretPrompt(label){
+  if(!process.stdin.isTTY||!process.stderr.isTTY||typeof process.stdin.setRawMode!=='function')throw Error('interactive_tty_required_for_secrets');
+  process.stderr.write(label);
+  const stdin=process.stdin,prior=stdin.isRaw;
+  return await new Promise((resolve,reject)=>{
+    let bytes='';
+    const finish=(err)=>{
+      stdin.removeListener('data',handle);
+      stdin.setRawMode(prior||false);
+      stdin.pause();
+      process.stderr.write('\n');
+      if(err)reject(err);else resolve(bytes);
+    };
+    function handle(data){
+      for(const byte of data){
+        if(byte===3||byte===4){finish(Error('cancelled'));return}
+        if(byte===10||byte===13){finish();return}
+        if(byte===127||byte===8){bytes=bytes.slice(0,-1);continue}
+        if(byte<32)continue;
+        if(bytes.length>512){finish(Error('secret_input_too_long'));return}
+        bytes+=String.fromCharCode(byte);
+      }
+    }
+    stdin.setRawMode(true);stdin.resume();stdin.on('data',handle);
+  });
+}
+async function passwordPrompt({confirm=false}={}){
+  const password=await secretPrompt('Vault password (hidden): ');
+  if(password.length<12)throw Error('vault_password_minimum_12_characters');
+  if(confirm){const again=await secretPrompt('Repeat vault password (hidden): ');if(password!==again)throw Error('passwords_do_not_match')}
+  return password;
+}
+function present(value){process.stdout.write(JSON.stringify(value)+'\n')}
+async function main(argv){
+  const {cmd,opt,idx,vault}=parseCli(argv);
+  if(cmd==='help'){process.stdout.write(HELP);return}
+  if(cmd==='create'||cmd==='recover'){
+    if(!process.stdin.isTTY||!process.stdout.isTTY)throw Error('interactive_tty_required_for_wallet_creation');
+    const mnemonic=cmd==='create'?newMnemonic():await secretPrompt('24-word recovery phrase (hidden): ');
+    const passphrase=await secretPrompt('FAE derivation passphrase (optional, hidden): ');
+    // Verify mnemonic and mapping BEFORE allocating any vault file.
+    deriveRecords(mnemonic,passphrase);
+    const password=await passwordPrompt({confirm:true});
+    const addresses=await writeVault(vault,mnemonic,passphrase,password);
+    if(cmd==='create')process.stdout.write('\nRECOVERY PHRASE — write offline, never photograph/share:\n'+mnemonic+'\n\n');
+    present({ok:true,action:cmd,vault,addresses:addresses.map(x=>x.address),encrypted:true});
+    return;
+  }
+  const address=opt['--watch']||((await readVault(vault)).public_addresses[idx].address);
+  if(cmd==='address'||cmd==='receive'){present({network:NETWORK,address,watch_only:Boolean(opt['--watch'])});return}
+  const base=normalizeNode(opt['--node']);
+  if(cmd==='status'){present({network:NETWORK,node:base,...(await statusForNode(base)),wallet_address:address});return}
+  const view=await outputsForNode(base,address);
+  if(cmd==='balance'){present({address,confirmed_balance_atoms:view.balance_atoms,
+    available_confirmed_utxos:view.utxos.filter(x=>x.source==='confirmed'),node:base});return}
+  if(cmd==='history'){present({address,node:base,coverage:'unspent_outputs_only_not_transaction_history',
+    status:'partial',unspent_confirmed_outputs:view.utxos.filter(x=>x.source==='confirmed'),
+    pending_outputs:view.utxos.filter(x=>x.source==='pending'),reorg_history:'unavailable_without_indexed_node_history'});return}
+  if(cmd==='send'){
+    if(opt['--watch'])throw Error('watch_only_cannot_sign');
+    const amount=parseAtoms(opt['--amount']);
+    const fee=opt['--fee']===undefined?0n:parseAtoms(opt['--fee']);
+    const plan=planSpend(view.utxos,address,opt['--to'],amount,fee);
+    const password=await passwordPrompt();
+    const record=(await unlockVault(vault,password))[idx];
+    if(record.address!==address)throw Error('vault_identity_mismatch');
+    const {tx,txid}=buildSignedTransaction(record,plan.inputs,plan.outputs);
+    const result=await nodeRequest(base,'/submit-tx','POST',{tx});
+    if(result.txid!==txid||String(result.fee_atoms)!==plan.fee_atoms)throw Error('node_acceptance_receipt_mismatch');
+    present({state:'accepted_unconfirmed',txid,address,fee_atoms:plan.fee_atoms,
+      amount_atoms:String(amount),node:base,
+      confirmation:'NOT_CONFIRMED_until_included_in_a_valid_block'});
+    return;
+  }
+}
+const invoked=process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href;
+if(invoked)main(process.argv.slice(2)).catch(err=>{process.stderr.write('FAE wallet error: '+err.message+'\n');process.exitCode=1});
