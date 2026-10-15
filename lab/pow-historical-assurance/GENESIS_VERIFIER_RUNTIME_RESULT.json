@@ -1,0 +1,41 @@
+{
+  "schema": "FAE_GENESIS_ZERO_HIDDEN_ISSUANCE_RUNTIME_RESULT_V1",
+  "date": "2026-10-10",
+  "source_branch": "assurance/pow-historical-main-20261010",
+  "exact_head": "069dcce63456d5b1aaa2eec1e02ad15ca8ac13cc",
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "project": "fairyelf-fae-testnet",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "github_actions_consumed": 0,
+    "paid_spend_increment_usd": 0
+  },
+  "tests": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "cases": [
+      "valid zero-hidden-issuance manifest passes",
+      "nonzero genesis UTXO rejected",
+      "imported UTXO rejected",
+      "special mint path rejected",
+      "premine rejected",
+      "treasury mint rejected",
+      "administrative mint rejected"
+    ]
+  },
+  "verdict": "GENESIS_MANIFEST_VERIFIER_RUNTIME_GREEN__FINAL_PRODUCTION_GENESIS_REPLAY_OPEN",
+  "residual": [
+    "production genesis bytes/hash do not yet exist",
+    "final monetary-rules digest is not yet bound to launch-state freeze",
+    "independent executable replay from final genesis remains required"
+  ],
+  "authority": {
+    "verification_only": true,
+    "consensus_change": false,
+    "economics_change": false,
+    "mainnet": false
+  }
+}

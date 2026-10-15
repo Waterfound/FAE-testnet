@@ -1,0 +1,23 @@
+name: fae-hpa-w4-evidence-validation
+
+on:
+  pull_request:
+    paths:
+      - 'lab/pow-historical-assurance/CLOSURE_MATRIX_EXACT_HEAD_RECONCILIATION_20261011.json'
+      - 'lab/pow-historical-assurance/closure-matrix-exact-head-validation.test.mjs'
+      - '.github/workflows/fae-hpa-w4-evidence-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-candidate-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Run immutable eight-class candidate matrix safety checks
+        run: node --test lab/pow-historical-assurance/closure-matrix-exact-head-validation.test.mjs

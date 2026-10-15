@@ -1,0 +1,80 @@
+{
+  "schema": "FAE_SECURITY_BUDGET_SUBSIDY_ENVELOPE_RESULT_V1",
+  "date": "2026-10-10",
+  "exact_head_under_test": "2d50f9e3ed9db0826a3e44455bd349ec788d5ef3",
+  "authoritative_input": "docs/FAE_TOKENOMICS_AUTHORITY_20261006.json",
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "github_actions_consumed": 0,
+    "incremental_paid_spend_usd": 0
+  },
+  "replay": {
+    "nonzero_reward_eras": 34,
+    "terminal_scheduled_issuance_fae": "12599999.81100000",
+    "expected_terminal_scheduled_issuance_fae": "12599999.81100000",
+    "exact_match": true
+  },
+  "subsidy_thresholds": [
+    {
+      "below_pct_of_initial": 50,
+      "first_era": 2,
+      "reward_fae": "2.72250000"
+    },
+    {
+      "below_pct_of_initial": 25,
+      "first_era": 3,
+      "reward_fae": "1.49737500"
+    },
+    {
+      "below_pct_of_initial": 10,
+      "first_era": 4,
+      "reward_fae": "0.82355625"
+    },
+    {
+      "below_pct_of_initial": 5,
+      "first_era": 6,
+      "reward_fae": "0.24912576"
+    },
+    {
+      "below_pct_of_initial": 1,
+      "first_era": 8,
+      "reward_fae": "0.07536053"
+    }
+  ],
+  "fee_backfill_examples": [
+    {
+      "era": 1,
+      "subsidy_fae": "4.95000000",
+      "fee_needed_to_restore_era0_9fae_budget": "4.05000000",
+      "fee_share_of_9fae_budget_pct": 45
+    },
+    {
+      "era": 2,
+      "subsidy_fae": "2.72250000",
+      "fee_needed_to_restore_era0_9fae_budget": "6.27750000",
+      "fee_share_of_9fae_budget_pct": 69.75
+    },
+    {
+      "era": 3,
+      "subsidy_fae": "1.49737500",
+      "fee_needed_to_restore_era0_9fae_budget": "7.50262500",
+      "fee_share_of_9fae_budget_pct": 83.3625
+    }
+  ],
+  "verdict": "DETERMINISTIC_SUBSIDY_ENVELOPE_GREEN__MARKET_AND_FEE_SECURITY_MODEL_OPEN",
+  "interpretation": [
+    "The monetary schedule is internally exact and the subsidy-security-budget decay is now machine-replayed.",
+    "Coin-denominated fee backfill is quantified without assuming market price.",
+    "No majority-work safety claim follows from this alone; future price, fee demand, honest hash participation and specialist/rental liquidity remain reality-dependent."
+  ],
+  "authority": {
+    "research_only": true,
+    "fee_policy_selected": false,
+    "consensus_change": false,
+    "economics_change": false,
+    "mainnet": false
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "schema": "FAE_HISTORICAL_POW_EVIDENCE_RECONCILIATION_V2",
+  "date": "2026-10-12",
+  "scope": "Candidate-software evidence, not mainnet/ASIC economic security",
+  "source": {
+    "legacy_matrix": "lab/pow-historical-assurance/CLOSURE_MATRIX.json",
+    "historical_pr297": "fae5120f5b123aa8dc8cc0e6153e65c6d0c4e9ee",
+    "w2_pr310": "5b9f5aad280053e50df5aea9efa41f2df6775bdd",
+    "w3_pr311": "4eae6d339cefed9368522336f6fe0d8232d85802",
+    "dp6_pr312": "04a34cde293509b679874447b51b28f79d0f8b22",
+    "w4_pr297_previous_verified_head": "4b31803cae22aff0e2d4786bbb08ed65388f6971"
+  },
+  "rows": [
+    {
+      "id": "HP-01",
+      "element": 10,
+      "title": "DP6 path binding and independent verifier",
+      "candidate": "PASS_VERIFIED_FROZEN_SOURCE",
+      "mainnet": "CONDITION_WAIT",
+      "evidence": [
+        "PR #312 exact head 04a34cde293509b679874447b51b28f79d0f8b22 8/8 workflows GREEN",
+        "Independent 16/16 semantic vectors, 6/6 negative, 4/4 selector invalid and frozen bypass regression",
+        "Conditional specialist model 11/11 including full 256MiB resident-context integrity; ASIC memory economics unmeasured"
+      ],
+      "remaining": [
+        "final production network/height/version DP6 path wiring and exact replay",
+        "ASIC/HBM controller/PHY/package and dependent-memory economic interval external evidence"
+      ],
+      "economic_asic_resistance_proven": false
+    },
+    {
+      "id": "HP-02",
+      "element": 2,
+      "title": "DAA / timestamp final design",
+      "candidate": "PASS_CANDIDATE_HISTORICAL",
+      "mainnet": "CONDITION_WAIT",
+      "evidence": [
+        "DAA_RUNTIME_RESULT.json: difficulty/timestamp hardening 8/8 + redteam 5/5"
+      ],
+      "remaining": [
+        "freeze final block-time/difficulty/activation anchors",
+        "independent parity and actual final launch replay"
+      ]
+    },
+    {
+      "id": "HP-03",
+      "element": 8,
+      "title": "Mempool/resource brownout and fee-pinning",
+      "candidate": "PASS_CANDIDATE_LATEST_HEAD",
+      "mainnet": "HOLD",
+      "evidence": [
+        "PR #310 exact head 5b9f5aad280053e50df5aea9efa41f2df6775bdd: 46/46 focused, 10/10 CI GREEN",
+        "Source-signed full 4096 pool, real authenticated reorg/relay and fee-aware candidate template",
+        "Signed 512x8 parallel chain, two-parent join and descendant closure; single CI performance and repeated flat pool observations",
+        "PF-12W rejects duplicate pending outpoint fee inflation in a corrupt snapshot while preserving accepted source state",
+        "LIVE_NODE_BROWNOUT_RESULT.json historical isolated source-run at 4096",
+        "PF-12X/Y candidate snapshot: nonpositive signed pending output / source amount cannot inflate fees; forged fee+index value on poisoned clone fails closed",
+        "PF-12Z/AA: chosen pending fee eviction package and emitted template cryptographically verify original Ed25519 signature, hash-derived txid and key-bound address; mutated-but-consistent signed records fail closed"
+      ],
+      "remaining": [
+        "sustained source node resource/latency under mixed topology bursts and inter-node reorg floods, independent device evidence",
+        "freezing non-default fee/relay/miner payout policy, consensus-verifier and final production economics"
+      ],
+      "unbounded_resource_safety_proven": false
+    },
+    {
+      "id": "HP-04",
+      "element": 3,
+      "title": "Genesis/bootstrap zero-hidden-issuance",
+      "candidate": "PASS_CANDIDATE_VERIFIER",
+      "mainnet": "CONDITION_WAIT",
+      "evidence": [
+        "GENESIS_VERIFIER_RUNTIME_RESULT.json 7/7 zero-hidden-issuance verifier"
+      ],
+      "remaining": [
+        "exact future production genesis bytes/hash",
+        "final monetary rules digest and full independent issuance replay"
+      ]
+    },
+    {
+      "id": "HP-05",
+      "element": 2,
+      "title": "Majority-work fee-security-budget",
+      "candidate": "COLLAPSE_CURRENT_V4_MINER_FEE_REVENUE_PREMISE",
+      "mainnet": "HOLD",
+      "evidence": [
+        "PR #310 explicit signed 250000-atom fee tx; current unactivated miner coinbase only subsidy",
+        "fee-security-budget-falsification.test.mjs 3/3 in PR #310",
+        "SECURITY_BUDGET_ENVELOPE_RESULT.json deterministic monetary/subsidy decay model"
+      ],
+      "remaining": [
+        "authorization and activation of final miner fee policy and consensus-compatible verifier",
+        "real fee demand, coin price, honest hashrate, electricity cost, miner and rented ASIC economics"
+      ],
+      "not_entire_pow_collapse": true
+    },
+    {
+      "id": "HP-06",
+      "element": 2,
+      "title": "Selfish/stubborn/BWH/FAW/EFAW and PPLNS",
+      "candidate": "CONDITIONAL_MODELS_AND_SOURCE_GUARDS_PASS__PROFITABILITY_OPEN",
+      "mainnet": "HOLD",
+      "evidence": [
+        "PR #311 exact head 4eae6d339cefed9368522336f6fe0d8232d85802: 50/50 focused, 7/7 CI GREEN",
+        "2048-share source-ledger, conditional BWH/FAW/EFAW ceilings and deterministic finite-horizon classic selfish-release expectation, bounded one-event trail counterfactual and exact conditional tie-advantage threshold cannot prove observed propagation, full stubborn-strategy equivalence or network attack profitability",
+        "source tip race, credit-once receipt, malformed ACK, independently validated chain inclusion/non-inclusion uncertainty"
+      ],
+      "remaining": [
+        "actual full-target source payout reconciliation and BWH/FAW/EFAW network opportunity/tie evidence",
+        "empirical propagation, attacker capex/opex and external pool benefit with provenance",
+        "final pool incentive policy and PPLNS separately authorized"
+      ],
+      "attack_profitability_proven": false
+    },
+    {
+      "id": "HP-07",
+      "element": 10,
+      "title": "Same-ID different-body/rejection cache poisoning",
+      "candidate": "PASS_CANDIDATE_HISTORICAL",
+      "mainnet": "FINAL_REPLAY_REQUIRED",
+      "evidence": [
+        "CLOSURE_MATRIX.json full-target poisoning 5/5 and transaction-object identity 3/3"
+      ],
+      "remaining": [
+        "repeat original poison corpus on final immutable launch consensus/body/cache"
+      ]
+    },
+    {
+      "id": "HP-08",
+      "element": 4,
+      "title": "Routing/partition/eclipsing",
+      "candidate": "STRONG_CANDIDATE_NETWORK_EVIDENCE",
+      "mainnet": "CONDITION_WAIT",
+      "evidence": [
+        "CLOSURE_MATRIX.json historical WAN Gate 3 and three-node split heal",
+        "PR #310 actual authenticated peer relay and reorg at cap"
+      ],
+      "remaining": [
+        "production bootstrap topology and distinct provider/AS evidence",
+        "production-equivalent partition and eclipse replay on release head"
+      ]
+    }
+  ],
+  "interpretation": {
+    "eight_classes_accounted_for": true,
+    "candidate_terminal_verified": false,
+    "mainnet_terminal_green_count": 0,
+    "all_risks_resolved": false,
+    "mainnet_allowed": false,
+    "percent_progress_last_formal": 80,
+    "percent_progress_recalculation": "PRIVATE_OWNER_80_PERCENT_WEIGHTED_CANDIDATE_INDICATOR__NOT_MAINNET",
+    "known_collapse_is_narrow": "current-v4 paid-fee miner-revenue assumption",
+    "specialized_economic_bound": "EXTERNAL_EVIDENCE_GATE",
+    "do_not_claim": "DP6 always ASIC resistant or 100% mainnet ready from frozen lab proofs and speculative costs"
+  },
+  "authority": {
+    "research_document_only": true,
+    "change_consensus": false,
+    "activate_fee": false,
+    "activate_pplns": false,
+    "merge_main": false,
+    "release_mainnet": false
+  },
+  "audit": {
+    "schema": "HPA_W4_EXACT_HEAD_AUDIT_V3",
+    "classification": "SOURCE_BOUND_CANDIDATE_SECURITY_INVENTORY__NOT_MAINNET_PROOF",
+    "rows_expected": 8,
+    "source_candidate_headers_reconciled": true,
+    "evidence_is_snapshot_only": true,
+    "allow_inference_of_actual_specialization_resistance": false,
+    "retain_previous_failed_ci_history": true,
+    "weighted_score_epistemic_boundary": "Candidate W1 10 / W2 30 / W3 40 / W4 20, privately owner-scored 80; not final mainnet or ASIC economic proof"
+  }
+}

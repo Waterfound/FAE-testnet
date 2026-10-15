@@ -18,6 +18,8 @@ export const MAX_BITS=28;
 export const MAX_TXS_PER_BLOCK=20;
 export const MAX_INPUTS=64;
 export const MAX_OUTPUTS=16;
+export const MAX_MEMPOOL_TXS=4096;
+export const MAX_TRANSACTION_BYTES=16*1024;
 export const ZERO_HASH='0'.repeat(64);
 export const LEGACY_TESTNET_HASHES=[null,
   '0000391ae913006a6c1ab07760675e71067dfc40f893416b4bcb81eac75989bc',
@@ -66,6 +68,7 @@ export function verifyTxCrypto(raw){
   try{
     const tx=normalizeTx(raw);if(raw?.version!==undefined&&Number(raw.version)!==2)return{ok:false,error:'wrong_version'};
     if(tx.network!==NETWORK||tx.inputs.length<1||tx.inputs.length>MAX_INPUTS||tx.outputs.length<1||tx.outputs.length>MAX_OUTPUTS)return{ok:false,error:'malformed_transaction'};
+    if(Buffer.byteLength(stableStringify(tx),'utf8')>MAX_TRANSACTION_BYTES)return{ok:false,error:'transaction_too_large'};
     if(new Set(tx.inputs).size!==tx.inputs.length||tx.inputs.some(x=>!x||x.length>160))return{ok:false,error:'invalid_inputs'};
     for(const output of tx.outputs)if(!isValidAddress(output.address,'faet')||atom(output.amount_atoms)<=0n)return{ok:false,error:'invalid_output'};
     const spki=Buffer.from(tx.public_key_spki,'base64'),signature=Buffer.from(tx.signature,'base64'),key=createPublicKey({key:spki,format:'der',type:'spki'});
@@ -75,6 +78,7 @@ export function verifyTxCrypto(raw){
 }
 
 export function acceptTxInto(state,raw,{fromFeed=false}={}){
+  if(state.mempoolOrder.length>=MAX_MEMPOOL_TXS)throw Object.assign(new Error('mempool_full'),{code:'mempool_full'});
   const verified=verifyTxCrypto(raw);if(!verified.ok)throw Object.assign(new Error(verified.error),{code:verified.error});const{tx,from,txid}=verified;
   if(raw.txid&&raw.txid!==txid)throw Object.assign(new Error('txid_mismatch'),{code:'txid_mismatch'});if(raw.from_address&&raw.from_address!==from)throw Object.assign(new Error('from_key_mismatch'),{code:'from_key_mismatch'});if(state.transactions[txid])throw Object.assign(new Error('duplicate_txid'),{code:'duplicate_txid'});
   let inputSum=0n;for(const outpoint of tx.inputs){let output=state.utxos[outpoint];if(output?.spent)output=null;if(!output)output=state.mempoolOutputs[outpoint];if(!output)throw Object.assign(new Error('missing_or_spent_input'),{code:'missing_or_spent_input',outpoint});if(output.address!==from)throw Object.assign(new Error('input_not_owned'),{code:'input_not_owned',outpoint});if(state.mempoolSpends[outpoint])throw Object.assign(new Error('input_reserved'),{code:'input_reserved',outpoint});inputSum+=BigInt(output.amount_atoms)}
