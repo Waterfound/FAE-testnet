@@ -1,0 +1,39 @@
+{
+  "schema": "FAE_DESIGN_FIRST_PRODUCT_WALLET_REVIEW_V1",
+  "recorded_at": "2026-10-15",
+  "authority_owner": "Waterfound",
+  "verdict": "REJECTED__PRODUCT_WALLET_INTEGRATED_VISUAL_TRANSLATION",
+  "authority": {
+    "reference_pr": 268,
+    "reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "reference_role": "SOLE_AUTHORITATIVE_VISUAL_IDENTITY",
+    "wallet_reference_studio": "fae-wallet-authored-revision-vr-08-5xu6gd",
+    "prior_direction_d_d_plus_vl08": "HISTORICAL_ONLY"
+  },
+  "rejected_candidate": {
+    "pr": 272,
+    "reviewed_head": "7a1a3f837a44aa6d3ed070af12ca81e658edd780",
+    "studio": "fae-authored-product-wallet-studio-6cku5x",
+    "preserve_unchanged_for_comparison": true,
+    "artistic_acceptance": false,
+    "technical_ci_is_not_visual_acceptance": true
+  },
+  "human_direction": {
+    "principle": "FAE must feel authored",
+    "priority": "Design authority precedes engineering implementation; adding features may not degrade the accepted authored composition.",
+    "diagnosis": "Integrated technical reconciliation failed to preserve the quality of the authoritative wallet composition.",
+    "repair": "Rebuild Product Shell + Wallet as a function-specific translation of the approved authored visual references, preserving negative space, proportion, hierarchy, restraint and semantic use of blue; reduce generic cards, redundant copy and incidental chrome.",
+    "comparison": "Review desktop and mobile side by side against frozen Mining and authoritative Wallet; evaluate visual quality independently of functional CI."
+  },
+  "fail_closed": {
+    "visual_gate": "REJECTED_UNTIL_NEW_EXPLICIT_WATERFOUND_ACCEPTANCE",
+    "new_feature_family_propagation": false,
+    "canonical_merge": false,
+    "production_deployment": false,
+    "explorer_network_source_write": false,
+    "consensus_economics_activation_mainnet_changes": false,
+    "implicit_wallet_creation": false,
+    "protected_wallet_mining_runtime_changes": false
+  },
+  "next_admissible_work": "Candidate-only design-first composition reconciliation, followed by wallet/mining invariants and visual review; do not infer approval from technical PASS."
+}
