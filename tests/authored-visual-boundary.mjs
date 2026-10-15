@@ -36,6 +36,24 @@ assert.equal(reconciliation.rules.no_merge, true);
 assert.equal(reconciliation.rules.no_production_deploy, true);
 assert.equal(reconciliation.rules.fail_closed_on_material_visual_drift, true);
 
+// Waterfound's later design-first rejection supersedes technical readiness.
+// Green CI verifies engineering boundaries; it must never imply visual acceptance.
+const designFirst = read("docs/FAE_PRODUCT_WALLET_DESIGN_FIRST_REJECTION_20261015.json");
+assert.equal(designFirst.authority_owner, "Waterfound");
+assert.equal(designFirst.verdict, "REJECTED__PRODUCT_WALLET_INTEGRATED_VISUAL_TRANSLATION");
+assert.equal(designFirst.authority.reference_pr, 268);
+assert.equal(designFirst.authority.reference_head, frozen);
+assert.equal(designFirst.authority.reference_role, "SOLE_AUTHORITATIVE_VISUAL_IDENTITY");
+assert.equal(designFirst.rejected_candidate.pr, 272);
+assert.equal(designFirst.rejected_candidate.studio, "fae-authored-product-wallet-studio-6cku5x");
+assert.equal(designFirst.rejected_candidate.preserve_unchanged_for_comparison, true);
+assert.equal(designFirst.rejected_candidate.artistic_acceptance, false);
+assert.equal(designFirst.rejected_candidate.technical_ci_is_not_visual_acceptance, true);
+assert.equal(designFirst.fail_closed.visual_gate, "REJECTED_UNTIL_NEW_EXPLICIT_WATERFOUND_ACCEPTANCE");
+for (const gate of ["new_feature_family_propagation", "canonical_merge", "production_deployment", "explorer_network_source_write", "consensus_economics_activation_mainnet_changes", "implicit_wallet_creation", "protected_wallet_mining_runtime_changes"]) {
+  assert.equal(designFirst.fail_closed[gate], false, "design-first fail-closed boundary: " + gate);
+}
+
 for (const [path, expected] of Object.entries(durable.protected_blob_bindings)) {
   assert.match(path, /^(?:wallet(?:-[a-z-]+)?|mining|core)\.js$/);
   const bytes = fs.readFileSync(path);
