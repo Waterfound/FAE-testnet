@@ -162,6 +162,9 @@ assert.match(await evaluate("document.querySelector('.wallet-admission-rule').te
 assert.match(await evaluate("document.querySelector('.wallet-stage-copy').textContent"),/Possession should feel quiet/);
 assert.equal(await evaluate("document.querySelector('.ticker-track').textContent.includes('Block Height')"),true);
 
+// DFR: reference-class architectural checks; historical VR-09 CSS-only is insufficient.
+const emptyStructure=await evaluate("(()=>{const e=document.querySelector('.empty-space'),p=e?.querySelector('.empty-primary'),a=e?.querySelector('.empty-aside');return {display:e&&getComputedStyle(e).display,hasBlank:p?.querySelector('.empty-number')?.textContent.trim()==='—',hasNew:!!a?.querySelector('#action-create'),hasRecovery:!!a?.querySelector('#action-recovery'),emptyWallet:document.querySelector('#wallet-connected-state').hidden};})()");
+assert.deepEqual(emptyStructure,{display:'grid',hasBlank:true,hasNew:true,hasRecovery:true,emptyWallet:true},'Approved empty composition must be an actual DOM scene');
 await captureSafeVisual('wallet-empty-desktop-1440',1440,900);
 await captureSafeVisual('wallet-empty-ipad-834',834,1194);
 await captureSafeVisual('wallet-empty-mobile-390',390,844);
@@ -199,6 +202,8 @@ assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row'
 await click('#tab-wallet');
 await waitFor("!document.querySelector('#panel-wallet').hidden && !document.querySelector('#wallet-connected-state').hidden",'Wallet selected for active screenshots');
 assert.equal(await evaluate("document.querySelector('#tab-wallet').getAttribute('aria-selected')"),'true');
+const activeStructure=await evaluate("(()=>{const root=document.querySelector('.active-composition');const balance=root?.querySelector('.balance-field #bal');const rail=root?.querySelector('.wallet-rail #walletlist');const flow=root?.querySelector('.activity-list .flow-strip #txhist');const first=document.querySelector('#wallet-entry-card');return {actualBalance:!!balance,realWalletRail:!!rail,realMovement:!!flow,distinctSections:!!root?.querySelector('.balance-field')&&!!root?.querySelector('.wallet-rail'),balanceBeforeAdd:balance?.getBoundingClientRect().top<first?.getBoundingClientRect().top,cryptoInputsPreserved:!!document.querySelector('#sendto')&&!!document.querySelector('#recoveryseed')};})()");
+assert.deepEqual(activeStructure,{actualBalance:true,realWalletRail:true,realMovement:true,distinctSections:true,balanceBeforeAdd:true,cryptoInputsPreserved:true},'Approved active composition must survive functional integration');
 await captureSafeVisual('wallet-active-desktop-1440',1440,900);
 await captureSafeVisual('wallet-active-ipad-834',834,1194);
 await captureSafeVisual('wallet-active-mobile-390',390,844);
