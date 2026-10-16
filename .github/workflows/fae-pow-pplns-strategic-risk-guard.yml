@@ -10,6 +10,8 @@ on:
       - lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
       - lab/pow-historical-assurance/selfish-mining-exact-horizon.mjs
       - lab/pow-historical-assurance/selfish-mining-exact-horizon.test.mjs
+      - lab/pow-historical-assurance/CLOSURE_MATRIX.json
+      - lab/pow-historical-assurance/closure-matrix-w4.test.mjs
       - lab/pow-historical-assurance/PPLNS_STRATEGIC_HOLD_20261011.md
       - .github/workflows/fae-pow-pplns-strategic-risk-guard.yml
   workflow_dispatch:
@@ -32,3 +34,5 @@ jobs:
         run: node --test lab/pow-historical-assurance/full-target-chain-inclusion-candidate.test.mjs
       - name: Exact finite-horizon selfish-release expectation without Monte Carlo sampling error
         run: node --test lab/pow-historical-assurance/selfish-mining-exact-horizon.test.mjs
+      - name: W4 closure matrix preserves candidate and Mainnet boundaries
+        run: node --test lab/pow-historical-assurance/closure-matrix-w4.test.mjs
