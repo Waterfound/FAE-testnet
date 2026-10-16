@@ -153,6 +153,133 @@ main{max-width:1180px;min-height:calc(100vh - 72px);padding:0 28px 64px;backgrou
   .network-dot{animation:none!important}
 }
 
+
+/* VR-09 — authored Product / Wallet. Visual-only; source authority: Mining #268.
+   Wallet rests; mining moves only in response to real running state.
+   The controls keep their DOM IDs and behavioral contract. */
+:root{--vr09-ink:#171b20;--vr09-blue:#1769ff;--vr09-rule:#e5e9ef}
+html{background:#fff}
+body{background:#fff;color:var(--vr09-ink)}
+.fae-topper{position:relative;box-shadow:none}
+.topper-head{max-width:1440px;padding-inline:clamp(18px,3.2vw,48px)}
+.network-dot{animation:none;box-shadow:none}
+.network-status{padding:0;border:0;background:transparent;border-radius:0;font-size:11px;letter-spacing:.015em}
+.ticker-viewport{border-top:0;border-bottom:1px solid var(--vr09-rule)}
+.ticker-track{animation:none!important;transform:none!important;padding:9px clamp(18px,3.2vw,48px)!important;gap:clamp(12px,2.8vw,38px);font-size:10px;font-weight:650;letter-spacing:.035em}
+.ticker-track b{font-size:10px;font-weight:800}
+.ticker-sep{opacity:.3}
+main{max-width:1440px;padding:0 clamp(20px,5vw,76px) 72px;border-inline:0}
+.product-shell-head{min-height:80px;border-bottom:1px solid var(--vr09-rule)}
+.product-shell-title>span{font-size:13px;font-weight:850;letter-spacing:-.025em}
+.product-shell-title small{display:none}
+.authored-mode-switch .environment-tab{border:0;border-bottom:2px solid transparent;border-radius:0;padding:12px 19px;background:transparent;color:#737d89;font-size:13px;min-height:46px}
+.authored-mode-switch .environment-tab:hover:not(:disabled){background:transparent;border-color:#c5d8f6;color:#202b3b}
+.authored-mode-switch .environment-tab[aria-selected="true"]{background:transparent;border-color:var(--vr09-blue);color:#1657ca}
+#panel-wallet{padding-top:clamp(38px,6vw,88px)}
+.wallet-stage-head{grid-template-columns:minmax(0,1.8fr) minmax(170px,.35fr);gap:clamp(28px,8vw,120px);align-items:end;margin:0 0 clamp(32px,5vw,68px)}
+.wallet-stage-copy{max-width:700px}
+.wallet-stage-head h1{font-size:clamp(54px,8.8vw,112px);line-height:.88;font-weight:850;letter-spacing:-.078em;margin:12px 0 25px}
+.wallet-stage-head p{max-width:340px;font-size:13px;line-height:1.7;color:#727b87}
+#panel-wallet .product-kicker{font-size:10px;font-weight:780;letter-spacing:.15em;color:#1657ca}
+.wallet-presence{max-width:220px;display:block;border-top:2px solid var(--vr09-ink);padding-top:16px;align-self:end}
+.wallet-presence .presence-label{display:block;font-size:10px}
+.wallet-presence strong{display:block;font-size:clamp(27px,3.7vw,43px);font-weight:800;letter-spacing:-.06em;margin:11px 0 8px}
+.wallet-presence small{display:block;font-size:11px;line-height:1.6;color:#7a8490}
+.wallet-admission-rule{max-width:800px;margin:0 0 clamp(28px,5vw,62px);border:0;padding:0;color:#707985;font-size:11px;line-height:1.7}
+.wallet-admission-rule strong{color:var(--vr09-ink);font-weight:800}
+#panel-wallet>.stack{gap:0}
+#panel-wallet .wallet-entry-section{max-width:none;border-top:1px solid #20262f;padding:21px 0 clamp(34px,5vw,64px)}
+#panel-wallet .wallet-entry-section .section-head{margin-bottom:20px}
+#panel-wallet .wallet-entry-section .section-head h2{font-size:11px;letter-spacing:.11em;text-transform:uppercase}
+#panel-wallet .wallet-entry-section .section-head .small{font-size:11px}
+#panel-wallet .wallet-entry-buttons{max-width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(18px,4vw,70px)}
+#panel-wallet .wallet-entry-buttons .wallet-action,
+#panel-wallet .wallet-entry-buttons .wallet-action.alt{
+  display:flex;align-items:center;justify-content:space-between;text-align:left;
+  min-height:104px;width:100%;border:0;border-top:1px solid var(--vr09-rule);
+  border-bottom:1px solid var(--vr09-rule);border-radius:0;padding:18px 2px;
+  background:transparent;color:var(--vr09-ink);box-shadow:none;
+  font-size:clamp(24px,3.3vw,39px);font-weight:740;letter-spacing:-.055em
+}
+#panel-wallet .wallet-entry-buttons .wallet-action::after{content:'↗';color:#1769ff;font-size:28px;font-weight:400;line-height:1;transition:transform .16s ease}
+#panel-wallet .wallet-entry-buttons .wallet-action:hover:not(:disabled){background:transparent;border-bottom-color:var(--vr09-blue);color:#124db2}
+#panel-wallet .wallet-entry-buttons .wallet-action:hover::after{transform:translate(3px,-3px)}
+#panel-wallet #wallet-empty-note{max-width:435px;font-size:11px;line-height:1.65;margin-top:22px;color:#7c8692}
+#panel-wallet .action-panel{max-width:840px;margin-top:38px;border-top:1px solid var(--vr09-rule);padding-top:24px}
+#panel-wallet .action-panel h3{font-size:20px;letter-spacing:-.03em}
+#panel-wallet .wallet-section{padding:29px 0;border-top:1px solid var(--vr09-rule)}
+#panel-wallet .wallet-section h2{font-size:14px;letter-spacing:-.025em}
+#panel-wallet .wallet-list{max-width:850px}
+#panel-wallet .wallet-row{min-height:62px;padding:14px 2px;border-top-color:var(--vr09-rule)}
+#panel-wallet .wallet-row.active{border-top-color:var(--vr09-blue);box-shadow:inset 2px 0 0 var(--vr09-blue);padding-left:13px}
+#panel-wallet #wallet-connected-state>.panel-grid{gap:clamp(30px,6vw,92px);border-top:1px solid #20262f;grid-template-columns:minmax(0,1.2fr) minmax(310px,.75fr)}
+#panel-wallet #wallet-connected-state>.panel-grid>.wallet-section{padding-top:30px}
+#panel-wallet .address-head{flex-direction:column;align-items:flex-start;gap:14px;padding-bottom:18px}
+#panel-wallet .balance{font-size:clamp(65px,9vw,115px);letter-spacing:-.083em;line-height:.92;font-weight:850;overflow-wrap:anywhere}
+#panel-wallet .field{font-size:11px;letter-spacing:.015em;color:#707b88;margin:17px 0 7px}
+#panel-wallet textarea,#panel-wallet input{border-radius:3px;border-color:#ced6e0;padding:13px 12px}
+#panel-wallet textarea:read-only{background:#fafbfc}
+#panel-wallet button:not(.wallet-action){border-radius:3px}
+#panel-wallet .status{background:transparent;color:#66717d;border:0;border-top:1px solid var(--vr09-rule);border-radius:0;padding:10px 0;font-size:11px}
+#panel-wallet .status.ok{color:#16794b}
+#panel-wallet .status.bad{color:#b42318}
+#panel-wallet .backup{background:#f9fafc;border-left:2px solid #8897aa;border-radius:2px}
+#panel-wallet .transaction-list{gap:0}
+#panel-wallet .transaction-row,#panel-wallet .block-row{border:0;border-top:1px solid var(--vr09-rule);border-radius:0;background:transparent;padding:16px 0}
+#panel-wallet .transaction-row:last-child{border-bottom:1px solid var(--vr09-rule)}
+#panel-wallet .notice{border-radius:2px}
+#panel-wallet #historycoverage{font-size:11px;max-width:620px}
+#panel-mining{padding-top:clamp(40px,6vw,76px)}
+#panel-mining .product-intro{gap:clamp(36px,8vw,110px);margin-bottom:38px}
+#panel-mining .product-intro h2{font-size:clamp(32px,5vw,56px);letter-spacing:-.052em;max-width:650px}
+#panel-mining .product-intro p{max-width:430px;font-size:13px;line-height:1.7}
+#panel-mining .trust-strip{border-top-color:#20262f}
+#panel-mining .panel-grid{gap:clamp(28px,6vw,90px)}
+#panel-mining .card{border:0;border-top:1px solid #20262f;border-radius:0;padding:24px 0;background:transparent;box-shadow:none}
+#panel-mining .mining-activity-rail{height:3px;border-radius:0;background:#eaf0fb}
+#panel-mining .mining-activity-fill{border-radius:0}
+#panel-mining:has(#stop:not(:disabled)) .mining-activity-fill{
+ width:100%;transform:scaleX(1);background:linear-gradient(90deg,#dceaff,#1769ff 35%,#6bb2ff 65%,#dceaff);
+ background-size:220% 100%;animation:vr09-real-work 2.8s linear infinite
+}
+@keyframes vr09-real-work{from{background-position:100% 0}to{background-position:-100% 0}}
+.footer-note{font-size:10px;letter-spacing:.02em;color:#8c96a2}
+@media(max-width:840px){
+ main{padding-inline:24px}
+ .wallet-stage-head{grid-template-columns:minmax(0,1fr) minmax(142px,.28fr);gap:24px}
+ .wallet-stage-head h1{font-size:clamp(60px,10vw,85px)}
+ #panel-wallet #wallet-connected-state>.panel-grid{grid-template-columns:1fr;gap:0}
+ #panel-wallet #wallet-connected-state>.panel-grid>.wallet-section+ .wallet-section{border-top:1px solid var(--vr09-rule)}
+ .ticker-viewport{overflow-x:auto;scrollbar-width:none}
+ .ticker-track{min-width:max-content}
+}
+@media(max-width:560px){
+ .topper-head{padding-inline:18px}
+ main{padding-inline:19px}
+ .product-shell-head{min-height:70px}
+ #panel-wallet{padding-top:46px}
+ .wallet-stage-head{grid-template-columns:1fr;gap:32px;margin-bottom:34px}
+ .wallet-stage-head h1{font-size:clamp(66px,16vw,92px);margin:11px 0 16px}
+ .wallet-stage-head p{font-size:12px;max-width:300px}
+ .wallet-presence{max-width:none;border-top:1px solid var(--vr09-rule);padding-top:11px}
+ .wallet-presence strong{display:inline-block;font-size:24px;margin:5px 0 0}
+ .wallet-presence small{display:inline-block;margin-left:12px;font-size:10px}
+ #panel-wallet .wallet-entry-buttons{grid-template-columns:1fr;gap:4px}
+ #panel-wallet .wallet-entry-buttons .wallet-action,#panel-wallet .wallet-entry-buttons .wallet-action.alt{font-size:29px;min-height:82px}
+ #panel-wallet .wallet-entry-section{padding-bottom:35px}
+ #panel-wallet .balance{font-size:clamp(60px,12vw,76px)}
+ #panel-wallet .wallet-row{grid-template-columns:minmax(0,1fr) auto}
+ #panel-mining .product-intro{grid-template-columns:1fr}
+ #panel-mining .panel-grid{grid-template-columns:1fr}
+ #panel-mining .product-intro h2{font-size:34px}
+ .ticker-track{gap:19px;font-size:9px}
+ .ticker-sep{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ #panel-mining:has(#stop:not(:disabled)) .mining-activity-fill{animation:none!important;background:#1769ff}
+ #panel-wallet .wallet-entry-buttons .wallet-action::after{transition:none}
+}
+
 </style>
 </head>
 <body data-authorship-propagation="product-wallet-v1">
@@ -255,12 +382,12 @@ main{max-width:1180px;min-height:calc(100vh - 72px);padding:0 28px 64px;backgrou
       <div class="wallet-stage-copy">
         <div class="product-kicker">Wallet / quiet ownership</div>
         <h1 id="wallet-surface-title">Wallet</h1>
-        <p>Possession should feel quiet. Keys, signing and encrypted persistence stay on this device while the interface makes ownership explicit without ambient motion.</p>
+        <p>Possession should feel quiet. Your keys remain on this device.</p>
       </div>
       <div class="wallet-presence" aria-label="Wallet ownership properties">
         <span class="presence-label">Custody</span>
         <strong>Local</strong>
-        <small>Persistent encrypted vault · local signing · explicit recovery</small>
+        <small>Encrypted here · signed here</small>
       </div>
     </section>
     <p class="wallet-admission-rule"><strong>No implicit Wallet creation.</strong> A Wallet exists here only after you choose New Wallet and verify the complete 24-word backup, or explicitly recover one.</p>

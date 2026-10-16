@@ -1,0 +1,45 @@
+{
+  "schema": "FAE_PRODUCT_WALLET_VR09_DESIGN_FIRST_CANDIDATE_V1",
+  "date": "2026-10-16",
+  "design_status": "CANDIDATE_NOT_VISUALLY_ACCEPTED",
+  "reference": {
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "blob": "6aa1fa3711700874c2440d59d28b4005549775db"
+  },
+  "inherited_rejected_baseline": {
+    "pr": 272,
+    "source_head": "aa42fd1328eb06bfb214d2a711aba15e46854fb1",
+    "visual_studio": "fae-authored-product-wallet-studio-6cku5x",
+    "preserve_unchanged": true
+  },
+  "independent_wallet_reference": "fae-wallet-authored-revision-vr-08-5xu6gd",
+  "diagnosis": [
+    "Redundant hero copy and custody panel compete with primary action",
+    "Similar panel weight across balance, identities, signing and history",
+    "Generic card/rounded-border grammar and dashboard framing",
+    "Ticker perpetually animates with no causal network event"
+  ],
+  "changes": [
+    "Single stage: overscale Wallet title and deliberate rest whitespace",
+    "Explicit two large ruled New Wallet / Recovery Wallet choices; unchanged IDs and admission sequencing",
+    "Connected balance becomes the single typographic anchor; wallet identity/history organized as unboxed ruled lines",
+    "Plain continuous orange identity/header; static network facts; blue only for selection and actual mining activity",
+    "Resp. desktop 1440, iPad 834, mobile 390 with real browser screenshots and overflow checks",
+    "Input/output crypto and mining logic unchanged; NO IMPLICIT WALLET CREATION guard retained"
+  ],
+  "gates": {
+    "artistic_approval": false,
+    "main_merge": false,
+    "production_publish": false,
+    "feature_family_propagation": false,
+    "real_wallet_keys_in_artifacts": false
+  },
+  "acceptance": "Waterfound inspects exactly this candidate screenshot set; technical CI may not change artistic decision",
+  "continuity": {
+    "owner": "Existing Total Systems Steward and FAE Visual Continuation",
+    "type": "EXISTING_RECURRENT_CHECKPOINT_NOT_NATIVE_DURABLE",
+    "new_scheduler": false,
+    "next": "verify current exact head browser screenshot artifact and await explicit human visual decision; do not propagate to other families"
+  }
+}

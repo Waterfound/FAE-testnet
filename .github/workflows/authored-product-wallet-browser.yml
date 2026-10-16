@@ -39,4 +39,14 @@ jobs:
           cat /tmp/fae-authored-http.log
           exit 1
       - name: Run authored Product Shell + Wallet native-browser validation
+        env:
+          FAE_VISUAL_EVIDENCE_DIR: /tmp/fae-wallet-visual-vr09
         run: node tests/authored-product-wallet-native-browser.mjs
+      - name: Retain synthetic Wallet visual review evidence (no seed material)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-product-wallet-vr09-responsive
+          path: /tmp/fae-wallet-visual-vr09/*.png
+          retention-days: 14
+          if-no-files-found: error

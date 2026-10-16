@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {existsSync} from 'node:fs';
+import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 
 const BASE='http://127.0.0.1:4173/index.html';
 const DEBUG='http://127.0.0.1:9222';
@@ -117,6 +117,24 @@ const mockFetch=`
   };
 })();`;
 await send('Page.addScriptToEvaluateOnNewDocument',{source:mockFetch});
+
+const visualDir=process.env.FAE_VISUAL_EVIDENCE_DIR;
+async function captureSafeVisual(name,width,height){
+  if(!visualDir)return;
+  await evaluate('window.scrollTo(0,0)');
+  await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<900});
+  await sleep(170);
+  const leak=await evaluate("Array.from(document.querySelectorAll('textarea')).some(e=>!e.closest('[hidden]') && e.value.trim().split(/\\s+/).length===24)");
+  assert.equal(leak,false,'Screenshot blocked: recovery words visible');
+  const overflow=await evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth');
+  assert.ok(overflow<=1,'Visual evidence viewport overflows: '+name+' '+overflow);
+  const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+  const png=Buffer.from(shot.data,'base64');
+  assert.ok(png.byteLength>15000,'Invalid visual capture '+name);
+  mkdirSync(visualDir,{recursive:true});
+  writeFileSync(visualDir+'/'+name+'.png',png,{flag:'wx'});
+}
+
 await send('Page.navigate',{url:BASE});
 await waitFor("document.readyState==='complete'||document.readyState==='interactive'",'DOM ready');
 await waitFor("document.querySelector('#panel-wallet')&&!document.querySelector('#panel-wallet').hidden",'Wallet default surface');
@@ -129,6 +147,11 @@ assert.equal(await evaluate("document.querySelector('#wallet-connected-state').h
 assert.match(await evaluate("document.querySelector('.wallet-admission-rule').textContent"),/No implicit Wallet creation/);
 assert.match(await evaluate("document.querySelector('.wallet-stage-copy').textContent"),/Possession should feel quiet/);
 assert.equal(await evaluate("document.querySelector('.ticker-track').textContent.includes('Block Height')"),true);
+
+await captureSafeVisual('wallet-empty-desktop-1440',1440,900);
+await captureSafeVisual('wallet-empty-ipad-834',834,1194);
+await captureSafeVisual('wallet-empty-mobile-390',390,844);
+await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
 
 await click('#action-create');
 assert.equal(await evaluate("document.querySelector('#create-panel').hidden"),false);
@@ -185,6 +208,10 @@ await evaluate("Array.from(document.querySelectorAll('#walletlist .wallet-row'))
 await waitFor("document.querySelector('#addr').value==="+JSON.stringify(firstAddress),'Wallet switch');
 assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),2);
 
+await captureSafeVisual('wallet-active-desktop-1440',1440,900);
+await captureSafeVisual('wallet-active-ipad-834',834,1194);
+await captureSafeVisual('wallet-active-mobile-390',390,844);
+await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
 await click('#tab-mining');
 await waitFor("!document.querySelector('#panel-mining').hidden",'Mining mode');
 assert.match(await evaluate("document.querySelector('#miningactivity').textContent"),/Block discovery is probabilistic/);
