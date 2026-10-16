@@ -230,7 +230,9 @@ async function main(argv){
         warning:'selected_node_confirmation_only_not_cryptographic_finality'});
       return;
     }
-    present({...result,stored_before_submit:true,automatic_retry:false,
+    present({...result,recipient:record.recipient??null,
+      recipient_coverage:record.recipient?'encrypted_intent_verified':'legacy_intent_recipient_unavailable',
+      stored_before_submit:true,automatic_retry:false,
       journal_guard:'a_new_send_is_blocked_until_explicit_settlement'});
     if(!result.state.startsWith('confirmed'))process.exitCode=2;
     return;
@@ -273,7 +275,7 @@ async function main(argv){
     // The durable encrypted single-flight intent MUST fsync before HTTP POST;
     // losing the CLI process cannot erase the local deterministic TXID.
     const outbox=intentPath(vault);
-    await writeIntent(outbox,{network:NETWORK,txid,node:base,address,amount_atoms:String(amount),
+    await writeIntent(outbox,{network:NETWORK,txid,node:base,address,recipient:opt['--to'],amount_atoms:String(amount),
       fee_atoms:plan.fee_atoms,tip_height:view.observed_tip.height,
       tip_hash:view.observed_tip.tip_hash},password);
     const result=await submitSignedWithReceipt(base,tx,txid,plan.fee_atoms);
