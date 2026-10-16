@@ -4,6 +4,7 @@ import {createCipheriv,createDecipheriv,randomBytes,scryptSync} from 'node:crypt
 import {constants} from 'node:fs';
 import {open,lstat,unlink} from 'node:fs/promises';
 import {NETWORK} from './crypto.mjs';
+import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 
 const NOFOLLOW=constants.O_NOFOLLOW??0;
 const KDF={N:32768,r:8,p:1,maxmem:128*1024*1024};
@@ -11,7 +12,8 @@ const HEX64=/^[0-9a-f]{64}$/;
 export function intentPath(vaultPath){return vaultPath+'.outbox.json'}
 function validateIntent(v){
   if(!v||v.network!==NETWORK||!HEX64.test(v.txid)||typeof v.node!=='string'||
-     !/^https?:\/\//.test(v.node)||!/^faet1/.test(v.address)||
+     !/^https?:\/\//.test(v.node)||!isValidAddress(v.address)||
+     (v.recipient!==undefined&&!isValidAddress(v.recipient))||
      !/^[1-9]\d*$/.test(String(v.amount_atoms))||
      !/^\d+$/.test(String(v.fee_atoms))||
      !Number.isSafeInteger(v.tip_height)||v.tip_height<0||!HEX64.test(v.tip_hash)){
