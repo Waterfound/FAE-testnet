@@ -55,6 +55,8 @@ jobs:
         with:
           node-version: '22'
       - run: node tests/visual-language-contract.mjs
+      - name: Lock approved Wallet Studio original source
+        run: node tests/approved-wallet-studio-fidelity.mjs
       - name: Protect protocol and consensus surfaces
         shell: bash
         run: |
