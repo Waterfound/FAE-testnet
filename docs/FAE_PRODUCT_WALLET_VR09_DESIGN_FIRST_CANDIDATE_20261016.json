@@ -41,13 +41,53 @@
     "owner": "Existing Total Systems Steward and FAE Visual Continuation",
     "type": "EXISTING_RECURRENT_CHECKPOINT_NOT_NATIVE_DURABLE",
     "new_scheduler": false,
-    "next": "verify current exact head browser screenshot artifact and await explicit human visual decision; do not propagate to other families"
+    "next": "Preserve rejected Studio unchanged. Human review of VR-09 exact-source screenshots remains a genuine artistic gate; revalidate evidence after material visual changes. Do not propagate to new feature families."
   },
   "visual_qa": {
     "original_evidence_head": "138c7f2a8840501532be5daf2e64d59083da3c97",
     "observed_defect": "Authenticated Wallet screenshots displayed Add Wallet above balance in first viewport",
     "repair": "CSS flex order conditional only when #wallet-connected-state visible, without changing DOM actions or Wallet semantics",
     "required_assertion": "native Chromium active balance within first 79% of each 1440x900 / 834x1194 / 390x844 viewport",
-    "human_acceptance": false
+    "human_acceptance": false,
+    "latest_exact_source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+    "latest_native_browser_ci": {
+      "workflow": "Authored Product Wallet Browser",
+      "run_id": 38954451974,
+      "conclusion": "success",
+      "source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+      "artifact_id": 12070426416,
+      "artifact_name": "fae-product-wallet-vr09-responsive",
+      "artifact_digest_sha256": "06dc8b1bd78f863248d6a769ac7041fff6bfdc73b5310b1908cffff3b5795924",
+      "artifact_created_at": "2026-10-16T19:24:00Z",
+      "artifact_expires_at": "2026-10-30T19:23:59Z",
+      "artifact_zip_size_bytes": 577816,
+      "screenshots": [
+        "wallet-empty-desktop-1440.png",
+        "wallet-empty-ipad-834.png",
+        "wallet-empty-mobile-390.png",
+        "wallet-active-desktop-1440.png",
+        "wallet-active-ipad-834.png",
+        "wallet-active-mobile-390.png",
+        "recovery-entry-mobile-390.png",
+        "mining-idle-desktop-1440.png",
+        "mining-idle-mobile-390.png"
+      ],
+      "native_assertions": [
+        "NO IMPLICIT WALLET CREATION remains explicit",
+        "Active Wallet balance is in the first 79% of each captured viewport",
+        "Recovery panel itself is visible in the captured mobile viewport",
+        "No horizontal overflow beyond 1px in captured states",
+        "No visible 24-word recovery textarea in captured screenshots",
+        "Mining idle activity is non-animated and does not imply guaranteed reward"
+      ],
+      "review_disposition": "TECHNICAL_EVIDENCE_ONLY__NOT_ARTISTIC_APPROVAL"
+    },
+    "exact_head_ci": {
+      "source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+      "workflows_total": 7,
+      "workflows_success": 7,
+      "checked_at": "2026-10-16",
+      "artistic_acceptance": false
+    }
   }
 }
