@@ -100,12 +100,18 @@ export function createExplorerReadAdapter({baseUrl,fetchImpl=globalThis.fetch,ex
       if(height!==undefined)positive(height,'height');
       if(hash!==undefined&&!HEX64.test(hash))bad('Invalid block hash');
       const{tip,data}=await get('block',{height,hash},expectedTip);
-      return Object.freeze({tip,block:blockSchema(data.block,tip)});
+      const observedBlock=blockSchema(data.block,tip);
+      // A well-formed node response is not evidence it answers this selector.
+      if((height!==undefined&&observedBlock.height!==height)||
+         (hash!==undefined&&observedBlock.hash!==hash))schema('Block identity differs from requested selector');
+      return Object.freeze({tip,block:observedBlock});
     },
     async transaction({txid,expectedTip}={}){
       if(typeof txid!=='string'||!HEX64.test(txid))bad('Invalid TXID');
       const{tip,data}=await get('transaction',{txid},expectedTip);
-      return Object.freeze({tip,transaction:txSchema(data.transaction,tip)});
+      const observedTransaction=txSchema(data.transaction,tip);
+      if(observedTransaction.txid!==txid)schema('Transaction identity differs from requested TXID');
+      return Object.freeze({tip,transaction:observedTransaction});
     },
     async address({address,limit=30,cursor,expectedTip}={}){
       addr(address);positive(limit,'limit',100);
