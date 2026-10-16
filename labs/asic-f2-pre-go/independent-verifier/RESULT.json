@@ -1,0 +1,84 @@
+{
+  "schema": "FAE_DP6_INDEPENDENT_VERIFIER_RESULT_V1",
+  "date": "2026-10-10",
+  "source_branch": "assurance/dp6-path-binding-20261010",
+  "exact_head_under_test": "a37f6b97eb7786123e7e91107cf05a712e80d977",
+  "verifier_source": {
+    "path": "labs/asic-f2-pre-go/independent-verifier/dp6-independent-verifier.cpp",
+    "sha256": "886c7cc2b5ddc67dc88af212f5bae3fdc1e79c8c8b5996370b2c6a0a4592277d",
+    "git_blob_sha1": "bc9fdd6e700bfa3b6d685067be1bd3c05c8b6cbc"
+  },
+  "frozen_hls_reference": {
+    "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp",
+    "sha256": "c56d5bc6cedf97be422d3f7395ad687aa77b9997ef88eda4764ea779adff2e42",
+    "git_blob_sha1": "ea1ab21fbf359adc35955c42ea8e137707c37b6d"
+  },
+  "external_reference": {
+    "argon2_repository": "P-H-C/phc-winner-argon2",
+    "argon2_commit": "f57e61e19229e23c4445b85494dbf7c07de721cb",
+    "openssl": "3.5.5",
+    "compiler": "g++ 15.2.0"
+  },
+  "runtime": {
+    "provider": "Vercel Sandbox",
+    "session_id": "sbx_Z3BcyBZiDlT9q77CKMCYycP1izlX",
+    "region": "gru1",
+    "vcpus": 1,
+    "memory_mib": 2048,
+    "github_actions_consumed": 0,
+    "incremental_paid_spend_usd": 0
+  },
+  "independence": {
+    "imports_fae_hls_implementation": false,
+    "links_fae_hls_implementation": false,
+    "argon2_memory_engine": "public PHC reference implementation",
+    "rw5_implementation": "independently structured C++",
+    "sha256_implementation": "OpenSSL",
+    "note": "Independent here means a separately structured verifier implementation and external Argon2 primitive implementation; it is not organizationally independent human authorship."
+  },
+  "valid_vectors": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "nonces": "1200..1215",
+    "canonical_full_160_byte_vector_pass": true
+  },
+  "negative_proofs": {
+    "total": 6,
+    "rejected": 6,
+    "cases": [
+      "header bit flip with reused canonical proof",
+      "task bit flip with reused canonical proof",
+      "previous-hash bit flip with reused canonical proof",
+      "height bit flip with reused canonical proof",
+      "nonce 1201 with nonce-1200 proof reuse",
+      "wrong expected final digest"
+    ]
+  },
+  "interface_negatives": {
+    "total": 4,
+    "rejected": 4,
+    "cases": [
+      "223-byte-equivalent/truncated hex input",
+      "non-numeric/non-112-byte input",
+      "overlong nonce",
+      "unexpected alternate mode/path selector argument"
+    ]
+  },
+  "elapsed_ms_for_full_suite": 13128,
+  "verdict": "INDEPENDENT_DP6_SEMANTIC_VERIFIER_16_OF_16_GREEN__NEGATIVE_PROOF_CORPUS_GREEN__PRODUCTION_WIRING_OPEN",
+  "residual": [
+    "The exact future production/mainnet consensus verifier wiring is not yet frozen.",
+    "The verifier does not prove cryptanalytic shortcut impossibility.",
+    "Final network/height/version activation binding must be replayed once production consensus code exists.",
+    "Organizationally independent external reproduction remains stronger evidence and is not claimed here."
+  ],
+  "authority": {
+    "assurance_only": true,
+    "consensus_change": false,
+    "economics_change": false,
+    "runtime_activation": false,
+    "release": false,
+    "mainnet": false
+  }
+}

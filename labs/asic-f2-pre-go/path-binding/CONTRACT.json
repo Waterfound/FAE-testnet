@@ -1,0 +1,37 @@
+{
+  "schema": "FAE_DP6_PATH_BINDING_CONTRACT_V1",
+  "date": "2026-10-10",
+  "source_binding": {
+    "repository": "Waterfound/FAE-testnet",
+    "base_ref": "evidence/fae-dp6-rp-b3-t2-20260930",
+    "base_head": "7a041df798d2d3d623fa77a1ae58a07caa5a6b1a",
+    "path": "labs/asic-f2-pre-go/hls/fae_dp6_hls.cpp"
+  },
+  "historical_motivation": [
+    "Ravencoin 2026 KAWPOW DAG/GPU bypass",
+    "Grin 2020 Cuckaroom verifier shortcut"
+  ],
+  "green_scope": {
+    "implementation_local": [
+      "single frozen public DP6 entrypoint",
+      "unconditional MH3 -> Argon2d -> RW5 -> final path",
+      "256 MiB private state fixed",
+      "1,048,576 mandatory RW5 memory-carried steps fixed",
+      "header/nonce/task/prev/height binding preserved",
+      "no entrypoint selector for legacy/fallback/reduced-work path"
+    ],
+    "final_mainnet_requires": [
+      "exact production verifier path bound to final network/height/version rules",
+      "independent verifier implementation",
+      "negative corpus of truncated/reduced/reused/path-confusion proofs",
+      "differential agreement on valid vectors and rejection classes"
+    ]
+  },
+  "authority": {
+    "research_only": true,
+    "consensus_change": false,
+    "economics_change": false,
+    "production_activation": false,
+    "mainnet": false
+  }
+}
