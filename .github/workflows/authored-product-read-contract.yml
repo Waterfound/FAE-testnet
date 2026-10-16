@@ -1,0 +1,30 @@
+name: authored-product-read-contract
+on:
+  pull_request:
+    paths:
+      - 'product-data/**'
+      - 'docs/FAE_AUTHORED_*'
+      - '.github/workflows/authored-product-read-contract.yml'
+  push:
+    branches:
+      - 'candidate/fae-authored-product-data-contract-20261009'
+    paths:
+      - 'product-data/**'
+      - '.github/workflows/authored-product-read-contract.yml'
+permissions:
+  contents: read
+jobs:
+  provider-neutral-read-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm adapter syntax
+        run: |
+          node --check product-data/explorer-read-adapter.mjs
+          node --check product-data/explorer-view-model.mjs
+      - name: Run read-only adapter regression tests
+        run: node --test product-data/*.test.mjs
