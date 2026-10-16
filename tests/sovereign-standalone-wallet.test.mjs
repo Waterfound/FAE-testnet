@@ -294,7 +294,14 @@ test('real CLI process SIGKILL after POST preserves encrypted TXID; later proces
     assert.equal(record.node,base);
     assert.equal((await stat(intentPath(vault))).mode&0o777,0o600);
     assert.equal((await reconcileIntent(record)).state,'pending_node_reported');
-    assert.equal(calls,1,'read-only reconciliation must never resubmit');
+    const resumed=await actualInteractiveCli(['outbox','--vault',vault],
+      [['Vault password (hidden): ',password]],{expectedExit:2});
+    assert.equal(resumed.receipt.state,'pending_node_reported');
+    assert.equal(resumed.receipt.recipient,recipient.address);
+    assert.equal(resumed.receipt.recipient_coverage,'encrypted_intent_verified');
+    assert.equal(resumed.receipt.automatic_retry,false);
+    assert.ok(!resumed.output.includes(password),'read-only CLI outbox must not echo password');
+    assert.equal(calls,1,'read-only reconciliation and actual CLI must never resubmit');
     // Another actual CLI SEND must fail before touching the network, because
     // the single-flight outbox already exists.
     const duplicate=spawn('script',['-q','-e','-c',scriptPath,'/dev/null'],{stdio:['pipe','pipe','pipe']});
@@ -353,7 +360,7 @@ async function mineOne(base,address){
 }
 
 
-async function actualInteractiveCli(args,promptsAndAnswers){
+async function actualInteractiveCli(args,promptsAndAnswers,{expectedExit=0}={}){
   const cmd=[process.execPath,join(root,'standalone','wallet','fae-wallet.mjs'),...args];
   const child=spawn('script',['-q','-e','-c',cmd.join(' '),'/dev/null'],{stdio:['pipe','pipe','pipe']});
   let output='',step=0;
@@ -371,7 +378,7 @@ async function actualInteractiveCli(args,promptsAndAnswers){
     child.once('exit',n=>{clearTimeout(timer);resolve(n)});
     child.once('error',reject);
   });
-  assert.equal(code,0,'interactive CLI execution failed (secret output redacted)');
+  assert.equal(code,expectedExit,'interactive CLI execution failed (secret output redacted)');
   assert.equal(step,promptsAndAnswers.length,'interactive CLI missed required private prompts');
   const json=output.split(/\r?\n/).find(line=>line.trim().startsWith('{"'));
   assert.ok(json,'interactive CLI must return a public receipt');
