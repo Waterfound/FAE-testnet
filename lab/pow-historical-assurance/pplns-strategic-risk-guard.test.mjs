@@ -21,6 +21,7 @@ function attachValidCandidateCoinbase(candidate){
   candidate.header.coinbase_root=hashHex(outputs);
   candidate.header.coinbase_count=outputs.length;
   candidate.header.coinbase_mode='pplns-direct';
+  candidate.header.miner_address=outputs[0].address;
   return candidate;
 }
 function share(log,address,i){
@@ -122,7 +123,7 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
 test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended',async()=>{
   const address=encodeAddress(Buffer.alloc(20,14),'faet');
   let currentTip='b'.repeat(64);
-  const candidate={header:{height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
+  const candidate={header:{network:'fairyelf-public-testnet-v4',height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
     txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   attachValidCandidateCoinbase(candidate);
@@ -443,4 +444,228 @@ test('HPA-W3-63: genuine FAE source output distribution for real PPLNS window re
   assert.equal(x.coordinator.jobs.size,1);
   assert.equal(x.coordinator.multiOutputCoinbaseActive,true,'fixture opt-in only');
   assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null,'public production stays inactive');
+});
+
+test('HPA-W3-76: a new credited share during asynchronous source template creation cannot yield a signed job for a stale PPLNS window',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  let providerInvoked=0;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    providerInvoked++;
+    await Promise.resolve();
+    x.coordinator.ledger.append({
+      jobId:'HPA-W3-76-later-honest-share',address:x.honestAddr,nonce:7776,
+      hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,
+      height:template.header.height,previousBlockHash:template.header.previous_hash
+    });
+    return template;
+  };
+  const initial=x.coordinator.ledger.summary();
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.equal(providerInvoked,1);
+  assert.equal(x.coordinator.jobs.size,0,'no stale signed coordinator work job');
+  assert.equal(x.coordinator.ledger.summary().totalShares,initial.totalShares+1,
+    'a legitimate accepted share must never be rolled back by stale template rejection');
+});
+
+test('HPA-W3-77: stable asynchronous genuine FAE distributed template remains signed after source-ledger snapshot recheck',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    await Promise.resolve();
+    return original(args);
+  };
+  const before=x.coordinator.ledger.summary();
+  const job=await x.coordinator.createWork(x.honestAddr);
+  assert.ok(job.workProof);
+  assert.deepEqual(job.ledgerState,before);
+  assert.deepEqual(x.coordinator.ledger.summary(),before);
+  assert.equal(x.coordinator.jobs.size,1);
+});
+
+test('HPA-W3-78: full rolling window replacement changes weights at constant windowShares and must not produce a stale payout job',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  x.coordinator.ledger.windowSize=3;
+  const original=x.coordinator.distributedTemplateProvider;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    await Promise.resolve();
+    x.coordinator.ledger.append({
+      jobId:'HPA-W3-78-window-roll',address:x.attackerAddr,nonce:7878,
+      hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,
+      height:template.header.height,previousBlockHash:template.header.previous_hash
+    });
+    return template;
+  };
+  const before=x.coordinator.ledger.summary();
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  const after=x.coordinator.ledger.summary();
+  assert.equal(after.windowShares,before.windowShares,
+    'rolling-window item count alone does not prove payout weights unchanged');
+  assert.notDeepEqual(x.coordinator.ledger.weights(x.honestAddr),
+    [{address:x.honestAddr,weight:2n},{address:x.attackerAddr,weight:1n}],
+    'the signed old payout weights are no longer authoritative');
+  assert.equal(x.coordinator.jobs.size,0);
+});
+
+test('HPA-W3-82: stale async template must not sign a job and genuine appended share remains durably recoverable after restart',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-w3-stale-durable-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const x=payoutTemplateAttack({tamper:'none'});
+  const durable=new ShareLedger({logFile,windowSize:3});
+  for(const entry of x.coordinator.ledger.shares)durable.append({
+    jobId:entry.jobId,address:entry.address,nonce:entry.nonce,hash:entry.hash,
+    shareDifficultyBits:entry.shareDifficultyBits,
+    blockDifficultyBits:entry.blockDifficultyBits,height:entry.height,
+    previousBlockHash:entry.previousBlockHash
+  });
+  x.coordinator.ledger=durable;
+  const original=x.coordinator.distributedTemplateProvider;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    await Promise.resolve();
+    durable.append({
+      jobId:'HPA-W3-82-durable-during-template',address:x.attackerAddr,
+      nonce:8282,hash:'0'.repeat(64),shareDifficultyBits:4,
+      blockDifficultyBits:8,height:template.header.height,
+      previousBlockHash:template.header.previous_hash
+    });
+    return template;
+  };
+  const before=durable.summary();
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  const after=durable.summary();
+  assert.equal(after.totalShares,before.totalShares+1);
+  assert.equal(x.coordinator.jobs.size,0);
+  const recovered=new ShareLedger({logFile,windowSize:3});
+  assert.deepEqual(recovered.summary(),after,
+    'exact appended source share must be replayable from the fsync-backed hash chain');
+  assert.deepEqual(recovered.weights(x.honestAddr),durable.weights(x.honestAddr));
+  assert.equal(recovered.shares.at(-1).jobId,'HPA-W3-82-durable-during-template');
+});
+
+test('HPA-W3-83: changed live source weights are refused even if ledger count/head are deceitfully left unchanged',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  const summaryBefore=x.coordinator.ledger.summary();
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const template=await original(args);
+    await Promise.resolve();
+    // Adversarial memory corruption: not a valid persisted ledger operation.
+    // Snapshot length/head alone are insufficient for this safety predicate.
+    x.coordinator.ledger.shares[0].address=x.attackerAddr;
+    return template;
+  };
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.deepEqual(x.coordinator.ledger.summary(),summaryBefore);
+  assert.equal(x.coordinator.jobs.size,0);
+});
+
+
+/**
+ * HPA-W3-90..94: actual FAE source ShareCoordinator.createWork tip readback.
+ * In the RED baseline, ShareLedger remains unchanged but upstream tip/height
+ * moves while the real createDistributedTemplate() provider is suspended.
+ * No network activation or synthetic replacement of production source.
+ */
+function presignTipRaceFixture({mutation='tip'}={}){
+  const x=payoutTemplateAttack({tamper:'none'});
+  let statusReads=0,templateCalls=0;
+  const original=x.coordinator.distributedTemplateProvider;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    templateCalls++;
+    const candidate=await original(args);
+    const normal={network:'fairyelf-public-testnet-v4',
+      height:Number(candidate.header.height)-1,
+      tip_hash:candidate.header.previous_hash,
+      difficulty_bits:Number(candidate.header.difficulty_bits)};
+    if(mutation==='tip')normal.tip_hash='f'.repeat(64);
+    if(mutation==='height')normal.height+=1;
+    if(mutation==='network')normal.network='unrelated-public-network';
+    if(mutation==='incomplete')delete normal.tip_hash;
+    x.coordinator.statusProvider=async()=>{
+      statusReads++;
+      if(mutation==='offline')throw new Error('hpa_upstream_unavailable');
+      return normal;
+    };
+    return candidate;
+  };
+  return {...x,reads:()=>statusReads,templates:()=>templateCalls};
+}
+test('HPA-W3-90: source provider tip changes during await; obsolete template must not receive signed work',async()=>{
+  const x=presignTipRaceFixture({mutation:'tip'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /candidate_pplns_chain_state_changed_during_template/);
+  assert.equal(x.templates(),1);
+  assert.equal(x.coordinator.jobs.size,0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,3);
+});
+test('HPA-W3-91: source height changes independently of tip; obsolete work must not be signed',async()=>{
+  const x=presignTipRaceFixture({mutation:'height'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /candidate_pplns_chain_state_changed_during_template/);
+  assert.equal(x.coordinator.jobs.size,0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,3);
+});
+test('HPA-W3-92: upstream becomes unavailable after genuine source template; fail closed before signing',async()=>{
+  const x=presignTipRaceFixture({mutation:'offline'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /hpa_upstream_unavailable/);
+  assert.equal(x.coordinator.jobs.size,0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,3);
+});
+test('HPA-W3-93: incomplete tip status after genuine source template fails closed',async()=>{
+  const x=presignTipRaceFixture({mutation:'incomplete'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    /candidate_pplns_chain_status_incomplete/);
+  assert.equal(x.coordinator.jobs.size,0);
+});
+test('HPA-W3-94: unchanged source tip and ledger still yield genuine signed work',async()=>{
+  const x=presignTipRaceFixture({mutation:'none'});
+  const job=await x.coordinator.createWork(x.honestAddr);
+  assert.ok(job.jobId && job.workProof);
+  assert.equal(x.reads(),1,'must read independent upstream tip before signing');
+  assert.equal(x.templates(),1);
+  assert.equal(x.coordinator.jobs.size,1);
+});
+
+
+test('HPA-W3-95: upstream reports explicit wrong network; candidate source rejects prior to work signing',async()=>{
+  const x=presignTipRaceFixture({mutation:'network'});
+  await assert.rejects(x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_chain_status_incomplete');
+  assert.equal(x.coordinator.jobs.size,0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,3);
+});
+test('HPA-W3-96: continuous genuine ShareLedger churn starves work safely; stabilization restores liveness',async()=>{
+  const x=payoutTemplateAttack({tamper:'none'});
+  const original=x.coordinator.distributedTemplateProvider;
+  let churn=0;
+  x.coordinator.distributedTemplateProvider=async args=>{
+    const candidate=await original(args);
+    await Promise.resolve();
+    x.coordinator.ledger.append({
+      jobId:'HPA-W3-96-churn-'+churn,address:churn%2?x.attackerAddr:x.honestAddr,
+      nonce:9600+churn++,hash:'0'.repeat(64),shareDifficultyBits:4,
+      blockDifficultyBits:8,height:candidate.header.height,
+      previousBlockHash:candidate.header.previous_hash});
+    return candidate;
+  };
+  for(let i=0;i<16;i++)await assert.rejects(
+    x.coordinator.createWork(x.honestAddr),
+    e=>e.code==='candidate_pplns_source_window_changed_during_template');
+  assert.equal(churn,16,'bounded attempts do not provide indefinite-churn liveness');
+  assert.equal(x.coordinator.jobs.size,0,'never sign a stale payout to improve liveness');
+  assert.equal(x.coordinator.ledger.summary().totalShares,19,'all sixteen real source shares preserved');
+  x.coordinator.distributedTemplateProvider=original;
+  const job=await x.coordinator.createWork(x.honestAddr);
+  assert.equal(job.ledgerState.totalShares,19);
+  assert.equal(job.pplnsWeights.reduce((s,w)=>s+BigInt(w.weight),0n),19n);
+  assert.equal(x.coordinator.jobs.size,1,'eventual quiet window recovers work production');
 });

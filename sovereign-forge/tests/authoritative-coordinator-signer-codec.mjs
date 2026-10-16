@@ -24,7 +24,8 @@ function committedPplnsTemplate(candidate){
       fee_atoms:candidate.header.fee_atoms??'0',
       coinbase_root:hashHex(coinbase_outputs),
       coinbase_count:coinbase_outputs.length,
-      coinbase_mode:'pplns-direct'}};
+      coinbase_mode:'pplns-direct',
+      miner_address:candidate.header.miner_address??coinbase_outputs[0].address}};
 }
 function makeWallet(){const {privateKey,publicKey}=generateKeyPairSync('ed25519');const privateJwk=privateKey.export({format:'jwk'}),spki=publicKey.export({type:'spki',format:'der'});return{privateJwk,publicKeySpki:spki.toString('base64'),address:encodeAddress(sha256(spki).subarray(0,20),'faet')}}
 function findNonce(candidate,minBits,maxExclusive=Infinity){for(let nonce=0;nonce<2_000_000;nonce++){const hash=hashHex({...candidate.header,nonce});const bits=leadingZeroBits(hash);if(bits>=minBits&&bits<maxExclusive)return{nonce,hash,bits}}throw new Error('nonce search exhausted')}

@@ -4,6 +4,15 @@ on:
     paths:
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.mjs
       - lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
+      - lab/pow-historical-assurance/pplns-cross-job-proof-replay.test.mjs
+      - lab/pow-historical-assurance/pplns-presign-template-network.test.mjs
+      - lab/pow-historical-assurance/pplns-degenerate-template-difficulty.test.mjs
+      - sovereign-forge/node/authoritative/share-coordinator.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.mjs
+      - lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.mjs
+      - lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.mjs
       - lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
       - lab/pow-historical-assurance/full-target-chain-inclusion-candidate.mjs
@@ -14,6 +23,8 @@ on:
       - lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.mjs
       - lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+      - lab/pow-historical-assurance/pcc-main-candidate-differential.test.mjs
       - sovereign-forge/node/authoritative/share-coordinator.mjs
       - sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
       - labs/asic-f2-pre-go/reviews/rp-b3-t2/dp6-external-evidence-intake.mjs
@@ -32,6 +43,18 @@ jobs:
           node-version: '22'
       - name: Isolated PPLNS activation hold and real ShareLedger withholding test
         run: node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+      - name: PCC-owned composite HPA W3 network-boundary regression #332
+        run: node --test lab/pow-historical-assurance/pplns-submit-network-boundary.test.mjs
+      - name: PCC-owned composite HPA W3 cross-job proof-replay regression #333
+        run: node --test lab/pow-historical-assurance/pplns-cross-job-proof-replay.test.mjs
+      - name: PCC-owned real signed-work template network guard #334
+        run: node --test lab/pow-historical-assurance/pplns-presign-template-network.test.mjs
+      - name: PCC-owned real signed-work difficulty sanity guard #335
+        run: node --test lab/pow-historical-assurance/pplns-degenerate-template-difficulty.test.mjs
+      - name: PCC-001 real ShareLedger finite atom and permutation regressions from W3 #324
+        run: node --test lab/pow-historical-assurance/pplns-atom-remainder-candidate.test.mjs
+      - name: PCC-001 source PPLNS payee capacity and zero-primary guards from W3 #324
+        run: node --test lab/pow-historical-assurance/pplns-coinbase-admission-candidate.test.mjs
       - name: Bounded economic BWH break-even envelope from authentic PPLNS share window
         run: node --test lab/pow-historical-assurance/pplns-bwh-economics-envelope.test.mjs
       - name: Independently replay full-target inclusion before any lost-ack classification
@@ -42,3 +65,76 @@ jobs:
         run: node --test lab/pow-historical-assurance/pcc-w2-w3-composition.test.mjs
       - name: PCC-001 W2 fee source regressions under composed W3 coordinator
         run: node --test lab/pow-historical-assurance/mempool-fee-aware-shadow-candidate.test.mjs lab/pow-historical-assurance/fee-security-budget-falsification.test.mjs
+      - name: PCC-001 real W2 signed fee to W3 source-bound work
+        run: node --test lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs
+  pcc-canonical-admission:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PCC-001 real main-versus-candidate runtime differential
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          BASE_DIR="$(mktemp -d "${RUNNER_TEMP}/pcc-diff-main-XXXXXXXX")"
+          cleanup() {
+            if git -C "$BASE_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+              git worktree remove --force "$BASE_DIR" >/dev/null 2>&1 || true
+            fi
+            rmdir "$BASE_DIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          git worktree add --detach "$BASE_DIR" refs/remotes/origin/main
+          echo "PCC_DIFF_MAIN=$(git -C "$BASE_DIR" rev-parse HEAD)"
+          echo "PCC_DIFF_CANDIDATE=$(git rev-parse HEAD)"
+          PCC_CANONICAL_MAIN_WORKTREE="$BASE_DIR" node --test lab/pow-historical-assurance/pcc-main-candidate-differential.test.mjs
+      - name: PCC-001 rehearsal merge into current main without remote write
+        env:
+          PCC_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "$PCC_HEAD^{commit}"
+          git fetch --no-tags origin main
+          MAIN_SHA="$(git rev-parse refs/remotes/origin/main)"
+          MAIN_MERGE_BASE="$(git merge-base "$MAIN_SHA" "$PCC_HEAD")"
+          if [ "$MAIN_MERGE_BASE" != "$MAIN_SHA" ] || [ "$PCC_HEAD" = "$MAIN_SHA" ]; then
+            echo "::error::PCC admission HOLD: canonical main is not the strict ancestor of candidate head"
+            echo "PCC_MAIN=$MAIN_SHA PCC_HEAD=$PCC_HEAD PCC_MERGE_BASE=$MAIN_MERGE_BASE"
+            exit 1
+          fi
+          EXPECTED_TREE="$(git rev-parse "$PCC_HEAD^{tree}")"
+          TEMPDIR="$(mktemp -d "${RUNNER_TEMP}/pcc-canonical-XXXXXXXX")"
+          cleanup() {
+            if git -C "$TEMPDIR" rev-parse --git-dir >/dev/null 2>&1; then
+              git -C "$TEMPDIR" merge --abort >/dev/null 2>&1 || true
+              git worktree remove --force "$TEMPDIR" >/dev/null 2>&1 || true
+            fi
+            rmdir "$TEMPDIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          git worktree add --detach "$TEMPDIR" "$MAIN_SHA"
+          git -C "$TEMPDIR" -c core.hooksPath=/dev/null -c user.name="PCC Isolated Rehearsal" -c user.email="pcc-rehearsal@invalid.example" merge --no-commit --no-ff "$PCC_HEAD"
+          COMPOSED_TREE="$(git -C "$TEMPDIR" write-tree)"
+          if [ "$COMPOSED_TREE" != "$EXPECTED_TREE" ]; then
+            echo "::error::PCC admission FAIL: dry merged tree differs from exact candidate tree"
+            echo "Expected $EXPECTED_TREE received $COMPOSED_TREE"
+            exit 1
+          fi
+          git -C "$TEMPDIR" cat-file -e 'HEAD^{commit}'
+          test -f "$TEMPDIR/lab/pow-historical-assurance/pcc-w2-w3-w3guard-dp6-integration.test.mjs"
+          test -f "$TEMPDIR/sovereign-forge/node/authoritative/share-coordinator.mjs"
+          echo "PCC_CANONICAL_ADMISSION_MERGE_TREE_VERIFIED=true"
+          echo "PCC_MAIN=$MAIN_SHA"
+          echo "PCC_CANDIDATE=$PCC_HEAD"
+          echo "PCC_MERGED_TREE=$COMPOSED_TREE"
+          echo 'No merge commit, remote write, runtime or policy activation was performed.'
