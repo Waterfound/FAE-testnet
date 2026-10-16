@@ -131,6 +131,37 @@ test('Durable state backup rotation never follows a preplanted symbolic link',as
     legacyBlocks.length);
 });
 
+test('Durable state load heals interrupted promotion using latest validated temporary snapshot',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-durable-interrupted-promotion-'));
+  context.after(()=>rm(dir,{recursive:true,force:true}));
+  const dataFile=join(dir,'raw.json'),durableFile=dataFile+'.durable',base=legacyState();
+  await writeFile(dataFile,JSON.stringify(base)+'\n');
+  const first=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  await first.checkpoint(base);
+  const latestGeneration=first.store.generation+1;
+  const staged=first.store.envelope(base,latestGeneration);
+  // Model the precise crash boundary after durable.tmp has been fully synced,
+  // before the atomic .tmp -> primary rename. The real process SIGKILL
+  // test separately proves that process death does not bypass verification.
+  await writeFile(durableFile+'.tmp',JSON.stringify(staged)+'\n');
+  await writeFile(durableFile,'{"torn-primary":');
+  await writeFile(dataFile,'{"torn-raw":');
+  const healed=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  assert.equal(healed.boot.source,'durable-recovery');
+  const state=healed.status().store;
+  assert.equal(state.recovered_on_start,true);
+  assert.equal(state.last_load_source,durableFile+'.tmp');
+  assert.equal(state.generation,latestGeneration,
+    'newest valid .tmp generation must survive a torn primary');
+  const primary=JSON.parse(await readFile(durableFile,'utf8'));
+  assert.equal(primary.generation,latestGeneration);
+  assert.equal(verifyPersistedState(primary.state,{activationHeight:null}).chain.length,
+    legacyBlocks.length);
+  assert.equal((await lstat(durableFile)).isSymbolicLink(),false);
+  assert.equal(verifyPersistedState(JSON.parse(await readFile(dataFile,'utf8')),
+    {activationHeight:null}).chain.length,legacyBlocks.length);
+});
+
 test('Independent Node v1.1 peer guard stays memory-bounded and escalates repeat bans',()=>{
   const guard=new PeerGuard({windowMs:1000,maxCostPerWindow:3,banScore:4,banMs:100,maxBanMs:1000,maxRecords:64});
   for(let i=0;i<200;i++)assert.equal(guard.allow(`peer-${i}`,1,i).allowed,true);
