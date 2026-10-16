@@ -29,6 +29,30 @@ test('502/404 are unavailable node responses, never synthetic data',async()=>{
     await shouldFail(a.status(),'NODE_HTTP_ERROR',status);
   }
 });
+test('deterministic post-header stalled JSON must time out despite response headers received',async()=>{
+  let headersReturned=0,bodyRead=0;
+  const a=createExplorerReadAdapter({
+    baseUrl:'https://node-reader.invalid/',timeoutMs:80,
+    fetchImpl:async(_url,{signal})=>{
+      headersReturned++;
+      return {ok:true,status:200,json:()=>{
+        bodyRead++;
+        return new Promise((_resolve,reject)=>{
+          if(signal.aborted)reject(new Error('stream was aborted'));
+          else signal.addEventListener('abort',()=>reject(new Error('stream was aborted')),{once:true});
+        });
+      }};
+    }
+  });
+  const observed=await Promise.race([
+    a.status().then(()=>({state:'unexpected_success'}),e=>({state:'rejected',code:e?.code})),
+    new Promise(resolve=>setTimeout(()=>resolve({state:'unbounded_hang'}),320))
+  ]);
+  assert.equal(headersReturned,1);
+  assert.equal(bodyRead,1,'the server returned headers, but the JSON payload stalled');
+  assert.deepEqual(observed,{state:'rejected',code:'TIMEOUT'});
+});
+
 test('total GET timeout also applies when HTTP headers arrived but JSON body never completes',
   {timeout:5000},async t=>{
   const server=createServer((_req,res)=>{
