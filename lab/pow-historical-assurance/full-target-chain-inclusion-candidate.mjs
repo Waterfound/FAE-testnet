@@ -7,6 +7,7 @@
  */
 import {verifyPersistedState} from '../../sovereign-forge/node/authoritative/fae-v4-peer-node.mjs';
 import {leadingZeroBits} from '../../sovereign-forge/node/authoritative/crypto.mjs';
+import {ShareLedger} from '../../sovereign-forge/node/authoritative/share-coordinator.mjs';
 
 const fail=(code)=>{throw Object.assign(new Error(code),{code})};
 export function reconcileFullTargetAgainstVerifiedChain({
@@ -46,5 +47,47 @@ export function reconcileFullTargetAgainstVerifiedChain({
     block_hash:hash,source_tip_hash:sourceTip,confirmed:true,
     observed_depth:depth,finality_guaranteed:false,
     safe_to_auto_resubmit:false,inclusion_unknown:false
+  };
+}
+
+/**
+ * HPA-W3-51..54: optional anchored SHARE LEDGER provenance before chain inclusion.
+ *
+ * A caller-controlled in-memory ledger or a syntactically valid file cannot
+ * establish durable share provenance. Replay the actual append-only source
+ * ledger and bind BOTH its hash-chain head and length to an independently
+ * retained, authenticated checkpoint supplied by the caller.
+ *
+ * This function does NOT authenticate the checkpoint itself: a forged matching
+ * anchor remains a forged anchor. It also cannot prove chain finality, pool
+ * payout settlement, or safe automatic full-block resubmission.
+ */
+export function reconcileFullTargetAgainstAnchoredLedger({
+  logFile,expectedLastEntryHash,expectedTotalShares,
+  jobId,nonce,hash,rawChainState,activationHeight=null
+}={}){
+  if(typeof logFile!=='string'||!logFile.trim()||
+     typeof expectedLastEntryHash!=='string'||!/^[0-9a-f]{64}$/.test(expectedLastEntryHash)||
+     !Number.isSafeInteger(expectedTotalShares)||expectedTotalShares<1||
+     expectedTotalShares>1_000_000)
+    fail('invalid_anchored_ledger_input');
+
+  // ShareLedger.load() checks each source entry's sequence, previous-entry
+  // hash, computed entry hash and duplicate job/nonce identity.
+  const ledger=new ShareLedger({logFile});
+  if(ledger.shares.length!==expectedTotalShares||
+     ledger.lastHash!==expectedLastEntryHash)
+    fail('share_ledger_anchor_mismatch');
+
+  return {
+    ...reconcileFullTargetAgainstVerifiedChain({
+      ledger,jobId,nonce,hash,rawChainState,activationHeight
+    }),
+    source_ledger_replayed_and_anchor_matched:true,
+    source_ledger_head_hash:expectedLastEntryHash,
+    source_ledger_share_count:expectedTotalShares,
+    external_checkpoint_authenticity_verified_here:false,
+    independently_observed_finality:false,
+    safe_to_auto_resubmit:false
   };
 }
