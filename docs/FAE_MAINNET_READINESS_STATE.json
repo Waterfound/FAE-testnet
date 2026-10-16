@@ -556,5 +556,117 @@
   ],
   "historical_evidence_policy": "append_only_no_retroactive_rewrite",
   "reconciliation_verdict": "CANONICAL_STATE_RECONCILED",
-  "tokenomics_authority_updated_at": "2026-10-06"
+  "tokenomics_authority_updated_at": "2026-10-06",
+  "candidate_evidence_snapshot_october_11": {
+    "snapshot_date": "2026-10-11",
+    "source_authority": "DRAFT_CANDIDATE_EVIDENCE_ONLY",
+    "does_not_change_live_consensus": true,
+    "canonical_registry_last_reconciled_at": "2026-10-06",
+    "captured_from_main": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+    "candidate_merge_completed": false,
+    "production_publication_authorized": false,
+    "mainnet_launch_authorized": false,
+    "iPad_physical_evidence_closed": false,
+    "elements_current_state_preserved": true,
+    "priority": "Evidence-first closure before new Elements. Product truth and the physical iPad gate remain separate.",
+    "evidence": [
+      {
+        "pr": 294,
+        "element_ids": [
+          5,
+          8,
+          10
+        ],
+        "commit": "84431d12d50d163021aee2e01cea3bfd8afe9ca9",
+        "claim": "Read-only validated-node Explorer adapter and six-route contract; prior source exact-head 17/17 candidate tests PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Approved real UI wiring and complete Wallet/vault integration"
+      },
+      {
+        "pr": 298,
+        "element_ids": [
+          5,
+          6,
+          7,
+          10,
+          12,
+          13,
+          14
+        ],
+        "commit": "7dc192e2a317015cbf9f4bd73ed5593359d11df8",
+        "claim": "14 authored product gate mappings with 8/8 bridge checks and 5/5 workflow PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Underlying 14 product gates remain independently OPEN"
+      },
+      {
+        "pr": 299,
+        "element_ids": [
+          5,
+          10
+        ],
+        "commit": "7738c28392b8920a22b731701cd1e77f9c5fe196",
+        "claim": "Isolated actual-PoW two-block Ed25519 transfer Explorer read E2E; 18/18 Node tests, 5/5 workflows PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Real authored UI binding, partition/reorg/full-network proof"
+      },
+      {
+        "pr": 300,
+        "element_ids": [
+          2,
+          7
+        ],
+        "commit": "2a0e02658ea39bdc7c8d72511c0dd72f74b0b660",
+        "claim": "Source-release deterministic file order and superseded 14/430k corrected; 3/3 workflows PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Current canonical exact-source release rebind, final genesis/economics"
+      },
+      {
+        "pr": 301,
+        "element_ids": [
+          2,
+          3,
+          6,
+          12,
+          14
+        ],
+        "commit": "e29ed996c482dc037d903c8d241e4db01e0f1c33",
+        "claim": "Synthetic rehearsal uses future 9/630k monetary design, requires final policy/source digests; 3/3 workflows PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Final block target, maturity, real operator/physical evidence and human launch authority"
+      },
+      {
+        "pr": 302,
+        "element_ids": [
+          5,
+          10
+        ],
+        "commit": "e674cf7a0e26f4fa17b52af2d37ff466aad09d30",
+        "claim": "Three-public-context Wallet read observer; 27/27 tests, 5/5 workflows PASS",
+        "status": "DONE_TECHNICAL_CANDIDATE",
+        "remaining": "Actual encrypted cryptographic vault, PIN, multi-tab source integration and visual UI"
+      },
+      {
+        "pr": 303,
+        "element_ids": [
+          5,
+          10
+        ],
+        "commit": "4c56b3f3f5edd39d8ea8029960e093b438e6658e",
+        "claim": "Explorer mined-chain E2E composed with public Wallet observer on one exact branch; CI pending full verification",
+        "status": "CANDIDATE_EVIDENCE_IN_PROGRESS",
+        "remaining": "Complete GitHub workflow reconciliation; cryptographic vault/approved UI still unintegrated"
+      }
+    ],
+    "remaining_gates": {
+      "physical_iPad": "EXTERNAL_EVIDENCE",
+      "representative_device_other_classes": "EXTERNAL_EVIDENCE",
+      "wallet_vault_pin": "CONDITION_WAIT",
+      "authored_real_product_ui": "CONDITION_WAIT",
+      "production_genesis": "UNRESOLVED",
+      "final_fee_and_security_budget": "UNRESOLVED",
+      "final_block_time_maturity_DAA": "UNRESOLVED",
+      "production_release_and_activation": "HUMAN_GATE"
+    },
+    "avoid_duplicate_work": "Use existing PRs #294/#299/#302/#303 for product, #98/#300 release, #100/#301 rehearsal, #296/#297 PoW assurance."
+  }
 }

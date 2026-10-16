@@ -1,0 +1,21 @@
+name: fae-readiness-candidate-evidence
+on:
+  pull_request:
+    paths:
+      - docs/FAE_MAINNET_READINESS_STATE.json
+      - tests/readiness-october-candidate-evidence.test.mjs
+      - .github/workflows/fae-readiness-candidate-evidence.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Ensure candidate claims cannot close physical or mainnet gates
+        run: node --test tests/readiness-october-candidate-evidence.test.mjs
