@@ -1,5 +1,6 @@
-import {createHash} from 'node:crypto';
-import {copyFile,mkdir,open,readFile,rename,writeFile} from 'node:fs/promises';
+import {createHash,randomBytes} from 'node:crypto';
+import {constants} from 'node:fs';
+import {chmod,copyFile,mkdir,open,readFile,rename,unlink} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {stableStringify} from './canonical.mjs';
 
@@ -79,18 +80,50 @@ export class DurableStateStore{
   }
 
   async writeSnapshot(state,generation,{rotateBackup=true}={}){
-    await mkdir(dirname(this.path),{recursive:true});
+    const directory=dirname(this.path);
+    await mkdir(directory,{recursive:true});
     const payload=`${JSON.stringify(this.envelope(state,generation),null,2)}\n`;
-    await writeFile(this.temporaryPath,payload,{encoding:'utf8',mode:0o600});
-    await fsyncFile(this.temporaryPath);
-    if(rotateBackup){
-      try{
-        await copyFile(this.path,this.backupPath);
-        await fsyncFile(this.backupPath);
-      }catch(error){if(error?.code!=='ENOENT')throw error}
+    // Do not open a predictable .tmp path for writing: writeFile follows
+    // preplanted symbolic links and may overwrite unrelated operator data.
+    // First create/exclusively sync a random stage, then atomically replace
+    // the known .tmp path so unfinished snapshots remain recoverable.
+    const stage=`${this.temporaryPath}.stage-${randomBytes(16).toString('hex')}`;
+    let file=null,ownedStage=false;
+    try{
+      file=await open(stage,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
+      ownedStage=true;
+      await file.writeFile(payload,{encoding:'utf8'});
+      await file.sync();
+      await file.close();
+      file=null;
+      await rename(stage,this.temporaryPath);
+      ownedStage=false;
+      await fsyncDirectory(directory);
+      if(rotateBackup){
+        // copyFile directly onto .bak also follows an existing symlink.
+        // Rotate via a distinct create-exclusive random stage instead.
+        const backupStage=`${this.backupPath}.stage-${randomBytes(16).toString('hex')}`;
+        let ownedBackup=false;
+        try{
+          await copyFile(this.path,backupStage,constants.COPYFILE_EXCL);
+          ownedBackup=true;
+          await chmod(backupStage,0o600);
+          await fsyncFile(backupStage);
+          await rename(backupStage,this.backupPath);
+          ownedBackup=false;
+          await fsyncDirectory(directory);
+        }catch(error){
+          if(error?.code!=='ENOENT')throw error;
+        }finally{
+          if(ownedBackup)await unlink(backupStage).catch(()=>{});
+        }
+      }
+      await rename(this.temporaryPath,this.path);
+      await fsyncDirectory(directory);
+    }finally{
+      await file?.close().catch(()=>{});
+      if(ownedStage)await unlink(stage).catch(()=>{});
     }
-    await rename(this.temporaryPath,this.path);
-    await fsyncDirectory(dirname(this.path));
   }
 
   async load(){

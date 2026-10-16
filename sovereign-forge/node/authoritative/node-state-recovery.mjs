@@ -1,4 +1,6 @@
-import {mkdir,readFile,rename,writeFile} from 'node:fs/promises';
+import {mkdir,open,readFile,rename,unlink} from 'node:fs/promises';
+import {randomBytes} from 'node:crypto';
+import {constants} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {DurableStateStore} from './durable-state-store.mjs';
 import {NETWORK,preferred} from './fae-v4-core.mjs';
@@ -15,10 +17,28 @@ async function readRaw(path,verifyState){
 }
 
 async function writeRawAtomic(path,state){
-  await mkdir(dirname(path),{recursive:true});
-  const temporary=`${path}.recovery-${process.pid}.tmp`;
-  await writeFile(temporary,`${JSON.stringify(state,null,2)}\n`,{encoding:'utf8',mode:0o600});
-  await rename(temporary,path);
+  const parent=dirname(path);
+  await mkdir(parent,{recursive:true});
+  // A PID-derived temporary path is predictable and writeFile follows a
+  // pre-existing symlink. Never overwrite operator data during recovery.
+  const temporary=`${path}.recovery-${process.pid}-${randomBytes(16).toString('hex')}.tmp`;
+  let handle,created=false;
+  try{
+    handle=await open(temporary,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
+    created=true;
+    await handle.writeFile(`${JSON.stringify(state,null,2)}\n`,{encoding:'utf8'});
+    await handle.sync();
+    await handle.close();
+    handle=null;
+    await rename(temporary,path);
+    created=false;
+    // Commit the directory entry, not just the file contents, before boot.
+    const directory=await open(parent,constants.O_RDONLY);
+    try{await directory.sync()}finally{await directory.close()}
+  }finally{
+    await handle?.close().catch(()=>{});
+    if(created)await unlink(temporary).catch(()=>{});
+  }
 }
 
 function sameTip(a,b){
