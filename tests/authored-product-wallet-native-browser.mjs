@@ -126,6 +126,8 @@ async function captureSafeVisual(name,width,height){
   await sleep(170);
   const leak=await evaluate("Array.from(document.querySelectorAll('textarea')).some(e=>!e.closest('[hidden]') && e.value.trim().split(/\\s+/).length===24)");
   assert.equal(leak,false,'Screenshot blocked: recovery words visible');
+  const mode=await evaluate("document.querySelector('#tab-wallet').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-wallet').hidden ? 'wallet' : document.querySelector('#tab-mining').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-mining').hidden ? 'mining' : 'unknown'");
+  assert.equal(mode,name.startsWith('mining-')?'mining':'wallet','Wrong visible product mode for visual evidence '+name);
   const overflow=await evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth');
   assert.ok(overflow<=1,'Visual evidence viewport overflows: '+name+' '+overflow);
   const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
@@ -181,6 +183,15 @@ await waitFor("!document.querySelector('#wallet-connected-state').hidden",'persi
 assert.equal(await evaluate("document.querySelector('#addr').value"),firstAddress);
 assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),1);
 
+// Authored visual evidence: capture ONLY a reloaded, admitted Wallet (no seed fields populated).
+await click('#tab-wallet');
+await waitFor("!document.querySelector('#panel-wallet').hidden && !document.querySelector('#wallet-connected-state').hidden",'Wallet selected for active screenshots');
+assert.equal(await evaluate("document.querySelector('#tab-wallet').getAttribute('aria-selected')"),'true');
+await captureSafeVisual('wallet-active-desktop-1440',1440,900);
+await captureSafeVisual('wallet-active-ipad-834',834,1194);
+await captureSafeVisual('wallet-active-mobile-390',390,844);
+await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+
 // Real browser signing path: DOM intent -> reviewed intent guard -> Ed25519 signing -> accepted TXID.
 const sendDestination=await evaluate("walletAccount.addresses[1].address");
 await setValue('#sendto',sendDestination);
@@ -192,6 +203,8 @@ assert.match(await evaluate("document.querySelector('#sendstate').textContent"),
 
 // Recovery with a passphrase must add a distinct Wallet without replacing the existing one.
 await click('#action-recovery');
+await captureSafeVisual('recovery-entry-mobile-390',390,844);
+await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
 await setValue('#recoveryseed',words);
 await setValue('#recoverypassphrase','authored-native-browser');
 await click('#verifyrecovery');
@@ -208,12 +221,13 @@ await evaluate("Array.from(document.querySelectorAll('#walletlist .wallet-row'))
 await waitFor("document.querySelector('#addr').value==="+JSON.stringify(firstAddress),'Wallet switch');
 assert.equal(await evaluate("document.querySelectorAll('#walletlist .wallet-row').length"),2);
 
-await captureSafeVisual('wallet-active-desktop-1440',1440,900);
-await captureSafeVisual('wallet-active-ipad-834',834,1194);
-await captureSafeVisual('wallet-active-mobile-390',390,844);
-await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+await click('#tab-wallet');
+await waitFor("!document.querySelector('#panel-wallet').hidden",'Wallet selected for review');
 await click('#tab-mining');
 await waitFor("!document.querySelector('#panel-mining').hidden",'Mining mode');
+await captureSafeVisual('mining-idle-desktop-1440',1440,900);
+await captureSafeVisual('mining-idle-mobile-390',390,844);
+await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
 assert.match(await evaluate("document.querySelector('#miningactivity').textContent"),/Block discovery is probabilistic/);
 assert.equal(await evaluate("/\\d+%\\s+to\\s+reward|almost there|reward in \\d+/i.test(document.querySelector('#panel-mining').textContent)"),false);
 assert.equal(await evaluate("getComputedStyle(document.querySelector('.mining-activity-fill')).animationName"),'none');
