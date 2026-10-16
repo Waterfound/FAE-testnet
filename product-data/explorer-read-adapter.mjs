@@ -66,17 +66,39 @@ export function createExplorerReadAdapter({baseUrl,fetchImpl=globalThis.fetch,ex
     for(const [key,value] of Object.entries(params))if(value!==undefined&&value!==null)url.searchParams.set(key,String(value));
     const abort=new AbortController();
     const timer=setTimeout(()=>abort.abort(),timeoutMs);
-    let response;
     try{
-      response=await fetchImpl(url.toString(),{method:'GET',credentials:'omit',redirect:'error',cache:'no-store',headers:{accept:'application/json'},signal:abort.signal});
-    }catch{
+      const response=await fetchImpl(url.toString(),{method:'GET',credentials:'omit',redirect:'error',cache:'no-store',headers:{accept:'application/json'},signal:abort.signal});
+      // Only the canonical node error code denotes a tip invalidation; generic
+      // 503 outages cannot be presented as reorgs or retried as stale cursors.
+      if(response.status===503){
+        let errorBody;
+        try{errorBody=await response.json();}
+        catch{
+          if(abort.signal.aborted)throw new ExplorerDataError('TIMEOUT','Node response timed out');
+          throw new ExplorerDataError('NODE_HTTP_ERROR','Node returned error',503);
+        }
+        if(abort.signal.aborted)throw new ExplorerDataError('TIMEOUT','Node response timed out');
+        if(errorBody?.error==='tip_changed_retry')
+          throw new ExplorerDataError('TIP_CHANGED','Tip changed; retry coherent read',503);
+        throw new ExplorerDataError('NODE_HTTP_ERROR','Node returned error',503);
+      }
+      if(!response.ok)throw new ExplorerDataError('NODE_HTTP_ERROR','Node returned error',response.status);
+      let data;
+      try{data=await response.json();}
+      catch{
+        if(abort.signal.aborted)throw new ExplorerDataError('TIMEOUT','Node response timed out');
+        schema('Invalid JSON');
+      }
+      if(abort.signal.aborted)throw new ExplorerDataError('TIMEOUT','Node response timed out');
+      const tip=tipOf(data,expectedNetwork);sameTip(tip,expectedTip);
+      return{tip,data};
+    }catch(error){
+      if(error instanceof ExplorerDataError)throw error;
       throw new ExplorerDataError(abort.signal.aborted?'TIMEOUT':'NETWORK_UNAVAILABLE','Node read unavailable');
-    }finally{clearTimeout(timer);}
-    if(response.status===503)throw new ExplorerDataError('TIP_CHANGED','Tip changed; retry coherent read',503);
-    if(!response.ok)throw new ExplorerDataError('NODE_HTTP_ERROR','Node returned error',response.status);
-    let data;try{data=await response.json();}catch{schema('Invalid JSON');}
-    const tip=tipOf(data,expectedNetwork);sameTip(tip,expectedTip);
-    return{tip,data};
+    }finally{
+      // Keep the deadline through the full JSON body, not only HTTP headers.
+      clearTimeout(timer);
+    }
   }
   return Object.freeze({
     async status(){
@@ -100,12 +122,18 @@ export function createExplorerReadAdapter({baseUrl,fetchImpl=globalThis.fetch,ex
       if(height!==undefined)positive(height,'height');
       if(hash!==undefined&&!HEX64.test(hash))bad('Invalid block hash');
       const{tip,data}=await get('block',{height,hash},expectedTip);
-      return Object.freeze({tip,block:blockSchema(data.block,tip)});
+      const observedBlock=blockSchema(data.block,tip);
+      // A well-formed node response is not evidence it answers this selector.
+      if((height!==undefined&&observedBlock.height!==height)||
+         (hash!==undefined&&observedBlock.hash!==hash))schema('Block identity differs from requested selector');
+      return Object.freeze({tip,block:observedBlock});
     },
     async transaction({txid,expectedTip}={}){
       if(typeof txid!=='string'||!HEX64.test(txid))bad('Invalid TXID');
       const{tip,data}=await get('transaction',{txid},expectedTip);
-      return Object.freeze({tip,transaction:txSchema(data.transaction,tip)});
+      const observedTransaction=txSchema(data.transaction,tip);
+      if(observedTransaction.txid!==txid)schema('Transaction identity differs from requested TXID');
+      return Object.freeze({tip,transaction:observedTransaction});
     },
     async address({address,limit=30,cursor,expectedTip}={}){
       addr(address);positive(limit,'limit',100);
