@@ -124,6 +124,14 @@ async function captureSafeVisual(name,width,height){
   await evaluate('window.scrollTo(0,0)');
   await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<900});
   await sleep(170);
+  if(name.startsWith('recovery-')){
+    const visible=await evaluate("!document.querySelector('#recovery-panel').hidden && !!document.querySelector('#recovery-panel').offsetParent");
+    assert.equal(visible,true,'Recovery entry must be visible in screenshot');
+    await evaluate("document.querySelector('#recovery-panel').scrollIntoView({block:'start',behavior:'instant'})");
+    await sleep(100);
+    const rect=await evaluate("document.querySelector('#recovery-panel').getBoundingClientRect().top");
+    assert.ok(rect<height*.25,'Recovery panel not in visual viewport: '+rect);
+  }
   const leak=await evaluate("Array.from(document.querySelectorAll('textarea')).some(e=>!e.closest('[hidden]') && e.value.trim().split(/\\s+/).length===24)");
   assert.equal(leak,false,'Screenshot blocked: recovery words visible');
   const mode=await evaluate("document.querySelector('#tab-wallet').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-wallet').hidden ? 'wallet' : document.querySelector('#tab-mining').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-mining').hidden ? 'mining' : 'unknown'");
