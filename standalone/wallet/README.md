@@ -42,7 +42,7 @@ The legacy standalone node supplies `/transactions` with limited recent transfer
 Before making any `POST /submit-tx`, the CLI creates a **single-flight outbox**
 at `<vault>.outbox.json`, mode `0600`, using exclusive creation (it refuses
 to overwrite unresolved intent). It encrypts the deterministic signed-TXID,
-selected node URL, recipient-side sender address, amount, fee and observed chain
+selected node URL, sender and **recipient** addresses, amount, fee and observed chain
 tip with separate scrypt/AES-256-GCM under the vault password, then fsyncs the
 file **and containing directory** before the network POST. The outbox contains
 **no seed, private key or executable signed transaction**. No automatic
@@ -58,8 +58,12 @@ This asks for the vault password using a no-echo interactive terminal and
 queries the originally selected node's `/status` and `/transactions` before
 and after the history lookup. The answer is only
 `pending_node_reported`, `confirmed_node_reported` or `outcome_unknown`.
-A missing history endpoint, contradictory response, reorg during observation,
-node outage or missing historical record is **unknown**, not proof of rejection.
+The `outbox` command displays the recorded recipient for new intents. Older
+outbox files without this field remain decryptable and explicitly report
+`legacy_intent_recipient_unavailable`; never infer the recipient of an old
+intent from node history. A missing history endpoint, contradictory response,
+reorg during observation, node outage or missing historical record is **unknown**,
+not proof of rejection.
 There is **never** an automatic retry. The CLI blocks any second `send` while
 the outbox exists; this prevents accidental duplicate intent after a crash.
 
