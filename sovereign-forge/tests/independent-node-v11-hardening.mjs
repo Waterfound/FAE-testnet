@@ -87,6 +87,50 @@ test('Independent Node recovery must not follow predictable preexisting temporar
     {activationHeight:null}).chain.length,legacyBlocks.length);
 });
 
+test('Durable state temporary snapshot never follows a preplanted symbolic link',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-durable-temp-symlink-'));
+  context.after(()=>rm(dir,{recursive:true,force:true}));
+  const dataFile=join(dir,'node-state.json'),durableFile=dataFile+'.durable',
+    victim=join(dir,'unrelated-private-operator-file'),base=legacyState();
+  await writeFile(dataFile,JSON.stringify(base)+'\n');
+  await writeFile(victim,'PRIVATE_OPERATOR_FILE_MUST_SURVIVE\n');
+  await symlink(victim,durableFile+'.tmp');
+  // Authentic source first-load starts with verified raw chain; durable tmp
+  // belongs to the store, but an attacker-created link must not be followed.
+  const controller=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  assert.equal(controller.boot.source,'raw-only');
+  assert.equal(await readFile(victim,'utf8'),'PRIVATE_OPERATOR_FILE_MUST_SURVIVE\n',
+    'durable snapshot temporary symlink must never overwrite operator file');
+  assert.equal((await lstat(durableFile)).isSymbolicLink(),false,
+    'durable snapshot primary must be its own regular file');
+  const envelope=JSON.parse(await readFile(durableFile,'utf8'));
+  assert.equal(verifyPersistedState(envelope.state,{activationHeight:null}).chain.length,
+    legacyBlocks.length);
+});
+
+test('Durable state backup rotation never follows a preplanted symbolic link',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-durable-backup-symlink-'));
+  context.after(()=>rm(dir,{recursive:true,force:true}));
+  const dataFile=join(dir,'node-state.json'),durableFile=dataFile+'.durable',
+    victim=join(dir,'unrelated-backup-operator-file'),base=legacyState();
+  await writeFile(dataFile,JSON.stringify(base)+'\n');
+  const controller=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  await writeFile(victim,'PRIVATE_BACKUP_OPERATOR_FILE_MUST_SURVIVE\n');
+  await symlink(victim,durableFile+'.bak');
+  const result=await controller.checkpoint(base);
+  assert.equal(result.saved,true,'genuine generation advancement required');
+  assert.equal(await readFile(victim,'utf8'),'PRIVATE_BACKUP_OPERATOR_FILE_MUST_SURVIVE\n',
+    'backup rotation symlink must never overwrite unrelated operator file');
+  assert.equal((await lstat(durableFile+'.bak')).isSymbolicLink(),false,
+    'rotated backup must not remain a symbolic link');
+  const primary=JSON.parse(await readFile(durableFile,'utf8'));
+  const backup=JSON.parse(await readFile(durableFile+'.bak','utf8'));
+  assert.equal(primary.generation,2);
+  assert.equal(backup.generation,1);
+  assert.equal(verifyPersistedState(backup.state,{activationHeight:null}).chain.length,
+    legacyBlocks.length);
+});
+
 test('Independent Node v1.1 peer guard stays memory-bounded and escalates repeat bans',()=>{
   const guard=new PeerGuard({windowMs:1000,maxCostPerWindow:3,banScore:4,banMs:100,maxBanMs:1000,maxRecords:64});
   for(let i=0;i<200;i++)assert.equal(guard.allow(`peer-${i}`,1,i).allowed,true);
