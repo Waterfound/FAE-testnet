@@ -1,0 +1,314 @@
+{
+  "schema": "FAE_MAINNET_EVIDENCE_ADMISSION_CANDIDATE_V1",
+  "as_of": "2026-10-16",
+  "scope": "DOCUMENTATION_ONLY_EXACT_SOURCE_RECONCILIATION",
+  "authority": "CANDIDATE_NOT_MAINNET_OR_CANONICAL_GATE_ACTIVATION",
+  "base_main_commit": "ede1205c27c1e39d4c67a9746142a6716a38520c",
+  "base_readiness_blob": "1fc191013dc1cc6457eb8082313785058daaf440",
+  "base_readiness_recorded_at": "2026-10-06",
+  "base_gate_count": 24,
+  "gate_statuses_are_proposals_not_canonical": true,
+  "status_meanings": {
+    "SOURCE_VERIFIED": "The named source/ledger boundary was read. Does not mean production or independent external acceptance.",
+    "EVIDENCE_IMPORTED": "Original provenance-bound bytes were admitted to a private verifier, but the whole mainnet gate is not passed.",
+    "VERIFIED_PASS": "Positive original acceptance result against frozen criteria; only a named narrow predicate, never an inferred whole gate.",
+    "VERIFIED_FAIL": "Authentic negative original acceptance result remains binding; do not substitute post-hoc data.",
+    "EXTERNAL_EVIDENCE_GATE": "Missing qualifying independent/physical evidence; not a code-only problem.",
+    "HUMAN_GATE": "Specifically requires a future physical or Waterfound authority action.",
+    "CONDITION_WAIT": "External dependency or prerequisite not met; frees execution slot when no independent work remains."
+  },
+  "evidence": {
+    "rde": {
+      "frozen_contract": "FAE-RDE-ACCEPTANCE-V1-20260928",
+      "frozen_source_revision": "d6c3ac8670806729ec10d026c15317ebb73f4f69",
+      "frozen_miner_blob": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+      "private_import_pipeline": 2956272491,
+      "private_import_sha": "61fe8db883fd7038d7caddbaeb34547ffa2d189d",
+      "private_original_import_job": 17241435774,
+      "private_no_source_replay_job": 17241435775,
+      "original_capture_count": 27,
+      "original_valid": 26,
+      "original_failed": 1,
+      "mandatory_campaign_bundles": 26,
+      "mandatory_valid": 25,
+      "mandatory_failed": 1,
+      "classes": [
+        {
+          "device_class": "consumer_discrete_gpu",
+          "original": "6/6 PASS"
+        },
+        {
+          "device_class": "thin_light_integrated",
+          "original": "6/6 PASS"
+        },
+        {
+          "device_class": "compact_handheld_consumer",
+          "original": "7/7 PASS",
+          "original_prefix_and_residual_bound": true
+        },
+        {
+          "device_class": "mobile_tablet_arm",
+          "original": "6/7 PASS",
+          "failed_repetition": "normal_use_coexistence:3"
+        }
+      ],
+      "failed_original_retention": 0.691655,
+      "minimum_frozen_retention": 0.7,
+      "posthoc_diagnostic_retention": 0.9642366484,
+      "posthoc": "PASS_DIAGNOSTIC_ONLY_EXCLUDED_FROM_ACCEPTANCE",
+      "portfolio_verdict": "INSUFFICIENT_REPRESENTATIVE_DEVICE_EVIDENCE",
+      "fail_errors": [
+        "one_or_more_run_bundles_failed",
+        "missing_required_repetition:mobile_tablet_arm:normal_use_coexistence",
+        "missing_repetition_number:mobile_tablet_arm:normal_use_coexistence:3"
+      ],
+      "source_receipts": [
+        "https://github.com/Waterfound/FAE-testnet/issues/343",
+        "https://gitlab.com/waterfound-group/Waterfound-project/-/pipelines/2956272491"
+      ]
+    },
+    "hfb": {
+      "physical_source_imported": true,
+      "source_works": 17838,
+      "measured_seconds": 4290.914,
+      "derived_works_per_second": 4.157156,
+      "energy_efficiency_certified": false,
+      "efficiency_status": "EXTERNAL_EVIDENCE_GATE"
+    },
+    "steam_deck": {
+      "residual_PR": 344,
+      "source_head": "d1a1c4084a9af5c6efeae6b475e5d292b8a4c48c",
+      "state": "DRAFT_NOT_MERGED",
+      "physical_result": "7/7_IMPORTED_VERIFIED",
+      "preserve_original_four_capture_prefix": true
+    },
+    "node": {
+      "appdeploy_candidate_ready": true,
+      "checkpoint_cron_enabled": true,
+      "checkpoint_cron_last_status": "success",
+      "independent_p2p_host_24_7_verified": false,
+      "explorer_frontend_ready": true,
+      "explorer_live_binding_verified": false,
+      "local_crash_recovery_PR": 345,
+      "local_crash_recovery_sha": "f0c1ae0e5b1a421c9362c5a35fe0b6ca4cc8a282",
+      "local_candidate_tests": "7/7_ACTIONS_GREEN_NOT_HOSTED_UPTIME"
+    },
+    "soak": {
+      "status": "PREPARED_NOT_STARTED",
+      "t0_established": false,
+      "full_window_verified": false
+    },
+    "mts12": {
+      "physical_residual_verified": false,
+      "threshold_milliseconds": 1500
+    },
+    "operator": {
+      "independent_operator_real_verification": false
+    },
+    "dp6": {
+      "specialized_advantage_excluded": false
+    },
+    "tokenomics": {
+      "current_live_public_testnet": "10FAE_600000_180s",
+      "future_authoritative_design": "9FAE_630000_-45pct_12.6M",
+      "mainnet_parameters_frozen": false
+    }
+  },
+  "matrix": [
+    {
+      "gate_id": "live_public_testnet_authority",
+      "canonical_state_unchanged": "ACTIVE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Current live v4 source, not future mainnet activation."
+    },
+    {
+      "gate_id": "research_180s_validation",
+      "canonical_state_unchanged": "CONDITION_WAIT",
+      "evidence_disposition": "EXTERNAL_EVIDENCE_GATE",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Insufficient research evidence; fresh comparable WAN/physical evidence required."
+    },
+    {
+      "gate_id": "mainnet_readiness_reconciliation",
+      "canonical_state_unchanged": "SECONDARY",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Ledger re-read at exact main; current candidate overlay not canonically integrated."
+    },
+    {
+      "gate_id": "preferred_future_economic_candidate",
+      "canonical_state_unchanged": "CLOSED",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Historical 14/430k package is superseded, not eligible for activation."
+    },
+    {
+      "gate_id": "authoritative_future_tokenomics_design",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "9 FAE / 630000 blocks / 45% decrease / 12.6M ceiling is design authority only; fee/maturity/block interval not frozen."
+    },
+    {
+      "gate_id": "difficulty_timestamp_hardening",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Software-only DONE in canonical ledger; not an operational acceptance receipt."
+    },
+    {
+      "gate_id": "peer_isolation_eclipse_resistance",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Software-only DONE in canonical ledger; no operator-network proof."
+    },
+    {
+      "gate_id": "fork_reorg_recovery_software_ceiling",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Software-only DONE in canonical ledger; WAN recovery still unverified."
+    },
+    {
+      "gate_id": "asic_resistance_f2",
+      "canonical_state_unchanged": "HUMAN_GATE",
+      "evidence_disposition": "EXTERNAL_EVIDENCE_GATE",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "DP6 memory/ASIC economics not independently upper-bounded; specialized-cost external evidence and separate hardware authority gates remain."
+    },
+    {
+      "gate_id": "physical_hfb_economics",
+      "canonical_state_unchanged": "EXTERNAL_EVIDENCE",
+      "evidence_disposition": "EVIDENCE_IMPORTED",
+      "verification_scope": "EXTERNAL_RECEIPT_AND_DIRECT_SOURCE_RECONCILIATION",
+      "reason": "Original HFB source bytes processed privately; throughput cross-checked 17838 works over 4290.914 s = 4.157156 works/s. No admitted machine-readable equivalent wall-power efficiency; do not certify energy economics."
+    },
+    {
+      "gate_id": "representative_device_evidence",
+      "canonical_state_unchanged": "EXTERNAL_EVIDENCE",
+      "evidence_disposition": "VERIFIED_FAIL",
+      "verification_scope": "EXTERNAL_RECEIPT_AND_DIRECT_SOURCE_RECONCILIATION",
+      "reason": "Canonical physical import + independent no-source replay: 25/26 mandatory campaign bundles valid. Mobile ARM coexistence #3 original 0.691655 < frozen 0.70 threshold; post-hoc C3 0.9642366484 is DIAGNOSTIC_ONLY, never an original replacement. Portfolio INSUFFICIENT."
+    },
+    {
+      "gate_id": "stability_soak_v3",
+      "canonical_state_unchanged": "SCHEDULED",
+      "evidence_disposition": "CONDITION_WAIT",
+      "verification_scope": "EXTERNAL_RECEIPT_AND_DIRECT_SOURCE_RECONCILIATION",
+      "reason": "PREPARED_NOT_STARTED; no complete frozen T0 or 96h/108h envelope. Provider prestart unavailable/not verified. AppDeploy checkpoint cron cannot substitute V3 WAN soak."
+    },
+    {
+      "gate_id": "mining_tip_stale_work_recovery",
+      "canonical_state_unchanged": "HUMAN_GATE",
+      "evidence_disposition": "HUMAN_GATE",
+      "verification_scope": "EXTERNAL_RECEIPT_AND_DIRECT_SOURCE_RECONCILIATION",
+      "reason": "MTS-12 physical Safari foreground to authoritative /status <=1500 ms remains distinct from RDE captures and outstanding. Candidate harness alone not proof."
+    },
+    {
+      "gate_id": "wallet_transaction_ux",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Ledger software/UX DONE is not a sovereign multi-platform mainnet wallet, security audit or final release."
+    },
+    {
+      "gate_id": "block_explorer_independent_binding",
+      "canonical_state_unchanged": "HUMAN_GATE",
+      "evidence_disposition": "CONDITION_WAIT",
+      "verification_scope": "EXTERNAL_RECEIPT_AND_DIRECT_SOURCE_RECONCILIATION",
+      "reason": "Read-only Explorer frontend exists but UNBOUND; AppDeploy isolated validation/checkpoint cron is not independently hosted 24/7 consensus peer nor LIVE explorer. Oracle manual capacity attempts deprioritized; alternative host not admitted."
+    },
+    {
+      "gate_id": "public_code_security_baseline",
+      "canonical_state_unchanged": "CLOSED",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Historical PSR software baseline state preserved, not a security waiver or final exact-production audit."
+    },
+    {
+      "gate_id": "post_quantum_signature_research",
+      "canonical_state_unchanged": "RESEARCH_ONLY",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Non-blocking research only; no PQ activation."
+    },
+    {
+      "gate_id": "repository_recovery_git_independence",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Repository recovery machinery exists; full portfolio + hosted ops cleanroom is separately gated."
+    },
+    {
+      "gate_id": "release_reproducibility_provenance",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Tooling DONE, final production source/binaries/checksums not frozen."
+    },
+    {
+      "gate_id": "mainnet_rehearsal_package",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Rehearsal-only evidence not equivalent to approved production genesis."
+    },
+    {
+      "gate_id": "independent_release_mainnet_verifier",
+      "canonical_state_unchanged": "DONE",
+      "evidence_disposition": "SOURCE_VERIFIED",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Verifier package DONE, but no final signed/authorized production artifact supplied."
+    },
+    {
+      "gate_id": "independent_operator_evidence",
+      "canonical_state_unchanged": "EXTERNAL_EVIDENCE",
+      "evidence_disposition": "EXTERNAL_EVIDENCE_GATE",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Owner-independent real operator exercise and online peer diversity evidence not yet admitted."
+    },
+    {
+      "gate_id": "final_production_freeze",
+      "canonical_state_unchanged": "UNRESOLVED",
+      "evidence_disposition": "CONDITION_WAIT",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "Unset final genesis, source tree/artifact digests, activation height and bootstrap/fee/maturity gates."
+    },
+    {
+      "gate_id": "mainnet_authorization",
+      "canonical_state_unchanged": "BLOCKED",
+      "evidence_disposition": "CONDITION_WAIT",
+      "verification_scope": "CANONICAL_LEDGER_AND_LINKED_SOURCE_BOUNDARY_ONLY",
+      "reason": "All prerequisites and independent acceptance not satisfied; explicit Waterfound authorization remains future gate."
+    }
+  ],
+  "progress": {
+    "mandatory_rde_valid_fraction": "25/26",
+    "mandatory_rde_valid_pct": 96.1538461538,
+    "canonical_ledger_done_or_closed": 11,
+    "canonical_ledger_total": 24,
+    "critical_gates_not_terminal_per_legacy_ledger": 11,
+    "launch_readiness_percent": null,
+    "no_weighted_or_linear_mainnet_completion_inferred": true,
+    "rationale": "Gate dependencies are conjunctive and not proportionate; physical ratio/ledger DONE count cannot be treated as overall mainnet readiness."
+  },
+  "production_freeze_values_preserved_unset": [
+    "genesis_timestamp_ms",
+    "initial_target_hex",
+    "genesis_miner_address",
+    "release_artifact_sha256",
+    "release_manifest_sha256",
+    "release_source_commit",
+    "release_source_tree",
+    "release_config_sha256",
+    "live_activation_height",
+    "bootstrap_requirements",
+    "bootstrap_nodes"
+  ],
+  "final_verdict": "MAINNET_NOT_READY__CANDIDATE_EVIDENCE_RECONCILED__NO_GATE_PROMOTION",
+  "recommended_secondary": "RELEASE_WHEN_INDEPENDENT_RECONCILIATION_EXHAUSTED",
+  "next_owner": "Total Systems Steward, separate human/external gating; do not auto-deploy, release, merge or re-test physical hardware",
+  "privacy": "NO_RAW_PHYSICAL_JSON_OR_PHOTOS_NO_WALLET_SEEDS_OR_ADDRESSES"
+}
