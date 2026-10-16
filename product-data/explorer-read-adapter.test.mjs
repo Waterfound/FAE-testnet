@@ -67,10 +67,10 @@ test('tip-bound address cursor and atom-accurate balance survive',async()=>{
  assert.equal(out.balanceAtoms,'999999999999999999999999');
  assert.equal(out.nextCursor,H+':30');
 });
-test('service unavailable cannot be shown as a fresh block or empty mempool',async()=>{
- const m=node({'/explorer/status':()=>response({ok:false},503)});
+test('generic 503 outage cannot be shown as fresh block, empty mempool or fictional tip change',async()=>{
+ const m=node({'/explorer/status':()=>response({ok:false,error:'service_unavailable'},503)});
  const a=createExplorerReadAdapter({baseUrl:'https://reader.example/',fetchImpl:m.fetchImpl});
- await rejects(a.status(),'TIP_CHANGED');
+ await rejects(a.status(),'NODE_HTTP_ERROR');
 });
 test('invalid numeric node response is rejected',async()=>{
  const m=node({'/explorer/status':()=>response({...status,issued_atoms:1.5})});
