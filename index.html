@@ -280,6 +280,61 @@ main{max-width:1440px;padding:0 clamp(20px,5vw,76px) 72px;border-inline:0}
  #panel-wallet .wallet-entry-buttons .wallet-action::after{transition:none}
 }
 
+
+/* VR-09 active-state correction from independent screenshot review:
+   actual balances precede secondary wallet-admission controls. */
+#panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-stage-head{
+  margin-bottom:clamp(26px,3vw,38px);align-items:start
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-stage-head h1{
+  font-size:clamp(47px,5.2vw,70px);margin-bottom:13px
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-presence{
+  align-self:start
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-admission-rule{display:none}
+#panel-wallet:has(#wallet-connected-state:not([hidden]))>.stack{
+  display:flex;flex-direction:column
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-connected-state{
+  order:0;display:flex;flex-direction:column;gap:0
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-connected-state>.panel-grid{
+  order:0;margin-top:0
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-connected-state>.wallet-section:first-child{
+  order:1
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-connected-state>.wallet-section:nth-of-type(n+2){
+  order:2
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-entry-card{
+  order:3;margin-top:10px
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-entry-card .wallet-entry-buttons{
+  max-width:780px;gap:30px
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-entry-card .wallet-action{
+  min-height:72px;font-size:clamp(19px,2vw,25px)
+}
+#panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-entry-card .wallet-action::after{
+  font-size:21px
+}
+@media(max-width:560px){
+ #panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-stage-head{
+   display:block;margin-bottom:28px
+ }
+ #panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-stage-head h1{
+   font-size:56px;margin-bottom:12px
+ }
+ #panel-wallet:has(#wallet-connected-state:not([hidden])) .wallet-presence{
+   display:none
+ }
+ #panel-wallet:has(#wallet-connected-state:not([hidden])) #wallet-entry-card .wallet-entry-buttons{
+   grid-template-columns:1fr;gap:2px
+ }
+}
+
 </style>
 </head>
 <body data-authorship-propagation="product-wallet-v1">

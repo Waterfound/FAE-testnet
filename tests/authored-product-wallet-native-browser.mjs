@@ -128,6 +128,10 @@ async function captureSafeVisual(name,width,height){
   assert.equal(leak,false,'Screenshot blocked: recovery words visible');
   const mode=await evaluate("document.querySelector('#tab-wallet').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-wallet').hidden ? 'wallet' : document.querySelector('#tab-mining').getAttribute('aria-selected')==='true' && !document.querySelector('#panel-mining').hidden ? 'mining' : 'unknown'");
   assert.equal(mode,name.startsWith('mining-')?'mining':'wallet','Wrong visible product mode for visual evidence '+name);
+  if(name.startsWith('wallet-active-')){
+    const anchor=await evaluate("(()=>{const n=document.querySelector('#bal');const r=n.getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height,visible:!!n.offsetParent};})()");
+    assert.ok(anchor.visible&&anchor.height>0&&anchor.top>=0&&anchor.top<height*.79,'Balance must be foreground in admitted Wallet: '+name+' '+JSON.stringify(anchor));
+  }
   const overflow=await evaluate('document.documentElement.scrollWidth-document.documentElement.clientWidth');
   assert.ok(overflow<=1,'Visual evidence viewport overflows: '+name+' '+overflow);
   const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});

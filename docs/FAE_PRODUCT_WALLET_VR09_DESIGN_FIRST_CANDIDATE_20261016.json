@@ -26,7 +26,8 @@
     "Connected balance becomes the single typographic anchor; wallet identity/history organized as unboxed ruled lines",
     "Plain continuous orange identity/header; static network facts; blue only for selection and actual mining activity",
     "Resp. desktop 1440, iPad 834, mobile 390 with real browser screenshots and overflow checks",
-    "Input/output crypto and mining logic unchanged; NO IMPLICIT WALLET CREATION guard retained"
+    "Input/output crypto and mining logic unchanged; NO IMPLICIT WALLET CREATION guard retained",
+    "Actual screenshot review repaired admitted-wallet hierarchy: balance/send moved above add-wallet controls; first viewport must prove foreground balance"
   ],
   "gates": {
     "artistic_approval": false,
@@ -41,5 +42,12 @@
     "type": "EXISTING_RECURRENT_CHECKPOINT_NOT_NATIVE_DURABLE",
     "new_scheduler": false,
     "next": "verify current exact head browser screenshot artifact and await explicit human visual decision; do not propagate to other families"
+  },
+  "visual_qa": {
+    "original_evidence_head": "138c7f2a8840501532be5daf2e64d59083da3c97",
+    "observed_defect": "Authenticated Wallet screenshots displayed Add Wallet above balance in first viewport",
+    "repair": "CSS flex order conditional only when #wallet-connected-state visible, without changing DOM actions or Wallet semantics",
+    "required_assertion": "native Chromium active balance within first 79% of each 1440x900 / 834x1194 / 390x844 viewport",
+    "human_acceptance": false
   }
 }
