@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import test from 'node:test';
 import {generateKeyPairSync} from 'node:crypto';
-import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,writeFile,symlink,lstat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {legacyBlocks} from './legacy-testnet-fixture.mjs';
@@ -53,6 +53,29 @@ test('Independent Node v1.1 fails closed when raw, durable primary and durable b
     prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null}),
     error=>error?.code==='independent_node_state_unrecoverable'
   );
+});
+
+test('Independent Node recovery must not follow predictable preexisting temporary symlink or overwrite an unrelated file',async context=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-recovery-symlink-'));
+  context.after(()=>rm(dir,{recursive:true,force:true}));
+  const dataFile=join(dir,'state.json'),durableFile=dataFile+'.durable',
+    victim=join(dir,'unrelated-operator-state.txt'),base=legacyState();
+  await writeFile(dataFile,JSON.stringify(base)+'\n');
+  const first=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  const written=await first.checkpoint(base);
+  assert.equal(written.saved,true,'real verified durable checkpoint required');
+  await writeFile(victim,'DO_NOT_OVERWRITE_OPERATOR_DATA\n');
+  await writeFile(dataFile,'{"torn":');
+  const attackerLink=dataFile+'.recovery-'+process.pid+'.tmp';
+  await symlink(victim,attackerLink);
+  const recovered=await prepareIndependentNodeStorage({dataFile,durableFile,activationHeight:null});
+  assert.equal(recovered.boot.source,'durable-recovery');
+  assert.equal(await readFile(victim,'utf8'),'DO_NOT_OVERWRITE_OPERATOR_DATA\n',
+    'recovery must never follow operator/attacker-controlled temporary symlinks');
+  const st=await lstat(dataFile);
+  assert.equal(st.isSymbolicLink(),false,'recovered raw state must be its own regular file');
+  assert.equal(verifyPersistedState(JSON.parse(await readFile(dataFile,'utf8')),
+    {activationHeight:null}).chain.length,legacyBlocks.length);
 });
 
 test('Independent Node v1.1 peer guard stays memory-bounded and escalates repeat bans',()=>{
