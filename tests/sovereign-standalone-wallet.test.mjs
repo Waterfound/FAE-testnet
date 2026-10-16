@@ -153,6 +153,34 @@ test('real HTTP drop AFTER accepting signed payload returns deterministic submis
   }
 });
 
+test('real HTTP timeout after signed POST preserves unknown TXID and never resends',{timeout:20000},async()=>{
+  const sender=deriveRecords(mnemonic)[0],recipient=deriveRecords(phrase2)[0];
+  const {tx,txid}=buildSignedTransaction(sender,['timeout-fixture:0'],[
+    {address:recipient.address,amount_atoms:'100000000'}]);
+  let deliveries=0,received=null;
+  const server=createServer(async req=>{
+    const chunks=[];
+    for await(const part of req)chunks.push(part);
+    received=JSON.parse(Buffer.concat(chunks).toString('utf8')).tx;
+    deliveries++;
+    // The test server deliberately never acknowledges or rejects the signed POST.
+    // AbortSignal.timeout(10000) must produce an UNKNOWN, never a silent retry.
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base='http://127.0.0.1:'+server.address().port;
+  try{
+    const result=await submitSignedWithReceipt(base,tx,txid,'0');
+    assert.equal(result.state,'submission_outcome_unknown');
+    assert.equal(result.reason,'receipt_lost_or_duplicate_unknown');
+    assert.equal(result.txid,txid);
+    assert.equal(deliveries,1,'HTTP timeout must not trigger a second transaction POST');
+    assert.deepEqual(received,tx);
+  }finally{
+    server.closeAllConnections();
+    await new Promise(resolve=>server.close(resolve));
+  }
+});
+
 test('real HTTP reorg between node status and balance/history fails closed without a stale confirmation',async()=>{
   const address=deriveRecords(phrase2)[0].address;
   let statusReads=0,moveOnStatus=2;
