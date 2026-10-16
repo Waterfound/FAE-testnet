@@ -458,6 +458,11 @@ test('REAL isolated independent node: mine to A, signed A->B, reject mutation an
     assert.equal(accepted.txid,txid);
     assert.equal(accepted.fee_atoms,'0');
     assert.equal(accepted.state,'accepted_unconfirmed');
+    const pendingIntent=await readIntent(intentPath(vault),password);
+    assert.equal(pendingIntent.txid,txid);
+    assert.equal(pendingIntent.recipient,b.address,'recipient must survive the real-node signed send');
+    assert.equal((await reconcileIntent(pendingIntent)).state,'pending_node_reported',
+      'real independently running node must report pending intent without a second POST');
     const historyBefore=await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address));
     assert.equal(historyBefore.transactions.find(x=>x.txid===txid).status,'pending');
     // Crash/restart AFTER accepted receipt but BEFORE mining: persisted mempool
@@ -467,6 +472,8 @@ test('REAL isolated independent node: mine to A, signed A->B, reject mutation an
     assert.equal((await waitNode(base)).height,1);
     const restoredPending=await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address));
     assert.equal(restoredPending.transactions.find(x=>x.txid===txid).status,'pending');
+    assert.equal((await reconcileIntent(pendingIntent)).state,'pending_node_reported',
+      'node restart must not silently settle or resubmit the intent');
     assert.equal((await outputsForNode(base,b.address)).balance_atoms,'0');
     await assert.rejects(nodeRequest(base,'/submit-tx','POST',{tx}),/node_rejected_request/);
     const double={...buildSignedTransaction(a,plan.inputs,[{address:b.address,amount_atoms:'90000000'},
@@ -486,5 +493,11 @@ test('REAL isolated independent node: mine to A, signed A->B, reject mutation an
     assert.equal((await outputsForNode(base,b.address)).balance_atoms,'100000000');
     assert.equal((await nodeRequest(base,'/transactions?address='+encodeURIComponent(b.address)))
       .transactions.find(x=>x.txid===txid).status,'confirmed');
+    const onchainConfirmation=await reconcileIntent(pendingIntent);
+    assert.equal(onchainConfirmation.state,'confirmed_node_reported',
+      'actual mined block plus node restart must reconcile the same recorded TXID');
+    await acknowledgeConfirmedIntent(intentPath(vault),password,txid,onchainConfirmation);
+    await assert.rejects(access(intentPath(vault)),/ENOENT/,
+      'explicit confirmed acknowledgment is the only path clearing a real-node outbox');
   }finally{await killNode(node);await rm(dir,{recursive:true,force:true})}
 });
