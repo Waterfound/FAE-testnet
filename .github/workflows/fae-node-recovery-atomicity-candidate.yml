@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'sovereign-forge/node/authoritative/node-state-recovery.mjs'
+      - 'sovereign-forge/node/authoritative/durable-state-store.mjs'
       - 'sovereign-forge/tests/independent-node-v11-hardening.mjs'
       - 'sovereign-forge/tests/independent-node-v11-process-recovery.mjs'
       - '.github/workflows/fae-node-recovery-atomicity-candidate.yml'
@@ -30,6 +31,7 @@ jobs:
       - name: Check source and test syntax
         run: |
           node --check sovereign-forge/node/authoritative/node-state-recovery.mjs
+          node --check sovereign-forge/node/authoritative/durable-state-store.mjs
           node --check sovereign-forge/tests/independent-node-v11-hardening.mjs
           node --check sovereign-forge/tests/independent-node-v11-process-recovery.mjs
       - name: Authentic canonical baseline RED and candidate GREEN — symlink recovery
@@ -70,6 +72,39 @@ jobs:
           node --test --test-name-pattern='recovery must not follow predictable' \
             sovereign-forge/tests/independent-node-v11-hardening.mjs
           echo 'CANDIDATE_GREEN: operator sentinel untouched; restored raw state verified'
+          test "$(git hash-object "$target")" = "$(git rev-parse "HEAD:$target")"
+      - name: Canonical durable store symlink RED and exact candidate GREEN
+        shell: bash
+        env:
+          BASE: ede1205c27c1e39d4c67a9746142a6716a38520c
+        run: |
+          set -euo pipefail
+          target=sovereign-forge/node/authoritative/durable-state-store.mjs
+          spec=sovereign-forge/tests/independent-node-v11-hardening.mjs
+          saved="$RUNNER_TEMP/durable-state-store-candidate.mjs"
+          cp "$target" "$saved"
+          restore() { cp "$saved" "$target"; }
+          trap restore EXIT
+          git cat-file -e "$BASE^{commit}"
+          git show "$BASE:$target" > "$target"
+          patterns=('Durable state temporary snapshot' 'Durable state backup rotation')
+          messages=('durable snapshot temporary symlink must never overwrite operator file' 'backup rotation symlink must never overwrite unrelated operator file')
+          for i in 0 1; do
+            set +e
+            node --test --test-name-pattern="${patterns[$i]}" "$spec" > "$RUNNER_TEMP/durable-store-baseline-$i.log" 2>&1
+            red_rc=$?
+            set -e
+            if [ "$red_rc" -eq 0 ] || ! grep -q 'not ok' "$RUNNER_TEMP/durable-store-baseline-$i.log" ||
+                ! grep -Fq "${messages[$i]}" "$RUNNER_TEMP/durable-store-baseline-$i.log"; then
+              echo "AUTHENTIC_SOURCE_RED_NOT_VERIFIED: ${patterns[$i]}"
+              cat "$RUNNER_TEMP/durable-store-baseline-$i.log"
+              exit 1
+            fi
+            echo "AUTHENTIC_SOURCE_RED: ${patterns[$i]} preplanted symlink overwrites external file"
+          done
+          restore
+          node --test --test-name-pattern='Durable state temporary snapshot|Durable state backup rotation' "$spec"
+          echo 'CANDIDATE_GREEN: durable primary and backup safe, verified state retained'
           test "$(git hash-object "$target")" = "$(git rev-parse "HEAD:$target")"
       - name: Run independent node v1.1 recovery and network adversarial suite
         run: node --test sovereign-forge/tests/independent-node-v11-hardening.mjs
