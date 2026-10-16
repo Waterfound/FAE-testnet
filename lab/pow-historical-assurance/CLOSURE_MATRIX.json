@@ -1,6 +1,6 @@
 {
   "schema": "FAE_HISTORICAL_POW_CLOSURE_MATRIX_V1",
-  "date": "2026-10-10",
+  "date": "2026-10-16",
   "purpose": "Track the eight historical-PoW-derived mainnet assurance gaps inside their existing Elements without creating new Elements.",
   "rows": [
     {
@@ -79,18 +79,18 @@
       "id": "HP-06",
       "area": "Strategic mining + pool incentives",
       "element": 2,
-      "candidate_status": "BOUNDED_MODELS_ADVANCED__FINAL_PROFITABILITY_OPEN",
+      "candidate_status": "SOURCE_BOUND_EXACT_MODELS_GREEN__EMPIRICAL_PROFITABILITY_OPEN",
       "mainnet_status": "OPEN",
       "evidence": [
-        "2,000,000-event selfish-mining sensitivity cells",
-        "classic profitability threshold reproduced",
-        "lexicographic equal-work grinding surface identified",
-        "strict-greater-only tie rule exercised as non-persistent viable counterfactual",
-        "BWH/FAW pool-infiltration sensitivity executed across 140 cells",
-        "positive-attacker-extra-revenue surface observed in 28/28 BWH and 112/112 FAW parameter cells of the bounded sweep",
-        "Exact 2048-share-window accounting fixture 6/6, conditional tie grinding opportunity model 3/3"
+        "PR #311 source head 4eae6d339cefed9368522336f6fe0d8232d85802",
+        "Real 2048-share ShareLedger withholding, replay, tip-recheck, durable receipt and restart/capacity guard: 20/20",
+        "Bounded BWH/FAW/EFAW source-ledger economics envelope: 14/14",
+        "Independent full-target chain-inclusion replay: 4/4",
+        "Deterministic finite-horizon classic selfish release, one-event trail counterfactual and exact conditional tie-advantage threshold: 12/12",
+        "Exact-source focused total 50/50 PASS; PR-triggered GitHub Actions 7/7 SUCCESS",
+        "All outputs retain actual_profitability_proven=false and propagation_gamma_observed=false"
       ],
-      "residual": "Live FAE PPLNS BWH/FAW/EFAW and stubborn/selfish profitability with timing, opportunity costs, propagation and tie policy remain OPEN."
+      "residual": "Measured FAE propagation gamma, opportunity arrival, external-pool rewards, attacker costs, real operator strategies, network conditions and specialized-memory/ASIC economics remain OPEN; model thresholds are not empirical profitability or Mainnet security proof."
     },
     {
       "id": "HP-07",
@@ -136,11 +136,11 @@
       "HP-08"
     ],
     "mainnet_terminal_green_count": 0,
-    "reason": "Abstract policies and analytical models advanced; zero live node/consensus/economic activation. Terminal production proofs still impossible without final artifacts.",
-    "wave2_candidate_evidence": [
-      "Mempool isolated fee-aware policy 9/9",
-      "Tie opportunity-cost model 3/3",
-      "PPLNS finite window 6/6"
+    "reason": "Source-bound candidates and analytical models advanced; zero live node/consensus/economic activation. Terminal production proofs remain impossible without final artifacts and external evidence.",
+    "wave3_candidate_evidence": [
+      "PR #311 exact-source focused suites 50/50",
+      "Selfish/stubborn/tie threshold remains conditional",
+      "PPLNS source-ledger BWH/FAW/EFAW bounds remain non-empirical"
     ]
   },
   "authority": {
@@ -151,5 +151,5 @@
     "economics_change": false,
     "mainnet": false
   },
-  "revision": "2026-10-10-wave2"
+  "revision": "2026-10-16-w3-exact-head"
 }
