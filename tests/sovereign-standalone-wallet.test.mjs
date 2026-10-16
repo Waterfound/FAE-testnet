@@ -194,14 +194,23 @@ test('encrypted outbox fsyncs before send; one-flight exclusivity, corruption fa
   const dir=await mkdtemp(join(tmpdir(),'fae-outbox-unit-')),file=join(dir,'account.outbox.json');
   const a=deriveRecords(mnemonic)[0],password='correct horse battery staple';
   const intent={network:NETWORK,txid:'a'.repeat(64),node:'http://127.0.0.1:8787',
-    address:a.address,amount_atoms:'100000000',fee_atoms:'0',tip_height:1,tip_hash:'b'.repeat(64)};
+    address:a.address,recipient:deriveRecords(phrase2)[0].address,
+    amount_atoms:'100000000',fee_atoms:'0',tip_height:1,tip_hash:'b'.repeat(64)};
   try{
     await writeIntent(file,intent,password);
     assert.equal((await stat(file)).mode&0o777,0o600);
     const disk=await readFile(file,'utf8');
-    assert.ok(!disk.includes(intent.txid)&&!disk.includes(a.address),'outbox details must be ciphertext');
+    assert.ok(!disk.includes(intent.txid)&&!disk.includes(a.address)&&!disk.includes(intent.recipient),
+      'outbox sender, recipient and TXID details must remain ciphertext');
     assert.ok(!disk.includes(password));
     assert.deepEqual(await readIntent(file,password),intent);
+    await assert.rejects(writeIntent(join(dir,'invalid.outbox.json'),{...intent,recipient:'faet1invalid'},password),
+      /invalid_outbox_intent/,'corrupt recipient address must fail closed before disk allocation');
+    const legacy=join(dir,'legacy.outbox.json');
+    const legacyRecord={...intent};delete legacyRecord.recipient;
+    await writeIntent(legacy,legacyRecord,password);
+    assert.deepEqual(await readIntent(legacy,password),legacyRecord,
+      'old encrypted outbox records without recipient must remain recoverable');
     await assert.rejects(writeIntent(file,{...intent,txid:'c'.repeat(64)},password),/EEXIST/);
     await assert.rejects(readIntent(file,'incorrect password'),/outbox_wrong_password_or_corrupt/);
     await assert.rejects(acknowledgeConfirmedIntent(file,password,intent.txid,
