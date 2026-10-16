@@ -279,6 +279,9 @@ test('real CLI process SIGKILL after POST preserves encrypted TXID; later proces
     const record=await readIntent(intentPath(vault),password);
     assert.equal(record.txid,receiptTxid);
     assert.equal(record.address,sender.address);
+    assert.equal(record.recipient,recipient.address,'recovered intent must identify the actual recipient');
+    assert.equal((await readFile(intentPath(vault),'utf8')).includes(recipient.address),false,
+      'recipient provenance must remain encrypted at rest');
     assert.equal(record.node,base);
     assert.equal((await stat(intentPath(vault))).mode&0o777,0o600);
     assert.equal((await reconcileIntent(record)).state,'pending_node_reported');
