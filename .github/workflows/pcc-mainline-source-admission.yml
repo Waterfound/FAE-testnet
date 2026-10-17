@@ -1,0 +1,44 @@
+name: PCC current-main W3 guard source admission
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/authoritative/share-coordinator.mjs'
+      - 'sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs'
+      - 'lab/pow-historical-assurance/pplns-strategic-risk-guard*'
+      - 'lab/pow-historical-assurance/pplns-next-difficulty-source-status.test.mjs'
+      - 'lab/pow-historical-assurance/pplns-signed-template-transaction-boundary.test.mjs'
+      - '.github/workflows/pcc-mainline-source-admission.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pcc-guard-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact request-source signed-work adversarial and existing regression tests
+        run: |
+          node --test lab/pow-historical-assurance/pplns-next-difficulty-source-status.test.mjs
+          node --test lab/pow-historical-assurance/pplns-signed-template-transaction-boundary.test.mjs
+          node --test lab/pow-historical-assurance/pplns-strategic-risk-guard.test.mjs
+          node --test sovereign-forge/tests/authoritative-coordinator-signer-codec.mjs
+      - name: Prove strict main ancestry and freeze protected non-PCC sources
+        env:
+          EXPECTED_MAIN: ede1205c27c1e39d4c67a9746142a6716a38520c
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin main
+          ACTUAL_MAIN="$(git rev-parse refs/remotes/origin/main)"
+          test "$ACTUAL_MAIN" = "$EXPECTED_MAIN" || { echo "::error::Main advanced: reconcile new source before admission"; exit 1; }
+          git merge-base --is-ancestor "$ACTUAL_MAIN" HEAD
+          git diff --exit-code "$ACTUAL_MAIN" HEAD -- sovereign-forge/node/authoritative/fae-v4-core.mjs sovereign-forge/node/authoritative/fae-v4-peer-node.mjs sovereign-forge/node/fae-node.mjs FAE_FORGE_MAIN.sha256 sovereign-forge/node/authoritative/pplns-activation.mjs
+          echo PCC_SOURCE_CURRENT_MAIN_ANCESTRY_AND_PROTECTED_SURFACES_VERIFIED
