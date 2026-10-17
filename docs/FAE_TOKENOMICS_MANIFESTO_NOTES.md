@@ -124,3 +124,13 @@ And the participation principle:
 > **Bitcoin buys dedicated efficiency. FAE tries to reuse general-purpose capacity.**
 
 The monetary schedule should reinforce, rather than undermine, that hardware philosophy.
+
+## Note — DP6 and the direction of unified computing
+
+> **As personal computing converges around shared memory and on-device AI, FAE is researching Proof of Work that can remain relevant on general-purpose machines.**
+
+DP6's memory-dependent, sequential-access design makes it a **theoretically relevant research candidate** for systems that increasingly share memory and computation across CPUs, integrated GPUs, and AI workloads. The human-facing aspiration is meaningful participation using the capacity ordinary devices already possess, with mining able to coexist with their normal use rather than demanding a machine devoted solely to mining.
+
+This is an **architectural hypothesis, not a measured efficiency or security claim**. Large unified-memory capacity does not by itself establish higher DP6 throughput, lower joules per work, good application coexistence, or resistance to specialized mining. Latency, effective bandwidth, concurrency, power, workload interference, and specialized-hardware economics require representative and independently verifiable evidence.
+
+**Editorial boundary:** It is appropriate to describe DP6 as *theoretically suited to the direction of unified, AI-oriented general-purpose computing*. Do not describe it as proven optimized for a particular AI device or architecture, as using AI accelerators to mine, as inherently more energy-efficient, or as ASIC-resistant. DP6 remains a research candidate, not the active Proof of Work of the public-testnet v4.
