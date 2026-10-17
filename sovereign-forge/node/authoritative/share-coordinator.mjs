@@ -104,6 +104,22 @@ export class ShareCoordinator{
       throw Object.assign(new Error('candidate_pplns_block_target_out_of_bounds'),
         {code:'candidate_pplns_block_target_out_of_bounds'});
     }
+    // W3 source boundary: a signer must reject a tx commitment that the
+    // consensus source would reject before publishing a distributed work proof.
+    const claimedTxids=candidate.txids??[];
+    if(!Array.isArray(claimedTxids)||
+       hashHex(claimedTxids)!==candidate.header.tx_root||
+       !Number.isSafeInteger(Number(candidate.header.tx_count))||
+       Number(candidate.header.tx_count)!==claimedTxids.length){
+      throw Object.assign(new Error('candidate_pplns_template_transaction_commitment_mismatch'),
+        {code:'candidate_pplns_template_transaction_commitment_mismatch'});
+    }
+    // An empty list cannot generate transaction fees. Nonempty-list fee
+    // correctness still requires independently verified on-chain tx records.
+    if(claimedTxids.length===0&&String(candidate.header.fee_atoms)!=='0'){
+      throw Object.assign(new Error('candidate_pplns_empty_template_fee_mismatch'),
+        {code:'candidate_pplns_empty_template_fee_mismatch'});
+    }
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
     // HPA-W3: source-owned PPLNS economic integrity. Correct aggregate total
