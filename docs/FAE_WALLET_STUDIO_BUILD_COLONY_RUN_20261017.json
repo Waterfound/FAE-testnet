@@ -1,0 +1,75 @@
+{
+  "schema": "FAE_WALLET_STUDIO_BUILD_COLONY_EXECUTION_V1",
+  "run_kind": "REAL_GITHUB_CANDIDATE_EXECUTION_WITH_BUILD_COLONY_COMPATIBLE_PLAN",
+  "native_build_colony_cli_invoked": false,
+  "source_revision": "df1b8eb6ad5e5dd3408f82304e589b77a2b7a1e2",
+  "bc_upstream_revision": "35cc177ddef7213a234b8ec0cf33ebb7c11e5e08",
+  "owner": "FAE Product Shell + Wallet ACTIVE",
+  "single_integrator": "Waterfound/FAE-testnet#272",
+  "run_date": "2026-10-17",
+  "profile_path": "docs/FAE_WALLET_STUDIO_BUILD_COLONY_PROFILE_20261017.json",
+  "wave_order": [
+    [
+      "DFR-00"
+    ],
+    [
+      "DFR-01"
+    ],
+    [
+      "DFR-02"
+    ],
+    [
+      "DFR-03"
+    ],
+    [
+      "DFR-04"
+    ],
+    [
+      "DFR-05"
+    ],
+    [
+      "DFR-06"
+    ],
+    [
+      "DFR-07"
+    ],
+    [
+      "DFR-08"
+    ],
+    [
+      "DFR-09"
+    ]
+  ],
+  "roles": {
+    "coordinator": "source-bound dependency plan",
+    "builder": "exact PR272 candidate implementation",
+    "verifier": "GitHub Actions Visual Language Lab and independent functional tests",
+    "integrator": "existing PR272 only; no main merge"
+  },
+  "states": {
+    "DFR-00": "PASS_PREVIOUSLY_VERIFIED",
+    "DFR-01": "PASS_PREVIOUSLY_VERIFIED",
+    "DFR-02": "BUILT_AWAITING_EXACT_HEAD_CI",
+    "DFR-03": "PENDING",
+    "DFR-04": "PENDING",
+    "DFR-05": "PENDING",
+    "DFR-06": "PENDING",
+    "DFR-07": "PENDING",
+    "DFR-08": "PENDING",
+    "DFR-09": "HUMAN_AUTHORITY_GATE"
+  },
+  "durable_execution": {
+    "mode": "GITHUB_SOURCE_CHECKPOINT__EXISTING_RECURRENT_OWNERS",
+    "native_ge_runtime_transition_observed": false,
+    "owner": "FAE Visual Continuation and Total Systems Steward",
+    "no_new_scheduler": true,
+    "checkpoint_path": "docs/FAE_WALLET_STUDIO_DURABLE_STATE_20261017.json",
+    "resume": "Reconcile PR272 HEAD, app source lock, test transcript, CI, next unfinished graph node and write-scope before running; do not repeat prior green work."
+  },
+  "prohibitions": {
+    "merge": false,
+    "deploy": false,
+    "signing_in_studio": false,
+    "seed_generation_in_studio": false
+  }
+}

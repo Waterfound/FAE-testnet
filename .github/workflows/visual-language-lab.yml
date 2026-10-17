@@ -57,6 +57,10 @@ jobs:
       - run: node tests/visual-language-contract.mjs
       - name: Lock approved Wallet Studio original source
         run: node tests/approved-wallet-studio-fidelity.mjs
+      - name: Verify Studio binding safety (empty + authenticated active)
+        run: |
+          node tests/wallet-studio-first-frame.mjs
+          node tests/wallet-studio-saved-vault-bridge.mjs
       - name: Protect protocol and consensus surfaces
         shell: bash
         run: |

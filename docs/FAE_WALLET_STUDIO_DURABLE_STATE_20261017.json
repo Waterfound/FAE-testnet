@@ -1,0 +1,67 @@
+{
+  "schema": "FAE_WALLET_STUDIO_DURABLE_CHECKPOINT_V1",
+  "date": "2026-10-17",
+  "active_owner": "FAE Product Shell + Wallet",
+  "repository": "Waterfound/FAE-testnet",
+  "pull_request": 272,
+  "branch": "design/fae-authorship-product-wallet-001",
+  "source_exact_parent": "df1b8eb6ad5e5dd3408f82304e589b77a2b7a1e2",
+  "authoritative_studio": {
+    "app": "fae-wallet-authored-revision-vr-08-5xu6gd",
+    "version": "1791582226769",
+    "source_frozen": true,
+    "copy_is_readonly": true
+  },
+  "frontiers": [
+    {
+      "id": "DFR-02",
+      "state": "BUILT_WAIT_CI",
+      "resume_from": "design/wallet-studio-functional/empty-vault-adapter.js",
+      "proof": "tests/wallet-studio-saved-vault-bridge.mjs"
+    },
+    {
+      "id": "DFR-03",
+      "state": "READY_AFTER_DFR02_GREEN",
+      "objective": "Staged real local 24-word New Wallet within existing creation scene"
+    },
+    {
+      "id": "DFR-04",
+      "state": "DEPENDENCY_WAIT",
+      "objective": "Real Recovery form within 24-position sheet"
+    },
+    {
+      "id": "DFR-05",
+      "state": "DEPENDENCY_WAIT",
+      "objective": "No fake balance/history, verified network adapter"
+    },
+    {
+      "id": "DFR-06",
+      "state": "DEPENDENCY_WAIT",
+      "objective": "Switch Wallet only under mining coherence"
+    },
+    {
+      "id": "DFR-07",
+      "state": "DEPENDENCY_WAIT",
+      "objective": "Bounded sign/send reuse"
+    },
+    {
+      "id": "DFR-08",
+      "state": "DEPENDENCY_WAIT",
+      "objective": "Native pixel fidelity"
+    },
+    {
+      "id": "DFR-09",
+      "state": "HUMAN_GATE",
+      "objective": "Waterfound explicit art acceptance"
+    }
+  ],
+  "exclusions": [
+    "do not mutate frozen source",
+    "do not treat sample data as real",
+    "do not activate new scheduler",
+    "do not merge or release",
+    "no consensus or crypto changes"
+  ],
+  "provenance": "Candidate GitHub PR state, not a native General Execution Durable state transition",
+  "next_machine_action": "Cold fetch latest PR HEAD, check source lock & exact-head GitHub CI. If DFR-02 valid, proceed DFR-03 as independent guarded small increment; never stop for generic code green alone."
+}

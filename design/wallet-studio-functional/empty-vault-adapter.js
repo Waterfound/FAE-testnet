@@ -1,60 +1,148 @@
 'use strict';
-// DFR-02 / Slice 01: real, read-only vault admission to the exact authored Empty Wallet canvas.
-// Never import the Studio's simulated runtime. Never create/recover a wallet, sign or broadcast.
+// BC-FAE-WALLET-STUDIO-001 / Active-read-only slice.
+// Never import Studio demo runtime. The approved HTML/CSS canvas stays unmodified.
+// Real records require local vault decryption; balances/transactions remain unverified.
 (async function(){
   const root=document.documentElement;
   const eventLine=document.getElementById('eventLine');
   const views=[...document.querySelectorAll('[data-screen]')];
-  const show=(screen)=>{
-    for(const view of views)view.hidden=view.dataset.screen!==screen;
-  };
+  const $=(selector)=>document.querySelector(selector);
+  const show=(screen)=>{for(const view of views)view.hidden=view.dataset.screen!==screen};
   const note=(message)=>{
     if(eventLine){eventLine.textContent=message;eventLine.classList.add('visible')}
   };
   const fail=(message)=>{
-    show(null);
-    root.dataset.walletAdapter='fail-closed';
+    show(null);root.dataset.walletAdapter='fail-closed';
     note(message);
   };
+  function clearExampleContent(){
+    const value=$('.balance-value strong');if(value)value.textContent='—';
+    const subtitle=$('.balance-sub');if(subtitle)subtitle.textContent='Balance unavailable · no verified network response';
+    const flow=$('.flow-strip');if(flow)flow.textContent='No verified movements available';
+    const count=$('.flow-foot span:first-child');if(count)count.textContent='0 verified events';
+    const caption=document.getElementById('flowCaption');if(caption)caption.textContent='No verified transfers';
+    const reference=$('.reference-data');if(reference)reference.textContent='NO VERIFIED CHAIN HISTORY';
+    for(const row of document.querySelectorAll('.activity-list .activity-row'))row.remove();
+    const activityTitle=$('.activity-list .list-head span');if(activityTitle)activityTitle.textContent='NO VERIFIED CHAIN HISTORY';
+    const rail=$('.wallet-rail');if(rail)rail.replaceChildren();
+    const detail=document.getElementById('actionDetail');if(detail)detail.hidden=true;
+  }
+  function safePublicAddress(address){
+    return typeof address==='string' && /^faet1[a-z0-9]{12,}$/i.test(address);
+  }
+  function bindActions(address){
+    for(const button of document.querySelectorAll('[data-action]')){
+      button.addEventListener('click',()=>{
+        const detail=document.getElementById('actionDetail');
+        const title=document.getElementById('actionEyebrow');
+        const content=document.getElementById('actionContent');
+        if(!detail||!title||!content){fail('The approved action scene is missing.');return}
+        detail.hidden=false;
+        content.replaceChildren();
+        if(button.dataset.action==='receive'){
+          title.textContent='RECEIVE / VERIFIED LOCAL ADDRESS';
+          const value=document.createElement('div');
+          value.className='address-readout';
+          value.textContent=address;
+          content.append(value);
+          note('Receiving address verified by the local encrypted vault. No network balance claim.');
+        }else{
+          title.textContent='SEND / PROTECTED FUNCTION';
+          const p=document.createElement('p');
+          p.textContent='Signing remains in the existing verified FAE Wallet until this Studio integration passes the signing-intent gate.';
+          const link=document.createElement('a');
+          link.href='../../index.html';
+          link.textContent='Open verified Wallet →';
+          content.append(p,link);
+        }
+      });
+    }
+    const dismiss=document.getElementById('dismissAction');
+    if(dismiss)dismiss.addEventListener('click',()=>{
+      const detail=document.getElementById('actionDetail');if(detail)detail.hidden=true;
+    });
+  }
+  function renderActive(wallets,state,account){
+    clearExampleContent();
+    const wallet=wallets.find(item=>item.walletId===state.activeWalletId);
+    if(!wallet || !Array.isArray(wallet.addresses) || !Array.isArray(account?.addresses))
+      throw Error('No verifiable active Wallet record');
+    const metadata=wallet.addresses.map(a=>a.address);
+    const decrypted=account.addresses.map(a=>a.address);
+    if(!metadata.length || JSON.stringify(metadata)!==JSON.stringify(decrypted))
+      throw Error('Vault metadata and authenticated Wallet identity disagree');
+    const index=wallet.activeIndex;
+    if(!Number.isInteger(index)||index<0||index>=metadata.length)throw Error('Active address is invalid');
+    const address=metadata[index];
+    if(!safePublicAddress(address))throw Error('Address network/prefix validation failed');
+    const rank=wallets.indexOf(wallet)+1;
+    const heading=$('.balance-upper .eyebrow');
+    if(heading)heading.textContent='WALLET '+String(rank).padStart(2,'0')+' / LOCAL';
+    const selected=$('.micro-status');
+    if(selected)selected.textContent=String(rank).padStart(2,'0')+' · SELECTED';
+    const rail=$('.wallet-rail');
+    if(!rail)throw Error('Approved Wallet rail is missing');
+    const title=document.createElement('div');title.className='rail-heading';
+    title.textContent='YOUR WALLETS ';
+    const count=document.createElement('span');count.textContent=String(wallets.length).padStart(2,'0');title.append(count);
+    rail.append(title);
+    for(let i=0;i<wallets.length;i++){
+      const item=wallets[i];
+      const el=document.createElement('div');
+      el.className='wallet-choice'+(i===rank-1?' selected':'');
+      const text=document.createElement('span');
+      const label=document.createElement('b');label.textContent='Wallet '+String(i+1).padStart(2,'0');
+      const hint=document.createElement('small');hint.textContent=i===rank-1?'Selected · local':'Stored · select in verified Wallet';
+      text.append(label,hint);el.append(text);rail.append(el);
+    }
+    const foot=document.createElement('div');foot.className='rail-foot';
+    const f1=document.createElement('span');f1.textContent='Active address';
+    const f2=document.createElement('b');f2.id='addressReadout';
+    f2.textContent=address.slice(0,10)+'…'+address.slice(-6);
+    const f3=document.createElement('small');f3.textContent='Authenticated vault identity · no chain claim';
+    foot.append(f1,f2,f3);rail.append(foot);
+    bindActions(address);
+    show('active');root.dataset.walletAdapter='active-authenticated-read-only';
+    note('Wallet identity authenticated locally. Balance, transfers and signing are not bound to this Studio slice.');
+  }
   show(null);
   root.dataset.walletAdapter='checking';
   try{
-    if(!window.FAEWalletVault || typeof window.FAEWalletVault.listWallets!=='function'
-      || typeof window.FAEWalletVault.readState!=='function')
-      throw Error('Vault read-only API unavailable');
-    const [wallets,state]=await Promise.all([
-      window.FAEWalletVault.listWallets(),window.FAEWalletVault.readState()
-    ]);
-    if(!Array.isArray(wallets) || !state || !Array.isArray(views) || views.length!==4)
-      throw Error('Unexpected vault or authored scene shape');
-    if(wallets.length || state.activeWalletId){
-      fail('A saved Wallet exists. This isolated first-slice adapter cannot display it yet; use the existing verified Wallet interface.');
-      return;
-    }
-    const empty=document.querySelector('[data-screen="empty"]');
-    if(!empty || !empty.querySelector('.empty-primary') || !empty.querySelector('.empty-aside'))
-      throw Error('Authored Empty Wallet composition missing');
-    show('empty');
-    root.dataset.walletAdapter='empty-vault-read-only';
-    // Preview-only affordances: preserve the approved composition; never perform wallet mutation.
-    const newButton=document.getElementById('startNew');
-    const recoveryButton=document.getElementById('startRecovery');
-    if(!newButton || !recoveryButton)throw Error('Authored choice controls missing');
-    newButton.addEventListener('click',()=>{
-      show('create');
-      note('Visual integration preview only. Wallet creation is not enabled in this isolated slice.');
-    });
-    recoveryButton.addEventListener('click',()=>{
-      show('recovery');
-      note('Visual integration preview only. Recovery words are not accepted in this isolated slice.');
-    });
-    for(const back of document.querySelectorAll('[data-back="empty"]')){
-      back.addEventListener('click',()=>{show('empty');if(eventLine)eventLine.textContent=''});
+    const vault=window.FAEWalletVault;
+    if(!vault||typeof vault.listWallets!=='function'||typeof vault.readState!=='function')
+      throw Error('Read-only local vault is unavailable');
+    const [wallets,state]=await Promise.all([vault.listWallets(),vault.readState()]);
+    if(!Array.isArray(wallets)||!state||views.length!==4)
+      throw Error('Vault or authored scenes do not match the contract');
+    if(wallets.length||state.activeWalletId){
+      if(!state.activeWalletId||typeof vault.loadAccount!=='function')
+        throw Error('An active authenticated Wallet is required');
+      const account=await vault.loadAccount(state.activeWalletId);
+      renderActive(wallets,state,account);
+    }else{
+      const empty=$('[data-screen="empty"]');
+      if(!empty?.querySelector('.empty-primary')||!empty.querySelector('.empty-aside'))
+        throw Error('Approved Empty scene missing');
+      clearExampleContent();
+      show('empty');root.dataset.walletAdapter='empty-vault-read-only';
+      const newButton=document.getElementById('startNew');
+      const recoveryButton=document.getElementById('startRecovery');
+      if(!newButton||!recoveryButton)throw Error('Approved entry actions missing');
+      newButton.addEventListener('click',()=>{
+        show('create');note('Visual staging only: real 24-word generation still requires a guarded functional binding.');
+      });
+      recoveryButton.addEventListener('click',()=>{
+        show('recovery');note('Visual staging only: phrase input remains disabled in this slice.');
+      });
+      for(const back of document.querySelectorAll('[data-back="empty"]')){
+        back.addEventListener('click',()=>{
+          show('empty');if(eventLine)eventLine.textContent='';
+        });
+      }
     }
   }catch(error){
-    fail('Wallet storage could not be verified. No wallet action is available in this isolated slice.');
+    fail('Wallet authentication or storage could not be verified. No wallet action is available in this isolated slice.');
   }finally{
-    const guard=document.getElementById('integration-first-frame-guard');
-    if(guard)guard.remove();
+    const guard=document.getElementById('integration-first-frame-guard');if(guard)guard.remove();
   }
 })();
