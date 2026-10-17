@@ -155,6 +155,19 @@ export class ShareCoordinator{
       throw Object.assign(new Error('candidate_pplns_chain_state_changed_during_template'),
         {code:'candidate_pplns_chain_state_changed_during_template'});
     }
+    // HPA-W3-160: genuine FAE /status reports nextDifficulty(state.chain).
+    // A provider can otherwise claim an in-range but non-consensus target.
+    // Legacy status adapters omit this field: compatibility then remains
+    // explicitly unverified for next-target equivalence.
+    const rawNextBits=latestChain?.difficulty_bits??latestChain?.difficultyBits;
+    if(rawNextBits!=null){
+      const nextBits=Number(rawNextBits);
+      if(!Number.isInteger(nextBits)||nextBits<4||nextBits>256||
+         nextBits!==blockBits){
+        throw Object.assign(new Error('candidate_pplns_next_difficulty_mismatch'),
+          {code:'candidate_pplns_next_difficulty_mismatch'});
+      }
+    }
     // HPA-W3-76..78: asynchronous distributed template generation must not
     // bind a signed work proof to PPLNS shares displaced in the meantime.
     // Both count/head AND current-window weights are rechecked, so a rolling
