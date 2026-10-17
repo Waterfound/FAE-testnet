@@ -1,0 +1,167 @@
+{
+  "schema": "FAE_AUTHORSHIP_PRODUCT_WALLET_DURABLE_STATE_V1",
+  "workstream_id": "fae-authorship-product-wallet-001",
+  "authority_owner": "Waterfound",
+  "repository": "Waterfound/FAE-testnet",
+  "branch": "design/fae-authorship-product-wallet-001",
+  "current_frontier": "VR-08_REDESIGN_CANDIDATE__NOT_YET_ACCEPTED",
+  "state": "VR08_REJECTED_VISUAL_TRANSLATION__FUNCTIONAL_CANDIDATE_VERIFIED",
+  "source_bindings": {
+    "wallet_functional_head": "8708b03866f42cf84ba2d01908caec4238928e70",
+    "current_main_merged_into_candidate_via_pr": 271,
+    "current_main_at_sync": "ace9821f56dd0bf60cbf7bfa7d8ff38cbb2f1d67",
+    "readiness_commit": "6008b5b074fea7b49f6566341e7a4c779786cd39",
+    "mining_reference_blob": "6aa1fa3711700874c2440d59d28b4005549775db",
+    "mining_reference_final_approval": "2633c90e7c5b3cd3eb85198d049d1cb038eb9016",
+    "cii_pr21_head": "c97b3caa86870dc5b53937cd3aa5bf384d8e8dab",
+    "cii_gate": "EXTERNAL_CI_GATE",
+    "current_main_at_resumption": "c30ea5c5dc94c8d5db599da9bafb666c1ec9d006",
+    "current_main_sync_pr": 284,
+    "current_main_sync_merge": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "verified_candidate_head": "720d8e208037797b9d954b3f511930a848d3ee8e"
+  },
+  "completed_frontiers": [
+    "APW-00",
+    "APW-01",
+    "APW-02",
+    "APW-03",
+    "APW-04",
+    "APW-05",
+    "APW-06",
+    "APW-07",
+    "APW-08",
+    "APW-09",
+    "VR-00",
+    "VR-01",
+    "VR-02",
+    "VR-03",
+    "VR-04",
+    "VR-05",
+    "VR-06"
+  ],
+  "pending_frontiers": [
+    "VR-08",
+    "VR-07"
+  ],
+  "candidate_changes": {
+    "product": [
+      "index.html"
+    ],
+    "tests": [
+      "tests/visual-language-contract.mjs",
+      "tests/wallet-browser-validation.spec.mjs"
+    ],
+    "evidence": [
+      "docs/FAE_AUTHORSHIP_PRODUCT_WALLET_BUILD_COLONY_RUN.json",
+      "docs/FAE_AUTHORSHIP_PRODUCT_WALLET_DURABLE_STATE.json"
+    ]
+  },
+  "protected_blob_bindings": {
+    "wallet.js": "6ef6532eb6b20b4c84b90c030e74288641a0c0ef",
+    "wallet-vault.js": "9e594dbd97317b39bd4e29743cef606393dbd384",
+    "wallet-crypto.js": "184d207b6017976b32e650f4ca184d3f06a2c8b4",
+    "wallet-signing-intent.js": "66e24d5a3b9f6fb415322a4e0de9e0e323b1724d",
+    "wallet-transactions.js": "1e9c9f72f6d8e9c8e338d3acbf418f832cd826d2",
+    "mining.js": "fb98057341adca6f1f53b681e1094ef6fcb97e1f",
+    "core.js": "4689358f75caf9b5349a600cd42d484deec9e9d4"
+  },
+  "guarantees": {
+    "no_implicit_wallet_creation": true,
+    "wallet_runtime_byte_preserved": true,
+    "mining_runtime_byte_preserved": true,
+    "mining_reference_frozen": true,
+    "explorer_untouched": true,
+    "network_semantics_unchanged": true,
+    "cii_external_gate_unresolved": true,
+    "main_merge_authority": false,
+    "public_deployment_authority": false,
+    "release_authority": false,
+    "current_main_reconciled": true,
+    "current_main_delta_touched_protected_product_surface": false,
+    "exact_head_ci_green": true,
+    "all_feature_surfaces_must_derive_from_mining_authored_identity": true,
+    "new_feature_family_propagation_blocked": true,
+    "vr08_visual_acceptance": false
+  },
+  "next_transition": "Prepare revised Product Shell + Wallet authored composition against frozen Mining PR #268, preserve rejected isolated Studio as immutable comparison baseline, validate desktop/mobile and wallet invariants, and request fresh explicit Waterfound visual acceptance. New feature-family propagation remains blocked.",
+  "terminal_target": "AUTHORED_PRODUCT_WALLET_PROPAGATION_READY__CURRENT_MAIN_RECONCILED",
+  "verification": {
+    "exact_head": "720d8e208037797b9d954b3f511930a848d3ee8e",
+    "all_current_required_checks_green": true,
+    "checks": {
+      "Visual Language Lab": "SUCCESS",
+      "Authored Product Wallet Browser": "SUCCESS",
+      "Wallet Persistent Vault candidate": "SUCCESS",
+      "cross-lab-integration-gate": "SUCCESS",
+      "verify-canonical-source": "SUCCESS",
+      "codeql-security": "SUCCESS",
+      "psr15-project-assurance": "SUCCESS",
+      "psr16-finding-closure": "SUCCESS",
+      "psr17-full-security-baseline": "SUCCESS_ON_WHOLE_WORKFLOW_RERUN",
+      "psr18-security-verdict": "SUCCESS",
+      "public-code-security-recurring-assurance": "SUCCESS",
+      "Mainnet Readiness State": "SUCCESS",
+      "Representative Device Evidence Readiness": "SUCCESS"
+    },
+    "psr17_history": {
+      "run_id": 37691035182,
+      "first_attempt": "FAILED_R17_01_R17_02",
+      "first_attempt_preserved": true,
+      "cause_proven": false,
+      "exact_head_standalone_psr15": "SUCCESS_17_OF_17_ZERO_FINDINGS",
+      "exact_head_standalone_psr16": "SUCCESS_ZERO_FINDING_CLOSURE",
+      "whole_workflow_rerun": "SUCCESS",
+      "selective_substep_retry": false,
+      "disposition": "NON_PERSISTENT_BASELINE_REPLAY_FAILURE_OBSERVED__NO_SECURITY_FINDING_PROVEN__PRIOR_FAILURE_PRESERVED"
+    },
+    "latest_observed_head": "df7e727171196a7d7435784bddbb9308ad852938",
+    "latest_observed_required_checks": {
+      "verify-canonical-source": "SUCCESS",
+      "public-code-security-recurring-assurance": "SUCCESS",
+      "Wallet Persistent Vault candidate": "SUCCESS",
+      "Authored Product Wallet Browser": "SUCCESS",
+      "cross-lab-integration-gate": "SUCCESS",
+      "Visual Language Lab": "SUCCESS",
+      "codeql-security": "SUCCESS"
+    },
+    "latest_observed_main": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+    "latest_observed_main_ahead": 77,
+    "latest_observed_main_behind": 0,
+    "protected_blob_verification": "7_OF_7_MATCH_DURABLE_BINDINGS",
+    "studio": "READY_NO_FRONTEND_OR_NETWORK_ERRORS"
+  },
+  "visual_identity_authority": {
+    "file": "docs/FAE_VISUAL_IDENTITY_AUTHORITY_20261007.json",
+    "status": "AUTHORITATIVE_VISUAL_IDENTITY",
+    "canonical_reference": "FAE Mining Authored Reference",
+    "canonical_reference_pr": 268,
+    "canonical_reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "studio": "https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/",
+    "prior_directions": "HISTORICAL_LINEAGE_ONLY"
+  },
+  "studio": {
+    "status": "READY",
+    "app_id": "fae-authored-product-wallet-studio-6cku5x",
+    "url": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "evidence": "docs/FAE_AUTHORED_PRODUCT_WALLET_STUDIO_20261009.json",
+    "scope": [
+      "Product Shell",
+      "Wallet empty",
+      "Wallet active",
+      "Wallet recovery",
+      "mobile"
+    ],
+    "production_connection": false
+  },
+  "visual_review": {
+    "date": "2026-10-09",
+    "verdict": "REJECTED__VISUAL_TRANSLATION",
+    "evidence_file": "docs/FAE_AUTHORSHIP_PRODUCT_WALLET_VR08_REJECTION_20261009.json",
+    "reviewed_studio": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "disposition": "PRESERVE_UNCHANGED_REJECTED_BASELINE",
+    "mining_reference_pr": 268,
+    "mining_reference_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "approval": "NOT_GRANTED",
+    "next_gate": "REVISED_PRODUCT_WALLET_VISUAL_ACCEPTANCE"
+  }
+}

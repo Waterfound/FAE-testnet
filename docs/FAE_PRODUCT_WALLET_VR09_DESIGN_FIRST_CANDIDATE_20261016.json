@@ -1,0 +1,93 @@
+{
+  "schema": "FAE_PRODUCT_WALLET_VR09_DESIGN_FIRST_CANDIDATE_V1",
+  "date": "2026-10-16",
+  "design_status": "CANDIDATE_NOT_VISUALLY_ACCEPTED",
+  "reference": {
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "blob": "6aa1fa3711700874c2440d59d28b4005549775db"
+  },
+  "inherited_rejected_baseline": {
+    "pr": 272,
+    "source_head": "aa42fd1328eb06bfb214d2a711aba15e46854fb1",
+    "visual_studio": "fae-authored-product-wallet-studio-6cku5x",
+    "preserve_unchanged": true
+  },
+  "independent_wallet_reference": "fae-wallet-authored-revision-vr-08-5xu6gd",
+  "diagnosis": [
+    "Redundant hero copy and custody panel compete with primary action",
+    "Similar panel weight across balance, identities, signing and history",
+    "Generic card/rounded-border grammar and dashboard framing",
+    "Ticker perpetually animates with no causal network event"
+  ],
+  "changes": [
+    "Single stage: overscale Wallet title and deliberate rest whitespace",
+    "Explicit two large ruled New Wallet / Recovery Wallet choices; unchanged IDs and admission sequencing",
+    "Connected balance becomes the single typographic anchor; wallet identity/history organized as unboxed ruled lines",
+    "Plain continuous orange identity/header; static network facts; blue only for selection and actual mining activity",
+    "Resp. desktop 1440, iPad 834, mobile 390 with real browser screenshots and overflow checks",
+    "Input/output crypto and mining logic unchanged; NO IMPLICIT WALLET CREATION guard retained",
+    "Actual screenshot review repaired admitted-wallet hierarchy: balance/send moved above add-wallet controls; first viewport must prove foreground balance"
+  ],
+  "gates": {
+    "artistic_approval": false,
+    "main_merge": false,
+    "production_publish": false,
+    "feature_family_propagation": false,
+    "real_wallet_keys_in_artifacts": false
+  },
+  "acceptance": "Waterfound inspects exactly this candidate screenshot set; technical CI may not change artistic decision",
+  "continuity": {
+    "owner": "Existing Total Systems Steward and FAE Visual Continuation",
+    "type": "EXISTING_RECURRENT_CHECKPOINT_NOT_NATIVE_DURABLE",
+    "new_scheduler": false,
+    "next": "Preserve rejected Studio unchanged. Human review of VR-09 exact-source screenshots remains a genuine artistic gate; revalidate evidence after material visual changes. Do not propagate to new feature families."
+  },
+  "visual_qa": {
+    "original_evidence_head": "138c7f2a8840501532be5daf2e64d59083da3c97",
+    "observed_defect": "Authenticated Wallet screenshots displayed Add Wallet above balance in first viewport",
+    "repair": "CSS flex order conditional only when #wallet-connected-state visible, without changing DOM actions or Wallet semantics",
+    "required_assertion": "native Chromium active balance within first 79% of each 1440x900 / 834x1194 / 390x844 viewport",
+    "human_acceptance": false,
+    "latest_exact_source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+    "latest_native_browser_ci": {
+      "workflow": "Authored Product Wallet Browser",
+      "run_id": 38954451974,
+      "conclusion": "success",
+      "source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+      "artifact_id": 12070426416,
+      "artifact_name": "fae-product-wallet-vr09-responsive",
+      "artifact_digest_sha256": "06dc8b1bd78f863248d6a769ac7041fff6bfdc73b5310b1908cffff3b5795924",
+      "artifact_created_at": "2026-10-16T19:24:00Z",
+      "artifact_expires_at": "2026-10-30T19:23:59Z",
+      "artifact_zip_size_bytes": 577816,
+      "screenshots": [
+        "wallet-empty-desktop-1440.png",
+        "wallet-empty-ipad-834.png",
+        "wallet-empty-mobile-390.png",
+        "wallet-active-desktop-1440.png",
+        "wallet-active-ipad-834.png",
+        "wallet-active-mobile-390.png",
+        "recovery-entry-mobile-390.png",
+        "mining-idle-desktop-1440.png",
+        "mining-idle-mobile-390.png"
+      ],
+      "native_assertions": [
+        "NO IMPLICIT WALLET CREATION remains explicit",
+        "Active Wallet balance is in the first 79% of each captured viewport",
+        "Recovery panel itself is visible in the captured mobile viewport",
+        "No horizontal overflow beyond 1px in captured states",
+        "No visible 24-word recovery textarea in captured screenshots",
+        "Mining idle activity is non-animated and does not imply guaranteed reward"
+      ],
+      "review_disposition": "TECHNICAL_EVIDENCE_ONLY__NOT_ARTISTIC_APPROVAL"
+    },
+    "exact_head_ci": {
+      "source_head": "cdba6437a9c7a03ee2865b97818f66217068dbaa",
+      "workflows_total": 7,
+      "workflows_success": 7,
+      "checked_at": "2026-10-16",
+      "artistic_acceptance": false
+    }
+  }
+}

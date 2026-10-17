@@ -1,0 +1,40 @@
+{
+  "schema": "FAE_WALLET_STUDIO_LIVE_SOURCE_PARITY_V1",
+  "checked_at": "2026-10-16",
+  "scope": "Candidate-only FAE Product Shell + Wallet visual source authority",
+  "repository": "Waterfound/FAE-testnet",
+  "pull_request": 272,
+  "verified_candidate_head": "f24d4da3d8ae206c7d0cd15a94caea161ac51010",
+  "canonical_main_at_check": "ede1205c27c1e39d4c67a9746142a6716a38520c",
+  "source_app_id": "fae-wallet-authored-revision-vr-08-5xu6gd",
+  "source_applied_version": "1791582226769",
+  "source_path": "design/approved-wallet-vr08-studio/",
+  "method": "Independently fetched the exact applied AppDeploy source version and the GitHub candidate snapshot for each file; full UTF-8 contents compared for strict equality; all AppDeploy reads complete (no pagination).",
+  "verified_equal_files": [
+    "index.html",
+    "src/styles.css",
+    "src/vr11.ts",
+    "src/main.ts",
+    "package.json",
+    "vite.config.ts",
+    "postcss.config.js",
+    "tailwind.config.js"
+  ],
+  "verified_equal_count": 8,
+  "total_checked": 8,
+  "result": "LIVE_APP_SOURCE_EQUALS_FROZEN_CANDIDATE_SNAPSHOT_8_OF_8",
+  "visual_identity_authority": {
+    "pr": 268,
+    "head": "a949e913990e13a0b907891a729b5c7b2086547b"
+  },
+  "comparison_studio": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+  "human_visual_acceptance": false,
+  "real_wallet_binding_verified": false,
+  "notes": [
+    "Source preservation is verified; this does not prove pixel/rendered fidelity of the current product or a working wallet adapter.",
+    "The original AppDeploy Studio and Mining reference remain unmodified.",
+    "Earlier visual studies are historical only.",
+    "NO IMPLICIT WALLET CREATION and existing functional owners remain binding.",
+    "No new feature-family propagation, canonical merge, production deploy, release, Explorer/Network mutation, consensus/economics/activation/mainnet change is authorized."
+  ]
+}

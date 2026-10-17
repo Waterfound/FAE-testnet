@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAE Wallet — VR-08 Authored Revision</title>
+    <link rel="stylesheet" href="../approved-wallet-vr08-studio/src/styles.css" />
+    <style>.view[hidden]{display:none!important}</style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="shell">
+        <header>
+          <div class="topper">
+            <span class="brand">FAE</span>
+            <span class="top-status"
+              ><i aria-hidden="true"></i>Visual study
+              <span class="status-separator">/</span> offline</span
+            >
+          </div>
+          <div
+            class="ticker"
+            aria-label="Studio reference, not live network data"
+          >
+            <b>FAE&nbsp;·&nbsp;WALLET</b><span>◆</span><a class="ticker-explorer-link" href="https://fae-block-explorer-authored-studio-enul9d.v2.appdeploy.ai/" target="_blank" rel="noopener noreferrer" title="Open the independent Block Explorer design study (illustrative data)">BLOCKS ↗</a>
+            <span>◆</span>
+            <b>SELF-CUSTODY</b>
+            <span>◆</span>
+            <b>LOCAL DEVICE</b>
+            <span>◆</span>
+            <b>NO LIVE CHAIN DATA</b>
+            <span>◆</span>
+            <b>MINING AUTHORED REFERENCE</b>
+          </div>
+          <nav class="nav" aria-label="FAE product reference navigation">
+            <button class="nav-active" aria-current="page">
+              <span class="wallet-icon" aria-hidden="true"></span>Wallet
+            </button>
+            <a
+              class="nav-link"
+              href="https://fae-mining-authored-reference-composition-p18jsf.v2.appdeploy.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open Mining Authored Reference in another tab"
+              >↗&nbsp; Mining</a
+            >
+          </nav>
+        </header>
+        <main>
+          <div class="stage-head">
+            <div>
+              <h1>Wallet</h1>
+              <p id="stageDescription">Your keys remain yours.</p>
+            </div>
+            <div class="preview-control" aria-hidden="true" style="pointer-events:none">
+              <span class="preview-label">REVIEW /</span>
+              <button
+                class="view-option selected"
+                data-view="empty" tabindex="-1"
+                aria-pressed="true"
+              >
+                Empty
+              </button>
+              <button
+                class="view-option"
+                data-view="active" tabindex="-1"
+                aria-pressed="false"
+              >
+                Active
+              </button>
+              <button
+                class="view-option"
+                data-view="recovery" tabindex="-1"
+                aria-pressed="false"
+              >
+                Recovery
+              </button>
+            </div>
+          </div>
+          <div
+            class="event-line"
+            id="eventLine"
+            role="status"
+            aria-live="polite"
+          ></div>
+
+          <section class="view" data-screen="empty" aria-label="Empty wallet" hidden>
+            <div class="empty-space">
+              <div class="empty-primary">
+                <div class="eyebrow">OWNERSHIP / 00</div>
+                <div class="empty-number" aria-label="No balance available">
+                  —
+                </div>
+                <div class="empty-line" aria-hidden="true"></div>
+                <div class="empty-bottom">
+                  <span>No wallet here yet.</span
+                  ><small>Nothing is created automatically.</small>
+                </div>
+              </div>
+              <aside class="empty-aside">
+                <span class="tiny-index">01 / YOUR DEVICE</span>
+                <div class="empty-choices">
+                  <button class="action-main" id="startNew">
+                    <span>New Wallet</span><span aria-hidden="true">↗</span>
+                  </button>
+                  <button class="action-secondary" id="startRecovery">
+                    <span>Recovery Wallet</span
+                    ><span aria-hidden="true">→</span>
+                  </button>
+                </div>
+                <p class="short-note">
+                  Creation and recovery begin only when you choose.
+                </p>
+              </aside>
+            </div>
+            <div class="empty-floor">
+              <span>LOCAL CONTROL</span><span>YOUR CHOICE</span
+              ><span>YOUR KEYS</span>
+            </div>
+          </section>
+
+          <section
+            class="view"
+            data-screen="create"
+            aria-label="Wallet creation visual study"
+            hidden
+          >
+            <div class="creation-head">
+              <button class="back" data-back="empty">← Wallet</button>
+              <span class="tiny-index">NEW WALLET / VISUAL REVIEW</span>
+            </div>
+            <div class="creation-layout">
+              <div class="creation-primary">
+                <div class="eyebrow">01 / ON THIS DEVICE</div>
+                <h2>New Wallet</h2>
+                <p>24 words. One recovery path.</p>
+                <div class="creation-rule">
+                  <span class="creation-rule-fill"></span>
+                </div>
+                <div class="creation-foot">
+                  <span>Nothing has been generated.</span
+                  ><span>Preview only</span>
+                </div>
+              </div>
+              <aside class="creation-aside">
+                <span class="tiny-index">KEY MATERIAL</span>
+                <p>Private from the first moment.</p>
+                <button class="inactive-action" disabled>
+                  Generate wallet <span>↗</span>
+                </button>
+                <small
+                  >This design study never generates, retains or displays
+                  recovery words.</small
+                >
+              </aside>
+            </div>
+          </section>
+
+          <section
+            class="view"
+            data-screen="active"
+            aria-label="Active wallet example"
+            hidden
+          >
+            <div class="active-composition">
+              <div class="balance-field">
+                <div class="balance-upper">
+                  <span class="eyebrow">PRIMARY WALLET / DEMO</span
+                  ><span class="micro-status">01 <i></i> SELECTED</span>
+                </div>
+                <div class="balance-label">Available balance</div>
+                <div class="balance-value">
+                  <strong>2,184.72</strong><span>FAE</span>
+                </div>
+                <div class="balance-sub">
+                  Illustrative amount · no wallet connected
+                </div>
+                <div class="balance-actions">
+                  <button
+                    class="action-main action-compact"
+                    data-action="receive"
+                  >
+                    <span>↓&nbsp; Receive</span>
+                  </button>
+                  <button
+                    class="action-secondary action-compact"
+                    data-action="send"
+                  >
+                    <span>↑&nbsp; Send</span>
+                  </button>
+                </div>
+                <div class="quiet-divider"></div>
+                <div class="movement-header">
+                  <span>Movement</span
+                  ><span class="reference-data">SAMPLE EVENTS / NOT LIVE</span>
+                </div>
+                <div
+                  class="flow-strip"
+                  aria-label="Illustrative movement: select to inspect a transaction"
+                >
+                  <button
+                    class="flow-mark chosen"
+                    data-movement="incoming"
+                    aria-label="Show received example"
+                    aria-pressed="true"
+                  >
+                    <span class="flow-inner"></span>
+                  </button>
+                  <button
+                    class="flow-mark"
+                    data-movement="outgoing"
+                    aria-label="Show sent example"
+                    aria-pressed="false"
+                  >
+                    <span class="flow-inner"></span>
+                  </button>
+                  <button
+                    class="flow-mark"
+                    data-movement="incoming2"
+                    aria-label="Show second received example"
+                    aria-pressed="false"
+                  >
+                    <span class="flow-inner"></span>
+                  </button>
+                </div>
+                <div class="flow-foot">
+                  <span>3 reference events</span
+                  ><span id="flowCaption">Received · +18.00 FAE</span>
+                </div>
+              </div>
+              <aside class="wallet-rail">
+                <div class="rail-heading">YOUR WALLETS <span>02</span></div>
+                <button class="wallet-choice selected" data-wallet="primary">
+                  <span class="wallet-glyph" aria-hidden="true"></span
+                  ><span><b>Primary</b><small>01 / sample</small></span
+                  ><i></i>
+                </button>
+                <button class="wallet-choice" data-wallet="savings">
+                  <span class="wallet-glyph pale" aria-hidden="true"></span
+                  ><span><b>Savings</b><small>02 / sample</small></span
+                  ><i></i>
+                </button>
+                <div class="rail-foot">
+                  <span>Addresses</span><b id="addressReadout">faet1…k72m</b
+                  ><small>Masked example, not usable</small>
+                </div>
+              </aside>
+            </div>
+            <div
+              class="action-detail"
+              id="actionDetail"
+              hidden
+              aria-live="polite"
+            >
+              <div class="detail-top">
+                <span class="eyebrow" id="actionEyebrow">RECEIVE / EXAMPLE</span
+                ><button
+                  class="dismiss"
+                  id="dismissAction"
+                  aria-label="Close action preview"
+                >
+                  ×
+                </button>
+              </div>
+              <div class="detail-content" id="actionContent"></div>
+            </div>
+            <div class="activity-list">
+              <div class="list-head">
+                <h2>Transactions</h2>
+                <span>REFERENCE RECORDS</span>
+              </div>
+              <button
+                class="activity-row chosen"
+                data-movement="incoming"
+                aria-pressed="true"
+              >
+                <span class="number">01</span
+                ><span class="activity-title"
+                  ><b>Received</b><small>Reference entry · 184,197</small></span
+                ><strong class="positive">+18.00 FAE</strong
+                ><span class="arrow">↗</span>
+              </button>
+              <button
+                class="activity-row"
+                data-movement="outgoing"
+                aria-pressed="false"
+              >
+                <span class="number">02</span
+                ><span class="activity-title"
+                  ><b>Sent</b><small>Reference entry · 184,102</small></span
+                ><strong>−4.25 FAE</strong><span class="arrow">↗</span>
+              </button>
+              <button
+                class="activity-row"
+                data-movement="incoming2"
+                aria-pressed="false"
+              >
+                <span class="number">03</span
+                ><span class="activity-title"
+                  ><b>Received</b><small>Reference entry · 183,998</small></span
+                ><strong class="positive">+6.40 FAE</strong
+                ><span class="arrow">↗</span>
+              </button>
+            </div>
+          </section>
+
+          <section
+            class="view"
+            data-screen="recovery"
+            aria-label="Recovery wallet visual study"
+            hidden
+          >
+            <div class="recovery-composition">
+              <div class="recovery-primary">
+                <div class="eyebrow">RETURN / OWNERSHIP</div>
+                <h2>Recovery Wallet</h2>
+                <p>24 words. In order.</p>
+                <div class="recovery-step">
+                  <span>01</span><strong>Recovery phrase</strong
+                  ><span>24 positions</span>
+                </div>
+                <div class="recovery-step">
+                  <span>02</span><strong>Passphrase</strong
+                  ><button
+                    class="text-reveal"
+                    id="passphraseToggle"
+                    aria-expanded="false"
+                  >
+                    Optional <span>＋</span>
+                  </button>
+                </div>
+                <div class="passphrase-note" id="passphraseNote" hidden>
+                  An additional passphrase derives a different wallet. Its exact
+                  value matters.
+                </div>
+                <div class="recovery-boundary">
+                  No recovery words are accepted by this Studio.
+                </div>
+                <button class="inactive-action recovery-action" disabled>
+                  Restore wallet <span>↗</span>
+                </button>
+              </div>
+              <div class="recovery-sheet">
+                <div class="sheet-heading">
+                  <span>RECOVERY SEQUENCE</span><span>01 — 24</span>
+                </div>
+                <div
+                  class="word-grid"
+                  id="wordGrid"
+                  aria-label="24 empty recovery word positions, not editable"
+                ></div>
+                <div class="sheet-foot">
+                  <span>EMPTY BY DESIGN</span><span>PREVIEW / NO INPUT</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <footer class="foot">
+            <span
+              >FAE / VISUAL STUDY ONLY · NO SECRETS, SIGNING, RPC, OR
+              PERSISTENCE</span
+            >
+            <strong>VR-08 / ART DIRECTION REVIEW</strong>
+          </footer>
+        </main>
+      </div>
+    </div>
+    <script src="../../wallet-vault.js"></script>
+    <script src="./empty-vault-adapter.js"></script>
+  </body>
+</html>

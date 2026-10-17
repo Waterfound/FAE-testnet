@@ -1,6 +1,6 @@
 {
   "schema": "FAE_WALLET_DELIVERED_CODE_SIGNING_INTEGRITY_V1",
-  "status": "CANDIDATE_HARDENING_EXISTING_FRONTIER",
+  "status": "CANDIDATE_HARDENING_IMPLEMENTED",
   "owner": [
     "Wallet Persistent Vault / Onboarding",
     "Public Code Security / PSR-15 recurring assurance",
@@ -9,8 +9,8 @@
   "premise": "For an honest browser/runtime executing the exact admitted FAE release artifact, the send intent presented to the user must remain bound to the canonical transaction payload actually authorized for signing; release/delivery provenance must make artifact substitution detectable.",
   "current_fact": {
     "canonical_browser_source": "The current repository main contains index.html, core.js, wallet-crypto.js, wallet.js and bip39-en.js.",
-    "current_signing_path": "wallet.js constructs transaction outputs from the current send destination/amount, then signs stable(txPayload(transaction)) locally with Ed25519 before submit-tx.",
-    "observed_assurance_gap": "This review did not locate a dedicated acceptance gate that freezes the reviewed send intent and proves equality with the payload passed to the signing operation plus the exact delivered release artifact."
+    "current_signing_path": "wallet.js freezes a reviewed signing intent with FAEWalletSigningIntent, constructs the canonical transaction, rechecks current intent and transaction before and after asynchronous Ed25519 signing, and rejects payload drift before signature release.",
+    "observed_assurance_gap": "The prior direct-signing-path assumption is superseded by the reviewed-intent guard and substitution regressions already present in the Wallet candidate; exact-candidate integration verification remains required."
   },
   "bounded_claims": [
     "This gate may prove exact-release binding and intent-to-signing-payload integrity under the admitted browser implementation.",
@@ -29,7 +29,7 @@
     "Delivery/release provenance proves the tested artifact is the artifact admitted for deployment; this does not grant deployment authority.",
     "No seed phrase, passphrase, private key, or decrypted vault bytes enter evidence."
   ],
-  "residual_after_contract": "Implementation and independent verification of the intent-freeze/substitution regressions remain required; the contract itself is not closure evidence.",
+  "residual_after_contract": "Exact-candidate cross-Lab, Wallet signing-integrity, browser, release-provenance and independent verification remain required. The contract itself does not grant release or deployment authority.",
   "authority": {
     "consensus_change": false,
     "economic_change": false,
