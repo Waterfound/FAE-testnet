@@ -8,7 +8,6 @@ on:
       - 'lab/pow-historical-assurance/pplns-next-difficulty-source-status.test.mjs'
       - 'lab/pow-historical-assurance/pplns-signed-template-transaction-boundary.test.mjs'
       - '.github/workflows/pcc-mainline-source-admission.yml'
-  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -18,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v4
