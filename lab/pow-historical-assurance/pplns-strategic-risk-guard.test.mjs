@@ -123,7 +123,8 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
 test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended',async()=>{
   const address=encodeAddress(Buffer.alloc(20,14),'faet');
   let currentTip='b'.repeat(64);
-  const candidate={header:{network:'fairyelf-public-testnet-v4',height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
+  const candidate={header:{network:'fairyelf-public-testnet-v4',height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000',
+    miner_address:address,tx_root:hashHex([]),tx_count:0},
     txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   attachValidCandidateCoinbase(candidate);
