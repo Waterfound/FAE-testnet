@@ -57,7 +57,7 @@ test('Authoritative coordinator executes share-only then full-target PPLNS round
   const alice=makeWallet(),bob=makeWallet();let status={network:NETWORK,height:11,tip_hash:'a'.repeat(64),difficulty_bits:8};let submitted=null;
   const coordinator=new ShareCoordinator({
     networkId:NETWORK,windowSize:32,shareDifficultyDelta:4,multiOutputCoinbaseActive:true,statusProvider:async()=>status,
-    distributedTemplateProvider:async({weights,fallback_address})=>{const normalized=weights.map(w=>({address:w.address,weight:BigInt(w.weight)})),payouts=allocatePplnsOutputs(1000n,normalized.length?normalized:[{address:fallback_address,weight:1n}]);return committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',tx_root:'c'.repeat(64),tx_count:0},txids:[],payouts})},
+    distributedTemplateProvider:async({weights,fallback_address})=>{const normalized=weights.map(w=>({address:w.address,weight:BigInt(w.weight)})),payouts=allocatePplnsOutputs(1000n,normalized.length?normalized:[{address:fallback_address,weight:1n}]);return committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',tx_root:hashHex([]),tx_count:0},txids:[],payouts})},
     candidateHasher:async(candidate,nonce)=>hashHex({...candidate.header,nonce}),blockSubmitter:async solution=>{submitted=solution;return{height:12,hash:solution.hash}}
   });
   const first=await coordinator.createWork(alice.address);const shareOnly=findNonce(first,first.targetDifficultyBits,first.blockDifficultyBits);const shareResult=await coordinator.submitShare({jobId:first.jobId,nonce:shareOnly.nonce,hash:shareOnly.hash});assert.equal(shareResult.block,null);assert.equal(shareResult.share.seq,1);
@@ -68,13 +68,13 @@ test('Authoritative PPLNS payout equals scheduled subsidy plus transaction fees'
   const alice=makeWallet(),status={network:NETWORK,height:11,tip_hash:'d'.repeat(64),difficulty_bits:8};
   const good=new ShareCoordinator({
     networkId:NETWORK,multiOutputCoinbaseActive:true,statusProvider:async()=>status,
-    distributedTemplateProvider:async({weights})=>committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:'e'.repeat(64),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1037n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
+    distributedTemplateProvider:async({weights})=>committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:hashHex(['f'.repeat(64)]),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1037n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
     candidateHasher:async(candidate,nonce)=>hashHex({...candidate.header,nonce})
   });
   const work=await good.createWork(alice.address);assert.equal(work.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n),1037n);assert.equal(work.header.reward_atoms,'1000');assert.equal(work.header.fee_atoms,'37');
   const bad=new ShareCoordinator({
     networkId:NETWORK,multiOutputCoinbaseActive:true,statusProvider:async()=>status,
-    distributedTemplateProvider:async({weights})=>committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:'e'.repeat(64),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1000n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
+    distributedTemplateProvider:async({weights})=>committedPplnsTemplate({header:{network:NETWORK,height:12,previous_hash:status.tip_hash,timestamp_ms:1788770000000,difficulty_bits:8,reward_atoms:'1000',fee_atoms:'37',tx_root:hashHex(['f'.repeat(64)]),tx_count:1},txids:['f'.repeat(64)],payouts:allocatePplnsOutputs(1000n,weights.map(w=>({address:w.address,weight:BigInt(w.weight)})))}),
     candidateHasher:async(candidate,nonce)=>hashHex({...candidate.header,nonce})
   });
   await assert.rejects(bad.createWork(alice.address),/subsidy plus transaction fees/);
