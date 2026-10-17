@@ -42,6 +42,18 @@ jobs:
         env:
           FAE_VISUAL_EVIDENCE_DIR: /tmp/fae-wallet-visual-vr09
         run: node tests/authored-product-wallet-native-browser.mjs
+      - name: Compare actual candidate Empty canvas to unmodified authoritative Studio
+        env:
+          FAE_STUDIO_EVIDENCE_DIR: /tmp/fae-authored-studio-parity
+        run: node tests/wallet-studio-native-parity.mjs
+      - name: Retain native authored Studio reference and candidate captures
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-studio-dfr02-native-geometry
+          path: /tmp/fae-authored-studio-parity/*.png
+          retention-days: 14
+          if-no-files-found: error
       - name: Retain synthetic Wallet visual review evidence (no seed material)
         if: success()
         uses: actions/upload-artifact@v4
