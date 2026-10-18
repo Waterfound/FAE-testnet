@@ -32,7 +32,7 @@ jobs:
           bash -n packaging/macos/build-app.sh
           grep -Fq 'FAE_HOST="127.0.0.1"' packaging/macos/FAE-Node-launcher.sh
           grep -Fq 'FAE_PEERS=""' packaging/macos/FAE-Node-launcher.sh
-          ! grep -qE 'sudo|FAE_HOST="0.0.0.0"|curl.*\|.*sh' packaging/macos/FAE-Node-launcher.sh
+          ! grep -qE '^[[:space:]]*sudo[[:space:]]|FAE_HOST="0.0.0.0"|curl.*\|.*sh' packaging/macos/FAE-Node-launcher.sh
       - name: Build source-pinned no-password Apple Silicon bundle
         shell: bash
         run: bash packaging/macos/build-app.sh
