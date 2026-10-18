@@ -71,6 +71,24 @@ jobs:
           node -e "const s=require('/tmp/fae-macos-status.json');if(s.network!=='fairyelf-public-testnet-v4')process.exit(1)"
           # Deliberately no public network exposure and no peer synchronization claims.
           test -d "$HOME/Library/Application Support/FAE Node"
+      - name: Test one-open launchd installation under actual macOS user session
+        shell: bash
+        run: |
+          set -euo pipefail
+          domain="gui/$(id -u)"
+          if ! /bin/launchctl print "$domain" >/dev/null 2>&1; then
+            echo "HOSTED_GUI_LOGIN_UNAVAILABLE__INSTALL_E2E_NOT_CLAIMED"
+            exit 0
+          fi
+          CI=true "dist/FAE Node.app/Contents/MacOS/FAE-Node" --install
+          plist="$HOME/Library/LaunchAgents/org.waterfound.fae-node.plist"
+          test -f "$plist"
+          /usr/bin/plutil -lint "$plist"
+          /bin/launchctl print "$domain/org.waterfound.fae-node" >/dev/null
+          test -f "$HOME/Applications/FAE Node.app/Contents/Resources/fae-node/fae-node-v6-candidate.mjs"
+          CI=true "$HOME/Applications/FAE Node.app/Contents/MacOS/FAE-Node" --uninstall
+          test ! -f "$plist"
+          echo "MACOS_USER_LOGIN_LAUNCHAGENT_INSTALL_UNINSTALL_VERIFIED"
       - name: Publish candidate installer artifact
         uses: actions/upload-artifact@v4
         with:
