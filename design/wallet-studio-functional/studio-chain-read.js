@@ -91,8 +91,12 @@
       // The FAE public API is the same exact endpoint as the legacy verified Wallet.
       const status=await getJson('/status',ctl.signal);
       if(!guard())return false;
-      if(!status||!Number.isSafeInteger(Number(status.height))||Number(status.height)<0
-        ||(status.network&&status.network!==NETWORK))throw Error('Network identity or height invalid');
+      const height=status?.height;
+      // A null/empty/boolean/exponential height must never masquerade as block 0.
+      const validHeight=(typeof height==='number'&&Number.isSafeInteger(height)&&height>=0)
+        ||(typeof height==='string'&&/^(0|[1-9]\d*)$/.test(height)&&Number.isSafeInteger(Number(height)));
+      if(!validHeight||(status.network&&status.network!==NETWORK))
+        throw Error('Network identity or height invalid');
       const responses=await Promise.allSettled([
         getJson('/balance?address='+encodeURIComponent(address),ctl.signal),
         getJson('/transactions?address='+encodeURIComponent(address),ctl.signal)
