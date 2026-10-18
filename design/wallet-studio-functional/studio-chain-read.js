@@ -121,8 +121,12 @@
         // an unexpected normalizer/render exception occurs.
         try{
           const normalizer=window.FAEWalletTransactions?.normalizeHistoryPayload;
-          const parsed=typeof normalizer==='function'
-            ?normalizer(responses[1].value,address)
+          const payload=responses[1].value;
+          // The public address-history contract caps responses at 30 transfers.
+          // Oversized payloads must not be normalized or presented as verified.
+          const bounded=Array.isArray(payload?.transactions)&&payload.transactions.length<=30;
+          const parsed=bounded&&typeof normalizer==='function'
+            ?normalizer(payload,address)
             :{state:'invalid_payload'};
           if(parsed.state==='ready_recent'||parsed.state==='empty_within_available_coverage'){
             drawHistory(parsed,address);

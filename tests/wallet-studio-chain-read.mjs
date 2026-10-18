@@ -88,6 +88,25 @@ assert.equal(await badHistory.engine.refresh(address),true);
 assert.equal(badHistory.nodes.get('.balance-value strong').textContent,'12.5');
 assert.match(badHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
 
+// Reject a public history exceeding the source's 30-transfer address cap.
+ // A valid balance remains independently verified; unbounded history never renders.
+const transfer=(n)=>({
+  txid:n.toString(16).padStart(64,'0'),
+  from_address:'faet1'+'r'.repeat(31),
+  outputs:[{address,amount_atoms:'100000000'}],
+  status:'confirmed',
+  confirmed_height:1
+});
+const boundedHistory=fixture({transactions:Array.from({length:30},(_,i)=>transfer(i+1))});
+assert.equal(await boundedHistory.engine.refresh(address),true);
+assert.equal(boundedHistory.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(boundedHistory.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/);
+const overLimitHistory=fixture({transactions:Array.from({length:31},(_,i)=>transfer(i+1))});
+assert.equal(await overLimitHistory.engine.refresh(address),true);
+assert.equal(overLimitHistory.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(overLimitHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'Over-limit history must fail closed rather than be displayed as verified');
+
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){
   const hostile=fixture({status:{height,network:'fairyelf-public-testnet-v4'}});
