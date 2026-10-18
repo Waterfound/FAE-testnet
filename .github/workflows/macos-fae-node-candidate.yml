@@ -1,0 +1,59 @@
+name: macOS FAE independent node candidate package
+on:
+  push:
+    branches:
+      - candidate/macos-m1-independent-node-install-20261018
+    paths:
+      - packaging/macos/**
+      - .github/workflows/macos-fae-node-candidate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-fae-node-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assemble:
+    runs-on: macos-15
+    timeout-minutes: 18
+    steps:
+      - name: Checkout exact packaging candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate user-only installer script
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n packaging/macos/FAE-Node-launcher.sh
+          bash -n packaging/macos/build-app.sh
+          grep -Fq 'FAE_HOST="127.0.0.1"' packaging/macos/FAE-Node-launcher.sh
+          grep -Fq 'FAE_PEERS=""' packaging/macos/FAE-Node-launcher.sh
+          ! grep -qE 'sudo|FAE_HOST="0.0.0.0"|curl.*\|.*sh' packaging/macos/FAE-Node-launcher.sh
+      - name: Build source-pinned no-password Apple Silicon bundle
+        shell: bash
+        run: bash packaging/macos/build-app.sh
+      - name: Verify package safety and content
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "dist/FAE-Node-macOS-Apple-Silicon-candidate.zip"
+          test -s "dist/FAE-Node-macOS-Apple-Silicon-candidate.zip.sha256"
+          test -x "dist/FAE Node.app/Contents/Resources/node/bin/node"
+          test -f "dist/FAE Node.app/Contents/Resources/fae-node/fae-node-v6-candidate.mjs"
+          test -f "dist/FAE Node.app/Contents/Resources/BUILD-PROVENANCE.txt"
+          /usr/bin/plutil -lint "dist/FAE Node.app/Contents/Info.plist"
+          codesign --verify --deep --verbose=2 "dist/FAE Node.app"
+          (cd dist && shasum -a 256 -c FAE-Node-macOS-Apple-Silicon-candidate.zip.sha256)
+      - name: Publish candidate installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FAE-Node-macOS-Apple-Silicon-candidate
+          path: |
+            dist/FAE-Node-macOS-Apple-Silicon-candidate.zip
+            dist/FAE-Node-macOS-Apple-Silicon-candidate.zip.sha256
+          retention-days: 30
+          if-no-files-found: error
