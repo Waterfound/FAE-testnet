@@ -48,6 +48,9 @@ function fixture(options={}){
   };
   const window={};
   runInNewContext(transactionAdapter,{window,globalThis:window,Date,BigInt,Object});
+  if(options.historyNormalizerThrows){
+    window.FAEWalletTransactions={normalizeHistoryPayload(){throw Error('Malformed history normalization')}};
+  }
   runInNewContext(source,{window,document,fetch,AbortController,BigInt,Promise,setTimeout,clearTimeout});
   return {engine:window.FAEStudioChainRead,nodes,urls};
 }
@@ -73,6 +76,17 @@ assert.equal(zero.nodes.get('.balance-value strong').textContent,'0');
 const invalid=fixture({balance:'NaN'});
 await invalid.engine.refresh(address);
 assert.equal(invalid.nodes.get('.balance-value strong').textContent,'—');
+
+// A malformed JSON array must not be coerced into a valid scalar balance.
+const arrayBalance=fixture({balance:['12.5']});
+await arrayBalance.engine.refresh(address);
+assert.equal(arrayBalance.nodes.get('.balance-value strong').textContent,'—');
+
+// A broken history normalizer must not erase an independently verified balance.
+const badHistory=fixture({historyNormalizerThrows:true});
+assert.equal(await badHistory.engine.refresh(address),true);
+assert.equal(badHistory.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(badHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
 
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){

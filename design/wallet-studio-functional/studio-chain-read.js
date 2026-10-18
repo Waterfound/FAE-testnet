@@ -7,9 +7,7 @@
   let epoch=0;
   let pending=null;
   const $=selector=>document.querySelector(selector);
-  const unavailable=()=>{
-    const field=$('.balance-value strong');if(field)field.textContent='—';
-    const sub=$('.balance-sub');if(sub)sub.textContent='Balance unavailable · no verified network response';
+  const unavailableHistory=()=>{
     const reference=$('.reference-data');if(reference)reference.textContent='HISTORY UNAVAILABLE';
     const activity=$('.activity-list .list-head span');if(activity)activity.textContent='HISTORY UNAVAILABLE';
     const strip=$('.flow-strip');if(strip)strip.textContent='No verified movement data';
@@ -18,7 +16,14 @@
     const list=$('.activity-list');
     if(list)for(const row of list.querySelectorAll('.activity-row'))row.remove();
   };
+  const unavailable=()=>{
+    const field=$('.balance-value strong');if(field)field.textContent='—';
+    const sub=$('.balance-sub');if(sub)sub.textContent='Balance unavailable · no verified network response';
+    unavailableHistory();
+  };
   function amount(value){
+    // Never coerce arrays or objects from an untrusted public API into amounts.
+    if(typeof value!=='string'&&typeof value!=='number')throw Error('Invalid response amount type');
     const text=String(value);
     if(!/^(?:0|[1-9]\d*)(?:\.\d{1,8})?$/.test(text))throw Error('Invalid response amount');
     if(!Number.isFinite(Number(text))||Number(text)>12050000)throw Error('Unexpected balance outside configured bounds');
@@ -112,12 +117,18 @@
         }
       }
       if(responses[1].status==='fulfilled'){
-        const normalizer=window.FAEWalletTransactions?.normalizeHistoryPayload;
-        const parsed=typeof normalizer==='function'
-          ?normalizer(responses[1].value,address)
-          :{state:'invalid_payload'};
-        if(parsed.state==='ready_recent'||parsed.state==='empty_within_available_coverage'){
-          drawHistory(parsed,address);
+        // History is independently fallible; never erase a verified balance if
+        // an unexpected normalizer/render exception occurs.
+        try{
+          const normalizer=window.FAEWalletTransactions?.normalizeHistoryPayload;
+          const parsed=typeof normalizer==='function'
+            ?normalizer(responses[1].value,address)
+            :{state:'invalid_payload'};
+          if(parsed.state==='ready_recent'||parsed.state==='empty_within_available_coverage'){
+            drawHistory(parsed,address);
+          }
+        }catch{
+          unavailableHistory();
         }
       }
       return true;
