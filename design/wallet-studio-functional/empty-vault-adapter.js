@@ -109,7 +109,15 @@
     foot.append(f1,f2,f3);rail.append(foot);
     bindActions(address);
     show('active');root.dataset.walletAdapter='active-authenticated-read-only';
-    note('Wallet identity authenticated locally. Balance, transfers and signing are not bound to this Studio slice.');
+    note('Wallet identity authenticated locally. Network reads are separate from vault authentication.');
+    // Read-only chain data is never queried for an unauthenticated or cross-network Wallet.
+    // A public request cannot disclose key material; only the selected public address.
+    const chain=window.FAEStudioChainRead;
+    if(chain&&typeof chain.refresh==='function'){
+      void chain.refresh(address).catch(()=>{
+        // The network adapter handles its own fail-closed presentation.
+      });
+    }
   }
   show(null);
   root.dataset.walletAdapter='checking';

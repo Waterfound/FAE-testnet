@@ -61,6 +61,7 @@ jobs:
         run: |
           node tests/wallet-studio-first-frame.mjs
           node tests/wallet-studio-saved-vault-bridge.mjs
+          node tests/wallet-studio-chain-read.mjs
       - name: Protect protocol and consensus surfaces
         shell: bash
         run: |
