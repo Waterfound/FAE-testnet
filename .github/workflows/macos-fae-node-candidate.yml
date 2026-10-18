@@ -48,6 +48,29 @@ jobs:
           /usr/bin/plutil -lint "dist/FAE Node.app/Contents/Info.plist"
           codesign --verify --deep --verbose=2 "dist/FAE Node.app"
           (cd dist && shasum -a 256 -c FAE-Node-macOS-Apple-Silicon-candidate.zip.sha256)
+      - name: Smoke test the actual Apple Silicon FAE node binary without peers
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="dist/FAE Node.app/Contents/MacOS/FAE-Node"
+          "$APP" --run > /tmp/fae-macos-node-smoke.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if "$APP" --status > /tmp/fae-macos-status.json 2>/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" != "1" ]; then
+            tail -n 90 /tmp/fae-macos-node-smoke.log
+            exit 91
+          fi
+          node -e "const s=require('/tmp/fae-macos-status.json');if(s.network!=='fairyelf-public-testnet-v4')process.exit(1)"
+          # Deliberately no public network exposure and no peer synchronization claims.
+          test -d "$HOME/Library/Application Support/FAE Node"
       - name: Publish candidate installer artifact
         uses: actions/upload-artifact@v4
         with:
