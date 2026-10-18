@@ -131,6 +131,16 @@ const boundedHistory=fixture({transactions:Array.from({length:30},(_,i)=>transfe
 assert.equal(await boundedHistory.engine.refresh(address),true);
 assert.equal(boundedHistory.nodes.get('.balance-value strong').textContent,'12.5');
 assert.match(boundedHistory.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/);
+// A future confirmed height is impossible relative to the independently
+// checked /status tip. Reject only history, never an independently bound balance.
+const atTip=fixture({transactions:[{...transfer(44),confirmed_height:100}]});
+await atTip.engine.refresh(address);
+assert.match(atTip.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/);
+const beyondTip=fixture({transactions:[{...transfer(45),confirmed_height:101}]});
+await beyondTip.engine.refresh(address);
+assert.equal(beyondTip.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(beyondTip.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'Future-height transfer must not be presented as verified history');
 const overLimitHistory=fixture({transactions:Array.from({length:31},(_,i)=>transfer(i+1))});
 assert.equal(await overLimitHistory.engine.refresh(address),true);
 assert.equal(overLimitHistory.nodes.get('.balance-value strong').textContent,'12.5');

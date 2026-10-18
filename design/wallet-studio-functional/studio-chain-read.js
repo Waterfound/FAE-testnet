@@ -143,6 +143,11 @@
             ?normalizer(payload,address)
             :{state:'invalid_payload'};
           if(parsed.state==='ready_recent'||parsed.state==='empty_within_available_coverage'){
+            // A transfer cannot be confirmed in a block above the independently
+            // verified /status tip. A newer tip may be fetched on the next refresh.
+            const tip=Number(height);
+            if(parsed.transactions.some(tx=>tx.status?.confirmed_height!=null&&tx.status.confirmed_height>tip))
+              throw Error('Public history claims confirmation beyond verified chain tip');
             drawHistory(parsed,address);
           }
         }catch{
