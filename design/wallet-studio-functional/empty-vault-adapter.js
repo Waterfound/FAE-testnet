@@ -44,7 +44,21 @@
           const value=document.createElement('div');
           value.className='address-readout';
           value.textContent=address;
-          content.append(value);
+          const copy=document.createElement('button');
+          copy.type='button';
+          copy.className='action-secondary action-compact';
+          copy.textContent='Copy public address →';
+          copy.addEventListener('click',async()=>{
+            try{
+              if(!navigator.clipboard||typeof navigator.clipboard.writeText!=='function')
+                throw Error('Clipboard permission unavailable');
+              await navigator.clipboard.writeText(address);
+              note('Public receiving address copied. Keep recovery words private.');
+            }catch{
+              note('Clipboard permission unavailable. Select the verified public address above.');
+            }
+          });
+          content.append(value,copy);
           note('Receiving address verified by the local encrypted vault. No network balance claim.');
         }else{
           title.textContent='SEND / PROTECTED FUNCTION';

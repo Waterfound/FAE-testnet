@@ -40,6 +40,12 @@ function fixture(options={}){
     ...node(screen),dataset:{screen},hidden:true,
     querySelector(sel){return screen==='empty'&&['.empty-primary','.empty-aside'].includes(sel)?node(sel):null}
   }));
+  const receive=node('receive');
+  receive.dataset.action='receive';
+  const send=node('send');
+  send.dataset.action='send';
+  const copied=[];
+  const navigator={clipboard:{writeText:async value=>{copied.push(value)}}};
   const root={dataset:{}};
   const document={
     documentElement:root,
@@ -48,6 +54,7 @@ function fixture(options={}){
     querySelectorAll(sel){
       if(sel==='[data-screen]')return views;
       if(sel==='[data-back="empty"]')return [node('back')];
+      if(sel==='[data-action]')return [receive,send];
       return [];
     },
     createElement:node
@@ -59,8 +66,9 @@ function fixture(options={}){
     loadAccount:async()=>{calls.load++;if(options.rejectDecrypt)throw Error('tampered AES-GCM ciphertext');return decrypted},
     admitAccount:async()=>{calls.mutation++;throw Error('mutation forbidden')}
   };
-  const promise=runInNewContext(source,{document,window:{FAEWalletVault:vault},Promise,Error});
-  return {promise,root,named,selectors,views,calls,visible:()=>views.filter(v=>!v.hidden).map(v=>v.dataset.screen)};
+  const promise=runInNewContext(source,{document,window:{FAEWalletVault:vault},navigator,Promise,Error});
+  return {promise,root,named,selectors,views,calls,receive,send,copied,
+    visible:()=>views.filter(v=>!v.hidden).map(v=>v.dataset.screen)};
 }
 const ok=fixture();
 assert.deepEqual(ok.visible(),[],'No synthetic active Wallet may flash before the vault is authenticated');
@@ -75,6 +83,18 @@ assert.match(ok.selectors['.wallet-rail'].children[2].children[1].textContent,/f
 assert.equal(ok.calls.load,1);
 assert.equal(ok.calls.mutation,0);
 assert.equal(ok.named.actionDetail.hidden,true,'No receive/send panel without deliberate action');
+ok.receive.handlers.click();
+assert.equal(ok.named.actionDetail.hidden,false,'Receiving address requires explicit user action');
+const readout=ok.named.actionContent.children[0];
+const copyControl=ok.named.actionContent.children[1];
+assert.equal(readout.textContent,'faet1'+'q'.repeat(31));
+assert.match(copyControl.textContent,/Copy public address/);
+assert.equal(ok.copied.length,0,'Clipboard must never write before explicit copy click');
+await copyControl.handlers.click();
+assert.deepEqual(ok.copied,['faet1'+'q'.repeat(31)],'Only authenticated public address can be copied');
+ok.send.handlers.click();
+assert.match(ok.named.actionContent.children[0].textContent,/Signing remains/);
+assert.equal(ok.copied.length,1,'Send fallback must never auto-copy secrets or address');
 assert.ok(!ok.named.eventLine.textContent.includes('confirmed'),'Do not claim transaction confirmation');
 
 const addressMismatch=fixture({decrypted:{addresses:[{address:'faet1'+'x'.repeat(31)}]}});
