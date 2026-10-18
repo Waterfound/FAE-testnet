@@ -28,25 +28,32 @@ async function run(expr){const r=await send('Runtime.evaluate',{expression:expr,
 async function wait(expr,label){for(let i=0;i<80;i++){if(await run(expr))return;await sleep(100)}throw Error('Timed out '+label)}
 await send('Page.enable');await send('Runtime.enable');
 await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
-const selectors=['.shell','.topper','.ticker','.nav','.stage-head','.empty-space','.empty-primary','.empty-aside','.empty-number','.empty-choices','.empty-floor'];
+const selectorsByScreen={
+ empty:['.shell','.stage-head','.empty-space','.empty-primary','.empty-aside','.empty-number','.empty-choices','.empty-floor'],
+ create:['.shell','.stage-head','.creation-head','.creation-layout','.creation-primary','.creation-aside','.creation-rule','.creation-foot'],
+ recovery:['.shell','.stage-head','.recovery-composition','.recovery-primary','.recovery-sheet','.recovery-step','.recovery-boundary','.sheet-foot']
+};
+let selectors=selectorsByScreen.empty;
 const widths=[{w:1440,h:900,label:'desktop'},{w:834,h:1194,label:'ipad'},{w:390,h:844,label:'mobile'}];
 const imageDir=process.env.FAE_STUDIO_EVIDENCE_DIR;
-async function setup(kind){
+async function setup(kind,screen){
  const path=kind==='reference'?'/design/approved-wallet-vr08-studio/index.html':'/design/wallet-studio-functional/index.html';
  await send('Page.navigate',{url:BASE+path});
  await wait('location.pathname==='+JSON.stringify(path)+' && document.readyState==="complete"','page '+kind);
  if(kind==='reference'){
-   await run("document.querySelectorAll('[data-screen]').forEach(v=>v.hidden=v.dataset.screen!=='empty')");
+   await run("document.querySelectorAll('[data-screen]').forEach(v=>v.hidden=v.dataset.screen!=="+JSON.stringify(screen)+")");
  }else{
    await wait("document.documentElement.dataset.walletAdapter==='empty-vault-read-only'","candidate vault admission");
+   if(screen==='create')await run("document.getElementById('startNew').click()");
+   if(screen==='recovery')await run("document.getElementById('startRecovery').click()");
  }
- await wait("document.querySelector('[data-screen=empty]') && !document.querySelector('[data-screen=empty]').hidden","empty visible");
+ await wait("document.querySelector('.view:not([hidden])')?.dataset.screen==="+JSON.stringify(screen),"visible "+screen);
 }
-async function geometry(kind,item){
+async function geometry(kind,item,screen){
  await send('Emulation.setDeviceMetricsOverride',{width:item.w,height:item.h,deviceScaleFactor:1,mobile:item.w<900});
  await sleep(130);
- const result=await run("(()=>{const names="+JSON.stringify(selectors)+";const rects={};for(const sel of names){const el=document.querySelector(sel);if(!el)throw Error('Missing '+sel);const r=el.getBoundingClientRect();if(r.width===0||r.height===0)throw Error('Invisible '+sel);rects[sel]={x:r.x,y:r.y,w:r.width,h:r.height}}return {rects,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,viewport:innerWidth,emptyVisible:!document.querySelector('[data-screen=empty]').hidden,activeHidden:document.querySelector('[data-screen=active]').hidden}})()");
- assert.equal(result.emptyVisible,true);
+ const result=await run("(()=>{const names="+JSON.stringify(selectors)+";const rects={};for(const sel of names){const el=document.querySelector(sel);if(!el)throw Error('Missing '+sel);const r=el.getBoundingClientRect();if(r.width===0||r.height===0)throw Error('Invisible '+sel);rects[sel]={x:r.x,y:r.y,w:r.width,h:r.height}}return {rects,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,viewport:innerWidth,visibleScreen:document.querySelector('.view:not([hidden])')?.dataset.screen,activeHidden:document.querySelector('[data-screen=active]').hidden}})()");
+ assert.equal(result.visibleScreen,screen);
  assert.equal(result.activeHidden,true);
  assert.ok(result.overflow<=1,kind+' '+item.label+' horizontal overflow: '+result.overflow);
  if(imageDir){
@@ -55,23 +62,26 @@ async function geometry(kind,item){
    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
    const png=Buffer.from(shot.data,'base64');assert.ok(png.byteLength>15000);
    mkdirSync(imageDir,{recursive:true});
-   writeFileSync(imageDir+'/'+kind+'-'+item.label+'-'+item.w+'.png',png,{flag:'wx'});
+   writeFileSync(imageDir+'/'+screen+'-'+kind+'-'+item.label+'-'+item.w+'.png',png,{flag:'wx'});
  }
  return result;
 }
 try{
- await setup('reference');
- const references=[];
- for(const item of widths)references.push(await geometry('reference',item));
- await setup('candidate');
- for(let i=0;i<widths.length;i++){
-   const actual=await geometry('candidate',widths[i]),expected=references[i];
-   for(const sel of selectors){for(const axis of ['x','y','w','h']){
-     const delta=Math.abs(actual.rects[sel][axis]-expected.rects[sel][axis]);
-     assert.ok(delta<=2,'Authored studio geometry drift '+widths[i].label+' '+sel+' '+axis+' '+delta.toFixed(2)+'px');
-   }}
+ for(const screen of ['empty','create','recovery']){
+   selectors=selectorsByScreen[screen];
+   await setup('reference',screen);
+   const references=[];
+   for(const item of widths)references.push(await geometry('reference',item,screen));
+   await setup('candidate',screen);
+   for(let i=0;i<widths.length;i++){
+     const actual=await geometry('candidate',widths[i],screen),expected=references[i];
+     for(const sel of selectors)for(const axis of ['x','y','w','h']){
+       const delta=Math.abs(actual.rects[sel][axis]-expected.rects[sel][axis]);
+       assert.ok(delta<=2,'Approved Studio geometry drift '+screen+' '+widths[i].label+' '+sel+' '+axis+' '+delta.toFixed(2)+'px');
+     }
+   }
  }
- console.log(JSON.stringify({status:'PASS',contract:'DFR_NATIVE_STUDIO_EMPTY_GEOMETRY_PARITY',reference:'1791582226769',viewports:widths.map(x=>x.w),rectangles_per_view:selectors.length,epsilon_px:2,artistic_acceptance:false}));
+ console.log(JSON.stringify({status:'PASS',contract:'DFR_NATIVE_STUDIO_EMPTY_CREATE_RECOVERY_PARITY',reference:'1791582226769',scenes:['empty','create','recovery'],viewports:widths.map(x=>x.w),epsilon_px:2,artistic_acceptance:false}));
 }finally{
  ws.close();proc.kill('SIGTERM');
 }

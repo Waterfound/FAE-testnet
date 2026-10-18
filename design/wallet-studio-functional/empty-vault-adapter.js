@@ -129,10 +129,10 @@
       const recoveryButton=document.getElementById('startRecovery');
       if(!newButton||!recoveryButton)throw Error('Approved entry actions missing');
       newButton.addEventListener('click',()=>{
-        show('create');note('Visual staging only: real 24-word generation still requires a guarded functional binding.');
+        show('create');root.dataset.walletScene='creation-preview';
       });
       recoveryButton.addEventListener('click',()=>{
-        show('recovery');note('Visual staging only: phrase input remains disabled in this slice.');
+        show('recovery');root.dataset.walletScene='recovery-preview';
       });
       for(const back of document.querySelectorAll('[data-back="empty"]')){
         back.addEventListener('click',()=>{
