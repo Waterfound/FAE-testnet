@@ -15,6 +15,7 @@ xml_escape() {
   printf '%s' "$1" | /usr/bin/sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g' -e "s/'/\&apos;/g"
 }
 show_message() {
+  if [ "${CI:-}" = "true" ]; then echo "FAE installer: $1"; return 0; fi
   /usr/bin/osascript -e "display dialog \"$1\" buttons {\"OK\"} default button \"OK\" with title \"FAE Node\"" >/dev/null 2>&1 || true
 }
 case "${1:---install}" in
