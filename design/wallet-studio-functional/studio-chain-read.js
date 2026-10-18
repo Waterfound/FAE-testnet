@@ -29,6 +29,20 @@
     if(!Number.isFinite(Number(text))||Number(text)>12050000)throw Error('Unexpected balance outside configured bounds');
     return text;
   }
+  function verifiedBalance(payload,address){
+    // Public /balance binds both the selected address and atomic amount.
+    // HTTP success alone does not authenticate a balance for this Wallet.
+    if(payload?.ok!==true||payload.address!==address)
+      throw Error('Public balance address or source acknowledgement mismatch');
+    const balance=amount(payload.balance_fae);
+    const atoms=payload.balance_atoms;
+    if(typeof atoms!=='string'||!/^(?:0|[1-9]\d*)$/.test(atoms)||atoms.length>16)
+      throw Error('Invalid public balance atomic amount');
+    const [whole,fraction='']=balance.split('.');
+    const expected=BigInt(whole)*100000000n+BigInt(fraction.padEnd(8,'0')||'0');
+    if(BigInt(atoms)!==expected)throw Error('Public balance decimal and atoms disagree');
+    return balance;
+  }
   function formatAtoms(atoms){
     const n=BigInt(atoms);
     const whole=n/100000000n;
@@ -100,7 +114,7 @@
       // A null/empty/boolean/exponential height must never masquerade as block 0.
       const validHeight=(typeof height==='number'&&Number.isSafeInteger(height)&&height>=0)
         ||(typeof height==='string'&&/^(0|[1-9]\d*)$/.test(height)&&Number.isSafeInteger(Number(height)));
-      if(!validHeight||(status.network&&status.network!==NETWORK))
+      if(!validHeight||status?.ok!==true||status.network!==NETWORK)
         throw Error('Network identity or height invalid');
       const responses=await Promise.allSettled([
         getJson('/balance?address='+encodeURIComponent(address),ctl.signal),
@@ -109,7 +123,7 @@
       if(!guard())return false;
       if(responses[0].status==='fulfilled'){
         try{
-          const balance=amount(responses[0].value?.balance_fae);
+          const balance=verifiedBalance(responses[0].value,address);
           const figure=$('.balance-value strong');if(figure)figure.textContent=balance;
           const sub=$('.balance-sub');if(sub)sub.textContent='Confirmed · public testnet · height '+String(status.height);
         }catch{
@@ -124,7 +138,7 @@
           const payload=responses[1].value;
           // The public address-history contract caps responses at 30 transfers.
           // Oversized payloads must not be normalized or presented as verified.
-          const bounded=Array.isArray(payload?.transactions)&&payload.transactions.length<=30;
+          const bounded=payload?.ok===true&&Array.isArray(payload.transactions)&&payload.transactions.length<=30;
           const parsed=bounded&&typeof normalizer==='function'
             ?normalizer(payload,address)
             :{state:'invalid_payload'};

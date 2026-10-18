@@ -10,6 +10,12 @@ assert.match(html,/src="\.\/studio-chain-read\.js"/);
 assert.match(html,/src="\.\.\/\.\.\/wallet-transactions\.js"/);
 assert.doesNotMatch(source,/\.admitAccount\(|crypto\.subtle|\.sign\(|mnemonic|private.key|seedPhrase/i);
 
+function toAtoms(value){
+  const text=String(value);
+  if(!/^(?:0|[1-9]\d*)(?:\.\d{1,8})?$/.test(text))return '0';
+  const [whole,fraction='']=text.split('.');
+  return (BigInt(whole)*100000000n+BigInt(fraction.padEnd(8,'0')||'0')).toString();
+}
 function fixture(options={}){
   const nodes=new Map();
   function node(){
@@ -35,14 +41,19 @@ function fixture(options={}){
     urls.push(url);
     if(signal?.aborted)throw Error('aborted');
     if(options.fetchOverride)return options.fetchOverride(url,{signal});
-    if(url.endsWith('/status'))return {ok:true,json:async()=>options.status??({height:100,network:'fairyelf-public-testnet-v4'})};
+    if(url.endsWith('/status'))return {ok:true,json:async()=>options.status??({ok:true,height:100,network:'fairyelf-public-testnet-v4'})};
     if(url.includes('/balance?')){
       if(options.networkFailure)throw Error('offline');
-      return {ok:true,json:async()=>({balance_fae:options.balance??'12.5'})};
+      return {ok:true,json:async()=>({
+        ok:options.balanceOk??true,
+        address:options.balanceAddress??new URL(url).searchParams.get('address'),
+        balance_fae:options.balance??'12.5',
+        balance_atoms:options.balanceAtoms??toAtoms(options.balance??'12.5')
+      })};
     }
     if(url.includes('/transactions?')){
       if(options.historyFailure)throw Error('offline');
-      return {ok:true,json:async()=>({transactions:options.transactions??[]})};
+      return {ok:true,json:async()=>({ok:options.historyOk??true,transactions:options.transactions??[]})};
     }
     throw Error('unrecognized route');
   };
@@ -72,6 +83,25 @@ assert.match(offline.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
 const zero=fixture({balance:'0'});
 await zero.engine.refresh(address);
 assert.equal(zero.nodes.get('.balance-value strong').textContent,'0');
+
+// Source-bound negative cases: an address mismatch or inconsistent units
+// must never appear as the selected Wallet's authenticated public balance.
+for(const bad of [
+  {balanceAddress:'faet1'+'x'.repeat(31)},
+  {balanceOk:false},
+  {balanceAtoms:'1250000001'},
+  {balanceAtoms:'invalid'}
+]){
+  const hostile=fixture(bad);
+  await hostile.engine.refresh(address);
+  assert.equal(hostile.nodes.get('.balance-value strong').textContent,'—',
+    'Unbound or inconsistent public balance must never be displayed');
+  assert.match(hostile.nodes.get('.balance-sub').textContent,/could not be verified/);
+}
+const rejectedHistory=fixture({historyOk:false});
+await rejectedHistory.engine.refresh(address);
+assert.equal(rejectedHistory.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(rejectedHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
 
 const invalid=fixture({balance:'NaN'});
 await invalid.engine.refresh(address);
@@ -109,17 +139,23 @@ assert.match(overLimitHistory.nodes.get('.reference-data').textContent,/UNAVAILA
 
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){
-  const hostile=fixture({status:{height,network:'fairyelf-public-testnet-v4'}});
+  const hostile=fixture({status:{ok:true,height,network:'fairyelf-public-testnet-v4'}});
   await hostile.engine.refresh(address);
   assert.equal(hostile.nodes.get('.balance-value strong').textContent,'—','Unverified height must not show a balance: '+String(height));
   assert.deepEqual(hostile.urls.map(u=>u.slice(u.lastIndexOf('/')+1).split('?')[0]),['status'],
     'Invalid status must never request address-scoped data');
 }
-const crossNetwork=fixture({status:{height:100,network:'different-network'}});
+const crossNetwork=fixture({status:{ok:true,height:100,network:'different-network'}});
 await crossNetwork.engine.refresh(address);
 assert.equal(crossNetwork.nodes.get('.balance-value strong').textContent,'—');
 assert.equal(crossNetwork.urls.length,1,'Wrong network must not request balance/history');
-const canonicalNumericHeight=fixture({status:{height:'100',network:'fairyelf-public-testnet-v4'}});
+for(const status of [{ok:true,height:100},{ok:false,height:100,network:'fairyelf-public-testnet-v4'}]){
+  const unbound=fixture({status});
+  await unbound.engine.refresh(address);
+  assert.equal(unbound.nodes.get('.balance-value strong').textContent,'—');
+  assert.equal(unbound.urls.length,1,'Missing network or source acknowledgement must stop before address-scoped reads');
+}
+const canonicalNumericHeight=fixture({status:{ok:true,height:'100',network:'fairyelf-public-testnet-v4'}});
 await canonicalNumericHeight.engine.refresh(address);
 assert.equal(canonicalNumericHeight.nodes.get('.balance-value strong').textContent,'12.5',
   'Canonical decimal height string is accepted without numeric coercion ambiguity');
@@ -151,14 +187,14 @@ const oldBalance=deferred();
 const oldHistory=deferred();
 const oldSignals=[];
 const switched=fixture({fetchOverride:async(url,{signal})=>{
-  if(url.endsWith('/status'))return {ok:true,json:async()=>({height:100,network:'fairyelf-public-testnet-v4'})};
+  if(url.endsWith('/status'))return {ok:true,json:async()=>({ok:true,height:100,network:'fairyelf-public-testnet-v4'})};
   if(url.includes(encodeURIComponent(oldAddress))){
     oldSignals.push(signal);
     return url.includes('/balance?')?oldBalance.promise:oldHistory.promise;
   }
   assert.ok(url.includes(encodeURIComponent(newAddress)),'Unexpected public address in chain request');
-  if(url.includes('/balance?'))return {ok:true,json:async()=>({balance_fae:'5.25'})};
-  return {ok:true,json:async()=>({transactions:[]})};
+  if(url.includes('/balance?'))return {ok:true,json:async()=>({ok:true,address:newAddress,balance_atoms:'525000000',balance_fae:'5.25'})};
+  return {ok:true,json:async()=>({ok:true,transactions:[]})};
 }});
 const first=switched.engine.refresh(oldAddress);
 for(let i=0;i<30&&switched.urls.length<3;i++)await new Promise(done=>setTimeout(done,0));
@@ -169,7 +205,7 @@ assert.equal(switched.nodes.get('.balance-value strong').textContent,'5.25');
 assert.equal(oldSignals.length,2);
 assert.ok(oldSignals.every(signal=>signal.aborted),'Superseded address reads must be aborted');
 oldBalance.resolve({ok:true,json:async()=>({balance_fae:'999'})});
-oldHistory.resolve({ok:true,json:async()=>({transactions:[]})});
+oldHistory.resolve({ok:true,json:async()=>({ok:true,transactions:[]})});
 assert.equal(await first,false,'Stale read must not claim current success');
 assert.equal(switched.nodes.get('.balance-value strong').textContent,'5.25',
   'Late old-address response contaminated the new Wallet balance');
@@ -178,7 +214,7 @@ assert.match(switched.nodes.get('.activity-list .list-head span').textContent,/N
 // Explicit invalidation during a request must keep every old response unavailable.
 const delayed=deferred();
 const invalidated=fixture({fetchOverride:async(url)=>{
-  if(url.endsWith('/status'))return {ok:true,json:async()=>({height:100,network:'fairyelf-public-testnet-v4'})};
+  if(url.endsWith('/status'))return {ok:true,json:async()=>({ok:true,height:100,network:'fairyelf-public-testnet-v4'})};
   return delayed.promise;
 }});
 const inFlight=invalidated.engine.refresh(oldAddress);
