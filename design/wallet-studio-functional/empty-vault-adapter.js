@@ -67,13 +67,19 @@
     const wallet=wallets.find(item=>item.walletId===state.activeWalletId);
     if(!wallet || !Array.isArray(wallet.addresses) || !Array.isArray(account?.addresses))
       throw Error('No verifiable active Wallet record');
-    const metadata=wallet.addresses.map(a=>a.address);
-    const decrypted=account.addresses.map(a=>a.address);
-    if(!metadata.length || JSON.stringify(metadata)!==JSON.stringify(decrypted))
-      throw Error('Vault metadata and authenticated Wallet identity disagree');
+    // Identity is scoped to the canonical testnet. Never display a stored Wallet
+    // from another chain or trust address metadata without its public-key binding.
+    if(wallet.network!=='fairyelf-public-testnet-v4')
+      throw Error('Stored Wallet is bound to the wrong network');
+    const metadata=wallet.addresses.map(a=>({address:a.address,pub:a.pub}));
+    const decrypted=account.addresses.map(a=>({address:a.address,pub:a.pub}));
+    if(!metadata.length || metadata.some(a=>typeof a.address!=='string'||typeof a.pub!=='string'||!a.pub)
+      || JSON.stringify(metadata)!==JSON.stringify(decrypted)
+      || new Set(metadata.map(a=>a.address)).size!==metadata.length)
+      throw Error('Vault public identity and authenticated Wallet identity disagree');
     const index=wallet.activeIndex;
     if(!Number.isInteger(index)||index<0||index>=metadata.length)throw Error('Active address is invalid');
-    const address=metadata[index];
+    const address=metadata[index].address;
     if(!safePublicAddress(address))throw Error('Address network/prefix validation failed');
     const rank=wallets.indexOf(wallet)+1;
     const heading=$('.balance-upper .eyebrow');

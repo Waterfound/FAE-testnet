@@ -26,9 +26,10 @@ function node(tag='div'){
 }
 function fixture(options={}){
   const address=options.address??('faet1'+'q'.repeat(31));
+  const publicKey=options.publicKey??'fixture-public-key';
   const state=options.state??{activeWalletId:'wallet-one'};
-  const accounts=options.accounts??[{walletId:'wallet-one',network:'testnet',activeIndex:0,addresses:[{address}]}];
-  const decrypted=options.decrypted??{addresses:[{address}]};
+  const accounts=options.accounts??[{walletId:'wallet-one',network:options.network??'fairyelf-public-testnet-v4',activeIndex:0,addresses:[{address,pub:publicKey}]}];
+  const decrypted=options.decrypted??{addresses:[{address,pub:publicKey}]};
   const named={};
   for(const id of ['eventLine','flowCaption','actionDetail','actionEyebrow','actionContent','dismissAction','startNew','startRecovery'])named[id]=node(id);
   const selectors={};
@@ -81,6 +82,21 @@ await addressMismatch.promise;
 assert.equal(addressMismatch.root.dataset.walletAdapter,'fail-closed');
 assert.deepEqual(addressMismatch.visible(),[],'Mismatched metadata must not display a Wallet');
 
+const badNetwork=fixture({network:'wrong-testnet'});
+await badNetwork.promise;
+assert.equal(badNetwork.root.dataset.walletAdapter,'fail-closed');
+assert.deepEqual(badNetwork.visible(),[],'Cross-network saved Wallet must never be rendered');
+
+const badPublicKey=fixture({decrypted:{addresses:[{address:'faet1'+'q'.repeat(31),pub:'different-key'}]}});
+await badPublicKey.promise;
+assert.equal(badPublicKey.root.dataset.walletAdapter,'fail-closed');
+assert.deepEqual(badPublicKey.visible(),[],'The address alone is not sufficient public identity');
+
+const missingPublicKey=fixture({decrypted:{addresses:[{address:'faet1'+'q'.repeat(31)}]}});
+await missingPublicKey.promise;
+assert.equal(missingPublicKey.root.dataset.walletAdapter,'fail-closed');
+assert.deepEqual(missingPublicKey.visible(),[]);
+
 const corrupt=fixture({rejectDecrypt:true});
 await corrupt.promise;
 assert.equal(corrupt.root.dataset.walletAdapter,'fail-closed');
@@ -96,4 +112,4 @@ await wrongNetwork.promise;
 assert.equal(wrongNetwork.root.dataset.walletAdapter,'fail-closed');
 assert.deepEqual(wrongNetwork.visible(),[]);
 
-console.log('Studio authenticated active Wallet bridge PASS: vault identity, no fake data, fail-closed, zero mutation');
+console.log('Studio authenticated Active Wallet bridge PASS: network pin, public identity matching, corruption fail-closed, no fake data, no mutation');
