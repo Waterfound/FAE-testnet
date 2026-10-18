@@ -34,6 +34,7 @@ function fixture(options={}){
   const fetch=async(url,{signal}={})=>{
     urls.push(url);
     if(signal?.aborted)throw Error('aborted');
+    if(options.fetchOverride)return options.fetchOverride(url,{signal});
     if(url.endsWith('/status'))return {ok:true,json:async()=>options.status??({height:100,network:'fairyelf-public-testnet-v4'})};
     if(url.includes('/balance?')){
       if(options.networkFailure)throw Error('offline');
@@ -98,4 +99,62 @@ const wrongAddress=fixture();
 await wrongAddress.engine.refresh('invalid-address');
 assert.deepEqual(wrongAddress.urls,[]);
 assert.equal(wrongAddress.nodes.get('.balance-value strong').textContent,'—');
-console.log('Studio chain read PASS: public only, network bound, confirmed-vs-unavailable, bounded history, zero safely distinguished');
+// A verified balance must not turn into an invented zero when only history fails.
+const partial=fixture({historyFailure:true});
+await partial.engine.refresh(address);
+assert.equal(partial.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(partial.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
+
+// A late response for Wallet A must never overwrite Wallet B after a switch.
+// Deliberately ignore AbortSignal in the mock to exercise the epoch guard too.
+function deferred(){
+  let resolve;
+  const promise=new Promise(done=>{resolve=done});
+  return {promise,resolve};
+}
+const oldAddress='faet1'+'a'.repeat(31);
+const newAddress='faet1'+'b'.repeat(31);
+const oldBalance=deferred();
+const oldHistory=deferred();
+const oldSignals=[];
+const switched=fixture({fetchOverride:async(url,{signal})=>{
+  if(url.endsWith('/status'))return {ok:true,json:async()=>({height:100,network:'fairyelf-public-testnet-v4'})};
+  if(url.includes(encodeURIComponent(oldAddress))){
+    oldSignals.push(signal);
+    return url.includes('/balance?')?oldBalance.promise:oldHistory.promise;
+  }
+  assert.ok(url.includes(encodeURIComponent(newAddress)),'Unexpected public address in chain request');
+  if(url.includes('/balance?'))return {ok:true,json:async()=>({balance_fae:'5.25'})};
+  return {ok:true,json:async()=>({transactions:[]})};
+}});
+const first=switched.engine.refresh(oldAddress);
+for(let i=0;i<30&&switched.urls.length<3;i++)await new Promise(done=>setTimeout(done,0));
+assert.equal(switched.urls.length,3,'Old Wallet reads must be in flight before switching');
+const second=switched.engine.refresh(newAddress);
+assert.equal(await second,true);
+assert.equal(switched.nodes.get('.balance-value strong').textContent,'5.25');
+assert.equal(oldSignals.length,2);
+assert.ok(oldSignals.every(signal=>signal.aborted),'Superseded address reads must be aborted');
+oldBalance.resolve({ok:true,json:async()=>({balance_fae:'999'})});
+oldHistory.resolve({ok:true,json:async()=>({transactions:[]})});
+assert.equal(await first,false,'Stale read must not claim current success');
+assert.equal(switched.nodes.get('.balance-value strong').textContent,'5.25',
+  'Late old-address response contaminated the new Wallet balance');
+assert.match(switched.nodes.get('.activity-list .list-head span').textContent,/NOT LIFETIME/);
+
+// Explicit invalidation during a request must keep every old response unavailable.
+const delayed=deferred();
+const invalidated=fixture({fetchOverride:async(url)=>{
+  if(url.endsWith('/status'))return {ok:true,json:async()=>({height:100,network:'fairyelf-public-testnet-v4'})};
+  return delayed.promise;
+}});
+const inFlight=invalidated.engine.refresh(oldAddress);
+for(let i=0;i<30&&invalidated.urls.length<3;i++)await new Promise(done=>setTimeout(done,0));
+assert.equal(invalidated.urls.length,3);
+invalidated.engine.invalidate();
+delayed.resolve({ok:true,json:async()=>({balance_fae:'8',transactions:[]})});
+assert.equal(await inFlight,false);
+assert.equal(invalidated.nodes.get('.balance-value strong').textContent,'—');
+assert.match(invalidated.nodes.get('.reference-data').textContent,/UNAVAILABLE/);
+
+console.log('Studio chain read PASS: network and address bound, partial outage, stale switch/invalidation, bounded history, zero safely distinguished');
