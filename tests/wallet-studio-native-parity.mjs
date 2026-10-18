@@ -89,6 +89,32 @@ try{
      }
    }
  }
+ // Independently exercise authenticated Active with PUBLIC fixture identity only.
+ // It must not be counted as live IndexedDB/network evidence or exact Active art parity.
+ await send('Page.navigate',{url:BASE+'/design/wallet-studio-functional/index.html'});
+ await wait("document.readyState==='complete' && ['empty-vault-read-only','fail-closed'].includes(document.documentElement.dataset.walletAdapter)",'Active fixture readiness');
+ await run("(()=>{const addr='faet1'+'q'.repeat(31);const identity={address:addr,pub:'public-fixture'};window.FAEWalletVault={listWallets:async()=>[{walletId:'fixture',network:'fairyelf-public-testnet-v4',activeIndex:0,addresses:[identity]}],readState:async()=>({activeWalletId:'fixture'}),loadAccount:async()=>({addresses:[identity]})};window.fetch=async url=>({ok:true,json:async()=>String(url).includes('/status')?{height:100,network:'fairyelf-public-testnet-v4'}:String(url).includes('/balance?')?{balance_fae:'7.25'}:{transactions:[]}});const script=document.createElement('script');script.src='/design/wallet-studio-functional/empty-vault-adapter.js';document.body.append(script);return true})()");
+ await wait("document.documentElement.dataset.walletAdapter==='active-authenticated-read-only'",'authenticated fixture Active');
+ await wait("document.querySelector('.balance-value strong')?.textContent==='7.25'",'fixture balance');
+ for(const item of widths){
+   await send('Emulation.setDeviceMetricsOverride',{width:item.w,height:item.h,deviceScaleFactor:1,mobile:item.w<900});
+   await sleep(90);
+   const info=await run("(()=>{const active=document.querySelector('[data-screen=active]');return{active:!!active&&!active.hidden,balance:document.querySelector('.balance-value strong')?.textContent,coverage:document.querySelector('.activity-list .list-head span')?.textContent,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,words:Array.from(document.querySelectorAll('textarea')).some(n=>n.value.trim().split(/\\s+/).length===24)}})()");
+   assert.equal(info.active,true,'Active authenticated preview invisible '+item.label);
+   assert.equal(info.balance,'7.25','Confirmed public balance failed '+item.label);
+   assert.match(info.coverage,/NOT LIFETIME/,'Missing limited history coverage');
+   assert.ok(info.overflow<=1,'Active horizontal overflow '+item.label);
+   assert.equal(info.words,false,'Recovery words surfaced in Active fixture');
+   if(imageDir){
+     const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+     mkdirSync(imageDir,{recursive:true});
+     writeFileSync(imageDir+'/active-fixture-candidate-'+item.label+'-'+item.w+'.png',Buffer.from(shot.data,'base64'),{flag:'wx'});
+   }
+ }
+ await run("window.fetch=async()=>{throw Error('offline fixture')};true");
+ await run("window.FAEStudioChainRead.refresh('faet1'+'q'.repeat(31))");
+ const degraded=await run("document.querySelector('.balance-value strong')?.textContent");
+ assert.equal(degraded,'—','Failed public request was misrepresented as zero');
  console.log(JSON.stringify({status:'PASS',contract:'DFR_NATIVE_STUDIO_EMPTY_CREATE_RECOVERY_PARITY',reference:'1791582226769',scenes:['empty','create','recovery'],viewports:widths.map(x=>x.w),epsilon_px:2,interior_pixel_sha256_equal:true,scrollbar_edge_excluded_px:4,artistic_acceptance:false}));
 }finally{
  ws.close();proc.kill('SIGTERM');
