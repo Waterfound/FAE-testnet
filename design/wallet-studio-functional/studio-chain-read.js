@@ -79,8 +79,14 @@
     const ctl=new AbortController();pending=ctl;
     const guard=()=>ticket===epoch&&!ctl.signal.aborted;
     unavailable();
-    if(typeof address!=='string'||!/^faet1[a-z0-9]{12,}$/.test(address))return false;
+    if(typeof address!=='string'||!/^faet1[a-z0-9]{12,}$/.test(address)){
+      if(pending===ctl)pending=null;
+      return false;
+    }
     const header=$('.balance-label');if(header)header.textContent='Confirmed balance';
+    // A single bounded deadline covers /status and both address-scoped reads.
+    // Aborted or superseded responses may never overwrite the current view.
+    const deadline=setTimeout(()=>ctl.abort(),10000);
     try{
       // The FAE public API is the same exact endpoint as the legacy verified Wallet.
       const status=await getJson('/status',ctl.signal);
@@ -115,6 +121,7 @@
       if(guard())unavailable();
       return false;
     }finally{
+      clearTimeout(deadline);
       if(pending===ctl)pending=null;
     }
   }

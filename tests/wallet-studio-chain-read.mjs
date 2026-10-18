@@ -47,7 +47,7 @@ function fixture(options={}){
   };
   const window={};
   runInNewContext(transactionAdapter,{window,globalThis:window,Date,BigInt,Object});
-  runInNewContext(source,{window,document,fetch,AbortController,BigInt,Promise});
+  runInNewContext(source,{window,document,fetch,AbortController,BigInt,Promise,setTimeout,clearTimeout});
   return {engine:window.FAEStudioChainRead,nodes,urls};
 }
 const address='faet1'+'q'.repeat(31);
@@ -72,6 +72,10 @@ assert.equal(zero.nodes.get('.balance-value strong').textContent,'0');
 const invalid=fixture({balance:'NaN'});
 await invalid.engine.refresh(address);
 assert.equal(invalid.nodes.get('.balance-value strong').textContent,'—');
+
+// Public route must remain fail-closed if it cannot complete before the deadline.
+assert.match(source,/setTimeout\(\(\)=>ctl\.abort\(\),10000\)/);
+assert.match(source,/clearTimeout\(deadline\)/);
 
 const wrongAddress=fixture();
 await wrongAddress.engine.refresh('invalid-address');
