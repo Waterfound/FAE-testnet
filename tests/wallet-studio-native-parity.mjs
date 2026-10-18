@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 
@@ -56,9 +57,14 @@ async function geometry(kind,item,screen){
  assert.equal(result.visibleScreen,screen);
  assert.equal(result.activeHidden,true);
  assert.ok(result.overflow<=1,kind+' '+item.label+' horizontal overflow: '+result.overflow);
+ const leak=await run("Array.from(document.querySelectorAll('textarea')).some(n=>!n.closest('[hidden]')&&n.value.trim().split(/\\s+/).length===24)");
+ assert.equal(leak,false,'Recovery material would appear in screenshot');
+ // Compare the interior independently of the known right-edge scrollbar rasterization.
+ // Any interior mismatch fails the exact-source CI; never classify it as scrollbar drift.
+ const interior=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,
+   clip:{x:0,y:0,width:item.w-4,height:item.h,scale:1}});
+ result.interiorPngSha256=createHash('sha256').update(Buffer.from(interior.data,'base64')).digest('hex');
  if(imageDir){
-   const leak=await run("Array.from(document.querySelectorAll('textarea')).some(n=>!n.closest('[hidden]')&&n.value.trim().split(/\\s+/).length===24)");
-   assert.equal(leak,false,'Recovery material would appear in screenshot');
    const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
    const png=Buffer.from(shot.data,'base64');assert.ok(png.byteLength>15000);
    mkdirSync(imageDir,{recursive:true});
@@ -75,13 +81,15 @@ try{
    await setup('candidate',screen);
    for(let i=0;i<widths.length;i++){
      const actual=await geometry('candidate',widths[i],screen),expected=references[i];
+     assert.equal(actual.interiorPngSha256,expected.interiorPngSha256,
+       'Approved Studio interior pixel drift '+screen+' '+widths[i].label+' (rightmost 4px scrollbar excluded)');
      for(const sel of selectors)for(const axis of ['x','y','w','h']){
        const delta=Math.abs(actual.rects[sel][axis]-expected.rects[sel][axis]);
        assert.ok(delta<=2,'Approved Studio geometry drift '+screen+' '+widths[i].label+' '+sel+' '+axis+' '+delta.toFixed(2)+'px');
      }
    }
  }
- console.log(JSON.stringify({status:'PASS',contract:'DFR_NATIVE_STUDIO_EMPTY_CREATE_RECOVERY_PARITY',reference:'1791582226769',scenes:['empty','create','recovery'],viewports:widths.map(x=>x.w),epsilon_px:2,artistic_acceptance:false}));
+ console.log(JSON.stringify({status:'PASS',contract:'DFR_NATIVE_STUDIO_EMPTY_CREATE_RECOVERY_PARITY',reference:'1791582226769',scenes:['empty','create','recovery'],viewports:widths.map(x=>x.w),epsilon_px:2,interior_pixel_sha256_equal:true,scrollbar_edge_excluded_px:4,artistic_acceptance:false}));
 }finally{
  ws.close();proc.kill('SIGTERM');
 }
