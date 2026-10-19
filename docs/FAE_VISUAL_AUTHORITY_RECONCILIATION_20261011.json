@@ -1,0 +1,63 @@
+{
+  "schema": "FAE_VISUAL_AUTHORITY_RECONCILIATION_V1",
+  "observed_date": "2026-10-11",
+  "authority_owner": "Waterfound",
+  "mining_authority": {
+    "pr": 268,
+    "exact_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "role": "SOLE_AUTHORITATIVE_VISUAL_IDENTITY",
+    "studio": "fae-mining-authored-reference-composition-p18jsf",
+    "studio_version": "1791582222376"
+  },
+  "historical_lineage_only": [
+    "Direction D",
+    "Direction D+",
+    "VL-08",
+    "earlier art-direction studies"
+  ],
+  "review_surfaces": {
+    "rejected_baseline": {
+      "studio": "fae-authored-product-wallet-studio-6cku5x",
+      "version": "1791533052437",
+      "preserve_unchanged": true,
+      "art_direction": "REJECTED_VR08"
+    },
+    "revised_wallet": {
+      "studio": "fae-wallet-authored-revision-vr-08-5xu6gd",
+      "version": "1791582226769",
+      "visual_direction": "APPROVED_IN_CONVERSATION",
+      "integration_into_product": "NOT_YET_VERIFIED"
+    },
+    "explorer": {
+      "studio": "fae-block-explorer-authored-studio-enul9d",
+      "visual_direction": "APPROVED_IN_CONVERSATION",
+      "source_write_authority": false
+    }
+  },
+  "candidate": {
+    "pr": 272,
+    "head_at_audit": "0214faeab989a715e97e16a4e0b9dfdfec200674",
+    "main_at_audit": "6d0c3956fdf72cd2e7543eee2539397ed5c0e699",
+    "behind_main": 0,
+    "existing_tests_green": 7,
+    "product_wallet_implementation_accepted": false,
+    "reason": "Candidate product surface retains pre-VR08 rejected translation; Studio visual-direction approval is not product-code acceptance."
+  },
+  "rules": {
+    "no_implicit_wallet_creation": true,
+    "no_new_feature_family_until_product_wallet_implementation_accepted": true,
+    "no_explorer_network_source_write": true,
+    "no_merge": true,
+    "no_production_deploy": true,
+    "no_consensus_economics_activation_mainnet_changes": true,
+    "fail_closed_on_material_visual_drift": true
+  },
+  "terminal": "VISUAL_DIRECTION_APPROVED__PRODUCT_TRANSLATION_RECONCILIATION_REQUIRED",
+  "evidence": [
+    "https://github.com/Waterfound/FAE-testnet/pull/272#issuecomment-6087142426",
+    "https://github.com/Waterfound/FAE-testnet/pull/272#issuecomment-6087160291",
+    "https://github.com/Waterfound/FAE-testnet/pull/272",
+    "https://github.com/Waterfound/FAE-testnet/pull/268"
+  ],
+  "next_machine_action": "Reconcile revised Wallet Studio visual composition against index.html on a candidate-only branch, then verify no-implicit-creation and wallet/mining invariants before proposing any approval or propagation."
+}

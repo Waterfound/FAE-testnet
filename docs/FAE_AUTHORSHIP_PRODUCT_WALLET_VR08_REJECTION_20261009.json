@@ -1,0 +1,49 @@
+{
+  "schema": "FAE_AUTHORSHIP_PRODUCT_WALLET_VISUAL_REVIEW_V1",
+  "review_date": "2026-10-09",
+  "authority_owner": "Waterfound",
+  "gate": "VR-08",
+  "verdict": "REJECTED__VISUAL_TRANSLATION",
+  "reference": {
+    "pr": 268,
+    "exact_head": "a949e913990e13a0b907891a729b5c7b2086547b",
+    "role": "SOLE_AUTHORITATIVE_ARTISTIC_REFERENCE"
+  },
+  "reviewed_candidate": {
+    "pr": 272,
+    "head_before_record": "a984876712ce4399acf5806b76aa64174cd94129"
+  },
+  "reviewed_studio": {
+    "app_id": "fae-authored-product-wallet-studio-6cku5x",
+    "url": "https://fae-authored-product-wallet-studio-6cku5x.v2.appdeploy.ai/",
+    "preserve_unchanged": true,
+    "disposition": "REJECTED_BASELINE_FOR_COMPARISON"
+  },
+  "human_feedback": {
+    "diagnosis": "Wallet looks generic and AI-generated despite sharing some visual elements with Mining. Mining communicates philosophy with intentional negative space, a living blue circulation metaphor, and subtle intuitive hierarchy; Wallet relies on redundant copy and generic website structure.",
+    "desired_translation": "Clean, spacious, restrained, intuitively communicative; Wallet communicates sovereignty and calm while Mining communicates active participation. Translate the artistic identity without mechanically cloning Mining."
+  },
+  "source_grounded_audit": {
+    "mining": "Instrument composition, generous space, large primary metric, causal blue activity trace, fine rules, restrained labels.",
+    "wallet": "Oversized marketing-like heading, explanatory paragraphs, state-switch sidebar, admission-rule copy, four-column composition notes, repeated headings and generic form/card language.",
+    "assessment": "COMPOSITIONAL_REGRESSION_NOT_PALETTE_MISMATCH"
+  },
+  "requirements": [
+    "Replace generic marketing hero with instrument-like wallet presence and meaningful negative space.",
+    "Empty state: explicit New Wallet and Recover Wallet actions; no implicit creation.",
+    "Active state: balance and identity as quiet primary instrument; Send and Receive immediately discoverable.",
+    "Use blue only for genuine activity/state transitions; no fake heartbeat or decorative ambient loop.",
+    "History as restrained ledger; recovery as focused precise secure flow.",
+    "Preserve accessibility, mobile behavior, cryptography, address and transaction semantics.",
+    "Validate desktop/mobile side by side with frozen Mining Studio before asking for renewed acceptance."
+  ],
+  "fail_closed": {
+    "new_feature_family_propagation": "BLOCKED_UNTIL_EXPLICIT_WATERFOUND_VISUAL_ACCEPTANCE",
+    "canonical_merge": false,
+    "production_deployment": false,
+    "explorer_network_mutation": false,
+    "consensus_economics_activation_mainnet": false
+  },
+  "evidence_boundary": "Visual rejection does not invalidate existing functional test passes; previous technical readiness must not be represented as artistic acceptance.",
+  "next_frontier": "VR-08_REDESIGN_CANDIDATE__NOT_YET_ACCEPTED"
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "FAE_WALLET_STUDIO_DFR08_PIXEL_EVIDENCE_V1",
+  "source_head_before": "76398c8cacc3de3b34e53d9d11df8373e6dfe314",
+  "source_lock": "docs/FAE_WALLET_APPROVED_STUDIO_SOURCE_LOCK_20261016.json",
+  "approved_app": "fae-wallet-authored-revision-vr-08-5xu6gd",
+  "approved_version": "1791582226769",
+  "studio_source_comparison": {
+    "method": "independent AppDeploy versioned src_read vs GitHub exact-head fetch_file",
+    "files_equal": 8,
+    "files_total": 8,
+    "comparison": "exact UTF-8 source content",
+    "status": "PASS"
+  },
+  "frozen_mining_reference": "a949e913990e13a0b907891a729b5c7b2086547b",
+  "ci": {
+    "run_id": 39083299108,
+    "workflow": "Authored Product Wallet Browser",
+    "source_head": "76398c8cacc3de3b34e53d9d11df8373e6dfe314",
+    "conclusion": "success",
+    "associated_workflows_success": 7,
+    "associated_workflows_total": 7
+  },
+  "artifact": {
+    "id": 12120061447,
+    "name": "fae-studio-dfr02-native-geometry",
+    "sha256_zip": "517b581b4726ce95080aafd3446f1377f203f74f3a21b8c9eab15fdf3dcdfa06",
+    "png_count": 18,
+    "paired_scenes": [
+      "empty",
+      "create",
+      "recovery"
+    ],
+    "viewport_widths": [
+      1440,
+      834,
+      390
+    ],
+    "retention_days": 14
+  },
+  "independent_pixel_audit": {
+    "method": "Download exact Actions ZIP; decode paired PNG to RGB; compare all pixels and SHA-256 PNG bytes",
+    "exact_pixel_equal_pairs": 8,
+    "total_pairs": 9,
+    "pair_results": [
+      {
+        "scene": "empty",
+        "viewport": 1440,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "empty",
+        "viewport": 834,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "empty",
+        "viewport": 390,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "create",
+        "viewport": 1440,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "create",
+        "viewport": 834,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "create",
+        "viewport": 390,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "recovery",
+        "viewport": 1440,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "recovery",
+        "viewport": 834,
+        "changed_rgb_pixels": 0
+      },
+      {
+        "scene": "recovery",
+        "viewport": 390,
+        "changed_rgb_pixels": 2812,
+        "bbox_xyxy": [
+          386,
+          0,
+          389,
+          702
+        ],
+        "classification": "4px right-edge browser scrollbar rasterization only; no interior-content pixel differences observed"
+      }
+    ],
+    "status": "EIGHT_EXACT_ONE_SCROLLBAR_ONLY",
+    "limitation": "Existing CI tests geometry within 2px; this independent pixel audit is not yet an automated CI assertion. Do not claim 9/9 byte-identical screenshots."
+  },
+  "next_predicates": [
+    "DFR-03 explicit 24-word New Wallet creation, complete offline re-entry, encrypted vault admission and fail-closed browser tests NOT IMPLEMENTED",
+    "DFR-08 authenticated Active scene pixel/geometry and user-flow fidelity NOT VERIFIED",
+    "DFR-04..DFR-07 dependency wait",
+    "DFR-09 explicit Waterfound artistic acceptance not granted"
+  ],
+  "authority": "Candidate-only visual evidence; no wallet, mining, crypto, frozen Studio, canonical main, Explorer/Network, production or consensus changes",
+  "native_durable_execution_claim": false
+}

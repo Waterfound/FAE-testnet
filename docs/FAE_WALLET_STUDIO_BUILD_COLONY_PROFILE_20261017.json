@@ -1,0 +1,289 @@
+{
+  "project": "FAE Product Shell + Wallet",
+  "profile_version": "BC-DFR-2026-10-17-v1",
+  "goal": "Implement all genuinely required Wallet functions inside the byte-frozen approved VR-08 Studio composition without replacing the art or inventing network states.",
+  "invariants": [
+    "ACTIVE reserved; PR #272 is sole shared integration owner; 1 ACTIVE, 1 SECONDARY, N PASSIVE",
+    "Eight frozen approved Studio files remain byte-identical",
+    "Any functional adaptation occurs in design/wallet-studio-functional only, not the authoritative Studio",
+    "No implicit Wallet creation; no seed disclosure; backups re-entered before vault admission",
+    "Existing encrypted vault, crypto, signing intent, transactions, miner and core unchanged",
+    "Blue implies genuine activity, green accepted event, no fake balances or transactions",
+    "Independent visual fidelity in desktop, iPad and mobile required after each user-facing slice",
+    "Do not call technical CI human artistic acceptance"
+  ],
+  "forbidden_actions": [
+    "main merge",
+    "production release or public deploy",
+    "new portfolio slot",
+    "paid spend",
+    "consensus/economics/activation/mainnet mutation",
+    "alter source-authority Studio",
+    "invent a Live service state",
+    "auto-submit transactions",
+    "display plaintext seed in logs or screenshots"
+  ],
+  "domains": [
+    {
+      "id": "DFR-00",
+      "objective": "Freeze approved source and prove original Studio 8/8 Git blob integrity",
+      "dependencies": [],
+      "write_scopes": [
+        "docs/FAE_WALLET_APPROVED_STUDIO_SOURCE_LOCK_20261016.json"
+      ],
+      "exclusive_resources": [
+        "FAE Visual authority"
+      ],
+      "gates": [
+        {
+          "id": "source-pin",
+          "description": "Byte hash check against authoritative version",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-01",
+      "objective": "Render truly empty vault without implicit wallet creation or sample data flash",
+      "dependencies": [
+        "DFR-00"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "empty-functional",
+          "description": "Read-only vault + no wallet fallback verified",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-02",
+      "objective": "Bind authenticated saved Wallet identity to original Active scene with no simulated balances or history",
+      "dependencies": [
+        "DFR-01"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "active-authentic",
+          "description": "Vault decrypt identity match and hostile fail-closed tests",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-03",
+      "objective": "New Wallet: local generation, 24-word offline backup and full re-entry prior to durable encrypted admission, inside Creation scene",
+      "dependencies": [
+        "DFR-02"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "new-wallet-commit",
+          "description": "Native browser staged/onboarding and privacy proofs",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-04",
+      "objective": "Recovery Wallet: 24 words, optional passphrase, address review and authenticated admission, inside Recovery scene",
+      "dependencies": [
+        "DFR-03"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "recovery-commit",
+          "description": "Native browser recovery, passphrase, incorrect phrase and identity proofs",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-05",
+      "objective": "Replace blank balance/movement with verified true network reads; distinguish unavailable from zero",
+      "dependencies": [
+        "DFR-04"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "chain-read-truth",
+          "description": "True sourced balance, history coverage honesty, timeout and stale-state fail-closed",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "DFR-06",
+      "objective": "Multiwallet identity and address switching with local vault and mining coherence guard",
+      "dependencies": [
+        "DFR-05"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "multiwallet-guard",
+          "description": "Reload/switch/active-mining conflict and privacy regression",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-07",
+      "objective": "Bounded Send & Receive action details and signing intent reuse, never hidden clicks or broadcast without explicit intent",
+      "dependencies": [
+        "DFR-06"
+      ],
+      "write_scopes": [
+        "design/wallet-studio-functional/"
+      ],
+      "exclusive_resources": [
+        "PR272 working Studio"
+      ],
+      "gates": [
+        {
+          "id": "signed-send",
+          "description": "Native browser local signing, accepted TXID and failure/security coverage",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data"
+      ]
+    },
+    {
+      "id": "DFR-08",
+      "objective": "Independent full Studio screenshot and visual fidelity vs frozen original at 1440, 834, 390 plus accessibility and reduced motion",
+      "dependencies": [
+        "DFR-07"
+      ],
+      "write_scopes": [
+        "tests/",
+        "docs/FAE_WALLET_STUDIO_"
+      ],
+      "exclusive_resources": [
+        "PR272 verification"
+      ],
+      "gates": [
+        {
+          "id": "visual-parity",
+          "description": "Reference-versus-functional screenshot diffs, bound residual deltas, independent review",
+          "accepted_kinds": [
+            "test",
+            "artifact"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "data",
+        "external_evidence"
+      ]
+    },
+    {
+      "id": "DFR-09",
+      "objective": "Sole Waterfound aesthetic approval after technical and visual verification; never infer from green CI",
+      "dependencies": [
+        "DFR-08"
+      ],
+      "write_scopes": [
+        "docs/FAE_WALLET_STUDIO_"
+      ],
+      "exclusive_resources": [
+        "Waterfound visual authority"
+      ],
+      "gates": [
+        {
+          "id": "human-accept",
+          "description": "New explicit Waterfound visual decision",
+          "accepted_kinds": [
+            "external_evidence"
+          ]
+        }
+      ],
+      "permitted_blockers": [
+        "authority",
+        "authorization"
+      ]
+    }
+  ]
+}

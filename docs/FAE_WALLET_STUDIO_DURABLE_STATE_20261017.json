@@ -1,0 +1,80 @@
+{
+  "schema": "FAE_WALLET_STUDIO_DURABLE_CHECKPOINT_V1",
+  "date": "2026-10-18",
+  "active_owner": "FAE Product Shell + Wallet",
+  "repository": "Waterfound/FAE-testnet",
+  "pull_request": 272,
+  "branch": "design/fae-authorship-product-wallet-001",
+  "source_exact_parent": "8094d8b092dfe49c572ab48d06fe2d2832373e53",
+  "authoritative_studio": {
+    "app": "fae-wallet-authored-revision-vr-08-5xu6gd",
+    "version": "1791582226769",
+    "source_frozen": true,
+    "copy_is_readonly": true
+  },
+  "frontiers": [
+    {
+      "id": "DFR-00",
+      "state": "SOURCE_LOCK_VERIFIED",
+      "proof": "tests/approved-wallet-studio-fidelity.mjs"
+    },
+    {
+      "id": "DFR-01",
+      "state": "EMPTY_VAULT_VERIFIED",
+      "proof": "tests/wallet-studio-first-frame.mjs"
+    },
+    {
+      "id": "DFR-02",
+      "state": "ACTIVE_LOCAL_AUTHENTICATED_READONLY_VERIFIED",
+      "proof": "tests/wallet-studio-saved-vault-bridge.mjs"
+    },
+    {
+      "id": "DFR-03",
+      "state": "FUNCTIONAL_WALLET_CREATION_NOT_YET_INTEGRATED",
+      "next": "reuse established cryptographic owner without copying protected primitives; backup 24 words confirmed before persistence"
+    },
+    {
+      "id": "DFR-04",
+      "state": "FUNCTIONAL_RECOVERY_NOT_YET_INTEGRATED",
+      "next": "existing 24-word and passphrase recovery within frozen Recovery scene"
+    },
+    {
+      "id": "DFR-05",
+      "state": "CANDIDATE_READONLY_PUBLIC_NETWORK_SLICE_WITH_UNIT_AND_BROWSER_FIXTURE",
+      "proof": "tests/wallet-studio-chain-read.mjs + tests/wallet-studio-native-parity.mjs",
+      "missing": "real authenticated IndexedDB plus live network E2E, stale/cross-address and history coverage evidence"
+    },
+    {
+      "id": "DFR-06",
+      "state": "MULTIWALLET_DISPLAY_ONLY",
+      "missing": "wallet/address switching and verified active-miner guard"
+    },
+    {
+      "id": "DFR-07",
+      "state": "RECEIVE_PUBLIC_ADDRESS_COPY_CANDIDATE__SEND_LEGACY_FALLBACK",
+      "proof": "tests/wallet-studio-saved-vault-bridge.mjs",
+      "missing": "guarded Studio Send and signed submission"
+    },
+    {
+      "id": "DFR-08",
+      "state": "EMPTY_CREATE_RECOVERY_PIXEL_LOCK__ACTIVE_FIXTURE_TEST",
+      "proof": "tests/wallet-studio-native-parity.mjs",
+      "missing": "real full Active, Creation, Recovery integrated-state visual + privacy review"
+    },
+    {
+      "id": "DFR-09",
+      "state": "WATERFOUND_EXPLICIT_ARTISTIC_GATE",
+      "missing": "approval after real functionality"
+    }
+  ],
+  "exclusions": [
+    "do not mutate frozen source",
+    "do not treat sample data as real",
+    "do not activate new scheduler",
+    "do not merge or release",
+    "no consensus or crypto changes"
+  ],
+  "provenance": "Accepted GitHub candidate source and existing FAE Visual Continuation recurring owner only; not native GE SQLite Durable or native Build Colony dispatched workflow",
+  "next_machine_action": "Reconcile PR #272 HEAD, exact CI and frozen Studio; complete DFR-03 generation backed by existing crypto owner and full backup confirmation in Studio if safe executor is admitted. If still blocked, independently verify live chain provenance and Active visual correctness; do not invent functional completion.",
+  "ci_boundary": "7/7 workflow PASS on previous head 8094d8b092dfe49c572ab48d06fe2d2832373e53; new commit verification requires independent exact-head CI"
+}

@@ -1,0 +1,64 @@
+name: Authored Product Wallet Browser
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/authored-product-wallet-native-browser.mjs'
+      - '.github/workflows/authored-product-wallet-browser.yml'
+      - 'docs/FAE_AUTHORSHIP_PRODUCT_WALLET_**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove runner-native Chromium is available
+        shell: bash
+        run: |
+          command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser
+      - name: Start exact-candidate static client
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/fae-authored-http.log 2>&1 &
+          echo $! >/tmp/fae-authored-http.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/fae-authored-http.log
+          exit 1
+      - name: Run authored Product Shell + Wallet native-browser validation
+        env:
+          FAE_VISUAL_EVIDENCE_DIR: /tmp/fae-wallet-visual-vr09
+        run: node tests/authored-product-wallet-native-browser.mjs
+      - name: Compare actual candidate Empty canvas to unmodified authoritative Studio
+        env:
+          FAE_STUDIO_EVIDENCE_DIR: /tmp/fae-authored-studio-parity
+        run: node tests/wallet-studio-native-parity.mjs
+      - name: Retain native authored Studio reference and candidate captures
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-studio-dfr02-native-geometry
+          path: /tmp/fae-authored-studio-parity/*.png
+          retention-days: 14
+          if-no-files-found: error
+      - name: Retain synthetic Wallet visual review evidence (no seed material)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fae-product-wallet-vr09-responsive
+          path: /tmp/fae-wallet-visual-vr09/*.png
+          retention-days: 14
+          if-no-files-found: error

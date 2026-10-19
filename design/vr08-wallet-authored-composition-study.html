@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light"><title>FAE · Wallet Composition / VR-08 Study</title>
+<style>
+:root{--orange:#f47a20;--blue:#1769ff;--blue-soft:#83b5ff;--green:#17a962;--ink:#16191e;--muted:#78828e;--line:#dde2e8;--line2:#edf0f3}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#f5f6f8;color:var(--ink)}
+body{font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums lining-nums}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #85b8ff;outline-offset:3px}
+.shell{max-width:1440px;min-height:100vh;margin:auto;background:white;border-inline:1px solid var(--line2)}
+.topper{height:39px;padding:0 23px;background:var(--orange);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d96913}
+.brand{font-size:18px;font-weight:920;letter-spacing:-.035em}.top-right{font-size:10px;font-weight:750;letter-spacing:.03em}
+.ticker{height:31px;display:flex;align-items:center;gap:27px;overflow:hidden;white-space:nowrap;padding:0 23px;border-bottom:1px solid var(--line);color:#283d61;font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}
+.ticker i{font-style:normal;color:#a5adb7}.nav{height:58px;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:0 28px;border-bottom:1px solid var(--line2)}
+.nav-name{font-weight:760;font-size:14px}.nav-group{display:flex;gap:7px}.nav-tab{padding:7px 13px;border:1px solid #dfe4ea;background:white;border-radius:5px;color:#5e6774;font-size:12px;font-weight:760}
+.nav-tab[aria-current="page"]{color:#0c4cc4;border-color:var(--blue);background:#f7fbff}
+main{padding:34px 42px 60px}.stage{display:flex;justify-content:space-between;align-items:start;gap:22px}
+.stage h1{font-size:24px;line-height:1;margin:0;letter-spacing:-.025em}.stage .mode{font:700 10px/1.4 ui-monospace,monospace;color:var(--muted);letter-spacing:.06em}
+[hidden]{display:none!important}.state{display:none}.state.active{display:block}
+.empty-layout{min-height:500px;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.72fr);gap:60px;padding-top:54px}
+.empty-figure{display:flex;flex-direction:column;justify-content:center;min-height:380px;position:relative}
+.empty-figure:before{content:"";position:absolute;top:18%;left:0;right:0;height:1px;background:var(--line2)}
+.empty-figure:after{content:"";position:absolute;bottom:20%;left:0;right:0;height:1px;background:var(--line2)}
+.empty-mark{font-size:clamp(86px,15vw,176px);font-weight:840;line-height:.85;letter-spacing:-.09em;color:#d6dbe2}
+.empty-foot{font-size:12px;color:var(--muted);margin-top:26px;max-width:340px}
+.entry{align-self:center;border-top:1px solid var(--ink);padding-top:16px}
+.entry h2{font-size:16px;line-height:1.3;margin:0 0 26px;font-weight:760}
+.entry-action{display:flex;width:100%;align-items:center;justify-content:space-between;padding:17px 0;background:none;border:0;border-top:1px solid var(--line);text-align:left;font-weight:760;font-size:15px;color:var(--ink)}
+.entry-action:last-of-type{border-bottom:1px solid var(--line)}
+.entry-action:hover{color:#0c4cc4}.entry-action span{font-size:20px;color:var(--blue);font-weight:450}
+.entry small{display:block;margin-top:22px;color:var(--muted);font-size:11px}
+.active-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.7fr);gap:64px;padding-top:48px}
+.label{font:760 11px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.075em;text-transform:uppercase;color:var(--muted)}
+.balance{font-size:clamp(58px,8.5vw,110px);font-weight:850;letter-spacing:-.078em;line-height:.94;margin:15px 0 16px}
+.balance small{font-size:24px;letter-spacing:-.025em;font-weight:750;margin-left:8px}
+.ownership{display:flex;justify-content:space-between;align-items:center;gap:15px;border-top:1px solid var(--line);padding:12px 0;color:#525e6d;font-size:12px}
+.ownership code{font-size:11px;color:#35435b;overflow-wrap:anywhere}
+.rail{margin-top:56px}.rail-title{display:flex;justify-content:space-between;gap:15px;align-items:baseline;font-size:11px;color:var(--muted);margin-bottom:10px}
+.flow{height:116px;position:relative;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--line);overflow:hidden}
+.flow:before,.flow:after{content:"";position:absolute;left:0;right:0;height:1px;background:var(--line2)}.flow:before{top:33%}.flow:after{top:66%}
+.flow i{height:2px;flex:1;max-width:8px;background:#e1e6ed;z-index:1;transition:height .38s ease,background-color .38s ease}
+.flow i.past{background:var(--blue);height:18px}.flow i.received{height:70px;background:var(--blue)}.flow i.confirmed:after{content:"";display:block;position:relative;top:-9px;width:5px;height:5px;background:var(--green);border-radius:50%}
+.flow-caption{font-size:11px;color:var(--muted);margin-top:11px}
+.actions{border-top:1px solid var(--ink);padding-top:12px}.actions h2{font-size:15px;margin:0 0 19px}
+.actions button{display:flex;align-items:center;justify-content:space-between;width:100%;padding:16px 0;border:0;border-top:1px solid var(--line);background:white;color:var(--ink);text-align:left;font-weight:750}
+.actions button:last-of-type{border-bottom:1px solid var(--line)}.actions button:hover{color:#0c4cc4}
+.actions button span{font-size:20px;color:var(--blue);font-weight:450}
+.ledger{margin-top:62px;border-top:1px solid var(--ink)}.ledger-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:17px 0 9px}.ledger h2{margin:0;font-size:16px}
+.ledger-row{display:grid;grid-template-columns:minmax(0,1fr) 120px 110px;align-items:baseline;gap:16px;padding:15px 0;border-top:1px solid var(--line2);font-size:12px}
+.ledger-row b{font-size:13px}.ledger-row span{color:var(--muted)}.ledger-row strong{text-align:right}.ledger-row .confirmed{color:#13834e}
+.recovery{max-width:730px;margin:74px auto 0;padding-bottom:80px}
+.recovery h2{font-size:clamp(38px,6vw,72px);line-height:1.02;letter-spacing:-.06em;margin:12px 0 42px}
+.recovery-field{border-top:1px solid var(--ink);padding:19px 0}.recovery-field p{max-width:480px;font-size:12px;color:#65717e}
+.recovery-field textarea{display:block;width:100%;min-height:130px;resize:vertical;border:1px solid #cbd1d9;padding:13px;font:13px/1.7 ui-monospace,monospace;background:white}
+.recovery-field textarea:focus-visible{outline:3px solid #85b8ff}
+.recovery-actions{display:flex;gap:15px;align-items:center;justify-content:space-between}
+.recovery-actions button{padding:11px 20px;background:#1769ff;color:white;border:1px solid #1769ff;border-radius:5px;font-weight:750}
+.recovery-actions button:disabled{background:#e4e7eb;color:#78828e;border-color:#e4e7eb;cursor:not-allowed}
+.footer{display:flex;justify-content:space-between;gap:15px;margin-top:72px;padding-top:14px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}
+.review{background:#f0f3f7;border-top:1px solid #d8e0e9;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px}
+.review-label{font-size:11px;color:#576579}.review-label b{color:#172b47}.review-controls{display:flex;gap:8px;flex-wrap:wrap}
+.review-controls button{background:#fff;border:1px solid #cbd5e1;border-radius:4px;padding:7px 12px;font-size:11px;font-weight:750}
+.review-controls button[aria-pressed="true"]{border-color:var(--blue);color:#0c4cc4}
+.notice{min-height:1.5em;color:#576579;font-size:11px;margin-top:16px}
+@media(max-width:760px){main{padding:28px 20px 40px}.topper{padding-inline:18px}.nav{padding-inline:18px}.empty-layout,.active-layout{grid-template-columns:1fr;gap:24px}.empty-layout{padding-top:16px}.empty-figure{min-height:280px}.entry{width:100%}.active-layout{padding-top:34px}.balance{font-size:clamp(54px,12vw,85px)}.rail{margin-top:30px}.ledger{margin-top:45px}.ledger-row{grid-template-columns:1fr 95px}.ledger-row span{grid-column:1;grid-row:2}.ledger-row strong{grid-column:2;grid-row:1}.recovery{margin-top:55px}.top-right{font-size:9px}.footer{margin-top:50px}}
+@media(prefers-reduced-motion:reduce){.flow i{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="topper"><strong class="brand">FAE</strong><span class="top-right">THE NETWORK IS YOURS</span></header>
+<div class="ticker" aria-hidden="true"><span>FAE / WALLET</span><i>·</i><span>LOCAL CONTROL</span><i>·</i><span>SELF-CUSTODY</span><i>·</i><span>OPEN NETWORK</span></div>
+<nav class="nav" aria-label="Product navigation"><span class="nav-name">Wallet</span><div class="nav-group"><button class="nav-tab" type="button" disabled>Mining</button><button class="nav-tab" aria-current="page" type="button">Wallet</button></div></nav>
+<main>
+<div class="stage"><h1>Wallet</h1><span class="mode">LOCAL · NON-CUSTODIAL</span></div>
+<section class="state active" id="empty" aria-label="Empty wallet">
+<div class="empty-layout"><div class="empty-figure"><div class="empty-mark" aria-hidden="true">—</div><p class="empty-foot">Your keys. Your choice.</p></div>
+<div class="entry"><h2>Begin here.</h2><button type="button" class="entry-action" data-view="recovery" data-action="new">New Wallet <span aria-hidden="true">↗</span></button><button type="button" class="entry-action" data-view="recovery" data-action="recover">Recover Wallet <span aria-hidden="true">↗</span></button><small>No wallet is created by opening this page.</small></div></div>
+</section>
+<section class="state" id="active" aria-label="Active wallet visual sample">
+<div class="active-layout"><div><div class="label">Available balance</div><div class="balance">1,248.50<small>FAE</small></div>
+<div class="ownership"><span>Primary address</span><code>fae1…8qk4</code></div>
+<div class="rail"><div class="rail-title"><span>Movement</span><span id="flow-label">No new activity</span></div><div class="flow" id="flow" role="img" aria-label="Transaction activity timeline"></div><div class="flow-caption">Activity appears when a transaction changes state.</div></div></div>
+<aside class="actions"><h2>Available actions</h2><button type="button" data-demo="send">Send <span aria-hidden="true">↗</span></button><button type="button" data-demo="receive">Receive <span aria-hidden="true">↗</span></button><button type="button" data-demo="addresses">Addresses <span aria-hidden="true">↗</span></button></aside></div>
+<div class="ledger"><div class="ledger-head"><h2>History</h2><span class="label">RECENT</span></div><div class="ledger-row"><div><b>Received</b></div><span>Sample · Oct 08</span><strong class="confirmed">+ 42.00 FAE</strong></div><div class="ledger-row"><div><b>Sent</b></div><span>Sample · Oct 06</span><strong>− 8.50 FAE</strong></div></div>
+<div class="notice" id="action-feedback" role="status" aria-live="polite"></div>
+</section>
+<section class="state" id="recovery" aria-label="Wallet entry visual sample">
+<div class="recovery"><div class="label" id="recovery-mode">RECOVERY</div><h2 id="recovery-title">Return to your wallet.</h2>
+<div class="recovery-field" id="phrase-section"><label for="phrase"><b>Recovery phrase</b></label><p>Enter your 24 words only in the real wallet. This isolated visual study does not accept or process recovery phrases.</p><textarea id="phrase" placeholder="Unavailable in visual study" disabled autocomplete="off" spellcheck="false"></textarea></div>
+<div class="recovery-field" id="new-section" hidden><div class="label">EXPLICIT CHOICE</div><p>In the real wallet, continue to generate and securely back up your recovery phrase. This visual study never creates keys.</p></div>
+<div class="recovery-actions"><span class="label">PRIVATE BY DESIGN</span><button type="button" disabled>Continue</button></div></div>
+</section>
+<footer class="footer"><span>FAE · Authored Wallet Composition</span><span>VR-08 / ISOLATED VISUAL STUDY · NO KEYS · NO NETWORK</span></footer>
+</main>
+</div>
+<div class="review" aria-label="Studio-only visual review controls"><div class="review-label"><b>STUDIO ONLY</b> · Static sample states; not a functional wallet.</div><div class="review-controls"><button type="button" data-view="empty" aria-pressed="true">Empty</button><button type="button" data-view="active" aria-pressed="false">Active sample</button><button type="button" data-view="recovery" aria-pressed="false">Recovery</button><button type="button" id="receipt">Simulate receipt</button></div></div>
+<script>
+const views=[...document.querySelectorAll('.state')],controls=[...document.querySelectorAll('.review-controls [data-view]')];
+function view(name){views.forEach(s=>s.classList.toggle('active',s.id===name));controls.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));document.getElementById('action-feedback').textContent='';}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.action==='new'){document.getElementById('recovery-title').textContent='Create your wallet.';document.getElementById('recovery-mode').textContent='NEW WALLET';document.getElementById('phrase-section').hidden=true;document.getElementById('new-section').hidden=false;}else if(b.dataset.action==='recover'){document.getElementById('recovery-title').textContent='Return to your wallet.';document.getElementById('recovery-mode').textContent='RECOVERY';document.getElementById('phrase-section').hidden=false;document.getElementById('new-section').hidden=true;}view(b.dataset.view)}));
+const flow=document.getElementById('flow');for(let i=0;i<46;i++){const bar=document.createElement('i');if(i%9===0||i%11===0)bar.classList.add('past');flow.appendChild(bar);}
+document.getElementById('receipt').addEventListener('click',()=>{view('active');const bars=[...flow.children];bars.forEach(b=>b.classList.remove('received','confirmed'));const last=bars[bars.length-4];last.classList.add('received','confirmed');document.getElementById('flow-label').textContent='Received · confirmed';document.getElementById('action-feedback').textContent='Visual simulation only · no funds transferred.';});
+document.querySelectorAll('[data-demo]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('action-feedback').textContent=b.dataset.demo+' · visual study only; no wallet operation is connected.';}));
+</script>
+</body></html>

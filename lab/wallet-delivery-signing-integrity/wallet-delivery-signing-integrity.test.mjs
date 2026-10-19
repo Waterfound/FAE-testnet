@@ -17,7 +17,13 @@ test('wallet delivered-code/signing-integrity gate binds to the real current sig
   assert.equal(contract.authority.economic_change,false);
   assert.equal(contract.authority.release,false);
   assert.match(wallet,/const destination=\$\('sendto'\)\.value\.trim\(\)/);
-  assert.match(wallet,/transaction\.signature=b64\(await crypto\.subtle\.sign\('Ed25519',wallet\.priv,E\.encode\(stable\(txPayload\(transaction\)\)\)\)\)/);
+  assert.match(wallet,/FAEWalletSigningIntent\.create/);
+  assert.ok((wallet.match(/FAEWalletSigningIntent\.assertCurrent/g)||[]).length>=2,'reviewed intent must be rechecked across async signing');
+  assert.ok((wallet.match(/FAEWalletSigningIntent\.assertTransaction/g)||[]).length>=2,'canonical transaction must be rechecked across async signing');
+  assert.match(wallet,/const signingPayload=stable\(txPayload\(transaction\)\)/);
+  assert.match(wallet,/const signatureBytes=await crypto\.subtle\.sign\('Ed25519',wallet\.priv,E\.encode\(signingPayload\)\)/);
+  assert.match(wallet,/if\(stable\(txPayload\(transaction\)\)!==signingPayload\)throw Error\('SEND_INTENT_INTEGRITY: transaction changed during signing'\)/);
+  assert.match(wallet,/transaction\.signature=b64\(signatureBytes\)/);
   assert.match(core,/function txPayload\(transaction\)/);
   assert.match(threat,/I-KEY-01/);
   assert.match(threat,/I-SUPPLYCHAIN-01/);

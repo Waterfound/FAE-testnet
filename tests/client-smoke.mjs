@@ -66,6 +66,62 @@ const localStorage={
   removeItem:key=>storage.delete(key)
 };
 
+const vaultRecords=new Map();
+let vaultActiveId=null;
+let migrationState=null;
+const FAEWalletVault={
+  capabilityProbe:async()=>({ok:true,persistence:{supported:true,granted:true,persisted:true}}),
+  listWallets:async()=>Array.from(vaultRecords.entries()).map(([walletId,account])=>({
+    walletId,
+    fingerprint:walletId.slice(7),
+    network:'fairyelf-public-testnet-v4',
+    source:account.source,
+    passphraseProtected:Boolean(account.passphraseProtected),
+    activeIndex:account.activeIndex,
+    addresses:account.addresses.map(({index,address,pub})=>({index,address,pub})),
+    createdAt:walletId
+  })),
+  readState:async()=>({activeWalletId:vaultActiveId,migration:migrationState}),
+  loadAccount:async walletId=>{
+    const account=vaultRecords.get(walletId);
+    if(!account)throw Error('Wallet is not present in the local vault');
+    return account;
+  },
+  loadActive:async()=>{
+    if(!vaultActiveId)return{state:{activeWalletId:null},record:null,account:null};
+    const account=vaultRecords.get(vaultActiveId);
+    return{
+      state:{activeWalletId:vaultActiveId},
+      record:{walletId:vaultActiveId,network:'fairyelf-public-testnet-v4'},
+      account
+    };
+  },
+  admitAccount:async(account,{makeActive=true}={})=>{
+    const walletId='wallet-'+account.addresses[0].address;
+    const deduplicated=vaultRecords.has(walletId);
+    if(!deduplicated)vaultRecords.set(walletId,account);
+    if(makeActive||!vaultActiveId)vaultActiveId=walletId;
+    return{walletId,deduplicated,account:vaultRecords.get(walletId)};
+  },
+  setActiveWallet:async walletId=>{
+    if(!vaultRecords.has(walletId))throw Error('Wallet is not present in the local vault');
+    vaultActiveId=walletId;
+    return walletId;
+  },
+  setActiveAddress:async(walletId,index)=>{
+    const account=vaultRecords.get(walletId);
+    if(!account)throw Error('Wallet is not present in the local vault');
+    account.activeIndex=index;
+    return account;
+  },
+  removeWallet:async walletId=>{
+    const removed=vaultRecords.delete(walletId);
+    if(vaultActiveId===walletId)vaultActiveId=vaultRecords.keys().next().value||null;
+    return{removed,activeWalletId:vaultActiveId};
+  },
+  markMigration:async migration=>(migrationState=migration)
+};
+
 let submittedTransaction=null;
 let failNextStatus=false;
 const fetch=async(url,options={})=>{
@@ -109,6 +165,7 @@ const context={
   window:null,
   document,
   localStorage,
+  FAEWalletVault,
   fetch,
   crypto:webcrypto,
   TextEncoder,
@@ -150,7 +207,7 @@ assert.ok(indexHtml.includes('id="lastsendtxid"'),'send flow must expose a full 
 assert.ok(indexHtml.includes('src="/wallet-transactions.js"'),'wallet transaction contract adapter must load before the client');
 assert.ok(indexHtml.includes('id="sendstate" class="status" role="status" aria-live="polite"'),'send receipt feedback must be announced accessibly');
 
-for(const file of ['bip39-en.js','network-status.js','wallet-transactions.js','core.js','wallet-crypto.js','wallet.js','mining.js']){
+for(const file of ['bip39-en.js','network-status.js','wallet-transactions.js','core.js','wallet-crypto.js','wallet-signing-intent.js','wallet.js','mining.js']){
   vm.runInContext(await readFile(new URL('../'+file,import.meta.url),'utf8'),context,{filename:file});
 }
 await new Promise(resolve=>setTimeout(resolve,25));
@@ -163,27 +220,47 @@ vm.runInContext('FAENetworkStatus.connecting()',context);
 assert.equal(document.getElementById('netstatus').lastElementChild.textContent,'Connecting…');
 vm.runInContext('FAENetworkStatus.online()',context);
 
-await vm.runInContext('createNewWallet()',context);
-const created=vm.runInContext('({count:walletAccount.addresses.length,address:wallet.address,protected:walletAccount.passphraseProtected})',context);
-assert.equal(created.count,5);
-assert.equal(created.protected,false);
+await vm.runInContext('beginNewWallet()',context);
+assert.equal(vaultRecords.size,0,'New Wallet must not persist before backup confirmation');
+assert.equal(vm.runInContext('walletAccount',context),null);
+const pendingPhrase=vm.runInContext('pendingNewWallet.mnemonic',context);
+assert.equal(pendingPhrase.trim().split(/\s+/).length,24);
+vm.runInContext('readyForNewWalletConfirmation()',context);
 
-// Use fresh test-only material. No reusable recovery phrase or passphrase is
-// stored in the public repository.
-document.getElementById('insertseed').value=await vm.runInContext(
+const wrongPhrase=await vm.runInContext(
   'FAEWalletCrypto.mnemonicFromEntropy(crypto.getRandomValues(new Uint8Array(32)))',
   context
 );
-document.getElementById('insertpassphrase').value=Array.from(
+document.getElementById('confirmseed').value=wrongPhrase;
+await assert.rejects(vm.runInContext('confirmNewWallet()',context),/do not exactly match/);
+assert.equal(vaultRecords.size,0,'wrong backup confirmation must fail closed');
+
+document.getElementById('confirmseed').value=pendingPhrase;
+await vm.runInContext('confirmNewWallet()',context);
+const created=vm.runInContext('({count:walletAccount.addresses.length,address:wallet.address,protected:walletAccount.passphraseProtected})',context);
+assert.equal(created.count,5);
+assert.equal(created.protected,false);
+assert.equal(vaultRecords.size,1);
+
+// Recover a second independent Wallet with an optional passphrase.
+document.getElementById('recoveryseed').value=await vm.runInContext(
+  'FAEWalletCrypto.mnemonicFromEntropy(crypto.getRandomValues(new Uint8Array(32)))',
+  context
+);
+document.getElementById('recoverypassphrase').value=Array.from(
   crypto.getRandomValues(new Uint8Array(16)),
   byte=>byte.toString(16).padStart(2,'0')
 ).join('');
-await vm.runInContext('insertWalletFromSeed()',context);
+await vm.runInContext('verifyRecoveryWallet()',context);
+assert.equal(document.getElementById('recoverypassphrase').value,'');
+const recoveryPreview=document.getElementById('recoverypreview').value;
+assert.match(recoveryPreview,/^faet1/);
+await vm.runInContext('admitRecoveryWallet()',context);
 const inserted=vm.runInContext('({count:walletAccount.addresses.length,address:wallet.address,protected:walletAccount.passphraseProtected})',context);
 assert.equal(inserted.count,5);
 assert.equal(inserted.protected,true);
 assert.notEqual(inserted.address,created.address);
-assert.equal(document.getElementById('insertpassphrase').value,'');
+assert.equal(vaultRecords.size,2,'New and recovered Wallets must coexist');
 
 await vm.runInContext('activateAccountAddress(3)',context);
 assert.equal(vm.runInContext('wallet.index',context),3);
@@ -241,4 +318,4 @@ assert.equal(document.getElementById('send').disabled,true);
 await vm.runInContext('useSavedFullWallet()',context);
 assert.equal(vm.runInContext('wallet.watchOnly',context),false);
 
-console.log('FAE client create, insert, receive, accepted-unconfirmed receipt, TXID details/copy, recovery, and watch-only checks passed.');
+console.log('FAE client staged create, multi-wallet recovery, receive, TXID/history, signing, backup, and watch-only checks passed.');
