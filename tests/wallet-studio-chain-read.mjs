@@ -147,6 +147,26 @@ assert.equal(overLimitHistory.nodes.get('.balance-value strong').textContent,'12
 assert.match(overLimitHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
   'Over-limit history must fail closed rather than be displayed as verified');
 
+// Bound per-transaction work and BigInt input from the untrusted history API.
+// A verified balance remains available, while adversarial history fails closed.
+const outputFlood=fixture({transactions:[{
+  ...transfer(46),
+  outputs:Array.from({length:257},()=>({address,amount_atoms:'1'}))
+}]});
+await outputFlood.engine.refresh(address);
+assert.equal(outputFlood.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(outputFlood.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'A transaction output flood must not be normalized or rendered');
+
+const oversizedAtomAmount=fixture({transactions:[{
+  ...transfer(47),
+  outputs:[{address,amount_atoms:'10000000000000000'}]
+}]});
+await oversizedAtomAmount.engine.refresh(address);
+assert.equal(oversizedAtomAmount.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(oversizedAtomAmount.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'Oversized atom precision must fail before BigInt rendering');
+
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){
   const hostile=fixture({status:{ok:true,height,network:'fairyelf-public-testnet-v4'}});
