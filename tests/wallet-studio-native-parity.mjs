@@ -89,6 +89,17 @@ try{
      }
    }
  }
+ // Source-pinned Active layout anchors: compare the approved original Studio
+ // against the candidate's authenticated scene without requiring identical
+ // text, balance, or history content. This is geometry, not artistic approval.
+ const activeAnchors=['.active-composition','.balance-field','.wallet-rail','.balance-value'];
+ const activeReference=[];
+ await setup('reference','active');
+ for(const item of widths){
+   await send('Emulation.setDeviceMetricsOverride',{width:item.w,height:item.h,deviceScaleFactor:1,mobile:item.w<900});
+   await sleep(90);
+   activeReference.push(await run("(()=>{const out={};for(const s of "+JSON.stringify(activeAnchors)+"){const r=document.querySelector(s)?.getBoundingClientRect();if(!r||!r.width)throw Error('Missing authored Active anchor '+s);out[s]={x:r.x,w:r.width}}return out})()"));
+ }
  // Independently exercise authenticated Active with PUBLIC fixture identity only.
  // It must not be counted as live IndexedDB/network evidence or exact Active art parity.
  await send('Page.navigate',{url:BASE+'/design/wallet-studio-functional/index.html'});
@@ -105,6 +116,14 @@ try{
    assert.match(info.coverage,/NOT LIFETIME/,'Missing limited history coverage');
    assert.ok(info.overflow<=1,'Active horizontal overflow '+item.label);
    assert.equal(info.words,false,'Recovery words surfaced in Active fixture');
+   const anchored=await run("(()=>{const out={};for(const s of "+JSON.stringify(activeAnchors)+"){const r=document.querySelector(s)?.getBoundingClientRect();if(!r||!r.width)throw Error('Missing candidate Active anchor '+s);out[s]={x:r.x,w:r.width}}return out})()");
+   const baseline=activeReference[widths.indexOf(item)];
+   for(const sel of activeAnchors)for(const axis of ['x','w']){
+     const delta=Math.abs(anchored[sel][axis]-baseline[sel][axis]);
+     assert.ok(delta<=2,'Approved Studio Active anchor drift '+item.label+' '+sel+' '+axis+' '+delta.toFixed(2)+'px');
+   }
+   const exposedPublicKey=await run("document.body.innerText.includes('public-fixture')");
+   assert.equal(exposedPublicKey,false,'Vault public-key metadata must not leak into authored UI');
    if(imageDir){
      const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
      mkdirSync(imageDir,{recursive:true});
