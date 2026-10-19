@@ -66,14 +66,11 @@
   function normalizeOutputs(outputs){
     if(!Array.isArray(outputs))return {ok:false,reason:'outputs_not_array',outputs:[]};
     if(outputs.length===0)return {ok:false,reason:'outputs_empty',outputs:[]};
-    // Public history is untrusted. Bound both traversal fan-out and atom
-    // precision before BigInt conversion or rendering.
-    if(outputs.length>256)return {ok:false,reason:'outputs_limit_exceeded',outputs:[]};
     const normalized=[];
     for(const output of outputs){
       const address=typeof output?.address==='string'?output.address:'';
       const amount=String(output?.amount_atoms??'');
-      if(!address||!/^\d+$/.test(amount)||amount.length>16||BigInt(amount)<=0n){
+      if(!address||!/^\d+$/.test(amount)||BigInt(amount)<=0n){
         return {ok:false,reason:'invalid_output',outputs:[]};
       }
       normalized.push(Object.freeze({address,amount_atoms:amount}));

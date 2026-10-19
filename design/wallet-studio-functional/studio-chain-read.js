@@ -138,7 +138,15 @@
           const payload=responses[1].value;
           // The public address-history contract caps responses at 30 transfers.
           // Oversized payloads must not be normalized or presented as verified.
-          const bounded=payload?.ok===true&&Array.isArray(payload.transactions)&&payload.transactions.length<=30;
+          const bounded=payload?.ok===true
+            &&Array.isArray(payload.transactions)
+            &&payload.transactions.length<=30
+            // Keep hostile history fan-out and BigInt inputs bounded before
+            // invoking the protected shared transaction normalizer.
+            &&payload.transactions.every(tx=>Array.isArray(tx?.outputs)
+              &&tx.outputs.length>0
+              &&tx.outputs.length<=256
+              &&tx.outputs.every(out=>/^(?:0|[1-9]\d{0,15})$/.test(String(out?.amount_atoms??''))));
           const parsed=bounded&&typeof normalizer==='function'
             ?normalizer(payload,address)
             :{state:'invalid_payload'};
