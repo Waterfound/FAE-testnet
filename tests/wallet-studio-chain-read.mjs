@@ -191,6 +191,22 @@ await aboveSupply.engine.refresh(address);
 assert.match(aboveSupply.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
   'An output above configured supply must fail closed');
 
+// An untrusted atomic amount is a monetary scalar, never a coercible object.
+// Array/stringification attacks must not pass validation before normalization.
+// An independently authenticated balance remains valid if only history fails.
+for(const hostileAtoms of [
+  ['1'], 1, true, {toString:()=> '1'}
+]){
+  const hostileHistory=fixture({transactions:[{
+    ...transfer(51),
+    outputs:[{address,amount_atoms:hostileAtoms}]
+  }]});
+  assert.equal(await hostileHistory.engine.refresh(address),true);
+  assert.equal(hostileHistory.nodes.get('.balance-value strong').textContent,'12.5');
+  assert.match(hostileHistory.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+    'Coercible non-string history amounts must fail closed');
+}
+
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){
   const hostile=fixture({status:{ok:true,height,network:'fairyelf-public-testnet-v4'}});
