@@ -154,7 +154,11 @@
                   &&/^(?:0|[1-9]\d{0,15})$/.test(atoms)
                   &&BigInt(atoms)>0n
                   &&BigInt(atoms)<=1205000000000000n;
-              }));
+              })
+              // Every output can be individually valid while the aggregate
+              // transfer exceeds the total FAE supply. Reject that claim.
+              &&tx.outputs.reduce((sum,out)=>sum+BigInt(out.amount_atoms),0n)
+                <=1205000000000000n);
           const parsed=bounded&&typeof normalizer==='function'
             ?normalizer(payload,address)
             :{state:'invalid_payload'};

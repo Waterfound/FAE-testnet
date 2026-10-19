@@ -191,6 +191,24 @@ await aboveSupply.engine.refresh(address);
 assert.match(aboveSupply.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
   'An output above configured supply must fail closed');
 
+// Individually valid outputs must not collectively claim more than the
+// maximum available supply; a separate authenticated balance is preserved.
+const aggregateAtLimit=fixture({transactions:[{
+  ...transfer(54),
+  outputs:[{address,amount_atoms:'1204999999999999'},{address,amount_atoms:'1'}]
+}]});
+await aggregateAtLimit.engine.refresh(address);
+assert.match(aggregateAtLimit.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/,
+  'Exactly the configured supply remains valid as a combined output');
+const aggregateAboveLimit=fixture({transactions:[{
+  ...transfer(55),
+  outputs:[{address,amount_atoms:'1205000000000000'},{address,amount_atoms:'1'}]
+}]});
+await aggregateAboveLimit.engine.refresh(address);
+assert.equal(aggregateAboveLimit.nodes.get('.balance-value strong').textContent,'12.5');
+assert.match(aggregateAboveLimit.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'Combined output value above total supply must fail closed');
+
 // An untrusted atomic amount is a monetary scalar, never a coercible object.
 // Array/stringification attacks must not pass validation before normalization.
 // An independently authenticated balance remains valid if only history fails.
