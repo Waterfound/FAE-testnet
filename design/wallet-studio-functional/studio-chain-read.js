@@ -147,8 +147,11 @@
               &&tx.outputs.length>0
               &&tx.outputs.length<=256
               &&tx.outputs.every(out=>{
-                const atoms=String(out?.amount_atoms??'');
-                return /^(?:0|[1-9]\d{0,15})$/.test(atoms)
+                // Atomic amounts must be canonical scalar strings. Coercion
+                // would accept e.g. ['1'] as a valid monetary amount.
+                const atoms=out?.amount_atoms;
+                return typeof atoms==='string'
+                  &&/^(?:0|[1-9]\d{0,15})$/.test(atoms)
                   &&BigInt(atoms)>0n
                   &&BigInt(atoms)<=1205000000000000n;
               }));
