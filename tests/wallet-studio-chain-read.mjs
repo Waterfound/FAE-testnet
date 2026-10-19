@@ -167,6 +167,30 @@ assert.equal(oversizedAtomAmount.nodes.get('.balance-value strong').textContent,
 assert.match(oversizedAtomAmount.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
   'Oversized atom precision must fail before BigInt rendering');
 
+const maxOutputBoundary=fixture({transactions:[{
+  ...transfer(48),
+  outputs:Array.from({length:256},()=>({address,amount_atoms:'1'}))
+}]});
+await maxOutputBoundary.engine.refresh(address);
+assert.match(maxOutputBoundary.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/,
+  'The exact 256-output boundary remains admissible');
+
+const maxSupplyBoundary=fixture({transactions:[{
+  ...transfer(49),
+  outputs:[{address,amount_atoms:'1205000000000000'}]
+}]});
+await maxSupplyBoundary.engine.refresh(address);
+assert.match(maxSupplyBoundary.nodes.get('.reference-data').textContent,/BOUNDED SOURCE/,
+  'The configured 12.05M FAE atomic ceiling remains admissible');
+
+const aboveSupply=fixture({transactions:[{
+  ...transfer(50),
+  outputs:[{address,amount_atoms:'1205000000000001'}]
+}]});
+await aboveSupply.engine.refresh(address);
+assert.match(aboveSupply.nodes.get('.reference-data').textContent,/UNAVAILABLE/,
+  'An output above configured supply must fail closed');
+
 // Hostile /status metadata must not be coerced into a verified chain height.
 for(const height of [null,'',true,'1e2','01',-1,'-1',1.5,Number.MAX_SAFE_INTEGER+1]){
   const hostile=fixture({status:{ok:true,height,network:'fairyelf-public-testnet-v4'}});

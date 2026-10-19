@@ -146,7 +146,12 @@
             &&payload.transactions.every(tx=>Array.isArray(tx?.outputs)
               &&tx.outputs.length>0
               &&tx.outputs.length<=256
-              &&tx.outputs.every(out=>/^(?:0|[1-9]\d{0,15})$/.test(String(out?.amount_atoms??''))));
+              &&tx.outputs.every(out=>{
+                const atoms=String(out?.amount_atoms??'');
+                return /^(?:0|[1-9]\d{0,15})$/.test(atoms)
+                  &&BigInt(atoms)>0n
+                  &&BigInt(atoms)<=1205000000000000n;
+              }));
           const parsed=bounded&&typeof normalizer==='function'
             ?normalizer(payload,address)
             :{state:'invalid_payload'};
