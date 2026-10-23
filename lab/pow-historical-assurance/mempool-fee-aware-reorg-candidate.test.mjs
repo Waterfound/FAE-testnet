@@ -156,3 +156,18 @@ test('HPA-W2-R6: full-pool default remote refuses detached repropagation; local 
  assertPendingIndexes(remote);
  assertPendingIndexes(local.getState());
 });
+
+test('HPA-W2-R7: duplicate callback records fail before adoption or relay amplification',async t=>{
+ const {candidate,previous}=scenario();
+ const local=createAuthoritativeV4PeerNode({initialState:previous,
+   candidateReorgRecovery:(fork,old)=>{
+     const recovered=recoverDetachedFeeAware(fork,old),record=recovered.reacceptedRecords[0];
+     return {...recovered,reacceptedRecords:[record,record]};
+   }});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await remote.start();
+ t.after(()=>Promise.all([local.close(),remote.close()]));
+ const before=stableStringify(local.getState());
+ await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_duplicate_reacceptance/);
+ assert.equal(stableStringify(local.getState()),before,'duplicate callback result cannot adopt or mutate state');
+});
