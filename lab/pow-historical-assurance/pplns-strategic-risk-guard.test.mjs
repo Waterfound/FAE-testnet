@@ -342,3 +342,35 @@ test('HPA-W3-31: explicitly accepted upstream result is acknowledged, still not 
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
   assert.equal(x.attempts(),1);
 });
+
+test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
+  const honestAddress=encodeAddress(Buffer.alloc(20,17),'faet');
+  const attackerAddress=encodeAddress(Buffer.alloc(20,18),'faet');
+  const previous='d'.repeat(64);
+  const diverted=[{address:attackerAddress,amount_atoms:'1000'}];
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({height:9,tip_hash:previous,difficulty_bits:8}),
+    candidateHasher:async()=>hashHex('unused'),
+    distributedTemplateProvider:async()=>({
+      header:{network:'fairyelf-public-testnet-v4',height:10,previous_hash:previous,
+        difficulty_bits:8,reward_atoms:'1000',fee_atoms:'0',miner_address:attackerAddress,
+        tx_root:hashHex([]),tx_count:0,coinbase_root:hashHex(diverted),
+        coinbase_count:1,coinbase_mode:'pplns-direct'},
+      txids:[],payouts:diverted,coinbase_outputs:diverted
+    })
+  });
+  for(let i=0;i<4;i++)coordinator.ledger.append({
+    jobId:'payout-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
+    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
+    previousBlockHash:'c'.repeat(64)
+  });
+  await assert.rejects(coordinator.createWork(honestAddress),
+    error=>error.code==='candidate_pplns_payout_weight_mismatch');
+  assert.equal(coordinator.jobs.size,0);
+  assert.deepEqual(coordinator.ledger.weights(honestAddress).map(({address,weight})=>
+    ({address,weight:weight.toString()})),[
+      {address:attackerAddress,weight:'1'},
+      {address:honestAddress,weight:'3'}
+    ].sort((a,b)=>a.address.localeCompare(b.address)));
+});
