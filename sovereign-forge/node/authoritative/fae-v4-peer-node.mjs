@@ -212,11 +212,15 @@ export function createAuthoritativeV4PeerNode({
              validated.chain.some((block,i)=>block.hash!==candidate.chain[i].hash))
             throw new Error('candidate_reorg_chain_mutation');
           const inherited=new Set(Object.keys(current.transactions));
+          const reacceptedIds=new Set();
           for(const record of reconciled.reacceptedRecords){
-            if(!record||!inherited.has(record.txid)||
+            if(!record||typeof record.txid!=='string'||!inherited.has(record.txid)||
                validated.transactions[record.txid]?.status!=='pending'||
                verifyTxCrypto(normalizeTx(record)).txid!==record.txid)
               throw new Error('candidate_reorg_unverified_reacceptance');
+            if(reacceptedIds.has(record.txid))
+              throw new Error('candidate_reorg_duplicate_reacceptance');
+            reacceptedIds.add(record.txid);
           }
           reconciled.state=validated;
         }
