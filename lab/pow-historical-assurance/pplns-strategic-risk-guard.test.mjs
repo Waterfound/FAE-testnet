@@ -363,6 +363,27 @@ test('HPA-W3-55: caller cannot disable durable full-target uncertainty receipts'
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
 });
 
+test('HPA-W3-56: cold restart cannot bypass unresolved full-target receipt capacity',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-fulltarget-capacity-restart-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const address=encodeAddress(Buffer.alloc(20,16),'faet');
+  const seed=new ShareLedger({logFile});
+  for(let i=0;i<1024;i++)seed.append({
+    jobId:'persisted-unknown-'+i,address,nonce:i,hash:'0'.repeat(64),
+    shareDifficultyBits:4,blockDifficultyBits:8,height:99,
+    previousBlockHash:'c'.repeat(64)
+  });
+  const x=fullTargetReceiptFixture({logFile});
+  assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),1024);
+  const work=await x.coordinator.createWork(x.address);
+  await assert.rejects(
+    x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
+    e=>e.code==='candidate_full_target_receipt_capacity');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1024);
+  assert.equal(x.attempts(),0);
+});
+
 test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
   const honestAddress=encodeAddress(Buffer.alloc(20,17),'faet');
   const attackerAddress=encodeAddress(Buffer.alloc(20,18),'faet');
