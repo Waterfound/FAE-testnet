@@ -108,12 +108,12 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
 test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended',async()=>{
   const address=encodeAddress(Buffer.alloc(20,14),'faet');
   let currentTip='b'.repeat(64);
-  const candidate={header:{height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
+  const candidate={header:{network:'fairyelf-public-testnet-v4',height:101,previous_hash:currentTip,difficulty_bits:8,reward_atoms:'1000000000'},
     txids:[],payouts:[{address,amount_atoms:'1000000000'}],
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
-    statusProvider:async()=>({height:100,tip_hash:currentTip,difficulty_bits:8}),
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:100,tip_hash:currentTip,difficulty_bits:8}),
     distributedTemplateProvider:async()=>candidate,
     candidateHasher:async()=>hashHex({candidate:true})
   });
@@ -137,7 +137,7 @@ function tipRaceFixture({recheck=false,changeDuringHash=true}={}){
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,candidateTipRecheck:recheck,
-    statusProvider:async()=>({height:99,tip_hash:currentTip,difficulty_bits:8}),
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,tip_hash:currentTip,difficulty_bits:8}),
     distributedTemplateProvider:async()=>candidate,
     candidateHasher:async(c,nonce)=>{
       await Promise.resolve();
@@ -191,7 +191,7 @@ function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
   let attempts=0;
   const coordinator=new ShareCoordinator({
     logFile,multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
-    statusProvider:async()=>({height:99,tip_hash:previous,difficulty_bits:8}),
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,tip_hash:previous,difficulty_bits:8}),
     distributedTemplateProvider:async()=>candidate,
     candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce}),
     blockSubmitter:async block=>{attempts++;return submitBlock?submitBlock(block):{ok:true}}
@@ -350,7 +350,7 @@ test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weigh
   const diverted=[{address:attackerAddress,amount_atoms:'1000'}];
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
-    statusProvider:async()=>({height:9,tip_hash:previous,difficulty_bits:8}),
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,tip_hash:previous,difficulty_bits:8}),
     candidateHasher:async()=>hashHex('unused'),
     distributedTemplateProvider:async()=>({
       header:{network:'fairyelf-public-testnet-v4',height:10,previous_hash:previous,
@@ -381,7 +381,7 @@ test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weigh
   const previous='e'.repeat(64);
   const coordinator=new ShareCoordinator({
     multiOutputCoinbaseActive:true,
-    statusProvider:async()=>({height:9,tip_hash:previous,difficulty_bits:8}),
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,tip_hash:previous,difficulty_bits:8}),
     candidateHasher:async()=>hashHex('unused'),
     distributedTemplateProvider:async({weights})=>{
       const payouts=allocatePplnsOutputs(1000n,
@@ -404,4 +404,30 @@ test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weigh
   await assert.rejects(coordinator.createWork(honestAddress),
     error=>error.code==='candidate_pplns_coinbase_binding_mismatch');
   assert.equal(coordinator.jobs.size,0);
+});
+
+test('HPA-W3-53: coordinator binds signed work to upstream network and difficulty',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,23),'faet');
+  const previous='f'.repeat(64);
+  const coordinator=new ShareCoordinator({
+    networkId:'fairyelf-public-testnet-v4',multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,
+      tip_hash:previous,difficulty_bits:18}),
+    candidateHasher:async()=>hashHex('unused'),
+    distributedTemplateProvider:async({weights})=>{
+      const payouts=allocatePplnsOutputs(1000n,
+        weights.map(({address,weight})=>({address,weight:BigInt(weight)})));
+      return{
+        header:{network:'attacker-network',height:10,previous_hash:previous,
+          difficulty_bits:4,reward_atoms:'1000',fee_atoms:'0',miner_address:address,
+          tx_root:hashHex([]),tx_count:0,coinbase_root:hashHex(payouts),
+          coinbase_count:payouts.length,coinbase_mode:'pplns-direct'},
+        txids:[],payouts,coinbase_outputs:payouts
+      };
+    }
+  });
+  await assert.rejects(coordinator.createWork(address),
+    error=>error.code==='candidate_pplns_template_state_mismatch');
+  assert.equal(coordinator.jobs.size,0);
+  assert.equal(coordinator.ledger.summary().totalShares,0);
 });
