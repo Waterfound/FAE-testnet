@@ -1,0 +1,44 @@
+name: Visual Language Lab
+on:
+  push:
+    branches:
+      - 'colony/fae-visual-language-rebrand-001'
+    paths:
+      - 'design/**'
+      - 'docs/FAE_VISUAL_LANGUAGE_**'
+      - 'tests/visual-language-**'
+      - 'index.html'
+      - 'mining.js'
+      - 'explorer/**'
+      - '.github/workflows/visual-language-lab.yml'
+  pull_request:
+    paths:
+      - 'design/**'
+      - 'docs/FAE_VISUAL_LANGUAGE_**'
+      - 'tests/visual-language-**'
+      - 'index.html'
+      - 'mining.js'
+      - 'explorer/**'
+      - '.github/workflows/visual-language-lab.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node tests/visual-language-contract.mjs
+      - name: Protect protocol and consensus surfaces
+        shell: bash
+        run: |
+          git fetch origin main
+          git diff --name-only origin/main...HEAD | tee visual-changed.txt
+          if grep -E '^(sovereign-forge/node/authoritative/|sovereign-forge/protocol/|sovereign-forge/release/|core\.js$|wallet-crypto\.js$|supabase/)' visual-changed.txt; then
+            echo "Visual-language branch touched a protected protocol/consensus/security surface."
+            exit 1
+          fi
