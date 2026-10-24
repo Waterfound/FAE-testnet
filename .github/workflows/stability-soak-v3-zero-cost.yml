@@ -1,0 +1,59 @@
+name: stability-soak-v3-zero-cost-colony
+
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs'
+      - 'sovereign-forge/release/stability-soak-v3-zero-cost-candidate.json'
+      - 'sovereign-forge/lab/stability-soak-v3/**'
+      - 'sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs'
+      - 'sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs'
+      - 'sovereign-forge/tests/stability-soak-v3-prestart.test.mjs'
+      - 'wan-lab/wan-node.mjs'
+      - 'wan-lab/stability-soak-controller.mjs'
+      - 'wan-lab/result-logger.mjs'
+      - '.github/workflows/stability-soak-v3-zero-cost.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zero-cost-recovery-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/node-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/monitor-runtime.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/analyze-evidence.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
+          node --check sovereign-forge/lab/stability-soak-v3/prestart-gate.mjs
+          node --check sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
+          node --check wan-lab/wan-node.mjs
+          node --check wan-lab/stability-soak-controller.mjs
+          node --check wan-lab/result-logger.mjs
+      - name: Prove fresh bootstrap after total ephemeral state loss
+        run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-recovery.mjs
+      - name: Prove 96h-sized chain fresh bootstrap stays below 180s
+        run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-scale.mjs
+      - name: Gate zero-cost V3 quota and authority invariants
+        run: node --test sovereign-forge/tests/stability-soak-v3-zero-cost-candidate.test.mjs
+      - name: Verify V3 evidence analyzer and historical Wilson discipline
+        run: node --test sovereign-forge/tests/stability-soak-v3-analyzer.test.mjs
+      - name: Verify fail-closed frozen-topology prestart gate
+        run: node --test sovereign-forge/tests/stability-soak-v3-prestart.test.mjs
+      - name: Smoke-test restart-aware node controller observer harness
+        run: node --test sovereign-forge/tests/stability-soak-v3-harness-smoke.test.mjs
