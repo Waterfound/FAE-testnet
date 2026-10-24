@@ -144,6 +144,18 @@ export class ShareCoordinator{
     }
     return null;
   }
+  unresolvedFullTargetReceiptCount(){
+    const unresolved=new Set();
+    for(const entry of this.ledger.shares){
+      if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)continue;
+      const key=String(entry.jobId)+':'+String(entry.nonce);
+      if(this.fullTargetReceipts.get(key)?.status!=='acknowledged_not_confirmed')
+        unresolved.add(key);
+    }
+    for(const [key,receipt] of this.fullTargetReceipts)
+      if(receipt.status!=='acknowledged_not_confirmed')unresolved.add(key);
+    return unresolved.size;
+  }
   async submitShare({jobId,nonce,hash}){
     this.pruneJobs();
     // Opt-in source-receipt check before job lookup: a failed submission may
@@ -178,9 +190,9 @@ export class ShareCoordinator{
             if(this.fullTargetReceipts.size<MAX_JOBS)break;
           }
         }
-        if(this.fullTargetReceipts.size>=MAX_JOBS)
-          throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
       }
+      if(this.unresolvedFullTargetReceiptCount()>=MAX_JOBS)
+        throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
     }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
     if(this.candidateFullTargetReceiptProtection&&fullTarget)this.fullTargetReceipts.set(receiptKey,{
