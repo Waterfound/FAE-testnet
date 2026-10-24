@@ -17,7 +17,8 @@ export function recoverDetachedFeeAware(candidate,previous,{maxAttempts=256}={})
   // Preserve default source semantics for all transactions that still fit.
   const first=reconcileDetachedTransactions(canonical,original);
   assertPendingIndexes(first.state);
-  const adopted=first.state,acceptedIds=new Set(first.reacceptedRecords.map(x=>x.txid));
+  const adopted=first.state;
+  const detachedTotal=first.reacceptedRecords.length+first.rejected;
   const missing=Object.values(previous.transactions).filter(x=>x&&x.txid
     &&!adopted.transactions[x.txid]&&!candidate.transactions[x.txid]);
   // Only previously signed source-owned transactions are eligible.
@@ -39,7 +40,6 @@ export function recoverDetachedFeeAware(candidate,previous,{maxAttempts=256}={})
         state=trial.state;
         additional.push(state.transactions[trial.admitted]);
         evicted.push(...trial.evicted);
-        acceptedIds.add(trial.admitted);
         advanced=true;
       }catch(error){
         // No override for invalid signatures/conflicts, no unauthorized replay.
@@ -55,7 +55,7 @@ export function recoverDetachedFeeAware(candidate,previous,{maxAttempts=256}={})
     fail('reorg_changed_validated_chain');
   const reacceptedRecords=[...first.reacceptedRecords.filter(r=>state.transactions[r.txid]?.status==='pending'),
     ...additional.filter(r=>state.transactions[r.txid]?.status==='pending')];
-  return {state,reacceptedRecords,rejected:missing.length-additional.length+
-    Math.max(0,first.rejected-missing.length),attempted,evicted,
+  return {state,reacceptedRecords,
+    rejected:Math.max(0,detachedTotal-reacceptedRecords.length),attempted,evicted,
     disposition:'isolated_fee_aware_reorg_candidate_only'};
 }
