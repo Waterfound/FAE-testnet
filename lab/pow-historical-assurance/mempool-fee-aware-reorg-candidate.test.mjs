@@ -171,3 +171,31 @@ test('HPA-W2-R7: duplicate callback records fail before adoption or relay amplif
  await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_duplicate_reacceptance/);
  assert.equal(stableStringify(local.getState()),before,'duplicate callback result cannot adopt or mutate state');
 });
+
+test('HPA-W2-R8: final dropped count includes a FIFO reacceptance later evicted by fee-aware recovery',()=>{
+ const owner=wallet(),other=wallet();
+ let common=emptyState();
+ for(const block of legacyBlocks)common=appendBlockFromFeed(common,block,new Map(),{activationHeight:null});
+ common=mine(common,owner.address);const chainCoin=common.chain.at(-1).hash+':0';
+ common=mine(common,owner.address);const lowCoin=common.chain.at(-1).hash+':0';
+ common=mine(common,owner.address);const highCoin=common.chain.at(-1).hash+':0';
+ const previous=cloneState(common);
+ const low=acceptTxInto(previous,signed(owner,lowCoin,previous.utxos[lowCoin].amount_atoms,1n));
+ const high=acceptTxInto(previous,signed(owner,highCoin,previous.utxos[highCoin].amount_atoms,1000000n));
+ let candidate=mine(common,other.address),input=chainCoin,atoms=BigInt(candidate.utxos[chainCoin].amount_atoms);
+ for(let i=0;i<MAX_MEMPOOL_TXS-1;i++){
+  const rec=acceptTxInto(candidate,signed(owner,input,atoms,100n));
+  input=rec.txid+':0';atoms-=100n;
+ }
+ const fifo=reconcileDetachedTransactions(cloneState(candidate),cloneState(previous));
+ assert.equal(fifo.reacceptedRecords.length,1);
+ assert.equal(fifo.reacceptedRecords[0].txid,low.txid);
+ assert.equal(fifo.rejected,1);
+ const result=recoverDetachedFeeAware(candidate,previous);
+ assert.equal(result.state.transactions[low.txid],undefined,'low-fee FIFO reacceptance is the cheapest eviction');
+ assert.equal(result.state.transactions[high.txid]?.status,'pending');
+ assert.deepEqual(result.reacceptedRecords.map(x=>x.txid),[high.txid]);
+ assert.equal(result.rejected,1,'one of two detached transactions remains dropped in the final state');
+ assert.equal(result.reacceptedRecords.length+result.rejected,2,'final accounting conserves detached records');
+ assertPendingIndexes(result.state);
+});
