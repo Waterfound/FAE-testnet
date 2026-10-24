@@ -154,16 +154,16 @@ function tipRaceFixture({recheck=false,changeDuringHash=true}={}){
   assert.ok(nonce<100000);
   return {coordinator,address,nonce,hash,getSubmissions:()=>submissions};
 }
-test('HPA-W3-16: existing asynchronous hash phase can credit a share after tip changes',async()=>{
+test('HPA-W3-16: caller cannot disable post-hash upstream-state revalidation',async()=>{
   const x=tipRaceFixture();
   const work=await x.coordinator.createWork(x.address);
-  assert.equal(x.coordinator.candidateTipRecheck,false);
-  const result=await x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash});
-  assert.equal(result.accepted,true);
-  assert.equal(x.coordinator.ledger.summary().totalShares,1);
-  assert.equal(x.getSubmissions(),1);
+  assert.equal(x.coordinator.candidateTipRecheck,true);
+  await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
+    /Stale share job after hashing upstream state change/);
+  assert.equal(x.coordinator.ledger.summary().totalShares,0);
+  assert.equal(x.getSubmissions(),0);
 });
-test('HPA-W3-17: opt-in recheck refuses a changed tip before ledger credit or block submission',async()=>{
+test('HPA-W3-17: mandatory recheck refuses a changed tip before ledger credit or block submission',async()=>{
   const x=tipRaceFixture({recheck:true});
   const work=await x.coordinator.createWork(x.address);
   await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
@@ -172,7 +172,7 @@ test('HPA-W3-17: opt-in recheck refuses a changed tip before ledger credit or bl
   assert.equal(x.getSubmissions(),0);
   assert.equal(x.coordinator.jobs.has(work.jobId),false);
 });
-test('HPA-W3-18: opt-in recheck retains valid full-target work when chain tip is stable',async()=>{
+test('HPA-W3-18: mandatory recheck retains valid full-target work when chain tip is stable',async()=>{
   const x=tipRaceFixture({recheck:true,changeDuringHash:false});
   const work=await x.coordinator.createWork(x.address);
   const result=await x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash});
