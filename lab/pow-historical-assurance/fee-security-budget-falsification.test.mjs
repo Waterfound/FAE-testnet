@@ -93,3 +93,57 @@ test('HPA-ECON-C3: premature fee-paying coinbase is rejected without changing so
     /premature_coinbase_v1_fields/);
   assert.equal(stableStringify(state),before,'no money-supply or state mutation on rejected claim');
 });
+
+function solveForgedHeader(header,{limit=8_000_000}={}){
+  for(let nonce=0;nonce<limit;nonce++){
+    const hash=hashHex({...header,nonce});
+    if(leadingZeroBits(hash)>=Number(header.difficulty_bits))
+      return {header,nonce,hash};
+  }
+  throw new Error('adversarial PoW search exhausted');
+}
+test('HPA-ECON-C4: confirming a paid-fee block on unchanged v4 never grants miner that fee now or in the next empty block',()=>{
+  const {state,tx,miner}=setupFee();
+  const first=mine(state,miner.address);
+  assert.ok(first.template.txids.includes(tx.txid));
+  assert.equal(first.next.utxos[first.hash+':0'].amount_atoms,
+    expectedReward(state,state.chain.length+1).toString());
+  const second=mine(first.next,miner.address);
+  assert.deepEqual(second.template.txids,[]);
+  assert.equal(second.template.header.fee_atoms,undefined);
+  assert.equal(second.next.utxos[second.hash+':0'].amount_atoms,
+    expectedReward(first.next,first.next.chain.length+1).toString());
+  assert.equal(second.next.transactions[tx.txid].status,'confirmed');
+  assert.equal(PPLNS_COINBASE_ACTIVATION_HEIGHT,null);
+});
+test('HPA-ECON-C5: independently mined overpaying fee-coinbase with matching fake header/root is rejected by source verifier',()=>{
+  const {state,miner}=setupFee(),height=state.chain.length+1,
+    t=createMiningTemplate(state,miner.address,{activationHeight:height}),
+    before=stableStringify(state);
+  const extra=1n, claimed=BigInt(t.header.fee_atoms)+extra;
+  const forgedOutputs=[{address:miner.address,
+    amount_atoms:(BigInt(t.header.reward_atoms)+claimed).toString()}];
+  const forgedHeader={...t.header,fee_atoms:claimed.toString(),
+    coinbase_root:hashHex(forgedOutputs)};
+  const proof=solveForgedHeader(forgedHeader);
+  assert.throws(()=>appendBlockFromSubmission(state,{
+    ...proof,txids:t.txids,coinbase_outputs:forgedOutputs
+  },{activationHeight:height}),/fee|coinbase|reward|invalid/i);
+  assert.equal(stableStringify(state),before);
+});
+test('HPA-ECON-C6: authentic paid transaction replayed twice in one mined template cannot mint two fee payouts',()=>{
+  const {state,tx,miner}=setupFee(),height=state.chain.length+1,
+    t=createMiningTemplate(state,miner.address,{activationHeight:height}),
+    before=stableStringify(state),doubleFee=BigInt(tx.fee_atoms)*2n,
+    txids=[tx.txid,tx.txid];
+  const outputs=[{address:miner.address,
+    amount_atoms:(BigInt(t.header.reward_atoms)+doubleFee).toString()}];
+  const forgedHeader={...t.header,tx_root:hashHex(txids),tx_count:2,
+    fee_atoms:doubleFee.toString(),coinbase_root:hashHex(outputs)};
+  const proof=solveForgedHeader(forgedHeader);
+  assert.throws(()=>appendBlockFromSubmission(state,{
+    ...proof,txids,coinbase_outputs:outputs
+  },{activationHeight:height}));
+  assert.equal(stableStringify(state),before);
+  assert.equal(state.transactions[tx.txid].status,'pending');
+});
