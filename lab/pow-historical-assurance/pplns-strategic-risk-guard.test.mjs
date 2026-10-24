@@ -121,7 +121,7 @@ test('HPA-W3-08: a stale-tip share is rejected BEFORE payout weight is appended'
   currentTip='c'.repeat(64); // reorg/tip-change race before submission
   await assert.rejects(
     coordinator.submitShare({jobId:work.jobId,nonce:1,hash:hashHex({candidate:true})}),
-    /Stale share job after chain-tip change/
+    /Stale share job after upstream state change/
   );
   assert.equal(coordinator.ledger.summary().totalShares,0);
   assert.equal(coordinator.jobs.has(work.jobId),false);
@@ -167,7 +167,7 @@ test('HPA-W3-17: opt-in recheck refuses a changed tip before ledger credit or bl
   const x=tipRaceFixture({recheck:true});
   const work=await x.coordinator.createWork(x.address);
   await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
-    /Stale share job after hashing chain-tip change/);
+    /Stale share job after hashing upstream state change/);
   assert.equal(x.coordinator.ledger.summary().totalShares,0);
   assert.equal(x.getSubmissions(),0);
   assert.equal(x.coordinator.jobs.has(work.jobId),false);
@@ -429,5 +429,34 @@ test('HPA-W3-53: coordinator binds signed work to upstream network and difficult
   await assert.rejects(coordinator.createWork(address),
     error=>error.code==='candidate_pplns_template_state_mismatch');
   assert.equal(coordinator.jobs.size,0);
+  assert.equal(coordinator.ledger.summary().totalShares,0);
+});
+
+test('HPA-W3-54: share submission rejects upstream difficulty drift without a tip change',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,24),'faet'),previous='e'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:10,previous_hash:previous,
+    difficulty_bits:8,reward_atoms:'1000',fee_atoms:'0',miner_address:address,
+    tx_root:hashHex([]),tx_count:0};
+  const payouts=[{address,amount_atoms:'1000'}];
+  let difficulty=8;
+  const coordinator=new ShareCoordinator({
+    networkId:'fairyelf-public-testnet-v4',multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,
+      tip_hash:previous,difficulty_bits:difficulty}),
+    distributedTemplateProvider:async()=>({header,txids:[],payouts,coinbase_outputs:payouts}),
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
+  });
+  const work=await coordinator.createWork(address);
+  let nonce=0,hash='';
+  for(;nonce<100000;nonce++){
+    hash=hashHex({...header,nonce});
+    if(leadingZeroBits(hash)>=work.targetDifficultyBits)break;
+  }
+  assert.ok(nonce<100000);
+  difficulty=7;
+  await assert.rejects(
+    coordinator.submitShare({jobId:work.jobId,nonce,hash}),
+    /Stale share job after upstream state change/);
+  assert.equal(coordinator.jobs.has(work.jobId),false);
   assert.equal(coordinator.ledger.summary().totalShares,0);
 });
