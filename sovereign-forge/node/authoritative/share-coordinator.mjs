@@ -12,6 +12,16 @@ const MAX_JOBS=1024;
 const MAX_LOG_REPLAY=1_000_000;
 
 function entryHash(entry){const {entryHash:_ignored,...withoutHash}=entry;return hashHex(withoutHash)}
+function upstreamMatchesJob(upstream,job,networkId){
+  const height=Number(upstream?.height),tip=String(upstream?.tip_hash??upstream?.tip??''),
+    bits=Number(upstream?.difficulty_bits??upstream?.difficultyBits),header=job.candidate.header;
+  return upstream?.network===networkId&&
+    Number.isSafeInteger(height)&&height>=0&&
+    /^[0-9a-f]{64}$/.test(tip)&&
+    Number.isInteger(bits)&&bits>=1&&bits<=64&&
+    tip===header.previous_hash&&height+1===Number(header.height)&&
+    bits===Number(header.difficulty_bits);
+}
 function durableAppendLine(path,line){
   mkdirSync(dirname(path),{recursive:true});
   const fd=openSync(path,'a',0o600);
@@ -55,7 +65,7 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 export class ShareCoordinator{
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.fullTargetReceipts=new Map();this.jobs=new Map();
   }
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
@@ -72,20 +82,151 @@ export class ShareCoordinator{
     const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
+    const upstream=await this.upstreamStatus(),upstreamHeight=Number(upstream.height),
+      upstreamTip=String(upstream.tip_hash??upstream.tip??''),
+      upstreamBits=Number(upstream.difficulty_bits??upstream.difficultyBits);
+    const templateMatchesUpstream=upstream.network===this.networkId&&
+      Number.isSafeInteger(upstreamHeight)&&upstreamHeight>=0&&
+      /^[0-9a-f]{64}$/.test(upstreamTip)&&
+      Number.isInteger(upstreamBits)&&upstreamBits>=1&&upstreamBits<=64&&
+      candidate.header?.network===this.networkId&&
+      Number(candidate.header?.height)===upstreamHeight+1&&
+      String(candidate.header?.previous_hash)===upstreamTip&&blockBits===upstreamBits;
+    if(!templateMatchesUpstream)throw Object.assign(
+      new Error('candidate_pplns_template_state_mismatch'),
+      {code:'candidate_pplns_template_state_mismatch'});
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
+    const expectedPayouts=allocatePplnsOutputs(expectedTotal,
+      weights.map(({address,weight})=>({address,weight:BigInt(weight)})));
+    const payoutMatchesWeights=candidate.payouts.length===expectedPayouts.length&&
+      candidate.payouts.every((output,index)=>
+        String(output.address)===expectedPayouts[index].address&&
+        String(output.amount_atoms)===expectedPayouts[index].amount_atoms);
+    if(!payoutMatchesWeights)throw Object.assign(
+      new Error('candidate_pplns_payout_weight_mismatch'),
+      {code:'candidate_pplns_payout_weight_mismatch'});
+    const coinbaseOutputs=candidate.coinbase_outputs;
+    const coinbaseMatchesPayouts=coinbaseOutputs===undefined||(
+      Array.isArray(coinbaseOutputs)&&coinbaseOutputs.length===expectedPayouts.length&&
+      coinbaseOutputs.every((output,index)=>
+        String(output.address)===expectedPayouts[index].address&&
+        String(output.amount_atoms)===expectedPayouts[index].amount_atoms));
+    const header=candidate.header;
+    const headerMatchesPayouts=
+      (header.coinbase_root===undefined||header.coinbase_root===hashHex(expectedPayouts))&&
+      (header.coinbase_count===undefined||Number(header.coinbase_count)===expectedPayouts.length)&&
+      (header.coinbase_mode===undefined||header.coinbase_mode==='pplns-direct')&&
+      (header.miner_address===undefined||String(header.miner_address)===expectedPayouts[0].address);
+    if(!coinbaseMatchesPayouts||!headerMatchesPayouts)throw Object.assign(
+      new Error('candidate_pplns_coinbase_binding_mismatch'),
+      {code:'candidate_pplns_coinbase_binding_mismatch'});
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
     const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
     const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
     this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment,weightsCommitment,templateCommitment});
     return{...candidate,jobId,coordinatorId:this.identity.id,requestAddress:address,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,expiresAt:new Date(expiresAt).toISOString(),workProof};
   }
+  fullTargetReceipt({jobId,nonce}={}){
+    const key=String(jobId)+':'+String(nonce);
+    const receipt=this.fullTargetReceipts.get(key);
+    if(receipt)return structuredClone(receipt);
+    // Candidate-only crash reconciliation: persisted ShareLedger proves that
+    // this exact proof was credited once, but never proves node inclusion.
+    if(!this.ledger.seen.has(key))return null;
+    for(let i=this.ledger.shares.length-1;i>=0;i--){
+      const entry=this.ledger.shares[i];
+      if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
+      if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)return null;
+      return {jobId,nonce,hash:entry.hash,shareSeq:entry.seq,
+        entryHash:entry.entryHash,status:'submission_outcome_unknown_after_restart',
+        attempts:1};
+    }
+    return null;
+  }
+  unresolvedFullTargetReceiptCount(){
+    const unresolved=new Set();
+    for(const entry of this.ledger.shares){
+      if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)continue;
+      const key=String(entry.jobId)+':'+String(entry.nonce);
+      if(this.fullTargetReceipts.get(key)?.status!=='acknowledged_not_confirmed')
+        unresolved.add(key);
+    }
+    for(const [key,receipt] of this.fullTargetReceipts)
+      if(receipt.status!=='acknowledged_not_confirmed')unresolved.add(key);
+    return unresolved.size;
+  }
   async submitShare({jobId,nonce,hash}){
-    this.pruneJobs();const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
-    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
+    this.pruneJobs();
+    // Mandatory source-receipt check before job lookup: a failed submission may
+    // survive expired job pruning. It is never safe to infer non-inclusion.
+    const receiptKey=String(jobId)+':'+String(nonce);
+    const prior=this.fullTargetReceipt({jobId,nonce});
+    if(prior){
+      const code=prior.hash!==hash?'candidate_full_target_receipt_hash_mismatch':
+        'candidate_full_target_submission_requires_reconciliation';
+      throw Object.assign(new Error(code),{code});
+    }
+    const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
+    const current=await this.upstreamStatus();if(!upstreamMatchesJob(current,job,this.networkId)){this.jobs.delete(jobId);throw new Error('Stale share job after upstream state change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
+    // Revalidate the complete upstream identity after asynchronous hashing,
+    // before the synchronous source-owned share ledger append. This safety
+    // boundary cannot be disabled by a caller.
+    const latest=await this.upstreamStatus();
+    if(!upstreamMatchesJob(latest,job,this.networkId)){
+      this.jobs.delete(jobId);
+      throw new Error('Stale share job after hashing upstream state change');
+    }
+    const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
+    if(fullTarget){
+      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      // Do not credit a share when its dedupe/recovery receipt cannot fit.
+      // No automatic eviction of unknown receipts.
+      if(this.fullTargetReceipts.size>=MAX_JOBS){
+        for(const [key,old] of this.fullTargetReceipts){
+          if(old.status==='acknowledged_not_confirmed'){
+            this.fullTargetReceipts.delete(key);
+            if(this.fullTargetReceipts.size<MAX_JOBS)break;
+          }
+        }
+      }
+      if(this.unresolvedFullTargetReceiptCount()>=MAX_JOBS)
+        throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
+    }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
-    let block=null;if(zeroBits>=Number(job.candidate.header.difficulty_bits)){if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');block=await this.blockSubmitter({...job.candidate,nonce,hash});this.jobs.clear()}
+    if(fullTarget)this.fullTargetReceipts.set(receiptKey,{
+      jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
+      status:'submission_in_flight',attempts:1
+    });
+    let block=null;
+    if(fullTarget){
+      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      try{
+        block=await this.blockSubmitter({...job.candidate,nonce,hash});
+        const receipt=this.fullTargetReceipts.get(receiptKey);
+        // A resolved Promise is not a signed block acceptance, and even
+        // a negative provider ACK is not proof of chain non-inclusion.
+        if(!block||typeof block!=='object'||
+           (block.ok!==true&&block.accepted!==true)||
+           block.ok===false||block.accepted===false){
+          const explicitlyRejected=block&&typeof block==='object'&&
+            (block.ok===false||block.accepted===false);
+          receipt.status=explicitlyRejected?
+            'upstream_reported_rejected_unconfirmed':'submission_outcome_unknown';
+          const code=explicitlyRejected?
+            'candidate_full_target_provider_rejected_unconfirmed':
+            'candidate_full_target_missing_positive_ack';
+          throw Object.assign(new Error(code),{code});
+        }
+        receipt.status='acknowledged_not_confirmed';
+        this.jobs.clear();
+      }catch(error){
+        const receipt=this.fullTargetReceipts.get(receiptKey);
+        if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
+        throw error;
+      }
+    }
     return{accepted:true,share:{seq:entry.seq,entryHash:entry.entryHash,zeroBits,targetDifficultyBits:job.shareDifficultyBits},block,payoutCommitment:job.payoutCommitment,weightsCommitment:job.weightsCommitment,templateCommitment:job.templateCommitment};
   }
 }
