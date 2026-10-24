@@ -1,0 +1,9 @@
+{
+  "schema": "FAE_PQ12_BUILD_COLONY_SNAPSHOT_V1",
+  "repository": "Waterfound/Build-Colony",
+  "commit": "17979869a85c9f5adf2cef2ceb589a07fcef6239",
+  "source_path": "src/build_colony/work_selection.py",
+  "blob_sha": "d143f6a99aff148ef6e1984643cb24bdf9b964c0",
+  "purpose": "Execute the exact AGDWS work-selection logic without granting GitHub Actions broader repository access.",
+  "authority": "PLANNING_ONLY_NO_FAE_AUTHORITY"
+}
