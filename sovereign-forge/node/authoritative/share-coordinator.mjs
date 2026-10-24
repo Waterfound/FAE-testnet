@@ -83,6 +83,21 @@ export class ShareCoordinator{
     if(!payoutMatchesWeights)throw Object.assign(
       new Error('candidate_pplns_payout_weight_mismatch'),
       {code:'candidate_pplns_payout_weight_mismatch'});
+    const coinbaseOutputs=candidate.coinbase_outputs;
+    const coinbaseMatchesPayouts=coinbaseOutputs===undefined||(
+      Array.isArray(coinbaseOutputs)&&coinbaseOutputs.length===expectedPayouts.length&&
+      coinbaseOutputs.every((output,index)=>
+        String(output.address)===expectedPayouts[index].address&&
+        String(output.amount_atoms)===expectedPayouts[index].amount_atoms));
+    const header=candidate.header;
+    const headerMatchesPayouts=
+      (header.coinbase_root===undefined||header.coinbase_root===hashHex(expectedPayouts))&&
+      (header.coinbase_count===undefined||Number(header.coinbase_count)===expectedPayouts.length)&&
+      (header.coinbase_mode===undefined||header.coinbase_mode==='pplns-direct')&&
+      (header.miner_address===undefined||String(header.miner_address)===expectedPayouts[0].address);
+    if(!coinbaseMatchesPayouts||!headerMatchesPayouts)throw Object.assign(
+      new Error('candidate_pplns_coinbase_binding_mismatch'),
+      {code:'candidate_pplns_coinbase_binding_mismatch'});
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
     const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
     const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
