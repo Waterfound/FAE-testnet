@@ -12,6 +12,16 @@ const MAX_JOBS=1024;
 const MAX_LOG_REPLAY=1_000_000;
 
 function entryHash(entry){const {entryHash:_ignored,...withoutHash}=entry;return hashHex(withoutHash)}
+function upstreamMatchesJob(upstream,job,networkId){
+  const height=Number(upstream?.height),tip=String(upstream?.tip_hash??upstream?.tip??''),
+    bits=Number(upstream?.difficulty_bits??upstream?.difficultyBits),header=job.candidate.header;
+  return upstream?.network===networkId&&
+    Number.isSafeInteger(height)&&height>=0&&
+    /^[0-9a-f]{64}$/.test(tip)&&
+    Number.isInteger(bits)&&bits>=1&&bits<=64&&
+    tip===header.previous_hash&&height+1===Number(header.height)&&
+    bits===Number(header.difficulty_bits);
+}
 function durableAppendLine(path,line){
   mkdirSync(dirname(path),{recursive:true});
   const fd=openSync(path,'a',0o600);
@@ -146,16 +156,15 @@ export class ShareCoordinator{
       throw Object.assign(new Error(code),{code});
     }
     const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
-    const current=await this.upstreamStatus(),currentTip=current.tip_hash??current.tip;if(currentTip!==job.candidate.header.previous_hash||Number(current.height)+1!==Number(job.candidate.header.height)){this.jobs.delete(jobId);throw new Error('Stale share job after chain-tip change')}
+    const current=await this.upstreamStatus();if(!upstreamMatchesJob(current,job,this.networkId)){this.jobs.delete(jobId);throw new Error('Stale share job after upstream state change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     // Candidate-only opt-in: revalidate tip after asynchronous hashing,
     // before the synchronous source-owned share ledger append.
     if(this.candidateTipRecheck){
-      const latest=await this.upstreamStatus(),latestTip=latest.tip_hash??latest.tip;
-      if(latestTip!==job.candidate.header.previous_hash||
-         Number(latest.height)+1!==Number(job.candidate.header.height)){
+      const latest=await this.upstreamStatus();
+      if(!upstreamMatchesJob(latest,job,this.networkId)){
         this.jobs.delete(jobId);
-        throw new Error('Stale share job after hashing chain-tip change');
+        throw new Error('Stale share job after hashing upstream state change');
       }
     }
     const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
