@@ -56,7 +56,10 @@ function mine(template,{maxNonce=8_000_000}={}){
 }
 
 async function json(url,options={}){
-  const response=await fetch(url,options);
+  // Mining is CPU-bound long enough for the independent node to retire an
+  // idle keep-alive socket. Never let transport reuse masquerade as a
+  // consensus divergence in this differential harness.
+  const response=await fetch(url,{...options,headers:{connection:'close',...(options.headers||{})}});
   const payload=await response.json().catch(()=>({}));
   return{response,payload};
 }
