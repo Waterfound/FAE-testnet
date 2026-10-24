@@ -1,0 +1,54 @@
+name: Agent Colony - Network Composition Ceiling
+
+on:
+  push:
+    branches: [agent-colony-d-network-composition, main]
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-*.mjs'
+      - 'sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/peer-diversity.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs'
+      - 'sovereign-forge/tests/activation-network-composition-colony-ceiling.mjs'
+      - '.github/workflows/agent-colony-network-composition-ceiling.yml'
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/lab/full-target-shadow-*.mjs'
+      - 'sovereign-forge/node/authoritative/eclipse-resistant-discovery-candidate.mjs'
+      - 'sovereign-forge/node/authoritative/peer-diversity.mjs'
+      - 'sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs'
+      - 'sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs'
+      - 'sovereign-forge/tests/activation-network-composition-colony-ceiling.mjs'
+      - '.github/workflows/agent-colony-network-composition-ceiling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-d-network-composition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check integrated composition test
+        run: node --check sovereign-forge/tests/activation-network-composition-colony-ceiling.mjs
+      - name: Preserve cross-activation mid-reorg network fault baseline
+        run: node sovereign-forge/tests/full-target-shadow-mid-reorg-network-faults.mjs
+      - name: Preserve eclipse-resistant authoritative candidate baseline
+        run: node --test sovereign-forge/tests/peer-isolation-eclipse-authoritative-candidate.mjs
+      - name: Run isolation partition reconnect activation composition ceiling
+        run: node sovereign-forge/tests/activation-network-composition-colony-ceiling.mjs
+      - name: Preserve Lab-only and candidate-only authority fences
+        run: |
+          set -euo pipefail
+          grep -q "lab-only-no-consensus-authority" sovereign-forge/node/lab/full-target-shadow-peer-node.mjs
+          ! grep -q "activation-network-composition-colony-ceiling" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "activation-network-composition-colony-ceiling" sovereign-forge/node/authoritative/fae-v4-peer-node.mjs
+          ! grep -q "activation-network-composition-colony-ceiling" sovereign-forge/node/fae-node-v6-candidate.mjs
+          ! grep -q "INITIAL_SUBSIDY=14" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "TARGET_SECONDS=300" sovereign-forge/node/authoritative/fae-v4-core.mjs
+          ! grep -q "HALVING_ERA_BLOCKS=430000" sovereign-forge/node/authoritative/fae-v4-core.mjs
