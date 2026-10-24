@@ -65,7 +65,7 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 export class ShareCoordinator{
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;this.candidateFullTargetReceiptProtection=true;this.fullTargetReceipts=new Map();this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.fullTargetReceipts=new Map();this.jobs=new Map();
   }
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
@@ -133,7 +133,7 @@ export class ShareCoordinator{
     if(receipt)return structuredClone(receipt);
     // Candidate-only crash reconciliation: persisted ShareLedger proves that
     // this exact proof was credited once, but never proves node inclusion.
-    if(!this.candidateFullTargetReceiptProtection||!this.ledger.seen.has(key))return null;
+    if(!this.ledger.seen.has(key))return null;
     for(let i=this.ledger.shares.length-1;i>=0;i--){
       const entry=this.ledger.shares[i];
       if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
@@ -158,10 +158,10 @@ export class ShareCoordinator{
   }
   async submitShare({jobId,nonce,hash}){
     this.pruneJobs();
-    // Opt-in source-receipt check before job lookup: a failed submission may
+    // Mandatory source-receipt check before job lookup: a failed submission may
     // survive expired job pruning. It is never safe to infer non-inclusion.
     const receiptKey=String(jobId)+':'+String(nonce);
-    const prior=this.candidateFullTargetReceiptProtection?this.fullTargetReceipt({jobId,nonce}):null;
+    const prior=this.fullTargetReceipt({jobId,nonce});
     if(prior){
       const code=prior.hash!==hash?'candidate_full_target_receipt_hash_mismatch':
         'candidate_full_target_submission_requires_reconciliation';
@@ -179,7 +179,7 @@ export class ShareCoordinator{
       throw new Error('Stale share job after hashing upstream state change');
     }
     const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
-    if(this.candidateFullTargetReceiptProtection&&fullTarget){
+    if(fullTarget){
       if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       // Do not credit a share when its dedupe/recovery receipt cannot fit.
       // No automatic eviction of unknown receipts.
@@ -195,7 +195,7 @@ export class ShareCoordinator{
         throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
     }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
-    if(this.candidateFullTargetReceiptProtection&&fullTarget)this.fullTargetReceipts.set(receiptKey,{
+    if(fullTarget)this.fullTargetReceipts.set(receiptKey,{
       jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
       status:'submission_in_flight',attempts:1
     });
@@ -204,30 +204,26 @@ export class ShareCoordinator{
       if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       try{
         block=await this.blockSubmitter({...job.candidate,nonce,hash});
-        if(this.candidateFullTargetReceiptProtection){
-          const receipt=this.fullTargetReceipts.get(receiptKey);
-          // A resolved Promise is not a signed block acceptance, and even
-          // a negative provider ACK is not proof of chain non-inclusion.
-          if(!block||typeof block!=='object'||
-             (block.ok!==true&&block.accepted!==true)||
-             block.ok===false||block.accepted===false){
-            const explicitlyRejected=block&&typeof block==='object'&&
-              (block.ok===false||block.accepted===false);
-            receipt.status=explicitlyRejected?
-              'upstream_reported_rejected_unconfirmed':'submission_outcome_unknown';
-            const code=explicitlyRejected?
-              'candidate_full_target_provider_rejected_unconfirmed':
-              'candidate_full_target_missing_positive_ack';
-            throw Object.assign(new Error(code),{code});
-          }
-          receipt.status='acknowledged_not_confirmed';
+        const receipt=this.fullTargetReceipts.get(receiptKey);
+        // A resolved Promise is not a signed block acceptance, and even
+        // a negative provider ACK is not proof of chain non-inclusion.
+        if(!block||typeof block!=='object'||
+           (block.ok!==true&&block.accepted!==true)||
+           block.ok===false||block.accepted===false){
+          const explicitlyRejected=block&&typeof block==='object'&&
+            (block.ok===false||block.accepted===false);
+          receipt.status=explicitlyRejected?
+            'upstream_reported_rejected_unconfirmed':'submission_outcome_unknown';
+          const code=explicitlyRejected?
+            'candidate_full_target_provider_rejected_unconfirmed':
+            'candidate_full_target_missing_positive_ack';
+          throw Object.assign(new Error(code),{code});
         }
+        receipt.status='acknowledged_not_confirmed';
         this.jobs.clear();
       }catch(error){
-        if(this.candidateFullTargetReceiptProtection){
-          const receipt=this.fullTargetReceipts.get(receiptKey);
-          if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
-        }
+        const receipt=this.fullTargetReceipts.get(receiptKey);
+        if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
         throw error;
       }
     }
