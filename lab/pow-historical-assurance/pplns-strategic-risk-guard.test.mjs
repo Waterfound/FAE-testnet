@@ -100,8 +100,11 @@ test('HPA-W3-07: valid full-target share is durably counted before downstream bl
   assert.equal(coordinator.ledger.summary().totalShares,1,
     'real ShareCoordinator appends/records the share BEFORE downstream block submission');
   assert.equal(coordinator.ledger.weights(address)[0].weight,1n);
+  assert.equal(coordinator.fullTargetReceipt({jobId:work.jobId,nonce}).status,
+    'submission_outcome_unknown');
   await assert.rejects(
-    coordinator.submitShare({jobId:work.jobId,nonce,hash}),/Duplicate share/,
+    coordinator.submitShare({jobId:work.jobId,nonce,hash}),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation',
     'failed downstream block must not double-credit repeated nonce');
   assert.equal(coordinator.ledger.summary().totalShares,1);
 });
@@ -181,7 +184,7 @@ test('HPA-W3-18: mandatory recheck retains valid full-target work when chain tip
   assert.equal(x.getSubmissions(),1);
 });
 
-function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
+function fullTargetReceiptFixture({submitBlock,logFile=null,receiptProtection=true}={}){
   const address=encodeAddress(Buffer.alloc(20,16),'faet'),previous='c'.repeat(64);
   const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
     difficulty_bits:8,reward_atoms:'1000000000',miner_address:address,
@@ -190,7 +193,8 @@ function fullTargetReceiptFixture({submitBlock,logFile=null}={}){
     coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
   let attempts=0;
   const coordinator=new ShareCoordinator({
-    logFile,multiOutputCoinbaseActive:true,candidateFullTargetReceiptProtection:true,
+    logFile,multiOutputCoinbaseActive:true,
+    candidateFullTargetReceiptProtection:receiptProtection,
     statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,tip_hash:previous,difficulty_bits:8}),
     distributedTemplateProvider:async()=>candidate,
     candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce}),
@@ -341,6 +345,22 @@ test('HPA-W3-31: explicitly accepted upstream result is acknowledged, still not 
   assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
   assert.equal(x.attempts(),1);
+});
+
+test('HPA-W3-55: caller cannot disable durable full-target uncertainty receipts',async()=>{
+  const x=fullTargetReceiptFixture({receiptProtection:false,
+    submitBlock:async()=>{throw new Error('provider_ack_lost')}});
+  assert.equal(x.coordinator.candidateFullTargetReceiptProtection,true);
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  await assert.rejects(x.coordinator.submitShare(input),/provider_ack_lost/);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.attempts(),1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
 });
 
 test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
