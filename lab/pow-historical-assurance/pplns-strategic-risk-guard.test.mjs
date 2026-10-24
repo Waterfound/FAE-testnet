@@ -374,3 +374,34 @@ test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weigh
       {address:honestAddress,weight:'3'}
     ].sort((a,b)=>a.address.localeCompare(b.address)));
 });
+
+test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weights',async()=>{
+  const honestAddress=encodeAddress(Buffer.alloc(20,21),'faet');
+  const attackerAddress=encodeAddress(Buffer.alloc(20,22),'faet');
+  const previous='e'.repeat(64);
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({height:9,tip_hash:previous,difficulty_bits:8}),
+    candidateHasher:async()=>hashHex('unused'),
+    distributedTemplateProvider:async({weights})=>{
+      const payouts=allocatePplnsOutputs(1000n,
+        weights.map(({address,weight})=>({address,weight:BigInt(weight)})));
+      const diverted=[{address:attackerAddress,amount_atoms:'1000'}];
+      return{
+        header:{network:'fairyelf-public-testnet-v4',height:10,previous_hash:previous,
+          difficulty_bits:8,reward_atoms:'1000',fee_atoms:'0',miner_address:attackerAddress,
+          tx_root:hashHex([]),tx_count:0,coinbase_root:hashHex(diverted),
+          coinbase_count:1,coinbase_mode:'pplns-direct'},
+        txids:[],payouts,coinbase_outputs:diverted
+      };
+    }
+  });
+  for(let i=0;i<4;i++)coordinator.ledger.append({
+    jobId:'coinbase-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
+    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
+    previousBlockHash:'d'.repeat(64)
+  });
+  await assert.rejects(coordinator.createWork(honestAddress),
+    error=>error.code==='candidate_pplns_coinbase_binding_mismatch');
+  assert.equal(coordinator.jobs.size,0);
+});
