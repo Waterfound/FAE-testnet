@@ -206,3 +206,19 @@ test('HPA-W2-R8: final dropped count includes a FIFO reacceptance later evicted 
  assert.equal(result.reacceptedRecords.length+result.rejected,3,'final accounting conserves detached records');
  assertPendingIndexes(result.state);
 });
+
+test('HPA-W2-R9: callback cannot omit a recovered detached transaction from its receipt',async t=>{
+ const {candidate,previous}=scenario();
+ const local=createAuthoritativeV4PeerNode({initialState:previous,
+   candidateReorgRecovery:(fork,old)=>{
+     const recovered=recoverDetachedFeeAware(fork,old);
+     return {...recovered,reacceptedRecords:[]};
+   }});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await remote.start();
+ t.after(()=>Promise.all([local.close(),remote.close()]));
+ const before=stableStringify(local.getState());
+ await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_receipt_mismatch/);
+ assert.equal(stableStringify(local.getState()),before,
+   'incomplete detached receipt cannot adopt unrelayed state');
+});

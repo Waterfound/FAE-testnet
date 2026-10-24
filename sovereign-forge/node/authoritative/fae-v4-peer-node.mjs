@@ -212,6 +212,7 @@ export function createAuthoritativeV4PeerNode({
              validated.chain.some((block,i)=>block.hash!==candidate.chain[i].hash))
             throw new Error('candidate_reorg_chain_mutation');
           const inherited=new Set(Object.keys(current.transactions));
+          const detached=new Set([...inherited].filter(txid=>candidate.transactions[txid]===undefined));
           const reacceptedIds=new Set();
           for(const record of reconciled.reacceptedRecords){
             if(!record||typeof record.txid!=='string'||!inherited.has(record.txid)||
@@ -222,6 +223,11 @@ export function createAuthoritativeV4PeerNode({
               throw new Error('candidate_reorg_duplicate_reacceptance');
             reacceptedIds.add(record.txid);
           }
+          const actualReaccepted=[...detached].filter(txid=>validated.transactions[txid]?.status==='pending');
+          if(actualReaccepted.length!==reacceptedIds.size||
+             actualReaccepted.some(txid=>!reacceptedIds.has(txid))||
+             reconciled.rejected!==detached.size-reacceptedIds.size)
+            throw new Error('candidate_reorg_receipt_mismatch');
           reconciled.state=validated;
         }
         const previousState=state;state=reconciled.state;
