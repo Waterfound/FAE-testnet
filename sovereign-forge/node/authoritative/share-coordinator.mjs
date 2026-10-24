@@ -72,6 +72,19 @@ export class ShareCoordinator{
     const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
+    const upstream=await this.upstreamStatus(),upstreamHeight=Number(upstream.height),
+      upstreamTip=String(upstream.tip_hash??upstream.tip??''),
+      upstreamBits=Number(upstream.difficulty_bits??upstream.difficultyBits);
+    const templateMatchesUpstream=upstream.network===this.networkId&&
+      Number.isSafeInteger(upstreamHeight)&&upstreamHeight>=0&&
+      /^[0-9a-f]{64}$/.test(upstreamTip)&&
+      Number.isInteger(upstreamBits)&&upstreamBits>=1&&upstreamBits<=64&&
+      candidate.header?.network===this.networkId&&
+      Number(candidate.header?.height)===upstreamHeight+1&&
+      String(candidate.header?.previous_hash)===upstreamTip&&blockBits===upstreamBits;
+    if(!templateMatchesUpstream)throw Object.assign(
+      new Error('candidate_pplns_template_state_mismatch'),
+      {code:'candidate_pplns_template_state_mismatch'});
     if(!Array.isArray(candidate.payouts)||candidate.payouts.length<1)throw new Error('Distributed template missing payout outputs');
     const subsidy=BigInt(candidate.header.reward_atoms),fees=BigInt(candidate.header.fee_atoms??0),expectedTotal=subsidy+fees,actualTotal=candidate.payouts.reduce((sum,o)=>sum+BigInt(o.amount_atoms),0n);if(actualTotal!==expectedTotal)throw new Error('Distributed payout total does not equal block subsidy plus transaction fees');
     const expectedPayouts=allocatePplnsOutputs(expectedTotal,
