@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 
@@ -110,6 +111,40 @@ test('MTS-12 runner is local-only and does not add telemetry or secret collectio
   assert.match(page,/No telemetry, seed phrase, private key, wallet backup, or reusable secret is collected/);
   const externalUrls=[...page.matchAll(/https:\/\/[^'"]+/g)].map(m=>m[0]);
   assert.deepEqual([...new Set(externalUrls)],['https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/fae-public-testnet-v4']);
+});
+
+test('MTS-12 portable preview is byte-faithful except declared path rewrites',async()=>{
+  const names=['bip39-en.js','network-status.js','core.js','wallet-crypto.js','wallet.js','mining.js','coordinator-trust.js'];
+  for(const name of names){
+    const active=await readFile(new URL('../../../'+name,import.meta.url),'utf8');
+    const portable=await readFile(new URL('../portable-v3/'+name,import.meta.url),'utf8');
+    assert.equal(portable,active,name+' portable bytes must equal active bytes');
+  }
+  const portableMiner=await readFile(new URL('../portable-v3/mining.js',import.meta.url));
+  assert.equal(createHash('sha256').update(portableMiner).digest('hex'),expectedSha);
+
+  const activeIndex=await readFile(new URL('../../../index.html',import.meta.url),'utf8');
+  let expectedIndex=activeIndex;
+  for(const name of names)expectedIndex=expectedIndex.replaceAll('src="/'+name+'"','src="./'+name+'"');
+  const portableIndex=await readFile(new URL('../portable-v3/index.html',import.meta.url),'utf8');
+  assert.equal(portableIndex,expectedIndex);
+
+  let expectedRunner=page
+    .replace("fetch('/mining.js',{cache:'no-store'})","fetch('./mining.js',{cache:'no-store'})")
+    .replace("const url=new URL('/',location.origin);","const url=new URL('./index.html',location.href);")
+    .replace('<!-- MTS-12 host generation: top-level-tabs-v3-lifecycle-metric -->','<!-- MTS-12 host generation: portable-rawcdn-v3-lifecycle-metric -->');
+  const portableRunner=await readFile(new URL('../portable-v3/mts-12-ipad-acceptance.html',import.meta.url),'utf8');
+  assert.equal(portableRunner,expectedRunner);
+  assert.doesNotMatch(portableRunner,/<iframe\\b/i);
+  assert.equal(portableRunner.includes('FAE_MTS_12_PHYSICAL_IPAD_EVIDENCE_V3'),true);
+  assert.equal(portableRunner.includes('resume_probe'),false);
+});
+
+test('MTS-12 portable preview manifest denies runtime authority',async()=>{
+  const manifest=JSON.parse(await readFile(new URL('../portable-v3/manifest.json',import.meta.url),'utf8'));
+  assert.equal(manifest.schema,'FAE_MTS_12_PORTABLE_PREVIEW_V1');
+  assert.equal(manifest.protected_miner_sha256,expectedSha);
+  assert.equal(manifest.active_runtime_changed,false);
 });
 
 test('MTS-12 completion cannot be claimed without physical iPad evidence',()=>{
