@@ -34,7 +34,8 @@ export function recoverDetachedFeeAware(candidate,previous,{maxAttempts=256}={})
   for(let round=0;round<maxAttempts&&pending.length;round++){
     let advanced=false,next=[];
     for(const record of pending){
-      if(attempted++>=maxAttempts){next.push(record);continue}
+      if(attempted>=maxAttempts){next.push(record);continue}
+      attempted++;
       try{
         const trial=simulateFeeAwareAdmission(state,normalizeTx(record));
         state=trial.state;
