@@ -1,0 +1,20 @@
+{
+  "name": "@fairyelf/red-team-learning-system",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Non-authoritative, reproducible adversarial learning system for FAE research",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "fae-red-team": "./src/cli.mjs"
+  },
+  "scripts": {
+    "check": "node scripts/check-syntax.mjs",
+    "test": "node --test test/*.test.mjs",
+    "meta": "node src/cli.mjs meta --root .",
+    "verify": "npm run check && npm test && npm run meta",
+    "campaign:smoke": "node scripts/run-smoke-campaign.mjs"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "fae.red-team.transfer-map.v0.0.1",
+  "map_id": "fae-cross-domain-v0.0.1",
+  "primitives": [
+    {
+      "id": "boundary-confusion",
+      "source_domains": ["activation", "difficulty_timestamp"],
+      "target_domains": ["consensus", "coordinator", "wallet_client"],
+      "operators": ["minus-one", "exact-boundary", "plus-one", "stale-policy"]
+    },
+    {
+      "id": "identity-substitution",
+      "source_domains": ["p2p", "coordinator"],
+      "target_domains": ["release_integrity", "wallet_client"],
+      "operators": ["key-swap", "descriptor-replay", "context-rebinding"]
+    },
+    {
+      "id": "rollback-replay",
+      "source_domains": ["persistence", "consensus"],
+      "target_domains": ["coordinator", "wallet_client"],
+      "operators": ["crash-before-commit", "crash-after-commit", "duplicate-delivery"]
+    },
+    {
+      "id": "parser-differential",
+      "source_domains": ["consensus"],
+      "target_domains": ["p2p", "release_integrity"],
+      "operators": ["key-order", "integer-boundary", "duplicate-field", "unicode-normalization"]
+    },
+    {
+      "id": "resource-pressure",
+      "source_domains": ["p2p", "availability"],
+      "target_domains": ["coordinator", "wallet_client", "persistence"],
+      "operators": ["oversized-output", "timeout", "fanout", "queue-saturation"]
+    }
+  ]
+}

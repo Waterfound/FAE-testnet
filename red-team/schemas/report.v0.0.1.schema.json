@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fairyelf.invalid/schemas/red-team/report.v0.0.1.schema.json",
+  "title": "FAE Red Team run report v0.0.1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "engine_version",
+    "run_id",
+    "lock_digest",
+    "started_at",
+    "completed_at",
+    "target",
+    "authority_boundary",
+    "blind",
+    "results",
+    "score",
+    "report_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "fae.red-team.report.v0.0.1"},
+    "engine_version": {"const": "0.0.1"},
+    "run_id": {"type": "string", "pattern": "^[a-f0-9]{24}$"},
+    "lock_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "blind": {
+      "type": "object",
+      "required": ["expected_answers_available_to_runner"],
+      "properties": {
+        "expected_answers_available_to_runner": {"const": false}
+      }
+    },
+    "results": {"type": "array"},
+    "score": {
+      "type": "object",
+      "required": ["gate", "total", "components", "counts"],
+      "properties": {
+        "gate": {"enum": ["HOLD", "COLLAPSE", "INVALID"]},
+        "total": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "report_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

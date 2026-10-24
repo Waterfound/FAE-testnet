@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fairyelf.invalid/schemas/red-team/learning-proposal.v0.0.1.schema.json",
+  "title": "FAE Red Team learning proposal v0.0.1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "source",
+    "classification",
+    "evidence",
+    "reproducibility",
+    "automatic_promotion",
+    "proposal_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "fae.red-team.learning-proposal.v0.0.1"},
+    "status": {"const": "proposed"},
+    "source": {
+      "type": "object",
+      "required": ["blind_status"],
+      "properties": {
+        "blind_status": {"enum": ["active", "not-blind", "retired"]}
+      }
+    },
+    "automatic_promotion": {"const": false},
+    "proposal_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

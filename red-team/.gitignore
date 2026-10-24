@@ -1,0 +1,9 @@
+state/
+reports/
+holdout/private/
+*.holdout.json
+*.holdout.jsonl
+*.holdout.key
+*.pem
+*.log
+*.tmp
