@@ -363,6 +363,24 @@ test('HPA-W3-55: caller cannot disable durable full-target uncertainty receipts'
   assert.equal(x.coordinator.ledger.summary().totalShares,1);
 });
 
+test('HPA-W3-57: runtime property mutation cannot disable full-target uncertainty receipts',async()=>{
+  const x=fullTargetReceiptFixture({
+    submitBlock:async()=>{throw new Error('provider_ack_lost_after_mutation')}
+  });
+  assert.throws(()=>{x.coordinator.candidateFullTargetReceiptProtection=false},TypeError);
+  assert.equal(x.coordinator.candidateFullTargetReceiptProtection,true);
+  const work=await x.coordinator.createWork(x.address);
+  const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+  await assert.rejects(x.coordinator.submitShare(input),/provider_ack_lost_after_mutation/);
+  assert.equal(x.coordinator.fullTargetReceipt(input).status,'submission_outcome_unknown');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1);
+  await assert.rejects(x.coordinator.submitShare(input),
+    e=>e.code==='candidate_full_target_submission_requires_reconciliation');
+  assert.equal(x.attempts(),1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+});
+
 test('HPA-W3-56: cold restart cannot bypass unresolved full-target receipt capacity',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'fae-hpa-fulltarget-capacity-restart-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
