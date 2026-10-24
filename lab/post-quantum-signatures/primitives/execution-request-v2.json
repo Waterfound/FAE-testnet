@@ -1,0 +1,14 @@
+{
+  "schema": "FAE_PQ_WAVE_D_EXECUTION_REQUEST_V2",
+  "state": "REQUESTED",
+  "requested_at": "2026-09-18",
+  "source_revision": "c74a8fbebdcf40ad81cb5d70942f7be898d48708",
+  "executor": ".github/workflows/pq-lab-standards.yml",
+  "requested_gates": ["PQ-03", "PQ-04"],
+  "frozen_matrix": "lab/post-quantum-signatures/primitives/manifest.json",
+  "failure_ledger": "lab/post-quantum-signatures/primitives/failure-ledger.json",
+  "circl_adapter": "lab/post-quantum-signatures/primitives/circl-modern-acvp-template.go",
+  "authority": "RESEARCH_SHADOW_ONLY",
+  "activation_authorized": false,
+  "rule": "No test selection or expected result changes are authorized by this execution request."
+}
