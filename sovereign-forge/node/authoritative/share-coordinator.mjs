@@ -63,10 +63,12 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 }
 
 export class ShareCoordinator{
+  #fullTargetReceipts=new Map();
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.fullTargetReceipts=new Map();this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
   }
+  get fullTargetReceipts(){return new Map([...this.#fullTargetReceipts].map(([key,receipt])=>[key,structuredClone(receipt)]))}
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
   async descriptor({lifetimeMs=15*60_000}={}){
@@ -129,7 +131,7 @@ export class ShareCoordinator{
   }
   fullTargetReceipt({jobId,nonce}={}){
     const key=String(jobId)+':'+String(nonce);
-    const receipt=this.fullTargetReceipts.get(key);
+    const receipt=this.#fullTargetReceipts.get(key);
     if(receipt)return structuredClone(receipt);
     // Candidate-only crash reconciliation: persisted ShareLedger proves that
     // this exact proof was credited once, but never proves node inclusion.
@@ -149,10 +151,10 @@ export class ShareCoordinator{
     for(const entry of this.ledger.shares){
       if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)continue;
       const key=String(entry.jobId)+':'+String(entry.nonce);
-      if(this.fullTargetReceipts.get(key)?.status!=='acknowledged_not_confirmed')
+      if(this.#fullTargetReceipts.get(key)?.status!=='acknowledged_not_confirmed')
         unresolved.add(key);
     }
-    for(const [key,receipt] of this.fullTargetReceipts)
+    for(const [key,receipt] of this.#fullTargetReceipts)
       if(receipt.status!=='acknowledged_not_confirmed')unresolved.add(key);
     return unresolved.size;
   }
@@ -183,11 +185,11 @@ export class ShareCoordinator{
       if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       // Do not credit a share when its dedupe/recovery receipt cannot fit.
       // No automatic eviction of unknown receipts.
-      if(this.fullTargetReceipts.size>=MAX_JOBS){
-        for(const [key,old] of this.fullTargetReceipts){
+      if(this.#fullTargetReceipts.size>=MAX_JOBS){
+        for(const [key,old] of this.#fullTargetReceipts){
           if(old.status==='acknowledged_not_confirmed'){
-            this.fullTargetReceipts.delete(key);
-            if(this.fullTargetReceipts.size<MAX_JOBS)break;
+            this.#fullTargetReceipts.delete(key);
+            if(this.#fullTargetReceipts.size<MAX_JOBS)break;
           }
         }
       }
@@ -195,7 +197,7 @@ export class ShareCoordinator{
         throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
     }
     const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
-    if(fullTarget)this.fullTargetReceipts.set(receiptKey,{
+    if(fullTarget)this.#fullTargetReceipts.set(receiptKey,{
       jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
       status:'submission_in_flight',attempts:1
     });
@@ -204,7 +206,7 @@ export class ShareCoordinator{
       if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       try{
         block=await this.blockSubmitter({...job.candidate,nonce,hash});
-        const receipt=this.fullTargetReceipts.get(receiptKey);
+        const receipt=this.#fullTargetReceipts.get(receiptKey);
         // A resolved Promise is not a signed block acceptance, and even
         // a negative provider ACK is not proof of chain non-inclusion.
         if(!block||typeof block!=='object'||
@@ -222,7 +224,7 @@ export class ShareCoordinator{
         receipt.status='acknowledged_not_confirmed';
         this.jobs.clear();
       }catch(error){
-        const receipt=this.fullTargetReceipts.get(receiptKey);
+        const receipt=this.#fullTargetReceipts.get(receiptKey);
         if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';
         throw error;
       }

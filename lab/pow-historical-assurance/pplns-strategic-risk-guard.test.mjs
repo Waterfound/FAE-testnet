@@ -279,31 +279,42 @@ test('HPA-W3-22: cold restart replays a durable full-target share but never assu
 });
 
 test('HPA-W3-23: receipt capacity with 1024 unknown blocks fails closed before share credit',async()=>{
-  const x=fullTargetReceiptFixture();
+  const x=fullTargetReceiptFixture({
+    submitBlock:async()=>{throw new Error('capacity_seed_ack_unknown')}
+  });
+  for(let i=0;i<1024;i++){
+    const seedWork=await x.coordinator.createWork(x.address);
+    await assert.rejects(x.coordinator.submitShare({
+      jobId:seedWork.jobId,nonce:x.nonce,hash:x.hash
+    }),/capacity_seed_ack_unknown/);
+  }
   const work=await x.coordinator.createWork(x.address);
-  for(let i=0;i<1024;i++)x.coordinator.fullTargetReceipts.set('unknown-'+i,{
-    status:'submission_outcome_unknown',hash:'a'.repeat(64),attempts:1});
   await assert.rejects(x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
     e=>e.code==='candidate_full_target_receipt_capacity');
-  assert.equal(x.coordinator.ledger.summary().totalShares,0);
-  assert.equal(x.attempts(),0);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1024);
+  assert.equal(x.attempts(),1024);
   assert.equal(x.coordinator.fullTargetReceipts.size,1024);
 });
 test('HPA-W3-24: acknowledged receipts can be compacted without losing exact share replay protection',async()=>{
   const x=fullTargetReceiptFixture();
+  for(let i=0;i<1024;i++){
+    const seedWork=await x.coordinator.createWork(x.address);
+    const seedResult=await x.coordinator.submitShare({
+      jobId:seedWork.jobId,nonce:x.nonce,hash:x.hash
+    });
+    assert.equal(seedResult.accepted,true);
+  }
   const work=await x.coordinator.createWork(x.address);
-  for(let i=0;i<1024;i++)x.coordinator.fullTargetReceipts.set('ack-'+i,{
-    status:'acknowledged_not_confirmed',hash:'a'.repeat(64),attempts:1});
   const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
   const result=await x.coordinator.submitShare(input);
   assert.equal(result.accepted,true);
-  assert.equal(x.attempts(),1);
-  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.attempts(),1025);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1025);
   assert.ok(x.coordinator.fullTargetReceipts.size<=1024);
   assert.equal(x.coordinator.fullTargetReceipt(input).status,'acknowledged_not_confirmed');
   await assert.rejects(x.coordinator.submitShare(input),
     e=>e.code==='candidate_full_target_submission_requires_reconciliation');
-  assert.equal(x.coordinator.ledger.summary().totalShares,1);
+  assert.equal(x.coordinator.ledger.summary().totalShares,1025);
 });
 
 test('HPA-W3-29: explicit negative provider block ACK never masquerades as confirmed submission',async()=>{
@@ -394,6 +405,33 @@ test('HPA-W3-56: cold restart cannot bypass unresolved full-target receipt capac
   });
   const x=fullTargetReceiptFixture({logFile});
   assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),1024);
+  const work=await x.coordinator.createWork(x.address);
+  await assert.rejects(
+    x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
+    e=>e.code==='candidate_full_target_receipt_capacity');
+  assert.equal(x.coordinator.ledger.summary().totalShares,1024);
+  assert.equal(x.attempts(),0);
+});
+
+test('HPA-W3-58: external receipt-map mutation cannot forge reconciliation or bypass capacity',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-fulltarget-receipt-store-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const address=encodeAddress(Buffer.alloc(20,16),'faet');
+  const seed=new ShareLedger({logFile});
+  for(let i=0;i<1024;i++)seed.append({
+    jobId:'persisted-unknown-'+i,address,nonce:i,hash:'0'.repeat(64),
+    shareDifficultyBits:4,blockDifficultyBits:8,height:99,
+    previousBlockHash:'c'.repeat(64)
+  });
+  const x=fullTargetReceiptFixture({logFile});
+  assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),1024);
+  const externallyVisible=x.coordinator.fullTargetReceipts;
+  for(let i=0;i<1024;i++)externallyVisible.set('persisted-unknown-'+i+':'+i,{
+    status:'acknowledged_not_confirmed',hash:'0'.repeat(64),attempts:1
+  });
+  assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),1024,
+    'caller-owned map mutations must not reclassify durable unknown outcomes');
   const work=await x.coordinator.createWork(x.address);
   await assert.rejects(
     x.coordinator.submitShare({jobId:work.jobId,nonce:x.nonce,hash:x.hash}),
