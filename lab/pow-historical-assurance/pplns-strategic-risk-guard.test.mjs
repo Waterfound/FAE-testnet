@@ -490,13 +490,21 @@ test('HPA-W3-60: compacted acknowledgments become unknown after cold restart and
   assert.equal(fresh.attempts(),0);
 });
 
-test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
+test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async t=>{
   const honestAddress=encodeAddress(Buffer.alloc(20,17),'faet');
   const attackerAddress=encodeAddress(Buffer.alloc(20,18),'faet');
   const previous='d'.repeat(64);
   const diverted=[{address:attackerAddress,amount_atoms:'1000'}];
+  const dir=await mkdtemp(join(tmpdir(),'fae-pplns-seed-')),logFile=join(dir,'shares.log');
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const seed=new ShareLedger({logFile});
+  for(let i=0;i<4;i++)seed.append({
+    jobId:'payout-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
+    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
+    previousBlockHash:'c'.repeat(64)
+  });
   const coordinator=new ShareCoordinator({
-    multiOutputCoinbaseActive:true,
+    logFile,multiOutputCoinbaseActive:true,
     statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,tip_hash:previous,difficulty_bits:8}),
     candidateHasher:async()=>hashHex('unused'),
     distributedTemplateProvider:async()=>({
@@ -506,11 +514,6 @@ test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weigh
         coinbase_count:1,coinbase_mode:'pplns-direct'},
       txids:[],payouts:diverted,coinbase_outputs:diverted
     })
-  });
-  for(let i=0;i<4;i++)coordinator.ledger.append({
-    jobId:'payout-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
-    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
-    previousBlockHash:'c'.repeat(64)
   });
   await assert.rejects(coordinator.createWork(honestAddress),
     error=>error.code==='candidate_pplns_payout_weight_mismatch');
@@ -522,12 +525,20 @@ test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weigh
     ].sort((a,b)=>a.address.localeCompare(b.address)));
 });
 
-test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weights',async()=>{
+test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weights',async t=>{
   const honestAddress=encodeAddress(Buffer.alloc(20,21),'faet');
   const attackerAddress=encodeAddress(Buffer.alloc(20,22),'faet');
   const previous='e'.repeat(64);
+  const dir=await mkdtemp(join(tmpdir(),'fae-pplns-seed-')),logFile=join(dir,'shares.log');
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const seed=new ShareLedger({logFile});
+  for(let i=0;i<4;i++)seed.append({
+    jobId:'coinbase-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
+    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
+    previousBlockHash:'d'.repeat(64)
+  });
   const coordinator=new ShareCoordinator({
-    multiOutputCoinbaseActive:true,
+    logFile,multiOutputCoinbaseActive:true,
     statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:9,tip_hash:previous,difficulty_bits:8}),
     candidateHasher:async()=>hashHex('unused'),
     distributedTemplateProvider:async({weights})=>{
@@ -542,11 +553,6 @@ test('HPA-W3-52: payout aliases and header commitment cannot bypass ledger weigh
         txids:[],payouts,coinbase_outputs:diverted
       };
     }
-  });
-  for(let i=0;i<4;i++)coordinator.ledger.append({
-    jobId:'coinbase-seed-'+i,address:i===0?attackerAddress:honestAddress,nonce:i,
-    hash:'0'.repeat(64),shareDifficultyBits:4,blockDifficultyBits:8,height:9,
-    previousBlockHash:'d'.repeat(64)
   });
   await assert.rejects(coordinator.createWork(honestAddress),
     error=>error.code==='candidate_pplns_coinbase_binding_mismatch');
@@ -606,4 +612,35 @@ test('HPA-W3-54: share submission rejects upstream difficulty drift without a ti
     /Stale share job after upstream state change/);
   assert.equal(coordinator.jobs.has(work.jobId),false);
   assert.equal(coordinator.ledger.summary().totalShares,0);
+});
+
+test('HPA-W3-61: coordinator ledger exposure cannot erase dedupe and double-credit one share proof',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,29),'faet'),previous='8'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
+    difficulty_bits:18,reward_atoms:'1000000000',miner_address:address,
+    timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
+    coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,
+      tip_hash:previous,difficulty_bits:18}),
+    distributedTemplateProvider:async()=>candidate,
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
+  });
+  const work=await coordinator.createWork(address);
+  let nonce=0,hash='';
+  for(;nonce<2_000_000;nonce++){
+    hash=hashHex({...header,nonce});
+    const bits=leadingZeroBits(hash);
+    if(bits>=work.targetDifficultyBits&&bits<header.difficulty_bits)break;
+  }
+  assert.ok(nonce<2_000_000,'find a valid non-block share in bounded lab');
+  await coordinator.submitShare({jobId:work.jobId,nonce,hash});
+  assert.equal(coordinator.ledger.summary().totalShares,1);
+  assert.equal(coordinator.ledger.seen.delete(`${work.jobId}:${nonce}`),true,
+    'adversary must reach the predecessor dedupe store');
+  await assert.rejects(coordinator.submitShare({jobId:work.jobId,nonce,hash}),/Duplicate share/);
+  assert.equal(coordinator.ledger.summary().totalShares,1,
+    'one proof identity must retain exactly one payout weight');
 });

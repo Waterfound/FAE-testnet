@@ -65,24 +65,35 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 export class ShareCoordinator{
   #fullTargetReceipts=new Map();
   #startupLedgerShares=0;
+  #ledger;
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
+  }
+  get ledger(){
+    const source=this.#ledger;
+    return Object.freeze({
+      logFile:source.logFile,windowSize:source.windowSize,lastHash:source.lastHash,
+      shares:Object.freeze(structuredClone(source.shares)),seen:new Set(source.seen),
+      window:()=>structuredClone(source.window()),
+      weights:fallback=>source.weights(fallback).map(entry=>({...entry})),
+      summary:()=>structuredClone(source.summary())
+    });
   }
   get fullTargetReceipts(){return new Map([...this.#fullTargetReceipts].map(([key,receipt])=>[key,structuredClone(receipt)]))}
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
   async descriptor({lifetimeMs=15*60_000}={}){
     if(!this.publicUrl)throw new Error('Coordinator public URL is not configured');const upstream=await this.upstreamStatus();const issuedAt=new Date().toISOString(),validUntil=new Date(Date.now()+Math.max(60_000,Math.min(24*60*60_000,lifetimeMs))).toISOString();
-    return signEnvelope(this.identity,'coordinator-descriptor',{descriptorVersion:1,type:'fairyelf-share-coordinator',coordinatorId:this.identity.id,network:this.networkId,endpoint:this.publicUrl,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,windowSize:this.ledger.windowSize,shareDifficultyDelta:this.shareDifficultyDelta,upstreamNodeIdentity:upstream.node_identity??upstream.nodeIdentity??null,issuedAt,validUntil});
+    return signEnvelope(this.identity,'coordinator-descriptor',{descriptorVersion:1,type:'fairyelf-share-coordinator',coordinatorId:this.identity.id,network:this.networkId,endpoint:this.publicUrl,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,windowSize:this.#ledger.windowSize,shareDifficultyDelta:this.shareDifficultyDelta,upstreamNodeIdentity:upstream.node_identity??upstream.nodeIdentity??null,issuedAt,validUntil});
   }
-  async status(){const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.jobs.size,...this.ledger.summary()}}
+  async status(){const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.jobs.size,...this.#ledger.summary()}}
   async createWork(address){
     if(!isValidAddress(address,this.addressHrp))throw new Error('Invalid mining address');
     if(!this.multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
     if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
     this.pruneJobs();
-    const ledgerState=this.ledger.summary(),weights=this.ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
+    const ledgerState=this.#ledger.summary(),weights=this.#ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
     const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     const upstream=await this.upstreamStatus(),upstreamHeight=Number(upstream.height),
@@ -136,9 +147,9 @@ export class ShareCoordinator{
     if(receipt)return structuredClone(receipt);
     // Candidate-only crash reconciliation: persisted ShareLedger proves that
     // this exact proof was credited once, but never proves node inclusion.
-    if(!this.ledger.seen.has(key))return null;
-    for(let i=this.ledger.shares.length-1;i>=0;i--){
-      const entry=this.ledger.shares[i];
+    if(!this.#ledger.seen.has(key))return null;
+    for(let i=this.#ledger.shares.length-1;i>=0;i--){
+      const entry=this.#ledger.shares[i];
       if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
       if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)return null;
       return {jobId,nonce,hash:entry.hash,shareSeq:entry.seq,
@@ -151,8 +162,8 @@ export class ShareCoordinator{
   }
   unresolvedFullTargetReceiptCount(){
     const unresolved=new Set();
-    for(let index=0;index<this.ledger.shares.length;index++){
-      const entry=this.ledger.shares[index];
+    for(let index=0;index<this.#ledger.shares.length;index++){
+      const entry=this.#ledger.shares[index];
       if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)continue;
       const key=String(entry.jobId)+':'+String(entry.nonce);
       const receipt=this.#fullTargetReceipts.get(key);
@@ -202,7 +213,7 @@ export class ShareCoordinator{
       if(this.unresolvedFullTargetReceiptCount()>=MAX_JOBS)
         throw Object.assign(new Error('candidate_full_target_receipt_capacity'),{code:'candidate_full_target_receipt_capacity'});
     }
-    const entry=this.ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
+    const entry=this.#ledger.append({jobId,address:job.address,nonce,hash,shareDifficultyBits:job.shareDifficultyBits,blockDifficultyBits:Number(job.candidate.header.difficulty_bits),height:Number(job.candidate.header.height),previousBlockHash:job.candidate.header.previous_hash});
     if(fullTarget)this.#fullTargetReceipts.set(receiptKey,{
       jobId,nonce,hash,shareSeq:entry.seq,entryHash:entry.entryHash,
       status:'submission_in_flight',attempts:1
