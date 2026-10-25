@@ -64,9 +64,10 @@ export function allocatePplnsOutputs(totalRewardAtoms,weights){
 
 export class ShareCoordinator{
   #fullTargetReceipts=new Map();
+  #startupLedgerShares=0;
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
   }
   get fullTargetReceipts(){return new Map([...this.#fullTargetReceipts].map(([key,receipt])=>[key,structuredClone(receipt)]))}
   pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
@@ -141,17 +142,22 @@ export class ShareCoordinator{
       if(entry.jobId!==jobId||entry.nonce!==nonce)continue;
       if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)return null;
       return {jobId,nonce,hash:entry.hash,shareSeq:entry.seq,
-        entryHash:entry.entryHash,status:'submission_outcome_unknown_after_restart',
+        entryHash:entry.entryHash,status:entry.seq<=this.#startupLedgerShares?
+          'submission_outcome_unknown_after_restart':
+          'acknowledged_not_confirmed_compacted',
         attempts:1};
     }
     return null;
   }
   unresolvedFullTargetReceiptCount(){
     const unresolved=new Set();
-    for(const entry of this.ledger.shares){
+    for(let index=0;index<this.ledger.shares.length;index++){
+      const entry=this.ledger.shares[index];
       if(leadingZeroBits(entry.hash)<entry.blockDifficultyBits)continue;
       const key=String(entry.jobId)+':'+String(entry.nonce);
-      if(this.#fullTargetReceipts.get(key)?.status!=='acknowledged_not_confirmed')
+      const receipt=this.#fullTargetReceipts.get(key);
+      if(receipt?.status!=='acknowledged_not_confirmed'&&
+         (receipt!==undefined||index<this.#startupLedgerShares))
         unresolved.add(key);
     }
     for(const [key,receipt] of this.#fullTargetReceipts)

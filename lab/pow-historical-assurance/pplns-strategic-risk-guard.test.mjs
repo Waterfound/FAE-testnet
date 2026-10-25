@@ -440,6 +440,26 @@ test('HPA-W3-58: external receipt-map mutation cannot forge reconciliation or by
   assert.equal(x.attempts(),0);
 });
 
+test('HPA-W3-59: acknowledged receipt compaction cannot manufacture an unresolved-capacity deadlock',async()=>{
+  const x=fullTargetReceiptFixture();
+  let firstInput=null;
+  for(let i=0;i<2049;i++){
+    const work=await x.coordinator.createWork(x.address);
+    const input={
+      jobId:work.jobId,nonce:x.nonce,hash:x.hash
+    };
+    firstInput??=input;
+    const result=await x.coordinator.submitShare(input);
+    assert.equal(result.accepted,true);
+  }
+  assert.equal(x.attempts(),2049);
+  assert.equal(x.coordinator.ledger.summary().totalShares,2049);
+  assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),0);
+  assert.ok(x.coordinator.fullTargetReceipts.size<=1024);
+  assert.equal(x.coordinator.fullTargetReceipt(firstInput).status,
+    'acknowledged_not_confirmed_compacted');
+});
+
 test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
   const honestAddress=encodeAddress(Buffer.alloc(20,17),'faet');
   const attackerAddress=encodeAddress(Buffer.alloc(20,18),'faet');
