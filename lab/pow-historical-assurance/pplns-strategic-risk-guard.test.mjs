@@ -675,3 +675,25 @@ test('HPA-W3-62: coordinator job exposure cannot lower proof target and mint pay
   assert.equal(coordinator.ledger.summary().totalShares,0,
     'proof below the issued target must not gain payout weight');
 });
+
+test('HPA-W3-63: caller cannot forge multi-output activation and request PPLNS work',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,31),'faet'),previous='a'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
+    difficulty_bits:18,reward_atoms:'1000000000',miner_address:address,
+    timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const payouts=[{address,amount_atoms:'1000000000'}];
+  let templateRequests=0;
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:false,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,
+      tip_hash:previous,difficulty_bits:18}),
+    distributedTemplateProvider:async()=>{templateRequests++;return{
+      header,txids:[],payouts,coinbase_outputs:payouts};},
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
+  });
+  try{coordinator.multiOutputCoinbaseActive=true}catch{}
+  await assert.rejects(coordinator.createWork(address),/activation required/);
+  assert.equal(coordinator.multiOutputCoinbaseActive,false,
+    'activation state must remain owner-bound and read-only to callers');
+  assert.equal(templateRequests,0,'forged activation must fail before template issuance');
+});

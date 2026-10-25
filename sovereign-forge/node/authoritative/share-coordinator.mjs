@@ -67,10 +67,15 @@ export class ShareCoordinator{
   #startupLedgerShares=0;
   #ledger;
   #jobs=new Map();
-  constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
+  #multiOutputCoinbaseActive=false;
+  #activationProvider=null;
+  constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,activationProvider=null,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});
+    if(activationProvider!==null&&typeof activationProvider!=='function')throw new Error('Coordinator activation provider must be a function');
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.#multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.#activationProvider=activationProvider;this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});
   }
+  get multiOutputCoinbaseActive(){return this.#multiOutputCoinbaseActive}
+  async #refreshActivation(){if(this.#activationProvider)this.#multiOutputCoinbaseActive=Boolean(await this.#activationProvider());return this.#multiOutputCoinbaseActive}
   get ledger(){
     const source=this.#ledger;
     return Object.freeze({
@@ -89,10 +94,11 @@ export class ShareCoordinator{
     if(!this.publicUrl)throw new Error('Coordinator public URL is not configured');const upstream=await this.upstreamStatus();const issuedAt=new Date().toISOString(),validUntil=new Date(Date.now()+Math.max(60_000,Math.min(24*60*60_000,lifetimeMs))).toISOString();
     return signEnvelope(this.identity,'coordinator-descriptor',{descriptorVersion:1,type:'fairyelf-share-coordinator',coordinatorId:this.identity.id,network:this.networkId,endpoint:this.publicUrl,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,windowSize:this.#ledger.windowSize,shareDifficultyDelta:this.shareDifficultyDelta,upstreamNodeIdentity:upstream.node_identity??upstream.nodeIdentity??null,issuedAt,validUntil});
   }
-  async status(){const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.#jobs.size,...this.#ledger.summary()}}
+  async status(){await this.#refreshActivation();const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.#multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.#jobs.size,...this.#ledger.summary()}}
   async createWork(address){
     if(!isValidAddress(address,this.addressHrp))throw new Error('Invalid mining address');
-    if(!this.multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
+    await this.#refreshActivation();
+    if(!this.#multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
     if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
     this.pruneJobs();
     const ledgerState=this.#ledger.summary(),weights=this.#ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);

@@ -78,11 +78,6 @@ export class AuthoritativePplnsHttpAdapter{
   }
   async createCoordinator(options={}){
     const adapter=this;
-    class LiveAuthoritativeCoordinator extends ShareCoordinator{
-      async refreshActivation(){this.multiOutputCoinbaseActive=await adapter.activationReady();return this.multiOutputCoinbaseActive}
-      async status(){await this.refreshActivation();return super.status()}
-      async createWork(address){await this.refreshActivation();return super.createWork(address)}
-    }
-    return new LiveAuthoritativeCoordinator({...options,networkId:this.networkId,statusProvider:()=>adapter.status(),distributedTemplateProvider:args=>adapter.distributedTemplate(args),blockSubmitter:solution=>adapter.submitBlock(solution),candidateHasher:(candidate,nonce)=>adapter.hashCandidate(candidate,nonce)});
+    return new ShareCoordinator({...options,networkId:this.networkId,activationProvider:()=>adapter.activationReady(),statusProvider:()=>adapter.status(),distributedTemplateProvider:args=>adapter.distributedTemplate(args),blockSubmitter:solution=>adapter.submitBlock(solution),candidateHasher:(candidate,nonce)=>adapter.hashCandidate(candidate,nonce)});
   }
 }
