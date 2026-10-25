@@ -1,0 +1,305 @@
+/**
+ * HPA-UC-001 / Element 2: ISOLATED fee-aware package-admission research.
+ *
+ * Runs entirely against a cloned FAE state. This is NOT a production mempool
+ * policy, consensus rule, relay handler, block-template selector or deployment.
+ * Fee/size comparison is a bounded research policy, pending final fee economics.
+ */
+import {acceptTxInto,cloneState,MAX_MEMPOOL_TXS,MAX_TXS_PER_BLOCK,normalizeTx,verifyTxCrypto} from '../../sovereign-forge/node/authoritative/fae-v4-core.mjs';
+import {stableStringify} from '../../sovereign-forge/node/authoritative/canonical.mjs';
+
+const fail=(code)=>{throw Object.assign(new Error(code),{code})};
+const sizeOf=(rec)=>Buffer.byteLength(stableStringify(normalizeTx(rec)),'utf8');
+const positivePendingAtoms=(amount,kind)=>{
+  if(typeof amount!=='string'||!/^\d+$/.test(amount)||BigInt(amount)<=0n)
+    fail('invalid_pending_'+kind+'_amount');
+  return BigInt(amount);
+};
+const assertSignedPendingRecord=(rec)=>{
+  // An internally consistent fee/index snapshot need not be an authentic
+  // signed transaction. Verify cryptographic identity before emitting a
+  // template or committing an eviction; authoritative replay still governs
+  // final node admission and block consensus.
+  const checked=verifyTxCrypto(normalizeTx(rec));
+  if(!checked.ok||checked.txid!==rec.txid||checked.from!==rec.from_address)
+    fail('invalid_pending_signed_record');
+};
+const validFee=(rec)=>{
+  if(rec?.status!=='pending'||typeof rec.fee_atoms!=='string'||!/^\d+$/.test(rec.fee_atoms))fail('invalid_pending_fee');
+  return BigInt(rec.fee_atoms);
+};
+
+/** Fail closed on an inconsistent source snapshot; never repair silently. */
+export function assertPendingIndexes(state,{cap=MAX_MEMPOOL_TXS}={}){
+  if(!Number.isSafeInteger(cap)||cap<1||cap>MAX_MEMPOOL_TXS)fail('invalid_cap');
+  if(!Array.isArray(state.mempoolOrder)||state.mempoolOrder.length>cap)fail('invalid_mempool_order');
+  const active=new Set(state.mempoolOrder);
+  if(active.size!==state.mempoolOrder.length)fail('duplicate_mempool_order');
+  for(const txid of active){
+    const rec=state.transactions[txid];
+    if(!rec||rec.txid!==txid||rec.status!=='pending')fail('invalid_pending_record');
+    const declaredFee=validFee(rec);
+    let inputAtoms=0n,outputAtoms=0n;
+    const uniqueInputs=new Set();
+    for(const input of rec.inputs){
+      // A corrupt pending record must not count the same source value twice.
+      // Reservation indexes are keyed by outpoint and cannot reveal this alone.
+      if(uniqueInputs.has(input))fail('duplicate_pending_input');
+      uniqueInputs.add(input);
+      if(state.mempoolSpends[input]!==txid)fail('missing_input_reservation');
+      const confirmed=state.utxos[input];
+      const source=confirmed&&!confirmed.spent?confirmed:state.mempoolOutputs[input];
+      if(!source)fail('missing_input_source');
+      if(source.address!==rec.from_address)fail('invalid_pending_input_owner');
+      inputAtoms+=positivePendingAtoms(source.amount_atoms,'input');
+    }
+    for(const output of rec.outputs)outputAtoms+=positivePendingAtoms(output.amount_atoms,'output');
+    if(inputAtoms<outputAtoms||inputAtoms-outputAtoms!==declaredFee)fail('pending_fee_mismatch');
+    for(let j=0;j<rec.outputs.length;j++){
+      const outpoint=txid+':'+j, indexed=state.mempoolOutputs[outpoint];
+      if(!indexed||indexed.txid!==txid||indexed.address!==rec.outputs[j].address)fail('missing_pending_output');
+      positivePendingAtoms(indexed.amount_atoms,'indexed_output');
+      if(indexed.amount_atoms!==rec.outputs[j].amount_atoms)fail('missing_pending_output');
+    }
+  }
+  for(const [outpoint,id] of Object.entries(state.mempoolSpends)){
+    if(!active.has(id)||!state.transactions[id].inputs.includes(outpoint))fail('orphan_reserved_input');
+  }
+  for(const [outpoint,output] of Object.entries(state.mempoolOutputs)){
+    if(!active.has(output.txid)||!state.transactions[output.txid].outputs[output.output_index]||outpoint!==output.txid+':'+output.output_index)fail('orphan_pending_output');
+  }
+  return true;
+}
+// Deterministic source-candidate evaluation budget: this counts graph visits,
+// not milliseconds, and never asserts an unmeasured real-world CPU ceiling.
+// Full-pool capacity, individual transaction bytes and chain depth remain source-bounded.
+const DEFAULT_EVALUATION_VISITS=4_194_304;
+const MAX_EVALUATION_VISITS=16_777_216;
+const MAX_TEMPLATE_DEPENDENCY_DEPTH=128;
+function evaluationCharge(limit){
+  if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_EVALUATION_VISITS)
+    fail('invalid_resource_budget');
+  let remaining=limit;
+  return()=>{
+    if(remaining--<=0)fail('resource_budget_exceeded');
+  };
+}
+function graph(state){
+  const active=new Set(state.mempoolOrder),children=new Map(state.mempoolOrder.map(x=>[x,new Set()]));
+  for(const id of state.mempoolOrder){
+    const rec=state.transactions[id];
+    for(const input of rec.inputs){
+      const parent=state.mempoolOutputs[input]?.txid;
+      if(parent&&active.has(parent))children.get(parent).add(id);
+    }
+  }
+  return children;
+}
+function packageIds(root,children,{maxPackageSize,charge=()=>{}}){
+  const seen=new Set([root]),queue=[root];
+  for(let i=0;i<queue.length;i++){
+    charge();
+    for(const child of children.get(queue[i])||[]){
+      charge();
+      if(seen.has(child))continue;
+      seen.add(child);queue.push(child);
+      if(seen.size>maxPackageSize)return null;
+    }
+  }
+  return seen;
+}
+function compare(a,b){
+  // Minimize evicted aggregate fee-rate first; avoid gratuitous eviction on ties.
+  const density=a.fee*BigInt(b.bytes)-b.fee*BigInt(a.bytes);
+  if(density!==0n)return density<0n?-1:1;
+  if(a.fee!==b.fee)return a.fee<b.fee?-1:1;
+  if(a.ids.size!==b.ids.size)return a.ids.size-b.ids.size;
+  return a.root<b.root?-1:a.root>b.root?1:0;
+}
+/** For adversarial tests of descendant-closure and index integrity. */
+export function removeDescendantPackageOnClone(source,roots,{cap=MAX_MEMPOOL_TXS,maxPackageSize=128}={}){
+  assertPendingIndexes(source,{cap});
+  if(!Array.isArray(roots)||!roots.length||roots.some(x=>!source.mempoolOrder.includes(x)))fail('invalid_package_roots');
+  const children=graph(source),ids=new Set();
+  for(const root of roots){
+    const closure=packageIds(root,children,{maxPackageSize});
+    if(!closure)fail('package_limit');
+    for(const id of closure)ids.add(id);
+    if(ids.size>maxPackageSize)fail('package_limit');
+  }
+  const cloned=cloneState(source);
+  for(const id of ids){
+    const rec=cloned.transactions[id];
+    for(const outpoint of rec.inputs){
+      if(cloned.mempoolSpends[outpoint]!==id)fail('spend_index_corrupt');
+      delete cloned.mempoolSpends[outpoint];
+    }
+    for(let i=0;i<rec.outputs.length;i++){
+      const outpoint=id+':'+i,spender=cloned.mempoolSpends[outpoint];
+      if(spender&&!ids.has(spender))fail('descendant_not_closed');
+      delete cloned.mempoolOutputs[outpoint];
+    }
+    delete cloned.transactions[id];
+  }
+  cloned.mempoolOrder=cloned.mempoolOrder.filter(id=>!ids.has(id));
+  assertPendingIndexes(cloned,{cap});
+  return {state:cloned,evicted:[...source.mempoolOrder].filter(id=>ids.has(id))};
+}
+/**
+ * Bounded full-pool candidate on an isolated clone.
+ * Incoming signature and source-owned inputs are checked before considering
+ * any eviction. Candidate target uses the unchanged authoritative acceptTxInto.
+ * Returns a new state; NEVER mutates source.
+ */
+export function simulateFeeAwareAdmission(source,raw,{
+  cap=MAX_MEMPOOL_TXS,minFeeIncrementAtoms=1n,maxPackageSize=128,
+  maxCandidateVisits=DEFAULT_EVALUATION_VISITS
+}={}){
+  assertPendingIndexes(source,{cap});
+  if(typeof minFeeIncrementAtoms!=='bigint'||minFeeIncrementAtoms<1n)fail('invalid_min_fee_increment');
+  if(!Number.isSafeInteger(maxPackageSize)||maxPackageSize<1||maxPackageSize>cap)fail('invalid_package_limit');
+  const charge=evaluationCharge(maxCandidateVisits);
+  const verified=verifyTxCrypto(raw);
+  if(!verified.ok)fail(verified.error);
+  if(raw.txid&&raw.txid!==verified.txid)fail('txid_mismatch');
+  if(raw.from_address&&raw.from_address!==verified.from)fail('from_key_mismatch');
+  if(source.transactions[verified.txid])fail('duplicate_txid');
+  let totalInput=0n;
+  for(const outpoint of verified.tx.inputs){
+    const u=(!source.utxos[outpoint]?.spent&&source.utxos[outpoint])||source.mempoolOutputs[outpoint];
+    if(!u)fail('missing_or_spent_input');
+    if(u.address!==verified.from)fail('input_not_owned');
+    if(source.mempoolSpends[outpoint])fail('input_reserved');
+    totalInput+=BigInt(u.amount_atoms);
+  }
+  const totalOutput=verified.tx.outputs.reduce((a,x)=>a+BigInt(x.amount_atoms),0n);
+  if(totalOutput>totalInput)fail('overspend');
+  const fee=totalInput-totalOutput,bytes=sizeOf(verified.tx);
+  if(source.mempoolOrder.length<cap){
+    const result=cloneState(source),record=acceptTxInto(result,raw);
+    assertPendingIndexes(result,{cap});
+    return {decision:'admitted_without_eviction',state:result,evicted:[],admitted:record.txid,fee_atoms:record.fee_atoms};
+  }
+  const children=graph(source);
+  let best=null;
+  for(const root of source.mempoolOrder){
+    charge();
+    const ids=packageIds(root,children,{maxPackageSize,charge});
+    if(!ids)continue;
+    let evictionFee=0n,evictionBytes=0;
+    for(const id of ids){
+      charge();
+      const rec=source.transactions[id];
+      evictionFee+=validFee(rec);
+      evictionBytes+=sizeOf(rec);
+    }
+    if(verified.tx.inputs.some(x=>ids.has(source.mempoolOutputs[x]?.txid)))continue;
+    if(fee<evictionFee+minFeeIncrementAtoms)continue;
+    if(fee*BigInt(evictionBytes)<=evictionFee*BigInt(bytes))continue;
+    const candidate={root,ids,fee:evictionFee,bytes:evictionBytes};
+    if(!best||compare(candidate,best)<0)best=candidate;
+  }
+  if(!best)fail('no_fee_qualified_eviction');
+  // Only verify the bounded chosen eviction package, not every competing
+  // package at every score step. Avoid multiplying signature-work by 4096.
+  for(const id of best.ids)assertSignedPendingRecord(source.transactions[id]);
+  const removed=removeDescendantPackageOnClone(source,[best.root],{cap,maxPackageSize});
+  const record=acceptTxInto(removed.state,raw);
+  assertPendingIndexes(removed.state,{cap});
+  return {decision:'admitted_after_shadow_eviction',state:removed.state,
+    evicted:removed.evicted,admitted:record.txid,fee_atoms:record.fee_atoms,
+    evicted_fee_atoms:best.fee.toString(),evicted_bytes:best.bytes};
+}
+
+/**
+ * Research-only ancestor-topological, fee-sensitive block selection.
+ * Does not construct a block, touch consensus, sort a real node's mempool, or
+ * select a production fee policy. Uses original pending validated records.
+ */
+export function selectFeeSensitiveTemplateCandidate(source,{
+  limit=MAX_TXS_PER_BLOCK,maxCandidateVisits=DEFAULT_EVALUATION_VISITS
+}={}){
+  assertPendingIndexes(source);
+  if(!Number.isSafeInteger(limit)||limit<1||limit>MAX_TXS_PER_BLOCK)fail('invalid_template_limit');
+  const charge=evaluationCharge(maxCandidateVisits);
+  const order=source.mempoolOrder,active=new Set(order),chosen=new Set(),txids=[];
+  const parents=new Map();
+  for(const id of order){
+    const deps=new Set();
+    for(const input of source.transactions[id].inputs){
+      const parent=source.mempoolOutputs[input]?.txid;
+      if(parent&&active.has(parent))deps.add(parent);
+    }
+    parents.set(id,deps);
+  }
+  // Bound adversarial deep-chain work without letting a single over-depth
+  // signed child deny mining templates for unrelated valid transactions.
+  // Kahn traversal detects malformed dependency cycles before filtering.
+  const children=new Map(order.map(id=>[id,[]]));
+  const indegree=new Map(order.map(id=>[id,parents.get(id).size]));
+  const depths=new Map(order.map(id=>[id,1]));
+  for(const id of order)for(const parent of parents.get(id))children.get(parent).push(id);
+  const ready=order.filter(id=>indegree.get(id)===0);
+  let processed=0;
+  for(let pos=0;pos<ready.length;pos++){
+    const id=ready[pos];processed++;charge();
+    for(const child of children.get(id)){
+      charge();
+      depths.set(child,Math.max(depths.get(child),depths.get(id)+1));
+      indegree.set(child,indegree.get(child)-1);
+      if(indegree.get(child)===0)ready.push(child);
+    }
+  }
+  if(processed!==order.length)fail('cyclic_pending_dependency');
+  const skippedDepth=order.filter(id=>depths.get(id)>MAX_TEMPLATE_DEPENDENCY_DEPTH).length;
+  function required(id){
+    const path=new Set(),present=new Set(),out=[];
+    function visit(current){
+      charge();
+      if(chosen.has(current)||present.has(current))return;
+      if(path.has(current))fail('cyclic_pending_dependency');
+      if(path.size>=MAX_TEMPLATE_DEPENDENCY_DEPTH)fail('template_dependency_depth_limit');
+      path.add(current);
+      for(const dep of parents.get(current)||[])visit(dep);
+      path.delete(current);
+      present.add(current);
+      out.push(current);
+    }
+    visit(id);
+    return out;
+  }
+  while(txids.length<limit&&chosen.size<active.size){
+    let best=null;
+    for(let i=0;i<order.length;i++){
+      const id=order[i];if(chosen.has(id))continue;
+      charge();
+      if(depths.get(id)>MAX_TEMPLATE_DEPENDENCY_DEPTH)continue;
+      const pkg=required(id);
+      if(pkg.length>limit-txids.length)continue;
+      let fee=0n,bytes=0;
+      for(const member of pkg){charge();const rec=source.transactions[member];fee+=validFee(rec);bytes+=sizeOf(rec)}
+      const candidate={id,pkg,fee,bytes,index:i};
+      if(!best){best=candidate;continue}
+      const d=candidate.fee*BigInt(best.bytes)-best.fee*BigInt(candidate.bytes);
+      if(d>0n||(d===0n&&(candidate.fee>best.fee||
+         (candidate.fee===best.fee&&candidate.index<best.index))))best=candidate;
+    }
+    if(!best)break;
+    for(const id of best.pkg){if(chosen.has(id))fail('duplicate_candidate_template_tx');chosen.add(id);txids.push(id)}
+  }
+  // Prevent a consistent-looking yet signature-corrupt pending record from
+  // being emitted as an executable candidate mining template.
+  let fee=0n;
+  for(const id of txids){
+    const record=source.transactions[id];
+    assertSignedPendingRecord(record);
+    fee+=validFee(record);
+  }
+  const positions=new Map(txids.map((id,index)=>[id,index]));
+  for(const id of txids)for(const parent of parents.get(id)||[]){
+    if(!positions.has(parent)||positions.get(parent)>=positions.get(id))fail('template_dependency_not_topological');
+  }
+  return {template_policy:'FEE_SENSITIVE_SHADOW_ONLY',txids,fee_atoms:fee.toString(),
+    transactions_considered:order.length,limit,skipped_depth_count:skippedDepth,
+    source_state_mutated:false};
+}

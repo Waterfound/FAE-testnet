@@ -16,8 +16,16 @@ import {generateNodeIdentity,signEnvelope} from '../node/authoritative/node-iden
 
 function legacyState(){let state=emptyState();for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});return state}
 function wallet(){const{publicKey}=generateKeyPairSync('ed25519'),spki=publicKey.export({type:'spki',format:'der'});return{address:encodeAddress(sha256(spki).subarray(0,20),'faet')}}
-async function json(url,options={}){const response=await fetch(url,options),body=await response.json();if(!response.ok)throw new Error(`${response.status} ${url}: ${JSON.stringify(body)}`);return body}
-async function mine(node,address){const base=node.baseUrl(),template=await json(`${base}/template?address=${encodeURIComponent(address)}`);let nonce=0,hash='';for(;nonce<12_000_000;nonce++){hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)break}if(nonce>=12_000_000)throw new Error('PoW search exhausted');const block={header:template.header,nonce,hash,txids:template.txids||[],coinbase_outputs:template.coinbase_outputs??null};await json(`${base}/submit-block`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(block)});return block}
+async function json(url,options={}){
+  let response;
+  try{response=await fetch(url,options)}
+  catch(error){const code=error?.cause?.code||error?.code||'unknown_transport';
+    throw new Error('independent_v11_local_http:'+new URL(url).pathname+':'+code,{cause:error})}
+  const body=await response.json();
+  if(!response.ok)throw new Error(`${response.status} ${url}: ${JSON.stringify(body)}`);
+  return body
+}
+async function mine(node,address){const base=node.baseUrl(),template=await json(`${base}/template?address=${encodeURIComponent(address)}`,{headers:{connection:'close'}});let nonce=0,hash='';for(;nonce<12_000_000;nonce++){hash=hashHex({...template.header,nonce});if(leadingZeroBits(hash)>=template.header.difficulty_bits)break}if(nonce>=12_000_000)throw new Error('PoW search exhausted');const block={header:template.header,nonce,hash,txids:template.txids||[],coinbase_outputs:template.coinbase_outputs??null};await json(`${base}/submit-block`,{method:'POST',headers:{'content-type':'application/json',connection:'close'},body:JSON.stringify(block)});return block}
 async function submitBlock(node,block){return json(`${node.baseUrl()}/submit-block`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(block)})}
 async function closeServer(server){if(!server.listening)return;await new Promise(resolve=>server.close(resolve))}
 
