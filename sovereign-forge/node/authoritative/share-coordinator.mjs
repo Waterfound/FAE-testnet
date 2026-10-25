@@ -66,9 +66,10 @@ export class ShareCoordinator{
   #fullTargetReceipts=new Map();
   #startupLedgerShares=0;
   #ledger;
+  #jobs=new Map();
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});this.jobs=new Map();
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});
   }
   get ledger(){
     const source=this.#ledger;
@@ -80,14 +81,15 @@ export class ShareCoordinator{
       summary:()=>structuredClone(source.summary())
     });
   }
+  get jobs(){return new Map([...this.#jobs].map(([id,job])=>[id,structuredClone(job)]))}
   get fullTargetReceipts(){return new Map([...this.#fullTargetReceipts].map(([key,receipt])=>[key,structuredClone(receipt)]))}
-  pruneJobs(){const now=Date.now();for(const [id,job] of this.jobs)if(job.expiresAt<=now)this.jobs.delete(id);while(this.jobs.size>MAX_JOBS)this.jobs.delete(this.jobs.keys().next().value)}
+  pruneJobs(){const now=Date.now();for(const [id,job] of this.#jobs)if(job.expiresAt<=now)this.#jobs.delete(id);while(this.#jobs.size>MAX_JOBS)this.#jobs.delete(this.#jobs.keys().next().value)}
   async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
   async descriptor({lifetimeMs=15*60_000}={}){
     if(!this.publicUrl)throw new Error('Coordinator public URL is not configured');const upstream=await this.upstreamStatus();const issuedAt=new Date().toISOString(),validUntil=new Date(Date.now()+Math.max(60_000,Math.min(24*60*60_000,lifetimeMs))).toISOString();
     return signEnvelope(this.identity,'coordinator-descriptor',{descriptorVersion:1,type:'fairyelf-share-coordinator',coordinatorId:this.identity.id,network:this.networkId,endpoint:this.publicUrl,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,windowSize:this.#ledger.windowSize,shareDifficultyDelta:this.shareDifficultyDelta,upstreamNodeIdentity:upstream.node_identity??upstream.nodeIdentity??null,issuedAt,validUntil});
   }
-  async status(){const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.jobs.size,...this.#ledger.summary()}}
+  async status(){const upstream=await this.upstreamStatus();return{version:1,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,activation:this.multiOutputCoinbaseActive?'active':'candidate-awaiting-multi-output-coinbase',upstream:{network:upstream.network,height:Number(upstream.height),tip:upstream.tip_hash??upstream.tip,difficultyBits:Number(upstream.difficulty_bits??upstream.difficultyBits)},shareDifficultyDelta:this.shareDifficultyDelta,activeJobs:this.#jobs.size,...this.#ledger.summary()}}
   async createWork(address){
     if(!isValidAddress(address,this.addressHrp))throw new Error('Invalid mining address');
     if(!this.multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
@@ -138,7 +140,7 @@ export class ShareCoordinator{
     const shareDifficultyBits=Math.max(4,blockBits-this.shareDifficultyDelta),jobId=randomUUID(),expiresAt=Date.now()+JOB_TTL_MS,payoutCommitment=hashHex(candidate.payouts),templateCommitment=hashHex({header:candidate.header,txids:candidate.txids??[],payouts:candidate.payouts,coinbase_outputs:candidate.coinbase_outputs??[]});
     const proofPayload={proofVersion:1,coordinatorId:this.identity.id,network:this.networkId,jobId,requestAddress:address,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,height:Number(candidate.header.height),previousHash:String(candidate.header.previous_hash),blockDifficultyBits:blockBits,targetDifficultyBits:shareDifficultyBits,payoutCommitment,expiresAt:new Date(expiresAt).toISOString()};
     const workProof=signEnvelope(this.identity,'coordinator-work',proofPayload);
-    this.jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment,weightsCommitment,templateCommitment});
+    this.#jobs.set(jobId,{jobId,address,candidate:structuredClone(candidate),shareDifficultyBits,expiresAt,payoutCommitment,weightsCommitment,templateCommitment});
     return{...candidate,jobId,coordinatorId:this.identity.id,requestAddress:address,workMode:'share',targetDifficultyBits:shareDifficultyBits,blockDifficultyBits:blockBits,payoutCommitment,ledgerState,pplnsWeights:weights,weightsCommitment,templateCommitment,expiresAt:new Date(expiresAt).toISOString(),workProof};
   }
   fullTargetReceipt({jobId,nonce}={}){
@@ -186,15 +188,15 @@ export class ShareCoordinator{
         'candidate_full_target_submission_requires_reconciliation';
       throw Object.assign(new Error(code),{code});
     }
-    const job=this.jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
-    const current=await this.upstreamStatus();if(!upstreamMatchesJob(current,job,this.networkId)){this.jobs.delete(jobId);throw new Error('Stale share job after upstream state change')}
+    const job=this.#jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
+    const current=await this.upstreamStatus();if(!upstreamMatchesJob(current,job,this.networkId)){this.#jobs.delete(jobId);throw new Error('Stale share job after upstream state change')}
     const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     // Revalidate the complete upstream identity after asynchronous hashing,
     // before the synchronous source-owned share ledger append. This safety
     // boundary cannot be disabled by a caller.
     const latest=await this.upstreamStatus();
     if(!upstreamMatchesJob(latest,job,this.networkId)){
-      this.jobs.delete(jobId);
+      this.#jobs.delete(jobId);
       throw new Error('Stale share job after hashing upstream state change');
     }
     const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
@@ -239,7 +241,7 @@ export class ShareCoordinator{
           throw Object.assign(new Error(code),{code});
         }
         receipt.status='acknowledged_not_confirmed';
-        this.jobs.clear();
+        this.#jobs.clear();
       }catch(error){
         const receipt=this.#fullTargetReceipts.get(receiptKey);
         if(receipt?.status==='submission_in_flight')receipt.status='submission_outcome_unknown';

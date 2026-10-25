@@ -644,3 +644,34 @@ test('HPA-W3-61: coordinator ledger exposure cannot erase dedupe and double-cred
   assert.equal(coordinator.ledger.summary().totalShares,1,
     'one proof identity must retain exactly one payout weight');
 });
+
+test('HPA-W3-62: coordinator job exposure cannot lower proof target and mint payout weight',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,30),'faet'),previous='9'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
+    difficulty_bits:18,reward_atoms:'1000000000',miner_address:address,
+    timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const candidate={header,txids:[],payouts:[{address,amount_atoms:'1000000000'}],
+    coinbase_outputs:[{address,amount_atoms:'1000000000'}]};
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,
+      tip_hash:previous,difficulty_bits:18}),
+    distributedTemplateProvider:async()=>candidate,
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
+  });
+  const work=await coordinator.createWork(address),snapshot=coordinator.jobs;
+  const exposed=snapshot.get(work.jobId);
+  exposed.shareDifficultyBits=0;
+  snapshot.set(work.jobId,exposed);
+  let nonce=0,hash=hashHex({...header,nonce});
+  while(leadingZeroBits(hash)>=work.targetDifficultyBits){
+    nonce++;hash=hashHex({...header,nonce});
+  }
+  await assert.rejects(
+    coordinator.submitShare({jobId:work.jobId,nonce,hash}),
+    /Share below target/);
+  assert.equal(coordinator.jobs.get(work.jobId).shareDifficultyBits,work.targetDifficultyBits,
+    'authoritative job target must remain isolated from caller mutation');
+  assert.equal(coordinator.ledger.summary().totalShares,0,
+    'proof below the issued target must not gain payout weight');
+});
