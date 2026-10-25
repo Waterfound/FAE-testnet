@@ -697,3 +697,36 @@ test('HPA-W3-63: caller cannot forge multi-output activation and request PPLNS w
     'activation state must remain owner-bound and read-only to callers');
   assert.equal(templateRequests,0,'forged activation must fail before template issuance');
 });
+
+test('HPA-W3-64: caller cannot replace the authoritative candidate hasher and mint payout weight',async()=>{
+  const address=encodeAddress(Buffer.alloc(20,32),'faet'),previous='b'.repeat(64);
+  const header={network:'fairyelf-public-testnet-v4',height:100,previous_hash:previous,
+    difficulty_bits:18,reward_atoms:'1000000000',miner_address:address,
+    timestamp_ms:1700000000000,tx_root:hashHex([]),tx_count:0};
+  const payouts=[{address,amount_atoms:'1000000000'}],candidate={header,txids:[],payouts,
+    coinbase_outputs:payouts};
+  const coordinator=new ShareCoordinator({
+    multiOutputCoinbaseActive:true,
+    statusProvider:async()=>({network:'fairyelf-public-testnet-v4',height:99,
+      tip_hash:previous,difficulty_bits:18}),
+    distributedTemplateProvider:async()=>candidate,
+    candidateHasher:async(c,nonce)=>hashHex({...c.header,nonce})
+  });
+  const work=await coordinator.createWork(address);
+  let nonce=0,actual=hashHex({...header,nonce});
+  while(leadingZeroBits(actual)>=work.targetDifficultyBits){
+    nonce++;actual=hashHex({...header,nonce});
+  }
+  let salt=0,forged=hashHex({forged:salt});
+  while(leadingZeroBits(forged)<work.targetDifficultyBits||
+        leadingZeroBits(forged)>=work.blockDifficultyBits){
+    salt++;forged=hashHex({forged:salt});
+  }
+  assert.notEqual(actual,forged);
+  try{coordinator.candidateHasher=async()=>forged}catch{}
+  await assert.rejects(
+    coordinator.submitShare({jobId:work.jobId,nonce,hash:forged}),
+    /Share hash mismatch/);
+  assert.equal(coordinator.ledger.summary().totalShares,0,
+    'an unrelated proof hash must not gain payout weight');
+});

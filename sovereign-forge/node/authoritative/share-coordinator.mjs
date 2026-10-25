@@ -69,10 +69,14 @@ export class ShareCoordinator{
   #jobs=new Map();
   #multiOutputCoinbaseActive=false;
   #activationProvider=null;
+  #statusProvider=null;
+  #distributedTemplateProvider=null;
+  #blockSubmitter=null;
+  #candidateHasher=null;
   constructor({networkId='fairyelf-public-testnet-v4',addressHrp='faet',logFile=null,windowSize=DEFAULT_WINDOW,shareDifficultyDelta=DEFAULT_SHARE_DIFFICULTY_DELTA,identity=null,publicUrl=null,rotationSequence=0,multiOutputCoinbaseActive=false,activationProvider=null,statusProvider=null,distributedTemplateProvider=null,blockSubmitter=null,candidateHasher=null}={}){
     const sequence=Number(rotationSequence);if(!Number.isSafeInteger(sequence)||sequence<0)throw new Error('Coordinator rotation sequence must be a non-negative safe integer');
     if(activationProvider!==null&&typeof activationProvider!=='function')throw new Error('Coordinator activation provider must be a function');
-    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.#multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.#activationProvider=activationProvider;this.statusProvider=statusProvider;this.distributedTemplateProvider=distributedTemplateProvider;this.blockSubmitter=blockSubmitter;this.candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});
+    this.networkId=networkId;this.addressHrp=addressHrp;this.identity=identity??generateNodeIdentity();this.publicUrl=publicUrl?publicUrl.replace(/\/$/,''):null;this.rotationSequence=sequence;this.#ledger=new ShareLedger({logFile,windowSize});this.#startupLedgerShares=this.#ledger.shares.length;this.shareDifficultyDelta=Math.max(1,Math.min(20,Number(shareDifficultyDelta)||DEFAULT_SHARE_DIFFICULTY_DELTA));this.#multiOutputCoinbaseActive=Boolean(multiOutputCoinbaseActive);this.#activationProvider=activationProvider;this.#statusProvider=statusProvider;this.#distributedTemplateProvider=distributedTemplateProvider;this.#blockSubmitter=blockSubmitter;this.#candidateHasher=candidateHasher;this.candidateTipRecheck=true;Object.defineProperty(this,'candidateFullTargetReceiptProtection',{value:true,enumerable:true,writable:false,configurable:false});
   }
   get multiOutputCoinbaseActive(){return this.#multiOutputCoinbaseActive}
   async #refreshActivation(){if(this.#activationProvider)this.#multiOutputCoinbaseActive=Boolean(await this.#activationProvider());return this.#multiOutputCoinbaseActive}
@@ -89,7 +93,7 @@ export class ShareCoordinator{
   get jobs(){return new Map([...this.#jobs].map(([id,job])=>[id,structuredClone(job)]))}
   get fullTargetReceipts(){return new Map([...this.#fullTargetReceipts].map(([key,receipt])=>[key,structuredClone(receipt)]))}
   pruneJobs(){const now=Date.now();for(const [id,job] of this.#jobs)if(job.expiresAt<=now)this.#jobs.delete(id);while(this.#jobs.size>MAX_JOBS)this.#jobs.delete(this.#jobs.keys().next().value)}
-  async upstreamStatus(){if(typeof this.statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.statusProvider()}
+  async upstreamStatus(){if(typeof this.#statusProvider!=='function')throw new Error('Coordinator upstream status provider is not configured');return this.#statusProvider()}
   async descriptor({lifetimeMs=15*60_000}={}){
     if(!this.publicUrl)throw new Error('Coordinator public URL is not configured');const upstream=await this.upstreamStatus();const issuedAt=new Date().toISOString(),validUntil=new Date(Date.now()+Math.max(60_000,Math.min(24*60*60_000,lifetimeMs))).toISOString();
     return signEnvelope(this.identity,'coordinator-descriptor',{descriptorVersion:1,type:'fairyelf-share-coordinator',coordinatorId:this.identity.id,network:this.networkId,endpoint:this.publicUrl,mode:'pplns-direct-pay',rotationSequence:this.rotationSequence,windowSize:this.#ledger.windowSize,shareDifficultyDelta:this.shareDifficultyDelta,upstreamNodeIdentity:upstream.node_identity??upstream.nodeIdentity??null,issuedAt,validUntil});
@@ -99,10 +103,10 @@ export class ShareCoordinator{
     if(!isValidAddress(address,this.addressHrp))throw new Error('Invalid mining address');
     await this.#refreshActivation();
     if(!this.#multiOutputCoinbaseActive)throw new Error('PPLNS multi-output coinbase activation required');
-    if(typeof this.distributedTemplateProvider!=='function'||typeof this.candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
+    if(typeof this.#distributedTemplateProvider!=='function'||typeof this.#candidateHasher!=='function')throw new Error('Distributed mining adapter is not configured');
     this.pruneJobs();
     const ledgerState=this.#ledger.summary(),weights=this.#ledger.weights(address).map(({address,weight})=>({address,weight:weight.toString()})),weightsCommitment=hashHex(weights);
-    const candidate=await this.distributedTemplateProvider({weights,fallback_address:address});
+    const candidate=await this.#distributedTemplateProvider({weights,fallback_address:address});
     const blockBits=Number(candidate.header?.difficulty_bits);if(!Number.isInteger(blockBits))throw new Error('Distributed template missing block difficulty');
     const upstream=await this.upstreamStatus(),upstreamHeight=Number(upstream.height),
       upstreamTip=String(upstream.tip_hash??upstream.tip??''),
@@ -196,7 +200,7 @@ export class ShareCoordinator{
     }
     const job=this.#jobs.get(jobId);if(!job)throw new Error('Stale or unknown share job');if(!Number.isSafeInteger(nonce)||nonce<0)throw new Error('Invalid share nonce');if(!/^[0-9a-f]{64}$/.test(hash??''))throw new Error('Invalid share hash');
     const current=await this.upstreamStatus();if(!upstreamMatchesJob(current,job,this.networkId)){this.#jobs.delete(jobId);throw new Error('Stale share job after upstream state change')}
-    const calculated=await this.candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
+    const calculated=await this.#candidateHasher(job.candidate,nonce);if(calculated!==hash)throw new Error('Share hash mismatch');const zeroBits=leadingZeroBits(hash);if(zeroBits<job.shareDifficultyBits)throw new Error('Share below target');
     // Revalidate the complete upstream identity after asynchronous hashing,
     // before the synchronous source-owned share ledger append. This safety
     // boundary cannot be disabled by a caller.
@@ -207,7 +211,7 @@ export class ShareCoordinator{
     }
     const fullTarget=zeroBits>=Number(job.candidate.header.difficulty_bits);
     if(fullTarget){
-      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      if(typeof this.#blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       // Do not credit a share when its dedupe/recovery receipt cannot fit.
       // No automatic eviction of unknown receipts.
       if(this.#fullTargetReceipts.size>=MAX_JOBS){
@@ -228,9 +232,9 @@ export class ShareCoordinator{
     });
     let block=null;
     if(fullTarget){
-      if(typeof this.blockSubmitter!=='function')throw new Error('Block submitter is not configured');
+      if(typeof this.#blockSubmitter!=='function')throw new Error('Block submitter is not configured');
       try{
-        block=await this.blockSubmitter({...job.candidate,nonce,hash});
+        block=await this.#blockSubmitter({...job.candidate,nonce,hash});
         const receipt=this.#fullTargetReceipts.get(receiptKey);
         // A resolved Promise is not a signed block acceptance, and even
         // a negative provider ACK is not proof of chain non-inclusion.
