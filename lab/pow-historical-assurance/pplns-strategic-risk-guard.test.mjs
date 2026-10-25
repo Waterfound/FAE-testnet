@@ -460,6 +460,36 @@ test('HPA-W3-59: acknowledged receipt compaction cannot manufacture an unresolve
     'acknowledged_not_confirmed_compacted');
 });
 
+test('HPA-W3-60: compacted acknowledgments become unknown after cold restart and fail closed',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-hpa-fulltarget-ack-restart-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const logFile=join(dir,'shares.jsonl');
+  const x=fullTargetReceiptFixture({logFile});
+  let firstInput=null;
+  for(let i=0;i<1025;i++){
+    const work=await x.coordinator.createWork(x.address);
+    const input={jobId:work.jobId,nonce:x.nonce,hash:x.hash};
+    firstInput??=input;
+    const result=await x.coordinator.submitShare(input);
+    assert.equal(result.accepted,true);
+  }
+  assert.equal(x.coordinator.unresolvedFullTargetReceiptCount(),0);
+  assert.equal(x.coordinator.fullTargetReceipt(firstInput).status,
+    'acknowledged_not_confirmed_compacted');
+
+  const fresh=fullTargetReceiptFixture({logFile});
+  assert.equal(fresh.coordinator.ledger.summary().totalShares,1025);
+  assert.equal(fresh.coordinator.unresolvedFullTargetReceiptCount(),1025);
+  assert.equal(fresh.coordinator.fullTargetReceipt(firstInput).status,
+    'submission_outcome_unknown_after_restart');
+  const next=await fresh.coordinator.createWork(fresh.address);
+  await assert.rejects(fresh.coordinator.submitShare({
+    jobId:next.jobId,nonce:fresh.nonce,hash:fresh.hash
+  }),e=>e.code==='candidate_full_target_receipt_capacity');
+  assert.equal(fresh.coordinator.ledger.summary().totalShares,1025);
+  assert.equal(fresh.attempts(),0);
+});
+
 test('HPA-W3-51: coordinator rejects a template that redirects valid PPLNS weights',async()=>{
   const honestAddress=encodeAddress(Buffer.alloc(20,17),'faet');
   const attackerAddress=encodeAddress(Buffer.alloc(20,18),'faet');
