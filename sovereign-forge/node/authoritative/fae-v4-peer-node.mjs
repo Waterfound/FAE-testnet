@@ -212,6 +212,9 @@ export function createAuthoritativeV4PeerNode({
              validated.chain.some((block,i)=>block.hash!==candidate.chain[i].hash))
             throw new Error('candidate_reorg_chain_mutation');
           const inherited=new Set(Object.keys(current.transactions));
+          const allowedTransactions=new Set([...Object.keys(candidate.transactions),...inherited]);
+          if(Object.keys(validated.transactions).some(txid=>!allowedTransactions.has(txid)))
+            throw new Error('candidate_reorg_unrelated_transaction');
           const detached=new Set([...inherited].filter(txid=>candidate.transactions[txid]===undefined));
           const reacceptedIds=new Set();
           for(const record of reconciled.reacceptedRecords){

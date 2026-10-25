@@ -39,6 +39,7 @@ function scenario(){
  for(const block of legacyBlocks)common=appendBlockFromFeed(common,block,new Map(),{activationHeight:null});
  common=mine(common,owner.address);const zeroCoin=common.chain.at(-1).hash+':0';
  common=mine(common,owner.address);const feeCoin=common.chain.at(-1).hash+':0';
+ common=mine(common,owner.address);const extraCoin=common.chain.at(-1).hash+':0';
  const previous=cloneState(common);
  const incoming=acceptTxInto(previous,signed(owner,feeCoin,previous.utxos[feeCoin].amount_atoms,1000000n));
  let candidate=mine(common,other.address);
@@ -49,7 +50,7 @@ function scenario(){
  }
  assert.ok(preferred(candidate,previous));
  assertPendingIndexes(candidate);assertPendingIndexes(previous);
- return{candidate,previous,incoming,firstId,lastId};
+ return{candidate,previous,incoming,firstId,lastId,owner,extraCoin};
 }
 test('HPA-W2-R1: genuine higher-work fork plus 4096 pending zero-fee chain drops detached fee under default FIFO',()=>{
  const {candidate,previous,incoming}=scenario();
@@ -221,4 +222,25 @@ test('HPA-W2-R9: callback cannot omit a recovered detached transaction from its 
  await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_receipt_mismatch/);
  assert.equal(stableStringify(local.getState()),before,
    'incomplete detached receipt cannot adopt unrelayed state');
+});
+
+test('HPA-W2-R10: callback cannot inject an unrelated signed transaction outside its detached receipt',async t=>{
+ const {candidate,previous,owner,extraCoin}=scenario();
+ let injectedId=null;
+ const local=createAuthoritativeV4PeerNode({initialState:previous,
+   candidateReorgRecovery:(fork,old)=>{
+     const recovered=recoverDetachedFeeAware(fork,old);
+     const injected=signed(owner,extraCoin,old.utxos[extraCoin].amount_atoms,500000n);
+     const trial=simulateFeeAwareAdmission(recovered.state,injected);
+     injectedId=trial.admitted;
+     return {...recovered,state:trial.state};
+   }});
+ const remote=createAuthoritativeV4PeerNode({initialState:candidate});
+ await local.start();await remote.start();
+ t.after(()=>Promise.all([local.close(),remote.close()]));
+ const before=stableStringify(local.getState());
+ await assert.rejects(local.syncPeer(remote.baseUrl()),/candidate_reorg_unrelated_transaction/);
+ assert.equal(stableStringify(local.getState()),before,
+   'callback-injected transaction outside the detached receipt cannot be persisted');
+ assert.ok(injectedId,'the adversarial transaction must have been valid and admitted by the callback');
 });
