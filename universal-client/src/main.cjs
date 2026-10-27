@@ -41,7 +41,7 @@ function windowCreate(){
         if(!s.started||s.network!=='fairyelf-public-testnet-v4'||s.explorer_network!==s.network||
           !Number.isSafeInteger(s.height)||s.height!==s.tip_height||
           s.balance_address!=='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn'||
-          !/^\\d+$/.test(String(s.balance_atoms))||s.activity_address!==s.balance_address||
+          !/^[0-9]+$/.test(String(s.balance_atoms))||s.activity_address!==s.balance_address||
           s.activity_tip!==s.tip_hash||!Number.isSafeInteger(s.activity_count))
           throw Error('Native node/Explorer/Wallet watch-only tip mismatch');
         console.log('TS_NODE_SMOKE_PASS '+JSON.stringify(s));clearTimeout(timeout);app.exit(0);
