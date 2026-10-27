@@ -21,12 +21,12 @@ test('public-only catalog rejects ambiguous or corrupt records without erasing t
  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'ts-watch-deny-'));
  try{
   const a=new WatchAddressBook(dir);
-  await assert.rejects(()=>a.add('24 secret words','unsafe'),/Invalid public/);
-  await assert.rejects(()=>a.add(A,'<script>'),/Invalid watch-only alias/);
+  assert.throws(()=>a.add('24 secret words','unsafe'),/Invalid public/);
+  assert.throws(()=>a.add(A,'<script>'),/Invalid watch-only alias/);
   await a.add(A,'ok');
   await assert.rejects(()=>a.add(A,'dupe'),/already saved/);
-  await assert.rejects(()=>a.update(A,{password:'secret'}),/Invalid watch-only update/);
-  await assert.rejects(()=>a.update(A,{hidden:'yes'}),/Invalid visibility/);
+  assert.throws(()=>a.update(A,{password:'secret'}),/Invalid watch-only update/);
+  assert.throws(()=>a.update(A,{hidden:'yes'}),/Invalid visibility/);
   await fs.writeFile(path.join(dir,'watch-addresses.json'),'{corrupt');
   const fresh=new WatchAddressBook(dir);
   await assert.rejects(()=>fresh.list(),/Corrupt watch-only catalog/);
