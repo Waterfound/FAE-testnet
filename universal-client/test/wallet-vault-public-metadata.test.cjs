@@ -80,7 +80,7 @@ test('native vault public import authenticates SPKI/address correspondence witho
     wrong.public_addresses[0].public_key_spki=data.public_addresses[1].public_key_spki;
     await fs.writeFile(file,JSON.stringify(wrong),{mode:0o600});
     await assert.rejects(()=>readVaultPublicMetadata(file),/does not match its Ed25519 key/);
-    wrong.public_addresses[0].public_key_spki='bm90LWEtcHVibGljLWtleQ==';
+    wrong.public_addresses[0].public_key_spki=Buffer.alloc(44,1).toString('base64');
     await fs.writeFile(file,JSON.stringify(wrong),{mode:0o600});
     await assert.rejects(()=>readVaultPublicMetadata(file),/Invalid public FAE Ed25519 key/);
   }finally{await fs.rm(dir,{recursive:true,force:true})}
