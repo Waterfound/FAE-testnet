@@ -58,6 +58,9 @@ jobs:
       - name: Reload public address book from a second independent Electron process
         working-directory: universal-client
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-verify
+      - name: Real OS dual-launch test refuses second profile-writer process
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" bash scripts/test-single-instance-linux.sh
       - name: Real Electron isolated mining process and observed hashrate
         working-directory: universal-client
         # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.

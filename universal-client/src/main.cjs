@@ -4,6 +4,7 @@ const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {ProcessController}=require('./controller.cjs');
 const {WatchAddressBook}=require('./watch-address-book.cjs');
+const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false;
 function windowCreate(){
@@ -103,6 +104,15 @@ function windowCreate(){
       }catch(e){clearTimeout(timer);console.error('TS_WATCH_COLD_PROCESS_FAIL '+e.message);app.exit(1)}
     });
   }
+
+  if(process.argv.includes('--ts-lock-owner-smoke')&&process.env.CI==='true'){
+    const timer=setTimeout(()=>{console.error('TS_PRIMARY_LOCK_TIMEOUT');app.exit(2)},25000);
+    win.webContents.once('did-finish-load',()=>{
+      console.log('TS_PRIMARY_LOCK_READY');
+      clearTimeout(timer);
+      setTimeout(()=>{console.log('TS_PRIMARY_LOCK_EXIT');app.exit(0)},16000);
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){
@@ -129,6 +139,15 @@ function bindIpc(){
   }
   controller.on('state',state=>{if(win&&!win.isDestroyed())win.webContents.send('ts:state',state)});
 }
+const primaryInstance=registerSingleInstanceGuard(app,()=>win);
+if(!primaryInstance){
+  // Native operating-system lock failure means no node, file state or wallet
+  // is initialized in this process. Never run a second writer.
+  if(process.env.CI==='true'&&process.argv.includes('--ts-lock-probe')){
+    console.log('TS_SECONDARY_LOCK_REJECTED');
+  }
+  app.quit();
+}else{
 app.whenReady().then(()=>{
   session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
@@ -143,3 +162,5 @@ app.on('before-quit',e=>{
   e.preventDefault();quitting=true;
   void controller.dispose().finally(()=>app.quit());
 });
+
+}
