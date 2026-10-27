@@ -1,0 +1,27 @@
+name: FAE optional desktop browser-Origin guard candidate
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/fae-node.mjs'
+      - 'tests/desktop-origin-guard.test.mjs'
+      - '.github/workflows/fae-desktop-origin-guard-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  origin-only-regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify independent-node candidate source syntax
+        run: node --check sovereign-forge/node/fae-node.mjs
+      - name: Actual isolated FAE node rejects hostile browser origins in opt-in desktop mode
+        run: node --test tests/desktop-origin-guard.test.mjs
