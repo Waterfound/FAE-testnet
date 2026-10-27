@@ -129,7 +129,8 @@ function bindIpc(){
     'ts:watch-list':()=>watchBook.list(),
     'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
     'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
-    'ts:watch-remove':address=>watchBook.remove(address)
+    'ts:watch-remove':address=>watchBook.remove(address),
+    'ts:watch-select':address=>watchBook.select(address)
   };
   for(const [verb,invoke] of Object.entries(calls)){
     ipcMain.handle(verb,(event,...args)=>{

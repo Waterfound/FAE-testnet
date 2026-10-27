@@ -85,19 +85,32 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
+let selectedWatchAddress=null;
 function watchRender(result){
   const target=get('watch-entries');target.replaceChildren();
   if(!Array.isArray(result?.entries)){target.textContent='Local public-address catalog unavailable';return}
+  if(typeof result.selected==='string'&&result.entries.some(e=>e.address===result.selected)){
+    get('wallet-address').value=result.selected;
+    get('mining-address').value=result.selected;
+  }else if(selectedWatchAddress){
+    if(get('wallet-address').value===selectedWatchAddress)get('wallet-address').value='';
+    if(get('mining-address').value===selectedWatchAddress)get('mining-address').value='';
+  }
+  selectedWatchAddress=result.selected||null;
   if(!result.entries.length){target.textContent='No saved public addresses';return}
   for(const entry of result.entries){
     const row=document.createElement('div');row.className='watch-entry';
     const label=document.createElement('span');
     label.textContent=entry.alias+' · '+(entry.hidden?'hidden':entry.address);
     row.append(label);
-    const select=document.createElement('button');select.textContent='Select';
+    const select=document.createElement('button');
+    select.textContent=result.selected===entry.address?'Selected':'Select';
     select.addEventListener('click',()=>{
       get('wallet-address').value=entry.address;
       get('mining-address').value=entry.address;
+      if(typeof window.triumph.watchSelect==='function'){
+        void safely(()=>window.triumph.watchSelect(entry.address)).then(saved=>{if(saved)watchRender(saved)});
+      }
     });
     row.append(select);
     const toggle=document.createElement('button');toggle.textContent=entry.hidden?'Show':'Hide';
