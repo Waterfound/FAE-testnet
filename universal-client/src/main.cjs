@@ -41,6 +41,18 @@ function windowCreate(){
       }catch(error){console.error('TS_NODE_SMOKE_FAIL '+error.message);clearTimeout(timeout);app.exit(1)}
     });
   }
+  if(process.argv.includes('--ts-miner-smoke')){
+    // Only disposable local network on runner; no private wallet keys.
+    const timer=setTimeout(()=>{console.error('TS_MINER_SMOKE_TIMEOUT');app.exit(2)},45000);
+    win.webContents.once('did-finish-load',async()=>{
+      try{
+        const result=await win.webContents.executeJavaScript(
+          "(async()=>{const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';let node=false,miner=false,unsubscribe=()=>{};try{const n=await window.triumph.startNode();node=n.node==='running';if(!node)throw Error('real node not started');const telemetry=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('No measured miner progress')),20000);unsubscribe=window.triumph.onState(s=>{if(s.miner==='running'&&s.telemetry?.state==='MINING'&&Number.isSafeInteger(s.telemetry?.hashrate_hs)&&s.telemetry.hashrate_hs>0){clearTimeout(timeout);resolve(s.telemetry)}})});const a=await window.triumph.startMiner(address);miner=a.miner==='running';if(!miner)throw Error('standalone miner did not start');const t=await telemetry;return {network:(await window.triumph.status()).network,real_miner:miner,hashrate_hs:t.hashrate_hs,total_hashes:t.total_hashes};}finally{unsubscribe();if(miner)await window.triumph.stopMiner();if(node)await window.triumph.stopNode()}})()");
+        if(result.network!=='fairyelf-public-testnet-v4'||!result.real_miner||result.hashrate_hs<=0)throw Error('Invalid owned miner evidence');
+        console.log('TS_MINER_SMOKE_PASS '+JSON.stringify(result));clearTimeout(timer);app.exit(0);
+      }catch(error){console.error('TS_MINER_SMOKE_FAIL '+error.message);clearTimeout(timer);app.exit(1)}
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){

@@ -52,3 +52,7 @@ jobs:
         working-directory: universal-client
         # Disposable runner only, loopback, external sync disabled by controller.
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-node-smoke
+      - name: Real Electron isolated mining process and observed hashrate
+        working-directory: universal-client
+        # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-miner-smoke
