@@ -59,7 +59,9 @@ function show(page){
   balanceMedia();
 }
 function view(s){
+  const nodeWasRunning=state.node==='running';
   state=s;
+  if(nodeWasRunning&&s.node!=='running')clearWalletObservations('Local node stopped; no current balance observation');
   get('node-state').textContent=s.node==='running'?'Running (process)':s.node==='starting'?'Starting':'Stopped';
   get('miner-state').textContent=s.miner==='running'?(s.telemetry?.state||'Running'):'Stopped';
   get('home-node').textContent=s.node==='running'?'Process running':'Stopped';
@@ -85,8 +87,16 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
+let balanceRequest=0,activityRequest=0;
+function clearWalletObservations(reason='Select an address and refresh its local observation'){
+  balanceRequest++;activityRequest++;
+  get('balance-amount').textContent='— FAE';
+  get('balance-status').textContent=reason;
+  get('wallet-activity-output').textContent='No current local node activity observation';
+}
 let selectedWatchAddress=null;
 function watchRender(result){
+  const oldAddress=get('wallet-address').value.trim();
   const target=get('watch-entries');target.replaceChildren();
   if(!Array.isArray(result?.entries)){target.textContent='Local public-address catalog unavailable';return}
   if(typeof result.selected==='string'&&result.entries.some(e=>e.address===result.selected)){
@@ -97,6 +107,7 @@ function watchRender(result){
     if(get('mining-address').value===selectedWatchAddress)get('mining-address').value='';
   }
   selectedWatchAddress=result.selected||null;
+  if(get('wallet-address').value.trim()!==oldAddress)clearWalletObservations();
   if(!result.entries.length){target.textContent='No saved public addresses';return}
   for(const entry of result.entries){
     const row=document.createElement('div');row.className='watch-entry';
@@ -106,6 +117,7 @@ function watchRender(result){
     const select=document.createElement('button');
     select.textContent=result.selected===entry.address?'Selected':'Select';
     select.addEventListener('click',()=>{
+      if(get('wallet-address').value.trim()!==entry.address)clearWalletObservations();
       get('wallet-address').value=entry.address;
       get('mining-address').value=entry.address;
       if(typeof window.triumph.watchSelect==='function'){
@@ -129,10 +141,12 @@ function watchRender(result){
 }
 async function watchLoad(){watchRender(await safely(()=>window.triumph.watchList()))}
 async function balance(){
+  const generation=++balanceRequest;
   get('balance-amount').textContent='— FAE';
   get('balance-status').textContent='Reading node…';
   const address=get('wallet-address').value.trim();
   const r=await safely(()=>window.triumph.balance(address));
+  if(generation!==balanceRequest||get('wallet-address').value.trim()!==address||state.node!=='running')return;
   if(!r){get('balance-status').textContent='No verified balance observation';return}
   const raw=r.balance_atoms;
   if(!/^\d+$/.test(String(raw))){get('balance-status').textContent='Invalid balance payload';return}
@@ -141,10 +155,12 @@ async function balance(){
   get('balance-status').textContent='Selected local node observation · not a finality guarantee';
 }
 async function walletActivity(){
+  const generation=++activityRequest;
   const address=get('wallet-address').value.trim();
   const output=get('wallet-activity-output');
   output.textContent='Reading selected node…';
   const observed=await safely(()=>window.triumph.explorer('/explorer/address',{address,limit:20}));
+  if(generation!==activityRequest||get('wallet-address').value.trim()!==address||state.node!=='running')return;
   if(!observed||observed.address!==address||!Array.isArray(observed.events)){
     output.textContent='No validated local address observation';return;
   }
@@ -172,6 +188,7 @@ get('node-refresh').addEventListener('click',status);
 get('miner-start').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.startMiner(get('mining-address').value.trim()));if(r)view(r)});
 get('miner-stop').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.stopMiner());if(r)view(r)});
 get('refresh-balance').addEventListener('click',balance);
+get('wallet-address').addEventListener('input',()=>clearWalletObservations());
 get('watch-import-vault').addEventListener('click',async()=>{
   if(typeof window.triumph.watchImportVault!=='function')return;
   const result=await safely(()=>window.triumph.watchImportVault());
