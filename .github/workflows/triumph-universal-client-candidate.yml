@@ -58,6 +58,9 @@ jobs:
       - name: Reload public address book from a second independent Electron process
         working-directory: universal-client
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-verify
+      - name: Native Electron renderer import of canonical-bound public encrypted-vault metadata
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-vault-import-smoke
       - name: Real OS dual-launch test refuses second profile-writer process
         working-directory: universal-client
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" bash scripts/test-single-instance-linux.sh
@@ -87,6 +90,9 @@ jobs:
       - name: Verify saved address in a second native Electron launch
         working-directory: universal-client
         run: npm exec -- electron . --ts-watch-verify
+      - name: Native Electron public-vault import through isolated file-picker fixture
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-vault-import-smoke
       - name: Actual native desktop window and IPC snapshot smoke
         working-directory: universal-client
         run: npm exec -- electron . --ts-smoke
@@ -122,6 +128,7 @@ jobs:
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-verify
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-vault-import-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-miner-smoke
 
   desktop-packaged-native-smoke:
@@ -160,6 +167,8 @@ jobs:
           if ($watch.ExitCode -ne 0) { throw "Packaged Windows watch-list IPC smoke failed" }
           $cold = Start-Process -FilePath $exe -ArgumentList "--ts-watch-verify" -Wait -PassThru -NoNewWindow
           if ($cold.ExitCode -ne 0) { throw "Packaged Windows second-process catalog recovery failed" }
+          $vaultPublic = Start-Process -FilePath $exe -ArgumentList "--ts-vault-import-smoke" -Wait -PassThru -NoNewWindow
+          if ($vaultPublic.ExitCode -ne 0) { throw "Packaged Windows public-vault import smoke failed" }
           $miner = Start-Process -FilePath $exe -ArgumentList "--ts-miner-smoke" -Wait -PassThru -NoNewWindow
           if ($miner.ExitCode -ne 0) { throw "Packaged Windows managed miner smoke failed: exit $($miner.ExitCode)" }
       - name: Real packaged macOS Electron GUI and managed node
@@ -173,6 +182,7 @@ jobs:
           "$BIN" --ts-node-smoke
           "$BIN" --ts-watch-smoke
           "$BIN" --ts-watch-verify
+          "$BIN" --ts-vault-import-smoke
           "$BIN" --ts-miner-smoke
 
   desktop-installer-candidate-inspection:

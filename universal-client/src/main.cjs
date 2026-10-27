@@ -7,7 +7,7 @@ const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
-let win,controller,watchBook,quitting=false;
+let win,controller,watchBook,quitting=false,ciVaultSelection=null;
 function windowCreate(){
   win=new BrowserWindow({
     title:'Triumph Sovereign — Public Testnet Candidate',width:1220,height:820,minWidth:850,minHeight:610,
@@ -124,6 +124,46 @@ function windowCreate(){
       setTimeout(()=>{console.log('TS_PRIMARY_LOCK_EXIT');app.exit(0)},16000);
     });
   }
+
+  if(process.argv.includes('--ts-vault-import-smoke')&&process.env.CI==='true'){
+    // Disposable CI-only native read-only import: no seed, key, signing or vault unlock.
+    const timer=setTimeout(()=>{console.error('TS_VAULT_PUBLIC_IMPORT_TIMEOUT');app.exit(2)},30000);
+    win.webContents.once('did-finish-load',async()=>{
+      const fs=require('node:fs/promises'),crypto=require('node:crypto');
+      let file=null;
+      try{
+        const root=path.join(app.getPath('userData'),'ci-public-metadata');
+        await fs.mkdir(root,{recursive:true,mode:0o700});
+        const addressSource=path.join(
+          app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
+          'sovereign-forge','node','authoritative','address.mjs');
+        const {encodeAddress}=await import(pathToFileURL(addressSource).href);
+        const records=Array.from({length:5},(_,index)=>{
+          const {publicKey}=crypto.generateKeyPairSync('ed25519');
+          const spki=publicKey.export({type:'spki',format:'der'});
+          return {index,address:encodeAddress(crypto.createHash('sha256').update(spki).digest().subarray(0,20),'faet'),
+            public_key_spki:spki.toString('base64')};
+        });
+        // This is an intentionally fake encrypted envelope for testing PUBLIC
+        // metadata handling only; it must never be used as a real wallet.
+        const fixture={format:'FAE_STANDALONE_VAULT_V1',network:'fairyelf-public-testnet-v4',
+          public_addresses:records,encryption:{cipher:'aes-256-gcm',kdf:'scrypt',payload:'CI_TEST_NON_SECRET_DATA'}};
+        file=path.join(root,'ci-import-'+crypto.randomBytes(8).toString('hex')+'.json');
+        await fs.writeFile(file,JSON.stringify(fixture),{flag:'wx',mode:0o600});
+        ciVaultSelection=file;
+        const ui=await win.webContents.executeJavaScript(
+          "(async()=>{document.querySelector('.nav[data-page=\"wallet\"]').click();const before=(await window.triumph.watchList()).entries.length;document.getElementById('watch-import-vault').click();for(let i=0;i<150;i++){const s=await window.triumph.watchList();if(s.entries.some(e=>e.alias==='Vault public address 5')){const rows=document.querySelectorAll('#watch-entries .watch-entry').length;return {before,after:s.entries.length,rows,kind:s.kind,network:s.network,exposedSecrets:JSON.stringify(s).includes('public_key_spki')||JSON.stringify(s).includes('CI_TEST_NON_SECRET_DATA')}}await new Promise(resolve=>setTimeout(resolve,45))}throw Error('Real native public vault import UI timeout')})()");
+        if(ui.after<5||ui.rows<5||ui.kind!=='watch_only'||ui.network!=='fairyelf-public-testnet-v4'||ui.exposedSecrets)
+          throw Error('Native public vault import UI acceptance failed');
+        const saved=await fs.readFile(path.join(app.getPath('userData'),'watch-addresses.json'),'utf8');
+        if(saved.includes('public_key_spki')||saved.includes('CI_TEST_NON_SECRET_DATA'))
+          throw Error('Native public address storage leaked vault content');
+        console.log('TS_VAULT_PUBLIC_IMPORT_PASS '+JSON.stringify({real_renderer_click:true,native_ipc:true,canonical_spki_binding:true,privates_exposed:false}));
+        clearTimeout(timer);app.exit(0);
+      }catch(error){clearTimeout(timer);console.error('TS_VAULT_PUBLIC_IMPORT_FAIL '+error.message);app.exit(1)}
+      finally{ciVaultSelection=null;if(file)await fs.unlink(file).catch(()=>{})}
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){
@@ -143,7 +183,9 @@ function bindIpc(){
     'ts:watch-remove':address=>watchBook.remove(address),
     'ts:watch-select':address=>watchBook.select(address),
     'ts:watch-import-vault':async()=>{
-      const selected=await dialog.showOpenDialog(win,{
+      const selected=ciVaultSelection&&process.env.CI==='true'&&process.argv.includes('--ts-vault-import-smoke')
+        ?{canceled:false,filePaths:[ciVaultSelection]}
+        :await dialog.showOpenDialog(win,{
         title:'Import public addresses from encrypted FAE vault',properties:['openFile'],
         filters:[{name:'FAE encrypted vault',extensions:['json']}]
       });
