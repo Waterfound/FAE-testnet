@@ -13,9 +13,12 @@ const EXPECTED=Object.freeze({
 function checkPrivateAssets(dir){
   if(typeof dir!=='string'||!path.isAbsolute(dir))
     throw Error('Explicit absolute TS_PRIVATE_MEDIA_DIR required');
-  const root=path.resolve(dir),rootStat=fs.lstatSync(root);
-  if(!rootStat.isDirectory()||rootStat.isSymbolicLink()||
-    fs.realpathSync(root)!==root)throw Error('Private media root is not a canonical real directory');
+  const requested=path.resolve(dir),rootStat=fs.lstatSync(requested);
+  // macOS commonly resolves /var to /private/var. Reject a symlinked leaf
+  // directory while allowing trusted, OS-standard canonical parent aliases.
+  if(!rootStat.isDirectory()||rootStat.isSymbolicLink())
+    throw Error('Private media root must be an actual directory, not a symlink');
+  const root=fs.realpathSync(requested);
   for(const [name,sha] of Object.entries(EXPECTED)){
     const full=path.join(root,name),stat=fs.lstatSync(full);
     if(!stat.isFile()||stat.isSymbolicLink()||fs.realpathSync(full)!==full)
