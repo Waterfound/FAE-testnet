@@ -47,7 +47,7 @@ test('independent validating node is real, loopback-only, read-only via Explorer
     assert.equal(explorer.network,NETWORK);
     assert.equal(explorer.observed_tip_height,0);
     assert.match(explorer.observed_tip_hash,/^[0-9a-f]{64}$/);
-    await assert.rejects(()=>c.readBalance(ADDRESS),/Invalid|Local node HTTP|invalid/i);
+    await assert.rejects(()=>c.readBalance(ADDRESS),/HTTP 400|invalid/i);
     await c.stopNode();
     assert.equal(c.snapshot().node,'stopped');
     await assert.rejects(()=>c.readStatus(),/not ready or not owned/);
