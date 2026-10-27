@@ -79,6 +79,7 @@ function windowCreate(){
         const testAddress='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
         await watchBook.add(testAddress,'Cold process public address');
         await watchBook.update(testAddress,{hidden:true});
+        await watchBook.select(testAddress);
         console.log('TS_WATCH_SMOKE_PASS '+JSON.stringify({ipc:true,cold_restart:true,stored:cold.entries.length}));
         clearTimeout(timer);app.exit(0);
       }catch(error){clearTimeout(timer);console.error('TS_WATCH_SMOKE_FAIL '+error.message);app.exit(1)}
@@ -92,12 +93,12 @@ function windowCreate(){
     win.webContents.once('did-finish-load',async()=>{
       try{
         const observed=await win.webContents.executeJavaScript(
-          "(async()=>{const a='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const s=await window.triumph.watchList();return {network:s.network,kind:s.kind,matches:s.entries.filter(e=>e.address===a&&e.hidden&&e.alias==='Cold process public address').length}})()"
+          "(async()=>{const a='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const s=await window.triumph.watchList();return {network:s.network,kind:s.kind,selected:s.selected,matches:s.entries.filter(e=>e.address===a&&e.hidden&&e.alias==='Cold process public address').length}})()"
         );
-        if(observed.network!=='fairyelf-public-testnet-v4'||observed.kind!=='watch_only'||observed.matches!==1)
+        if(observed.network!=='fairyelf-public-testnet-v4'||observed.kind!=='watch_only'||observed.matches!==1||observed.selected!=='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn')
           throw Error('Persisted public address missing after complete Electron process exit');
         const native=await (new WatchAddressBook(app.getPath('userData'))).list();
-        if(!native.entries.some(e=>e.alias==='Cold process public address'&&e.hidden))
+        if(native.selected!=='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn'||!native.entries.some(e=>e.alias==='Cold process public address'&&e.hidden))
           throw Error('Cold process native data reader disagrees with renderer IPC');
         console.log('TS_WATCH_COLD_PROCESS_PASS '+JSON.stringify({native_process_relaunch:true,read_only:true}));
         clearTimeout(timer);app.exit(0);
