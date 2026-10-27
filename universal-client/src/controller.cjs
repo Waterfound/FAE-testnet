@@ -63,13 +63,26 @@ class ProcessController extends EventEmitter{
       windowsHide:true
     });
     const invalidateMiner=()=>{
-      // The UI may not report historical hashrate as live after an unexpected exit.
+      // A stopped miner's previous hashrate is historical, never live.
       if(child===this.miner){
         this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
       }
     };
-    child.on('error',()=>{child._tsFailed=true;invalidateMiner();this.emit('state',this.snapshot())});
-    child.on('exit',()=>{invalidateMiner();this.emit('state',this.snapshot())});
+    const invalidateDependentMiner=()=>{
+      // A managed node crash revokes the miner's permission to continue against its old port.
+      // In particular, a newly bound (unowned) local process must never inherit mining.
+      if(child===this.node&&alive(this.miner)){
+        void this.stopMiner().catch(()=>this.emit('state',this.snapshot()));
+      }
+    };
+    child.on('error',()=>{
+      child._tsFailed=true;invalidateMiner();invalidateDependentMiner();
+      this.emit('state',this.snapshot());
+    });
+    child.on('exit',()=>{
+      invalidateMiner();invalidateDependentMiner();
+      this.emit('state',this.snapshot());
+    });
     return child;
   }
   async stop(child){

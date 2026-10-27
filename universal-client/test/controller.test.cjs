@@ -143,3 +143,36 @@ test('invalid managed node ports reject early',()=>{
   for(const port of [0,-1,80,65536,1.2,NaN])
     assert.throws(()=>new ProcessController({repoRoot:root,dataDir:os.tmpdir(),port}),/Invalid managed node port/);
 });
+
+
+test('node crash revokes running miner and stale hashrate, without changing testnet source',async()=>{
+  const {EventEmitter}=require('node:events');
+  const makeChild=()=>{
+    const child=new EventEmitter();
+    child.exitCode=null;child.killed=false;child._tsFailed=false;child.killCalls=0;
+    child.kill=()=>{
+      child.killCalls++;child.killed=true;
+      setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});
+      return true;
+    };
+    return child;
+  };
+  const spawned=[];
+  const c=new ProcessController({
+    repoRoot:root,dataDir:os.tmpdir(),
+    spawnFn:()=>{const child=makeChild();spawned.push(child);return child}
+  });
+  c.node=c.spawnScript(path.join(root,'sovereign-forge','node','fae-node.mjs'),[]);
+  c.miner=c.spawnScript(path.join(root,'standalone','fae-miner.mjs'),[]);
+  const miner=spawned[1],node=spawned[0];
+  c.ingestMiner(JSON.stringify({state:'MINING',hashrate_hs:125,total_hashes:300}));
+  assert.equal(c.snapshot().miner,'running');
+  assert.equal(c.snapshot().telemetry.hashrate_hs,125);
+  node.exitCode=17;node.emit('exit',17);
+  await new Promise(resolve=>setTimeout(resolve,15));
+  assert.equal(c.snapshot().node,'stopped');
+  assert.equal(c.snapshot().miner,'stopped');
+  assert.equal(c.snapshot().telemetry.state,'STOPPED');
+  assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+  assert.equal(miner.killCalls,1,'Owned dependent miner must be killed exactly once');
+});
