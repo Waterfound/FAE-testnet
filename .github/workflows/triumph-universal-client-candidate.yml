@@ -202,3 +202,62 @@ jobs:
           test -f squashfs-root/resources/fae-runtime/standalone/fae-miner.mjs
           test -f squashfs-root/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
           echo "TS_LINUX_APPIMAGE_EXTRACT_PASS"
+
+      - name: Run the actual Linux AppImage (isolated runner; no system installation)
+        if: runner.os == 'Linux'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          APP="$(find dist -maxdepth 1 -type f -iname '*.AppImage' | head -n 1)"
+          test -n "$APP"
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-node-smoke
+          echo "TS_APPIMAGE_DIRECT_RUNTIME_PASS"
+      - name: Mount the DMG and execute the enclosed macOS candidate
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          set -euo pipefail
+          DMG="$(find dist -maxdepth 1 -type f -iname '*.dmg' | head -n 1)"
+          test -n "$DMG"
+          MOUNT="$(mktemp -d "$RUNNER_TEMP/ts-fatima-dmg.XXXXXX")"
+          cleanup(){ hdiutil detach "$MOUNT" -quiet || true; rmdir "$MOUNT" || true; }
+          trap cleanup EXIT
+          hdiutil attach "$DMG" -quiet -nobrowse -readonly -mountpoint "$MOUNT"
+          APP="$(find "$MOUNT" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          BIN="$APP/Contents/MacOS/triumph-sovereign"
+          test -x "$BIN"
+          "$BIN" --ts-smoke
+          "$BIN" --ts-node-smoke
+          echo "TS_DMG_MOUNT_RUNTIME_PASS"
+      - name: Install NSIS per-user in disposable Windows runner and run installed client
+        if: runner.os == 'Windows'
+        working-directory: universal-client
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $candidate = Get-ChildItem dist -File -Filter "*.exe" | Where-Object { $_.Name -match 'Setup|installer|Triumph' } | Select-Object -First 1
+          if (-not $candidate) { throw "No candidate NSIS installer found" }
+          $target = Join-Path $env:RUNNER_TEMP "ts-fatima-e2e"
+          # /D is an NSIS install-directory switch, not a production installation request.
+          $installation = Start-Process -FilePath $candidate.FullName -ArgumentList @('/S', "/D=$target") -PassThru -Wait
+          if ($installation.ExitCode -ne 0) { throw "NSIS installer exit $($installation.ExitCode)" }
+          $installed = Join-Path $target "triumph-sovereign.exe"
+          if (-not (Test-Path $installed)) { throw "No installed candidate executable at $installed" }
+          foreach ($mode in @('--ts-smoke','--ts-node-smoke')) {
+            $run = Start-Process -FilePath $installed -ArgumentList $mode -PassThru -Wait -NoNewWindow
+            if ($run.ExitCode -ne 0) { throw "Installed FATIMA desktop failed $mode ($($run.ExitCode))" }
+          }
+          Write-Output "TS_NSIS_INSTALLED_RUNTIME_PASS"
+          # CI-only cleanup: machine is discarded; still remove candidate after testing.
+          $uninstaller = Get-ChildItem $target -Filter 'Uninstall*.exe' -File | Select-Object -First 1
+          if ($uninstaller) {
+            $removed = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -PassThru -Wait
+            if ($removed.ExitCode -ne 0) { throw "NSIS uninstall exit $($removed.ExitCode)" }
+            Write-Output "TS_NSIS_SILENT_UNINSTALL_PASS"
+          } else {
+            throw "Candidate installer missing uninstall executable"
+          }
