@@ -268,3 +268,46 @@ test('actual forged loopback FAE listener cannot pass managed-child bound-port a
     await fsP.rm(dir,{recursive:true,force:true});
   }
 });
+
+
+test('read-only Wallet and Explorer refuse chain-tip changes during one real HTTP observation',async()=>{
+  const http=require('node:http');
+  const portServer=http.createServer();
+  const origin='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const zeros='0'.repeat(64),ones='1'.repeat(64);
+  let statuses=0;
+  portServer.on('request',(req,res)=>{
+    res.setHeader('content-type','application/json');
+    if(req.url==='/status'){
+      statuses++;
+      return res.end(JSON.stringify({ok:true,network:NETWORK,height:statuses%2===1?0:1,
+        tip_hash:statuses%2===1?zeros:ones}));
+    }
+    if(req.url?.startsWith('/balance?'))
+      return res.end(JSON.stringify({ok:true,address:origin,balance_atoms:'999999999'}));
+    if(req.url?.startsWith('/explorer/status'))
+      return res.end(JSON.stringify({ok:true,network:NETWORK,observed_tip_height:0,
+        observed_tip_hash:zeros}));
+    res.statusCode=404;res.end('{}');
+  });
+  await new Promise(resolve=>portServer.listen(0,'127.0.0.1',resolve));
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-tip-race-'));
+  const c=new ProcessController({repoRoot:root,dataDir:dir,port:portServer.address().port});
+  c.node={exitCode:null,killed:false,_tsFailed:false};
+  try{
+    await assert.rejects(()=>c.readBalance(origin),/chain tip changed/);
+    await assert.rejects(()=>c.readExplorer('/explorer/status',{}),/chain tip changed/);
+  }finally{c.node=null;await new Promise(resolve=>portServer.close(resolve));fs.rmSync(dir,{recursive:true,force:true})}
+});
+test('local read client caps response bytes even when peer lies about Content-Length',async()=>{
+  const http=require('node:http');
+  const {fetchRead}=require('../src/controller.cjs');
+  const server=http.createServer((_req,res)=>{
+    res.setHeader('content-type','application/json');
+    res.write(JSON.stringify({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64),extra:''));
+    res.end('a'.repeat(2*1024*1024+16)+'"}');
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try{await assert.rejects(()=>fetchRead(new URL('http://127.0.0.1:'+server.address().port+'/status')),/response limit/)}
+  finally{await new Promise(resolve=>server.close(resolve))}
+});

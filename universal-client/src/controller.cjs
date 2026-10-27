@@ -34,11 +34,31 @@ function explorerUrl(route,params={},endpoint=HOST){
   }
   return url;
 }
+const MAX_READ_BYTES=2*1024*1024;
 async function fetchRead(url,kind='status',address){
   const response=await fetch(url,{method:'GET',redirect:'error',headers:{accept:'application/json'},
     signal:AbortSignal.timeout(4000)});
   if(!response.ok)throw Error('FAE local read HTTP '+response.status);
-  return validateRead(await response.json(),{kind,address});
+  const size=Number(response.headers.get('content-length'));
+  if(Number.isFinite(size)&&size>MAX_READ_BYTES){
+    await response.body?.cancel().catch(()=>{});
+    throw Error('FAE local read exceeded response limit');
+  }
+  let total=0;const chunks=[];
+  try{
+    for await(const chunk of response.body){
+      total+=chunk.length;
+      if(total>MAX_READ_BYTES)throw Error('FAE local read exceeded response limit');
+      chunks.push(chunk);
+    }
+  }catch(error){
+    await response.body?.cancel().catch(()=>{});
+    throw error;
+  }
+  let payload;
+  try{payload=JSON.parse(Buffer.concat(chunks,total).toString('utf8'))}
+  catch{throw Error('FAE local read is not JSON')}
+  return validateRead(payload,{kind,address});
 }
 class ProcessController extends EventEmitter{
   constructor({repoRoot,dataDir,port=randomInt(32768,61000),nodeExecutable=process.execPath,
@@ -131,15 +151,33 @@ class ProcessController extends EventEmitter{
   }
   assertNode(){assertManagedNodeReady(this.node,this.nodeStarting)}
   async readStatus(){this.assertNode();return fetchRead(new URL('/status',this.endpoint))}
+  async observedReadAtStableTip(read){
+    this.assertNode();
+    const ownedChild=this.node;
+    const before=await fetchRead(new URL('/status',this.endpoint));
+    this.assertNode();
+    if(this.node!==ownedChild)throw Error('Managed FAE node changed during observation');
+    const result=await read();
+    this.assertNode();
+    if(this.node!==ownedChild)throw Error('Managed FAE node changed during observation');
+    const after=await fetchRead(new URL('/status',this.endpoint));
+    this.assertNode();
+    if(this.node!==ownedChild||before.height!==after.height||before.tip_hash!==after.tip_hash)
+      throw Error('FAE chain tip changed during observation');
+    if(result?.observed_tip_height!==undefined&&
+       (result.observed_tip_height!==before.height||result.observed_tip_hash!==before.tip_hash))
+      throw Error('Explorer observation does not match stable chain tip');
+    return result;
+  }
   async readBalance(address){
-    this.assertNode();const requested=addressValid(address);
-    await fetchRead(new URL('/status',this.endpoint));
-    return fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested);
+    const requested=addressValid(address);
+    return this.observedReadAtStableTip(()=>
+      fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested));
   }
   async readExplorer(route,params){
-    this.assertNode();
-    await fetchRead(new URL('/status',this.endpoint));
-    const observed=await fetchRead(explorerUrl(route,params,this.endpoint),'explorer');
+    const url=explorerUrl(route,params,this.endpoint);
+    const observed=await this.observedReadAtStableTip(()=>
+      fetchRead(url,'explorer'));
     if(route==='/explorer/address'){
       // An incompatible or mismatched selected-node response is never wallet activity.
       if(observed.address!==params?.address||!Array.isArray(observed.events)||
