@@ -304,7 +304,7 @@ test('local read client caps response bytes even when peer lies about Content-Le
   const {fetchRead}=require('../src/controller.cjs');
   const server=http.createServer((_req,res)=>{
     res.setHeader('content-type','application/json');
-    res.write(JSON.stringify({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64),extra:''));
+    res.write(JSON.stringify({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64),extra:''}));
     res.end('a'.repeat(2*1024*1024+16)+'"}');
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
