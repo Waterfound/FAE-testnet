@@ -54,6 +54,22 @@ function windowCreate(){
       }catch(error){console.error('TS_MINER_SMOKE_FAIL '+error.message);clearTimeout(timer);app.exit(1)}
     });
   }
+
+  if(process.argv.includes('--ts-watch-smoke')&&process.env.CI==='true'){
+    const timer=setTimeout(()=>{console.error('TS_WATCH_SMOKE_TIMEOUT');app.exit(2)},25000);
+    win.webContents.once('did-finish-load',async()=>{
+      try{
+        const observed=await win.webContents.executeJavaScript(
+          "(async()=>{const a='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const current=await window.triumph.watchList();if(!current.entries.some(e=>e.address===a))await window.triumph.watchAdd(a,'Native test public address');await window.triumph.watchUpdate(a,{hidden:true,alias:'Native test public address'});const rows=await window.triumph.watchList();return {present:rows.entries.some(e=>e.address===a&&e.hidden&&e.alias==='Native test public address')}})()");
+        if(!observed.present)throw Error('Native watch-only IPC acceptance failed');
+        const cold=await (new WatchAddressBook(app.getPath('userData'))).list();
+        if(!cold.entries.some(e=>e.alias==='Native test public address'&&e.hidden))
+          throw Error('Cold persisted public catalog did not roundtrip');
+        console.log('TS_WATCH_SMOKE_PASS '+JSON.stringify({ipc:true,cold_restart:true,stored:cold.entries.length}));
+        clearTimeout(timer);app.exit(0);
+      }catch(error){clearTimeout(timer);console.error('TS_WATCH_SMOKE_FAIL '+error.message);app.exit(1)}
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){

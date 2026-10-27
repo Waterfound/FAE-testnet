@@ -52,6 +52,9 @@ jobs:
         working-directory: universal-client
         # Disposable runner only, loopback, external sync disabled by controller.
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-node-smoke
+      - name: Real watch-only public address IPC and persistence smoke
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-smoke
       - name: Real Electron isolated mining process and observed hashrate
         working-directory: universal-client
         # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.
@@ -72,6 +75,9 @@ jobs:
       - name: Install pinned Electron in temporary native runner
         working-directory: universal-client
         run: npm install --no-audit --no-fund
+      - name: Real native watch-only public address IPC smoke
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-watch-smoke
       - name: Actual native desktop window and IPC snapshot smoke
         working-directory: universal-client
         run: npm exec -- electron . --ts-smoke
