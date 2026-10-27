@@ -150,3 +150,55 @@ jobs:
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
           "$BIN" --ts-miner-smoke
+
+  desktop-installer-candidate-inspection:
+    # Candidate-only: no GitHub release, no upload to public Actions artifacts,
+    # no signing, notarization, installation to persistent host, or production activation.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare exact isolated FAE desktop candidate
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm install --no-audit --no-fund
+      - name: Produce unsigned local candidate installer, never publish
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: 'false'
+        run: npm run package:installer:candidate
+      - name: Verify candidate installer file header, size, and provenance
+        working-directory: universal-client
+        run: node scripts/verify-installer.cjs
+      - name: Verify macOS DMG is an actual readable local image
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          DMG="$(find dist -maxdepth 1 -type f -iname '*.dmg' | head -n 1)"
+          test -n "$DMG"
+          hdiutil imageinfo "$DMG" >/dev/null
+          echo "TS_MACOS_DMG_IMAGEINFO_PASS"
+      - name: Verify Linux AppImage payload is extractable without host installation
+        if: runner.os == 'Linux'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          APP="$(find dist -maxdepth 1 -type f -iname '*.AppImage' | head -n 1)"
+          test -n "$APP"
+          chmod +x "$APP"
+          "$APP" --appimage-extract >/dev/null
+          test -f squashfs-root/AppRun
+          test -f squashfs-root/resources/app.asar
+          test -f squashfs-root/resources/fae-runtime/standalone/fae-miner.mjs
+          test -f squashfs-root/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
+          echo "TS_LINUX_APPIMAGE_EXTRACT_PASS"

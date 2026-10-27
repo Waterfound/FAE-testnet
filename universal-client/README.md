@@ -60,3 +60,11 @@ The Hero and Balance lifecycle tests operate against a simulated DOM and do not 
 In a full FAE checkout, the build embeds the unmodified canonical source bytes for the four existing Node/miner modules as isolated Electron `extraResources`, not a new consensus implementation. Packaged Electron `main.cjs` resolves its run-time FAE root from `process.resourcesPath/fae-runtime` while development mode continues to use the original repository root.
 
 The scoped Linux packaging CI checks the copied bytes against the exact checkout and attempts genuine packaged GUI+Node smoke on disposable Xvfb without graphical sandbox. This is **candidate-only evidence**; `--no-sandbox` must not ship as a production default. Windows/macOS installer execution and code-signing/notarization remain distinct gates. No wallet secrets or the user's private coin/animation master assets are bundled in this public source candidate.
+
+## Unsigned installer candidates — packaging evidence only
+
+This isolated draft also supports `npm run package:installer:candidate`, using electron-builder to attempt NSIS (Windows), DMG (macOS), and AppImage (Linux) on ephemeral, already-authorized CI hosts. Output stays exclusively on the disposable runner: **no release or public artifact upload**.
+
+The source-bound inspection `node scripts/verify-installer.cjs` validates one nonempty file of the appropriate target type and prints its hash and length. Linux verifies extracted AppImage resources; macOS invokes native `hdiutil imageinfo`. A successful candidate artifact build is not installation acceptance, valid code signature, sandbox/hardened-runtime certification, approved mainnet distribution, or proof that an end user can open an unsigned package without OS warnings.
+
+Before any actual distribution, separately verify real interactive installation, userData state durability, uninstall/relaunch, update/rollback, packaged media and wallet security across all target hosts.

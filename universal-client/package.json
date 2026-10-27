@@ -13,7 +13,8 @@
     "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js",
     "test": "node --test test/*.test.cjs",
     "package:dir": "electron-builder --dir --publish never",
-    "verify:package": "node scripts/verify-package.cjs"
+    "verify:package": "node scripts/verify-package.cjs",
+    "package:installer:candidate": "electron-builder --publish never"
   },
   "devDependencies": {
     "electron": "45.0.0",
@@ -48,6 +49,24 @@
     ],
     "directories": {
       "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Finance"
     }
   }
 }
