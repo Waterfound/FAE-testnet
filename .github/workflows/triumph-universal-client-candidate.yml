@@ -104,6 +104,7 @@ jobs:
         run: |
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-miner-smoke
 
   desktop-packaged-native-smoke:
     strategy:
@@ -137,6 +138,8 @@ jobs:
           if ($gui.ExitCode -ne 0) { throw "Packaged Windows GUI smoke failed: exit $($gui.ExitCode)" }
           $node = Start-Process -FilePath $exe -ArgumentList "--ts-node-smoke" -Wait -PassThru -NoNewWindow
           if ($node.ExitCode -ne 0) { throw "Packaged Windows managed node smoke failed: exit $($node.ExitCode)" }
+          $miner = Start-Process -FilePath $exe -ArgumentList "--ts-miner-smoke" -Wait -PassThru -NoNewWindow
+          if ($miner.ExitCode -ne 0) { throw "Packaged Windows managed miner smoke failed: exit $($miner.ExitCode)" }
       - name: Real packaged macOS Electron GUI and managed node
         if: runner.os == 'macOS'
         working-directory: universal-client
@@ -146,3 +149,4 @@ jobs:
           test -n "$BIN"
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
+          "$BIN" --ts-miner-smoke
