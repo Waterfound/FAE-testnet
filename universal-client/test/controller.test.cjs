@@ -56,3 +56,47 @@ test('independent validating node is real, loopback-only, read-only via Explorer
     fs.rmSync(dir,{recursive:true,force:true});
   }
 });
+
+
+test('desktop controller starts real standalone miner, reports real hashrate and stops cleanly',
+  {timeout:30000},async t=>{
+  if(!fs.existsSync(path.join(root,'sovereign-forge','node','fae-node.mjs'))||
+     !fs.existsSync(path.join(root,'standalone','fae-miner.mjs')))
+    return t.skip('Canonical node or miner missing');
+  // Public address from the existing standalone miner integration fixture. No seed or signer.
+  const publicReward='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-client-miner-'));
+  const c=new ProcessController({repoRoot:root,dataDir:dir,nodeExecutable:process.execPath});
+  let timer;
+  try{
+    const node=await c.startNode();
+    assert.equal(node.node,'running');
+    const ready=new Promise((resolve,reject)=>{
+      timer=setTimeout(()=>reject(Error('No authentic miner hashrate within bounded test interval')),17000);
+      const observe=sample=>{
+        const telemetry=sample?.telemetry;
+        if(sample?.miner==='running'&&telemetry?.state==='MINING'&&
+           Number.isSafeInteger(telemetry.hashrate_hs)&&telemetry.hashrate_hs>0){
+          clearTimeout(timer);
+          c.off('state',observe);
+          resolve(telemetry);
+        }
+      };
+      c.on('state',observe);
+    });
+    await c.startMiner(publicReward);
+    const metrics=await ready;
+    assert.ok(metrics.hashrate_hs>0);
+    assert.ok(Number.isSafeInteger(metrics.total_hashes)&&metrics.total_hashes>0);
+    assert.equal((await c.readStatus()).network,NETWORK);
+    await c.stopMiner();
+    assert.equal(c.snapshot().miner,'stopped');
+    assert.equal(c.snapshot().telemetry.state,'STOPPED');
+    assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+    assert.equal(c.snapshot().node,'running','Stopping miner cannot shut down node');
+  }finally{
+    clearTimeout(timer);
+    await c.dispose().catch(()=>{});
+    fs.rmSync(dir,{recursive:true,force:true});
+  }
+});
