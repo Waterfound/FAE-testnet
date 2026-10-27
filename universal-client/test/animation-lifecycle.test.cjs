@@ -44,3 +44,47 @@ test('Hero is one-shot per entry; Balance only loops in visible Wallet and reduc
   assert.doesNotMatch(get('balance-motion').src,/balance\.gif$/);
   assert.match(get('balance-rest').src||get('balance-motion').src,/balance-rest\.png$/);
 });
+
+
+test('private Hero V4 source timing halts the animation once and preserves static re-entry rules',()=>{
+  const nodes=new Map(),nav=[],pageListeners={},timers=new Map();let next=0;
+  const make=id=>({id,src:'',hidden:false,value:'',dataset:{},style:{},textContent:'',disabled:false,
+    classList:{toggle(){}},setAttribute(){},removeAttribute(name){if(name==='src')this.src=''},
+    addEventListener(type,cb){this['on'+type]=cb}});
+  const el=id=>{if(!nodes.has(id))nodes.set(id,make(id));return nodes.get(id)};
+  for(const p of ['home','wallet','mining','node','explorer','settings']){
+    const btn=make(p);btn.dataset.page=p;nav.push(btn);
+  }
+  const doc={hidden:false,getElementById:el,querySelectorAll:()=>nav,
+    addEventListener(type,cb){pageListeners[type]=cb}};
+  const mq={matches:false,addEventListener(){}};
+  const vmContext={
+    document:doc,matchMedia:()=>mq,
+    window:{triumph:{onState(){},snapshot:async()=>({node:'stopped',miner:'stopped'})}},
+    setTimeout:(cb,ms)=>{const id=++next;timers.set(id,{cb,ms});return id},
+    clearTimeout:id=>timers.delete(id),console
+  };
+  const js=fs.readFileSync(path.join(__dirname,'../src/renderer.js'),'utf8');
+  vm.runInNewContext(js,vmContext);
+  assert.match(el('hero-motion').src,/hero\.webp$/);
+  el('hero-motion').onload();
+  assert.equal(timers.size,1);
+  const task=[...timers.values()][0];
+  assert.equal(task.ms,4999,'Actual private 150-frame Hero V4 duration');
+  task.cb();
+  assert.equal(el('hero-motion').src,'');
+  assert.match(el('hero-rest').src,/hero-rest\.png$/);
+  assert.equal(timers.size,0);
+  nav[1].onclick();
+  nav[0].onclick();
+  assert.match(el('hero-motion').src,/hero\.webp$/,'New page entry replays once');
+  el('hero-motion').onload();
+  assert.equal(timers.size,1);
+  nav[1].onclick();
+  assert.equal(timers.size,0,'Leaving Home cancels an in-flight playback');
+  nav[0].onclick();
+  assert.match(el('hero-motion').src,/hero\.webp$/);
+  doc.hidden=true;pageListeners.visibilitychange();
+  assert.equal(el('hero-motion').src,'');
+  assert.match(el('hero-rest').src,/hero-rest\.png$/);
+});
