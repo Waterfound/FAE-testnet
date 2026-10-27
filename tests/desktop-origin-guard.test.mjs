@@ -60,7 +60,10 @@ test('immutable FAE snapshot retains the exact authoritative checksum',async()=>
   const manifest=await readFile(MANIFEST,'utf8');
   const line=manifest.split(/\r?\n/).find(x=>x.trimEnd().endsWith('  sovereign-forge/node/fae-node.mjs'));
   assert.ok(line);
-  assert.equal(createHash('sha256').update(await readFile(NODE)).digest('hex'),line.slice(0,64));
+  const checkout=await readFile(NODE);
+  // git autocrlf converts text on Windows runners; verify canonical LF bytes without changing Git or its manifest.
+  const normalized=process.platform==='win32'?Buffer.from(checkout.toString('utf8').replace(/\r\n/g,'\n'),'utf8'):checkout;
+  assert.equal(createHash('sha256').update(normalized).digest('hex'),line.slice(0,64));
 });
 test('native-only read gateway denies browser origins, unauthorized reads and mutation',async()=>{
   const f=await fixture();const headers={'x-ts-read-token':f.key};
