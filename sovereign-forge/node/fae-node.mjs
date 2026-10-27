@@ -50,10 +50,6 @@ const UPSTREAM_API=(process.env.FAE_UPSTREAM_API===undefined?DEFAULT_PUBLIC_API:
 const PEERS=parseList(process.env.FAE_PEERS||'');
 const FEEDS=parseList(process.env.FAE_BOOTSTRAP_FEEDS===undefined?DEFAULT_CHAIN_FEED:process.env.FAE_BOOTSTRAP_FEEDS);
 const ENABLE_SYNC=process.env.FAE_SYNC!=='0';
-// Optional browser-Origin guard for client-owned loopback nodes only.
-// Default public testnet API behavior is byte-for-byte compatible when unset.
-// Origin denial is defense in depth, NOT authentication of a native local process.
-const DESKTOP_LOCAL_ONLY=process.env.FAE_DESKTOP_LOCAL_ONLY==='1';
 
 function parseList(value){return String(value||'').split(',').map(x=>x.trim().replace(/\/$/,'')).filter(Boolean)}
 function canonical(value){if(Array.isArray(value))return value.map(canonical);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));return value}
@@ -126,21 +122,11 @@ function reorgRecordOrder(a,b){const ah=a.confirmed_height===null||a.confirmed_h
 function reconcileDetachedTransactions(candidate,previous){const detached=Object.values(previous.transactions).filter(record=>record&&record.txid&&!candidate.transactions[record.txid]).sort(reorgRecordOrder);const waiting=new Map(detached.map(record=>[String(record.txid),record]));const reacceptedRecords=[];let rejected=0,progress=true;while(progress&&waiting.size){progress=false;for(const [txid,record] of [...waiting.entries()]){try{acceptTxInto(candidate,{version:2,network:NETWORK,inputs:[...(record.inputs||[])],outputs:(record.outputs||[]).map(output=>({address:String(output.address),amount_atoms:String(output.amount_atoms)})),public_key_spki:String(record.public_key_spki),signature:String(record.signature),txid,from_address:String(record.from_address),mempool_seq:Number(record.mempool_seq||0),created_at:record.created_at},{fromFeed:true});waiting.delete(txid);reacceptedRecords.push(candidate.transactions[txid]);progress=true}catch(error){if(String(error.code||error.message)==='missing_or_spent_input')continue;waiting.delete(txid);rejected++}}}rejected+=waiting.size;return{state:candidate,reacceptedRecords,rejected}}
 async function syncOnce(){if(syncRunning)return;syncRunning=true;try{for(const source of [...new Set([...FEEDS,...PEERS])]){try{const candidate=await fetchCandidate(source);if(preferred(candidate,state)){await serial(async()=>{if(preferred(candidate,state)){const previous=state;const reconciled=reconcileDetachedTransactions(candidate,previous);state=reconciled.state;await persist();for(const record of reconciled.reacceptedRecords)relay('/submit-tx',{tx:normalizeTx(record)}).catch(()=>{});console.log(`[FAE] adopted verified chain height ${state.chain.length} from ${source}; mempool reaccepted=${reconciled.reacceptedRecords.length} dropped=${reconciled.rejected}`)}})}}catch(error){console.warn(`[FAE] sync source ${source}: ${error.message}`)}}}finally{syncRunning=false}}
 
-function cors(methods='GET,POST,OPTIONS'){
-  const standard={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
-  if(DESKTOP_LOCAL_ONLY)return standard;
-  return {...standard,'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':methods};
-}
+function cors(methods='GET,POST,OPTIONS'){return{'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':methods,'content-type':'application/json; charset=utf-8','cache-control':'no-store'}}
 function send(res,status,payload,headers=cors()){res.writeHead(status,headers);res.end(JSON.stringify(payload))}
 async function readBody(req){let body='';for await(const chunk of req){body+=chunk;if(body.length>2_000_000)throw Error('body_too_large')}return body?JSON.parse(body):{}}
 
-async function handler(req,res){try{const url=new URL(req.url,'http://localhost');const explorerPath=url.pathname==='/explorer'||url.pathname.startsWith('/explorer/');
-  // Browser-origin requests cannot read, submit, or preflight the private desktop node.
-  // A malicious same-device native process remains outside this candidate's assurances.
-  if(DESKTOP_LOCAL_ONLY&&(req.headers.origin!==undefined||req.method==='OPTIONS')){
-    return send(res,403,{ok:false,error:'desktop_browser_origin_forbidden'});
-  }
-  if(req.method==='OPTIONS'){res.writeHead(204,explorerPath?cors('GET,OPTIONS'):cors());return res.end()}if(explorerPath){const snapshot=cloneState(state);const result=explorerReader.handle(req.method,url,snapshot);return send(res,result.status,result.payload,cors('GET,OPTIONS'))}
+async function handler(req,res){try{const url=new URL(req.url,'http://localhost');const explorerPath=url.pathname==='/explorer'||url.pathname.startsWith('/explorer/');if(req.method==='OPTIONS'){res.writeHead(204,explorerPath?cors('GET,OPTIONS'):cors());return res.end()}if(explorerPath){const snapshot=cloneState(state);const result=explorerReader.handle(req.method,url,snapshot);return send(res,result.status,result.payload,cors('GET,OPTIONS'))}
   if(url.pathname==='/'||url.pathname==='/status')return send(res,200,statusPayload());
   if(url.pathname==='/state'){const recent=state.chain.slice(-12).reverse().map(publicBlock);return send(res,200,{...statusPayload(),recent})}
   if(url.pathname==='/feed'){const from=Math.max(1,Number(url.searchParams.get('from')||1)),limit=Math.max(1,Math.min(250,Number(url.searchParams.get('limit')||100))),to=from+limit-1;const blocks=state.chain.filter(b=>b.height>=from&&b.height<=to).map(publicBlock);const heights=new Set(blocks.map(b=>b.height));const transactions=Object.values(state.transactions).filter(t=>t.status==='confirmed'&&heights.has(Number(t.confirmed_height))).sort((a,b)=>Number(a.confirmed_height)-Number(b.confirmed_height)||Number(a.mempool_seq)-Number(b.mempool_seq));const last=tip(state);return send(res,200,{ok:true,feed_version:1,network:NETWORK,from,limit,tip_height:last?.height||0,tip_hash:last?.hash||ZERO_HASH,blocks,transactions})}
