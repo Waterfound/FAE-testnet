@@ -3,6 +3,7 @@ const {spawn}=require('node:child_process');
 const {mkdir}=require('node:fs/promises');
 const path=require('node:path');
 const {EventEmitter,once}=require('node:events');
+const {randomInt}=require('node:crypto');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness}=require('./managed-node-gate.cjs');
 
@@ -17,9 +18,9 @@ function makeEnv(extra={}){
   for(const key of ['PATH','SystemRoot','WINDIR','HOME','USERPROFILE','TMP','TEMP','TMPDIR','LANG','LC_ALL'])if(process.env[key])out[key]=process.env[key];
   return {...out,...extra};
 }
-function explorerUrl(route,params={}){
+function explorerUrl(route,params={},endpoint=HOST){
   if(!ROUTES.has(route)||!params||typeof params!=='object'||Array.isArray(params))throw Error('Forbidden Explorer request');
-  const url=new URL(route,HOST);
+  const url=new URL(route,endpoint);
   for(const [key,value] of Object.entries(params)){
     if(!['q','limit','before_height','height','hash','txid','address','cursor'].includes(key))throw Error('Forbidden Explorer parameter');
     if(typeof value!=='string'&&typeof value!=='number')throw Error('Invalid selector');
@@ -39,14 +40,17 @@ async function fetchRead(url,kind='status',address){
   return validateRead(await response.json(),{kind,address});
 }
 class ProcessController extends EventEmitter{
-  constructor({repoRoot,dataDir,nodeExecutable=process.execPath,
+  constructor({repoRoot,dataDir,port=randomInt(32768,61000),nodeExecutable=process.execPath,
     spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
+    if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid managed node port');
+    this.port=port;
+    this.endpoint='http://127.0.0.1:'+port;
     this.nodeExecutable=nodeExecutable;
     this.spawnFn=spawnFn;this.portProbe=portProbe;
-    this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',HOST)));
+    this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
@@ -82,11 +86,11 @@ class ProcessController extends EventEmitter{
     if(alive(this.node))return this.snapshot();
     this.nodeStarting=true;
     try{
-      await this.portProbe();
+      await this.portProbe(this.port);
       const dir=path.join(this.dataDir,'node');
       await mkdir(dir,{recursive:true,mode:0o700});
       this.node=this.spawnScript(path.join(this.repoRoot,'sovereign-forge','node','fae-node.mjs'),[],{
-        FAE_HOST:'127.0.0.1',FAE_PORT:'8787',FAE_DATA_FILE:path.join(dir,'state.json'),
+        FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
         FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''
       });
       await verifyManagedReadiness({child:this.node,readStatus:this.readinessProbe});
@@ -108,16 +112,16 @@ class ProcessController extends EventEmitter{
     this.emit('state',this.snapshot());return this.snapshot();
   }
   assertNode(){assertManagedNodeReady(this.node,this.nodeStarting)}
-  async readStatus(){this.assertNode();return fetchRead(new URL('/status',HOST))}
+  async readStatus(){this.assertNode();return fetchRead(new URL('/status',this.endpoint))}
   async readBalance(address){
     this.assertNode();const requested=addressValid(address);
-    await fetchRead(new URL('/status',HOST));
-    return fetchRead(new URL('/balance?address='+encodeURIComponent(requested),HOST),'balance',requested);
+    await fetchRead(new URL('/status',this.endpoint));
+    return fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested);
   }
   async readExplorer(route,params){
     this.assertNode();
-    await fetchRead(new URL('/status',HOST));
-    return fetchRead(explorerUrl(route,params),'explorer');
+    await fetchRead(new URL('/status',this.endpoint));
+    return fetchRead(explorerUrl(route,params,this.endpoint),'explorer');
   }
   ingestMiner(line){
     if(typeof line!=='string'||line.length>8192)return;
@@ -131,10 +135,10 @@ class ProcessController extends EventEmitter{
   async startMiner(address){
     addressValid(address);this.assertNode();
     if(alive(this.miner))throw Error('Miner already running');
-    await fetchRead(new URL('/status',HOST));
+    await fetchRead(new URL('/status',this.endpoint));
     this.telemetry={state:'CONNECTING',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
     this.miner=this.spawnScript(path.join(this.repoRoot,'standalone','fae-miner.mjs'),
-      ['--node',HOST,'--address',address,'--json','--yield-ms','20']);
+      ['--node',this.endpoint,'--address',address,'--json','--yield-ms','20']);
     let buffer='';
     this.miner.stdout?.setEncoding?.('utf8');
     this.miner.stdout?.on?.('data',data=>{

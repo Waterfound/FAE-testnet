@@ -118,3 +118,28 @@ test('spontaneous miner exit invalidates stale operational hashrate immediately'
   assert.equal(c.snapshot().telemetry.hashrate_hs,null);
   assert.equal(c.snapshot().telemetry.accepted,2,'Do not erase observed accepted count');
 });
+
+test('per-session loopback port propagates to node instead of static port',async()=>{
+  const {EventEmitter}=require('node:events');
+  const {mkdtemp,rm}=require('node:fs/promises');
+  const dir=await mkdtemp(path.join(os.tmpdir(),'ts-client-port-'));
+  const attempts=[],child=new EventEmitter();child.exitCode=null;child.killed=false;child._tsFailed=false;
+  child.kill=()=>{child.killed=true;setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});return true};
+  const c=new ProcessController({repoRoot:root,dataDir:dir,port:43179,
+    portProbe:async p=>attempts.push(['port',p]),
+    spawnFn:(_exec,args,opts)=>{attempts.push(['spawn',args,opts]);return child},
+    readinessProbe:async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)})});
+  try{
+    assert.equal(c.endpoint,'http://127.0.0.1:43179');
+    assert.equal((await c.startNode()).node,'running');
+    assert.deepEqual(attempts[0],['port',43179]);
+    assert.equal(attempts[1][2].env.FAE_PORT,'43179');
+    assert.equal(attempts[1][2].env.FAE_HOST,'127.0.0.1');
+    assert.equal(new URL(explorerUrl('/explorer/status',{},c.endpoint)).port,'43179');
+    assert.notEqual(c.endpoint,'http://127.0.0.1:8787');
+  }finally{await c.dispose();await rm(dir,{recursive:true,force:true})}
+});
+test('invalid managed node ports reject early',()=>{
+  for(const port of [0,-1,80,65536,1.2,NaN])
+    assert.throws(()=>new ProcessController({repoRoot:root,dataDir:os.tmpdir(),port}),/Invalid managed node port/);
+});
