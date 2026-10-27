@@ -132,10 +132,11 @@ jobs:
         working-directory: universal-client
         shell: pwsh
         run: |
-          & ".\\dist\\win-unpacked\\triumph-sovereign.exe" --ts-smoke
-          if ($LASTEXITCODE -ne 0) { throw "Packaged Windows GUI smoke failed" }
-          & ".\\dist\\win-unpacked\\triumph-sovereign.exe" --ts-node-smoke
-          if ($LASTEXITCODE -ne 0) { throw "Packaged Windows managed node smoke failed" }
+          $exe = (Resolve-Path ".\\dist\\win-unpacked\\triumph-sovereign.exe").Path
+          $gui = Start-Process -FilePath $exe -ArgumentList "--ts-smoke" -Wait -PassThru -NoNewWindow
+          if ($gui.ExitCode -ne 0) { throw "Packaged Windows GUI smoke failed: exit $($gui.ExitCode)" }
+          $node = Start-Process -FilePath $exe -ArgumentList "--ts-node-smoke" -Wait -PassThru -NoNewWindow
+          if ($node.ExitCode -ne 0) { throw "Packaged Windows managed node smoke failed: exit $($node.ExitCode)" }
       - name: Real packaged macOS Electron GUI and managed node
         if: runner.os == 'macOS'
         working-directory: universal-client
