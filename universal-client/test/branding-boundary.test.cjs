@@ -12,8 +12,8 @@ test('FATIMA is explicit intended ticker, without presenting FAE testnet balance
   assert.match(html,/OBSERVED FAE TESTNET BALANCE · NOT FATIMA/);
   assert.match(html,/Existing testnet unit: <strong>FAE<\/strong>/);
   assert.match(html,/— FAE/);
-  assert.match(renderer,/+' FAE'/);
-  assert.doesNotMatch(renderer,/+' FATIMA'/);
+  assert.ok(renderer.includes("+' FAE'"));
+  assert.ok(!renderer.includes("+' FATIMA'"));
 });
 test('display-only branding leaves FAE v4 network and node contract identifiers intact',()=>{
   assert.match(controller,/const \{NETWORK,validateRead\}/);
