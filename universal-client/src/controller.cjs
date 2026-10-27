@@ -150,7 +150,15 @@ class ProcessController extends EventEmitter{
     this.emit('state',this.snapshot());return this.snapshot();
   }
   assertNode(){assertManagedNodeReady(this.node,this.nodeStarting)}
-  async readStatus(){this.assertNode();return fetchRead(new URL('/status',this.endpoint))}
+  async readStatus(){
+    this.assertNode();const owned=this.node;
+    const observed=await fetchRead(new URL('/status',this.endpoint));
+    // The loopback response could arrive AFTER managed-child death/replacement.
+    // This does not authenticate the endpoint, but revokes late observations.
+    this.assertNode();
+    if(this.node!==owned)throw Error('Managed node changed during status observation');
+    return observed;
+  }
   async observedReadAtStableTip(read){
     this.assertNode();
     const ownedChild=this.node;
@@ -200,7 +208,10 @@ class ProcessController extends EventEmitter{
   async startMiner(address){
     addressValid(address);this.assertNode();
     if(alive(this.miner))throw Error('Miner already running');
+    const owned=this.node;
     await fetchRead(new URL('/status',this.endpoint));
+    this.assertNode();
+    if(this.node!==owned)throw Error('Managed node changed before miner launch');
     this.telemetry={state:'CONNECTING',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
     this.miner=this.spawnScript(path.join(this.repoRoot,'standalone','fae-miner.mjs'),
       ['--node',this.endpoint,'--address',address,'--json','--yield-ms','20']);

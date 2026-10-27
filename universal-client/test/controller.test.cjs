@@ -311,3 +311,64 @@ test('local read client caps response bytes even when peer lies about Content-Le
   try{await assert.rejects(()=>fetchRead(new URL('http://127.0.0.1:'+server.address().port+'/status')),/response limit/)}
   finally{await new Promise(resolve=>server.close(resolve))}
 });
+
+
+test('late HTTP status and mining startup are revoked when owned child exits during fetch',async()=>{
+  const http=require('node:http');
+  const fsP=require('node:fs/promises');
+  const dir=await fsP.mkdtemp(path.join(os.tmpdir(),'ts-status-revoke-'));
+  const requests=[];
+  let wake=null;
+  const served=new Promise(resolve=>wake=resolve);
+  const server=http.createServer((req,res)=>{
+    requests.push({req,res});
+    if(wake)wake();
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  let spawns=0;
+  const c=new ProcessController({repoRoot:root,dataDir:dir,port:server.address().port,
+    spawnFn:()=>{spawns++;throw Error('No miner may spawn from a dead node')}});
+  const live=()=>({exitCode:null,killed:false,_tsFailed:false});
+  const payload=JSON.stringify({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  try{
+    c.node=live();
+    const first=c.readStatus();
+    await served;
+    c.node.exitCode=1;
+    requests[0].res.writeHead(200,{'content-type':'application/json'});requests[0].res.end(payload);
+    await assert.rejects(()=>first,/not ready or not owned/);
+    let deliver;
+    const next=new Promise(resolve=>deliver=resolve);
+    wake=deliver;
+    c.node=live();
+    const starting=c.startMiner(ADDRESS);
+    await next;
+    c.node.exitCode=1;
+    requests[1].res.writeHead(200,{'content-type':'application/json'});requests[1].res.end(payload);
+    await assert.rejects(()=>starting,/not ready or not owned/);
+    assert.equal(spawns,0);
+    assert.equal(c.miner,null);
+  }finally{
+    c.node=null;await c.dispose();
+    await new Promise(resolve=>server.close(resolve));
+    await fsP.rm(dir,{recursive:true,force:true});
+  }
+});
+
+test('status fetch refuses child replacement despite plausible same-tip HTTP response',async()=>{
+  const http=require('node:http');
+  let answer;
+  const ready=new Promise(resolve=>answer=resolve);
+  let held;
+  const server=http.createServer((_req,res)=>{held=res;answer()});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),port:server.address().port});
+  c.node={exitCode:null,killed:false,_tsFailed:false};
+  try{
+    const old=c.readStatus();await ready;
+    c.node={exitCode:null,killed:false,_tsFailed:false};
+    held.writeHead(200,{'content-type':'application/json'});
+    held.end(JSON.stringify({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)}));
+    await assert.rejects(()=>old,/changed during status observation/);
+  }finally{c.node=null;await new Promise(resolve=>server.close(resolve))}
+});
