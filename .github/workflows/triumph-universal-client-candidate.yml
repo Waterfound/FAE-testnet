@@ -1,0 +1,27 @@
+name: Triumph Universal Client Candidate
+on:
+  pull_request:
+    paths:
+      - 'universal-client/**'
+      - '.github/workflows/triumph-universal-client-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop-source-and-real-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact checkout identity
+        run: git rev-parse HEAD
+      - name: Node/desktop source syntax
+        run: cd universal-client && npm run check
+      - name: Bounded unit and real isolated local-node tests
+        run: cd universal-client && npm test
+      - name: Unchanged consensus and economics files
+        run: |
+          git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
