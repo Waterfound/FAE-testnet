@@ -55,6 +55,9 @@ jobs:
       - name: Real watch-only public address IPC and persistence smoke
         working-directory: universal-client
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-smoke
+      - name: Reload public address book from a second independent Electron process
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-verify
       - name: Real Electron isolated mining process and observed hashrate
         working-directory: universal-client
         # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.
@@ -78,6 +81,9 @@ jobs:
       - name: Real native watch-only public address IPC smoke
         working-directory: universal-client
         run: npm exec -- electron . --ts-watch-smoke
+      - name: Verify saved address in a second native Electron launch
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-watch-verify
       - name: Actual native desktop window and IPC snapshot smoke
         working-directory: universal-client
         run: npm exec -- electron . --ts-smoke
@@ -111,6 +117,7 @@ jobs:
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-verify
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-miner-smoke
 
   desktop-packaged-native-smoke:
@@ -147,6 +154,8 @@ jobs:
           if ($node.ExitCode -ne 0) { throw "Packaged Windows managed node smoke failed: exit $($node.ExitCode)" }
           $watch = Start-Process -FilePath $exe -ArgumentList "--ts-watch-smoke" -Wait -PassThru -NoNewWindow
           if ($watch.ExitCode -ne 0) { throw "Packaged Windows watch-list IPC smoke failed" }
+          $cold = Start-Process -FilePath $exe -ArgumentList "--ts-watch-verify" -Wait -PassThru -NoNewWindow
+          if ($cold.ExitCode -ne 0) { throw "Packaged Windows second-process catalog recovery failed" }
           $miner = Start-Process -FilePath $exe -ArgumentList "--ts-miner-smoke" -Wait -PassThru -NoNewWindow
           if ($miner.ExitCode -ne 0) { throw "Packaged Windows managed miner smoke failed: exit $($miner.ExitCode)" }
       - name: Real packaged macOS Electron GUI and managed node
@@ -159,6 +168,7 @@ jobs:
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
           "$BIN" --ts-watch-smoke
+          "$BIN" --ts-watch-verify
           "$BIN" --ts-miner-smoke
 
   desktop-installer-candidate-inspection:
@@ -224,6 +234,7 @@ jobs:
           xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-node-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-watch-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-watch-verify
           echo "TS_APPIMAGE_DIRECT_RUNTIME_PASS"
       - name: Mount the DMG and execute the enclosed macOS candidate
         if: runner.os == 'macOS'
@@ -259,7 +270,7 @@ jobs:
           if ($installation.ExitCode -ne 0) { throw "NSIS installer exit $($installation.ExitCode)" }
           $installed = Join-Path $target "triumph-sovereign.exe"
           if (-not (Test-Path $installed)) { throw "No installed candidate executable at $installed" }
-          foreach ($mode in @('--ts-smoke','--ts-node-smoke','--ts-watch-smoke')) {
+          foreach ($mode in @('--ts-smoke','--ts-node-smoke','--ts-watch-smoke','--ts-watch-verify')) {
             $run = Start-Process -FilePath $installed -ArgumentList $mode -PassThru -Wait -NoNewWindow
             if ($run.ExitCode -ne 0) { throw "Installed FATIMA desktop failed $mode ($($run.ExitCode))" }
           }
