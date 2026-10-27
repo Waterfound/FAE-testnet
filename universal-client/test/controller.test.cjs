@@ -184,3 +184,22 @@ test('node crash revokes running miner and stale hashrate, without changing test
   assert.equal(c.snapshot().telemetry.hashrate_hs,null);
   assert.equal(miner.killCalls,1,'Owned dependent miner must be killed exactly once');
 });
+
+test('existing malformed node disk state fails before launch and remains unchanged',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-persisted-state-'));
+  const nodeDir=path.join(dir,'node'),file=path.join(nodeDir,'state.json');
+  fs.mkdirSync(nodeDir,{recursive:true});
+  const corrupt='{"format": "FAE_NODE_STATE_V1", "chain": [';
+  fs.writeFileSync(file,corrupt);
+  let launches=0;
+  const c=new ProcessController({repoRoot:root,dataDir:dir,spawnFn:()=>{launches++;throw Error('unsafe launch')}});
+  try{
+    await assert.rejects(()=>c.startNode(),/corrupt; refused empty-chain restart/);
+    assert.equal(launches,0);
+    assert.equal(fs.readFileSync(file,'utf8'),corrupt);
+    assert.equal(c.snapshot().node,'stopped');
+    fs.writeFileSync(file,JSON.stringify({format:'FAE_NODE_STATE_V1',network:'attacker',chain:[],transactions:{}}));
+    await assert.rejects(()=>c.startNode(),/invalid format or network/);
+    assert.equal(launches,0);
+  }finally{await c.dispose();fs.rmSync(dir,{recursive:true,force:true})}
+});

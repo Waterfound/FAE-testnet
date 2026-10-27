@@ -4,6 +4,7 @@ const {mkdir}=require('node:fs/promises');
 const path=require('node:path');
 const {EventEmitter,once}=require('node:events');
 const {randomInt}=require('node:crypto');
+const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness}=require('./managed-node-gate.cjs');
 
@@ -102,6 +103,7 @@ class ProcessController extends EventEmitter{
       await this.portProbe(this.port);
       const dir=path.join(this.dataDir,'node');
       await mkdir(dir,{recursive:true,mode:0o700});
+      await assertRecoverableLocalNodeState(path.join(dir,'state.json'));
       this.node=this.spawnScript(path.join(this.repoRoot,'sovereign-forge','node','fae-node.mjs'),[],{
         FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
         FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''
