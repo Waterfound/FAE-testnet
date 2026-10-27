@@ -78,7 +78,7 @@ function bindIpc(){
 app.whenReady().then(()=>{
   session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
-  controller=new ProcessController({repoRoot:path.resolve(__dirname,'..','..'),dataDir:app.getPath('userData'),
+  controller=new ProcessController({repoRoot:app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),dataDir:app.getPath('userData'),
     spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess))});
   bindIpc();windowCreate();
 });

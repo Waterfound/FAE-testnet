@@ -75,3 +75,32 @@ jobs:
       - name: Actual native desktop window and IPC snapshot smoke
         working-directory: universal-client
         run: npm exec -- electron . --ts-smoke
+
+  linux-packaged-electron-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Assemble unsigned candidate with canonical existing node/miner
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm install --no-audit --no-fund
+          npm run package:dir
+      - name: Verify packaged source identity against exact checkout
+        working-directory: universal-client
+        run: |
+          cmp ../sovereign-forge/node/fae-node.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
+          cmp ../sovereign-forge/node/explorer-read.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/explorer-read.mjs
+          cmp ../standalone/fae-miner.mjs dist/linux-unpacked/resources/fae-runtime/standalone/fae-miner.mjs
+          cmp ../standalone/mining-core.mjs dist/linux-unpacked/resources/fae-runtime/standalone/mining-core.mjs
+      - name: Real packaged Linux Electron GUI and node IPC smoke
+        working-directory: universal-client
+        # Disposable Xvfb runner only; --no-sandbox is NOT a security-certified production flag.
+        run: |
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke

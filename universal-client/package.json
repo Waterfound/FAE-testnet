@@ -5,11 +5,48 @@
   "description": "Isolated Triumph Sovereign desktop candidate for FAE public-testnet-v4",
   "type": "commonjs",
   "main": "src/main.cjs",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "electron .",
     "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js",
-    "test": "node --test test/*.test.cjs"
+    "test": "node --test test/*.test.cjs",
+    "package:dir": "electron-builder --dir --publish never"
   },
-  "devDependencies": {"electron": "45.0.0"}
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "org.waterfound.triumphsovereign.candidate",
+    "productName": "Triumph Sovereign",
+    "executableName": "triumph-sovereign",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../sovereign-forge/node/fae-node.mjs",
+        "to": "fae-runtime/sovereign-forge/node/fae-node.mjs"
+      },
+      {
+        "from": "../sovereign-forge/node/explorer-read.mjs",
+        "to": "fae-runtime/sovereign-forge/node/explorer-read.mjs"
+      },
+      {
+        "from": "../standalone/fae-miner.mjs",
+        "to": "fae-runtime/standalone/fae-miner.mjs"
+      },
+      {
+        "from": "../standalone/mining-core.mjs",
+        "to": "fae-runtime/standalone/mining-core.mjs"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
 }

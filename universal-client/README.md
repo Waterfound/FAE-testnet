@@ -52,3 +52,11 @@ Place authorized byte-exact originals at assets/balance.gif and assets/hero.webp
 Electron 45 was verified as an official stable release (20 October 2026). The desktop main now uses `utilityProcess.fork` with an injected ChildProcess-shaped controller adapter rather than `ELECTRON_RUN_AS_NODE`. The candidate test harness separately exercises utility process state projection, shutdown and failure without a running Electron binary. This is a source-level architectural improvement, NOT a macOS/Windows/Linux execution claim; physical utility process startup and packaging still require evidence. Signed packaging should disable the `runAsNode` fuse and migrate the local page away from `file://` to a constrained custom protocol before release.
 
 The Hero and Balance lifecycle tests operate against a simulated DOM and do not prove video decoding, frame-for-frame final composition or CPU/GPU consumption. Public GitHub source intentionally has no user-owned media binaries. Native browser runtime remained blocked by the local test environment administrator policy; preserve this as a scoped environment gate rather than bypassing it.
+
+## Packaged candidate with exact FAE source (not a public release)
+
+`npm run package:dir` uses pinned electron-builder 26.18.0 to create an **unsigned, unpacked candidate** on the current host OS; it does not publish, notarize, enable updates or create an installer.
+
+In a full FAE checkout, the build embeds the unmodified canonical source bytes for the four existing Node/miner modules as isolated Electron `extraResources`, not a new consensus implementation. Packaged Electron `main.cjs` resolves its run-time FAE root from `process.resourcesPath/fae-runtime` while development mode continues to use the original repository root.
+
+The scoped Linux packaging CI checks the copied bytes against the exact checkout and attempts genuine packaged GUI+Node smoke on disposable Xvfb without graphical sandbox. This is **candidate-only evidence**; `--no-sandbox` must not ship as a production default. Windows/macOS installer execution and code-signing/notarization remain distinct gates. No wallet secrets or the user's private coin/animation master assets are bundled in this public source candidate.
