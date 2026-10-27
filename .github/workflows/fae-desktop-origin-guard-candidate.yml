@@ -1,8 +1,8 @@
-name: FAE optional desktop browser-Origin guard candidate
+name: FAE isolated desktop read gateway candidate
 on:
   pull_request:
     paths:
-      - 'sovereign-forge/node/fae-node.mjs'
+      - 'standalone/desktop-read-gateway.cjs'
       - 'tests/desktop-origin-guard.test.mjs'
       - '.github/workflows/fae-desktop-origin-guard-candidate.yml'
   workflow_dispatch:
@@ -21,7 +21,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify independent-node candidate source syntax
-        run: node --check sovereign-forge/node/fae-node.mjs
-      - name: Actual isolated FAE node rejects hostile browser origins in opt-in desktop mode
+      - name: Verify immutable node and candidate gateway syntax
+        run: |
+          node --check sovereign-forge/node/fae-node.mjs
+          node --check standalone/desktop-read-gateway.cjs
+      - name: Real independent-node read gateway positive and negative security tests
         run: node --test tests/desktop-origin-guard.test.mjs
