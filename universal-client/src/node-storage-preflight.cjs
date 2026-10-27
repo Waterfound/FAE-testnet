@@ -6,6 +6,15 @@ const MAX_STATE_BYTES=512*1024*1024;
 // Candidate safety: never silently start an empty FAE chain over malformed disk state.
 // The canonical FAE node itself is immutable; this is a defensive desktop preflight only.
 async function assertRecoverableLocalNodeState(file){
+  // Frozen independent node writes '<state>.tmp' before atomic rename.
+  // A leftover file means an interrupted or concurrent writer, not permission
+  // for the client to silently boot an empty chain or overwrite ambiguous work.
+  try{
+    await lstat(file+'.tmp');
+    throw Error('Unresolved FAE node temporary state; refusing automatic recovery');
+  }catch(e){
+    if(e.code!=='ENOENT')throw e;
+  }
   let stat;
   try{stat=await lstat(file)}
   catch(e){if(e.code==='ENOENT')return {present:false};throw e}

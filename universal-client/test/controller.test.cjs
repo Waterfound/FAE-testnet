@@ -203,3 +203,32 @@ test('existing malformed node disk state fails before launch and remains unchang
     assert.equal(launches,0);
   }finally{await c.dispose();fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+
+test('interrupted node write leaves evidence untouched and refuses automatic restart',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-partial-node-'));
+  const nodeDir=path.join(dir,'node'),file=path.join(nodeDir,'state.json');
+  fs.mkdirSync(nodeDir,{recursive:true});
+  const prior={format:'FAE_NODE_STATE_V1',network:NETWORK,chain:[],transactions:{},
+    mempoolOrder:[],mempoolSeq:0,utxos:{},mempoolSpends:{},mempoolOutputs:{}};
+  fs.writeFileSync(file,JSON.stringify(prior));
+  fs.writeFileSync(file+'.tmp','{"partial":');
+  let called=0;
+  const controller=new ProcessController({repoRoot:root,dataDir:dir,spawnFn:()=>{called++;throw Error('Must not launch')}});
+  try{
+    await assert.rejects(()=>controller.startNode(),/Unresolved FAE node temporary state/);
+    assert.equal(called,0);
+    assert.equal(fs.readFileSync(file+'.tmp','utf8'),'{"partial":');
+    assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),prior);
+    fs.rmSync(file+'.tmp');
+    // Cold start from the unchanged, well-formed canonical FAE v4 state.
+    const real=new ProcessController({repoRoot:root,dataDir:dir,nodeExecutable:process.execPath});
+    try{
+      const started=await real.startNode();
+      assert.equal(started.node,'running');
+      assert.equal((await real.readStatus()).height,0);
+      await real.stopNode();
+      assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),prior,'Read-only startup does not reset saved chain');
+    }finally{await real.dispose()}
+  }finally{await controller.dispose();fs.rmSync(dir,{recursive:true,force:true})}
+});
