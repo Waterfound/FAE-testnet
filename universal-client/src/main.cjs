@@ -65,6 +65,14 @@ function windowCreate(){
         const cold=await (new WatchAddressBook(app.getPath('userData'))).list();
         if(!cold.entries.some(e=>e.alias==='Native test public address'&&e.hidden))
           throw Error('Cold persisted public catalog did not roundtrip');
+        await watchBook.remove('faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn');
+        const interfaceRoundtrip=await win.webContents.executeJavaScript("(async()=>{\n  const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';\n  const el=id=>document.getElementById(id);\n  const until=async test=>{\n    for(let i=0;i<80;i++){if(test())return;await new Promise(resolve=>setTimeout(resolve,40))}\n    throw Error('Watch-only real GUI interaction timed out');\n  };\n  document.querySelector('.nav[data-page=\"wallet\"]').click();\n  el('wallet-address').value=addr;\n  el('watch-alias').value='Real GUI public address';\n  el('watch-save').click();\n  await until(()=>el('watch-entries').querySelector('.watch-entry'));\n  let row=el('watch-entries').querySelector('.watch-entry');\n  if(!row.textContent.includes('Real GUI public address'))throw Error('Saved GUI alias missing');\n  row.querySelectorAll('button')[0].click();\n  if(el('wallet-address').value!==addr||el('mining-address').value!==addr)\n    throw Error('Saved public address selection was not reflected in UI');\n  row.querySelectorAll('button')[1].click();\n  await until(()=>el('watch-entries').querySelector('.watch-entry span')?.textContent.includes('hidden'));\n  row=el('watch-entries').querySelector('.watch-entry');\n  if(row.textContent.includes(addr))throw Error('Hidden public address remains displayed');\n  row.querySelectorAll('button')[2].click();\n  await until(()=>el('watch-entries').textContent.includes('No saved public addresses'));\n  return {saved:true,selected:true,hidden:true,removed:true};\n})()");
+        if(!interfaceRoundtrip.saved||!interfaceRoundtrip.removed)
+          throw Error('Native GUI watch-list interaction did not complete');
+        const afterUi=await (new WatchAddressBook(app.getPath('userData'))).list();
+        if(afterUi.entries.some(e=>e.alias==='Real GUI public address'))
+          throw Error('GUI removal did not persist across fresh native state reader');
+        console.log('TS_WATCH_GUI_E2E_PASS '+JSON.stringify(interfaceRoundtrip));
         console.log('TS_WATCH_SMOKE_PASS '+JSON.stringify({ipc:true,cold_restart:true,stored:cold.entries.length}));
         clearTimeout(timer);app.exit(0);
       }catch(error){clearTimeout(timer);console.error('TS_WATCH_SMOKE_FAIL '+error.message);app.exit(1)}
