@@ -27,3 +27,20 @@ jobs:
       - name: Unchanged consensus and economics files
         run: |
           git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+  linux-electron-runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned Electron 45 in disposable runner
+        run: cd universal-client && npm install --no-audit --no-fund
+      - name: Require Xvfb in GitHub runner
+        run: command -v xvfb-run
+      - name: Real Electron renderer and trusted IPC smoke
+        working-directory: universal-client
+        # --no-sandbox is CI/Xvfb-only and provides NO packaged sandbox certification.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-smoke

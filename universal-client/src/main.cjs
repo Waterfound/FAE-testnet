@@ -13,6 +13,21 @@ function windowCreate(){
   });
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.on('will-navigate',e=>e.preventDefault());
+  if(process.argv.includes('--ts-smoke')) {
+    // Isolated candidate CI only: no node, miner, signing or external network startup.
+    const timeout=setTimeout(()=>{console.error('TS_GUI_SMOKE_TIMEOUT');app.exit(2)},30000);
+    win.webContents.once('did-finish-load',async()=>{
+      try{
+        const snapshot=await win.webContents.executeJavaScript(
+          "(async()=>{const pages=document.querySelectorAll('.nav[data-page]').length;const bridge=typeof window.triumph==='object';const state=bridge?await window.triumph.snapshot():null;return {title:document.title,pages,bridge,node:state?.node,miner:state?.miner,home:document.getElementById('page-home').classList.contains('visible')}})()"
+        );
+        if(snapshot.pages!==6||!snapshot.bridge||snapshot.node!=='stopped'||snapshot.miner!=='stopped'||!snapshot.home)
+          throw Error('Desktop UI/IPC smoke assertion failed: '+JSON.stringify(snapshot));
+        console.log('TS_GUI_SMOKE_PASS '+JSON.stringify(snapshot));
+        clearTimeout(timeout);app.exit(0);
+      }catch(error){clearTimeout(timeout);console.error('TS_GUI_SMOKE_FAIL '+error.message);app.exit(1)}
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){
