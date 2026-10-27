@@ -233,3 +233,38 @@ test('interrupted node write leaves evidence untouched and refuses automatic res
     }finally{await real.dispose()}
   }finally{await controller.dispose();fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+
+test('actual forged loopback FAE listener cannot pass managed-child bound-port admission',async()=>{
+  const http=require('node:http');
+  const fsP=require('node:fs/promises');
+  const dir=await fsP.mkdtemp(path.join(os.tmpdir(),'ts-node-prebind-'));
+  // A hostile local socket returns a perfectly plausible FAE v4 status.
+  // Even when the pre-spawn port check has passed, this port is NOT owned by
+  // the process that the client starts and must fail closed.
+  const rogue=http.createServer((req,res)=>{
+    res.writeHead(200,{'content-type':'application/json'});
+    res.end(JSON.stringify({ok:true,network:NETWORK,height:0,
+      tip_hash:'0'.repeat(64),node_version:'independent-0.3.0'}));
+  });
+  await new Promise(resolve=>rogue.listen(0,'127.0.0.1',resolve));
+  const port=rogue.address().port;
+  const controller=new ProcessController({repoRoot:root,dataDir:dir,port,
+    nodeExecutable:process.execPath,portProbe:async()=>{}});
+  try{
+    const fakeStatus=await (await fetch('http://127.0.0.1:'+port+'/status')).json();
+    assert.equal(fakeStatus.network,NETWORK);
+    // Canonical child fails to bind the stolen port; its stdout never emits
+    // the exact bound-port event. The spoofed status MUST NOT be admitted.
+    await assert.rejects(()=>controller.startNode(),
+      /exited before bound-port evidence|failed before bound-port evidence|listener evidence timed out/);
+    assert.equal(controller.snapshot().node,'stopped');
+    assert.equal(controller.snapshot().miner,'stopped');
+    assert.equal(controller.node,null);
+    assert.equal((await(await fetch('http://127.0.0.1:'+port+'/status')).json()).height,0);
+  }finally{
+    await controller.dispose();
+    await new Promise(resolve=>rogue.close(resolve));
+    await fsP.rm(dir,{recursive:true,force:true});
+  }
+});
