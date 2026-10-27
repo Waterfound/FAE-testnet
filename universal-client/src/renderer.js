@@ -3,21 +3,42 @@ const get=id=>document.getElementById(id);
 const PAGES=new Set(['home','wallet','mining','node','explorer','settings']);
 const media={hero:'../assets/hero.webp',heroRest:'../assets/hero-rest.png',balance:'../assets/balance.gif',balanceRest:'../assets/balance-rest.png'};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+// Verified against the private unchanged Hero WebP: 150 frames, total ANMF duration 4,999ms.
+// This is a UI lifecycle cap, not proof that every device decodes every frame on time.
+const HERO_PLAYBACK_MS=4999;
+let heroTimer=null,heroGeneration=0;
 let active='home',heroAtRest=false,state={node:'stopped',miner:'stopped'};
-function setMedia(id,placeholder,src){
+function cancelHeroTimer(){
+  if(heroTimer!==null){clearTimeout(heroTimer);heroTimer=null}
+}
+function setMedia(id,placeholder,src,onReady){
   const img=get(id),fallback=get(placeholder);
-  img.onload=()=>{img.hidden=false;fallback.hidden=true};
+  img.onload=()=>{img.hidden=false;fallback.hidden=true;if(onReady)onReady()};
   img.onerror=()=>{img.hidden=true;fallback.hidden=false};
   img.src=src;
 }
 function clearMedia(id){const img=get(id);img.removeAttribute('src');img.hidden=true}
 function hero({entry=false}={}){
+  cancelHeroTimer();
+  const generation=++heroGeneration;
   if(entry)heroAtRest=false;
   if(active!=='home')return;
   clearMedia('hero-motion');clearMedia('hero-rest');
   const still=reduce.matches||document.hidden||heroAtRest;
-  if(still)heroAtRest=true;
-  setMedia(still?'hero-rest':'hero-motion','hero-unavailable',still?media.heroRest:media.hero);
+  if(still){
+    heroAtRest=true;
+    setMedia('hero-rest','hero-unavailable',media.heroRest);
+    return;
+  }
+  setMedia('hero-motion','hero-unavailable',media.hero,()=>{
+    if(generation!==heroGeneration||active!=='home'||document.hidden)return;
+    heroTimer=setTimeout(()=>{
+      if(generation!==heroGeneration||active!=='home')return;
+      // Remove the animated image after a single source-timed playback.
+      // Original verified last frame is served from immutable hero-rest.png.
+      heroAtRest=true;hero();
+    },HERO_PLAYBACK_MS);
+  });
 }
 function balanceMedia(){
   clearMedia('balance-motion');clearMedia('balance-rest');
@@ -33,7 +54,7 @@ function show(page){
     const yes=btn.dataset.page===page;btn.classList.toggle('active',yes);
     if(yes)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current');
   }
-  if(previous==='home'){clearMedia('hero-motion');clearMedia('hero-rest')}
+  if(previous==='home'){cancelHeroTimer();heroGeneration++;clearMedia('hero-motion');clearMedia('hero-rest')}
   if(page==='home')hero({entry:true});
   balanceMedia();
 }
