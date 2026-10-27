@@ -372,3 +372,31 @@ test('status fetch refuses child replacement despite plausible same-tip HTTP res
     await assert.rejects(()=>old,/changed during status observation/);
   }finally{c.node=null;await new Promise(resolve=>server.close(resolve))}
 });
+
+
+test('node shutdown revokes API/miner authority before first await and concurrent stops are idempotent',async()=>{
+  const {EventEmitter}=require('node:events');
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),
+    spawnFn:()=>{throw Error('A miner or node must not start during shutdown')}});
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;child.killCount=0;
+  child.kill=()=>{
+    child.killCount++;child.killed=true;
+    setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});
+    return true;
+  };
+  c.node=child;
+  const first=c.stopNode();
+  assert.equal(c.nodeStopping,true,'shutdown gate must close synchronously');
+  await assert.rejects(()=>c.startNode(),/shutdown pending/);
+  await assert.rejects(()=>c.startMiner(ADDRESS),/not ready or not owned/);
+  await assert.rejects(()=>c.readStatus(),/not ready or not owned/);
+  const second=c.stopNode();
+  const [one,two]=await Promise.all([first,second]);
+  assert.equal(one.node,'stopped');
+  assert.equal(two.node,'stopped');
+  assert.equal(child.killCount,1,'concurrent stop requests never signal child twice');
+  assert.equal(c.nodeStopping,false);
+  assert.equal(c.nodeStopPromise,null);
+  assert.equal(c.node,null);
+});

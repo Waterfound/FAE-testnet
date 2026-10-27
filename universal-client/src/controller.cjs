@@ -73,6 +73,7 @@ class ProcessController extends EventEmitter{
     this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
+    this.nodeStopping=false;this.nodeStopPromise=null;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
   snapshot(){return {network:NETWORK,node:this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
@@ -116,6 +117,7 @@ class ProcessController extends EventEmitter{
     finally{clearTimeout(timer)}
   }
   async startNode(){
+    if(this.nodeStopping)throw Error('Node shutdown pending');
     if(this.nodeStarting)throw Error('Node startup pending');
     if(alive(this.node))return this.snapshot();
     this.nodeStarting=true;
@@ -146,10 +148,24 @@ class ProcessController extends EventEmitter{
     this.emit('state',this.snapshot());return this.snapshot();
   }
   async stopNode(){
-    await this.stopMiner();await this.stop(this.node);this.node=null;
-    this.emit('state',this.snapshot());return this.snapshot();
+    if(this.nodeStopPromise)return this.nodeStopPromise;
+    // Synchronously revoke read and miner-launch authority before any await.
+    this.nodeStopping=true;
+    this.nodeStopPromise=(async()=>{
+      try{
+        await this.stopMiner();
+        await this.stop(this.node);
+        this.node=null;
+        this.emit('state',this.snapshot());
+        return this.snapshot();
+      }finally{
+        this.nodeStopping=false;
+        this.nodeStopPromise=null;
+      }
+    })();
+    return this.nodeStopPromise;
   }
-  assertNode(){assertManagedNodeReady(this.node,this.nodeStarting)}
+  assertNode(){assertManagedNodeReady(this.node,this.nodeStarting||this.nodeStopping)}
   async readStatus(){
     this.assertNode();const owned=this.node;
     const observed=await fetchRead(new URL('/status',this.endpoint));
