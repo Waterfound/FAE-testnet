@@ -2,9 +2,10 @@
 const http=require('node:http');
 const {randomBytes,timingSafeEqual}=require('node:crypto');
 const ALLOWED=new Set(['/status','/balance','/explorer/status','/explorer/blocks','/explorer/block','/explorer/transaction','/explorer/address','/explorer/search']);
-function createDesktopReadGateway({upstream}){
+function createDesktopReadGateway({upstream,fetchFn=globalThis.fetch}){
   const url=new URL(upstream);
   if(url.protocol!=='http:'||url.hostname!=='127.0.0.1'||!url.port||url.username||url.password||url.pathname!=='/'||url.search||url.hash)throw Error('Invalid loopback upstream');
+  if(typeof fetchFn!=='function')throw Error('Invalid native upstream fetch');
   const key=randomBytes(32).toString('hex');let address=null;
   const respond=(res,code,value)=>{res.writeHead(code,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(value))};
   const server=http.createServer(async(req,res)=>{
@@ -22,12 +23,20 @@ function createDesktopReadGateway({upstream}){
         if(!['q','limit','cursor','address','height','before_height','hash','txid'].includes(k)||v.length>120)throw Error('Selector');
     }catch{return respond(res,400,{ok:false,error:'invalid_route'})}
     try{
-      const result=await fetch(target,{method:'GET',redirect:'error',signal:AbortSignal.timeout(3500)});
+      const result=await fetchFn(target,{method:'GET',redirect:'error',signal:AbortSignal.timeout(3500)});
       if(!result.ok)return respond(res,502,{ok:false,error:'upstream_failed'});
       if(Number(result.headers.get('content-length'))>1048576)throw Error('Oversize');
-      const raw=await result.text();
-      if(Buffer.byteLength(raw)>1048576)throw Error('Oversize');
-      const value=JSON.parse(raw);
+      if(!result.body)throw Error('No response stream');
+      const reader=result.body.getReader(),chunks=[];let used=0;
+      try{
+        for(;;){
+          const {done,value}=await reader.read();if(done)break;
+          used+=value.byteLength;
+          if(used>1048576){await reader.cancel().catch(()=>{});throw Error('Oversize')}
+          chunks.push(Buffer.from(value));
+        }
+      }finally{reader.releaseLock()}
+      const value=JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if(value?.network!=='fairyelf-public-testnet-v4')throw Error('Network mismatch');
       return respond(res,200,value);
     }catch{return respond(res,502,{ok:false,error:'unverified_read'})}
