@@ -8,7 +8,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "start": "electron .",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/renderer.js",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js",
     "test": "node --test test/*.test.cjs"
   },
   "devDependencies": {"electron": "45.0.0"}

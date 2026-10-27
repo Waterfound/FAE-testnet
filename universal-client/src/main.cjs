@@ -1,8 +1,9 @@
 'use strict';
-const {app,BrowserWindow,ipcMain,session}=require('electron');
+const {app,BrowserWindow,ipcMain,session,utilityProcess}=require('electron');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {ProcessController}=require('./controller.cjs');
+const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,quitting=false;
 function windowCreate(){
   win=new BrowserWindow({
@@ -38,7 +39,7 @@ app.whenReady().then(()=>{
   session.defaultSession.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
   controller=new ProcessController({repoRoot:path.resolve(__dirname,'..','..'),dataDir:app.getPath('userData'),
-    nodeExecutable:process.execPath,nodeMode:true});
+    spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess))});
   bindIpc();windowCreate();
 });
 app.on('window-all-closed',()=>app.quit());

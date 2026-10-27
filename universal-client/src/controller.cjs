@@ -39,12 +39,12 @@ async function fetchRead(url,kind='status',address){
   return validateRead(await response.json(),{kind,address});
 }
 class ProcessController extends EventEmitter{
-  constructor({repoRoot,dataDir,nodeExecutable=process.execPath,nodeMode=false,
+  constructor({repoRoot,dataDir,nodeExecutable=process.execPath,
     spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
-    this.nodeExecutable=nodeExecutable;this.nodeMode=nodeMode;
+    this.nodeExecutable=nodeExecutable;
     this.spawnFn=spawnFn;this.portProbe=portProbe;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',HOST)));
     this.node=null;this.miner=null;this.nodeStarting=false;
@@ -53,7 +53,7 @@ class ProcessController extends EventEmitter{
   snapshot(){return {network:NETWORK,node:this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
     miner:alive(this.miner)?'running':'stopped',telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
-    const env=makeEnv({...extra,...(this.nodeMode?{ELECTRON_RUN_AS_NODE:'1'}:{})});
+    const env=makeEnv(extra);
     const child=this.spawnFn(this.nodeExecutable,[script,...args],{
       cwd:this.repoRoot,env,stdio:['ignore',script.endsWith('fae-miner.mjs')?'pipe':'ignore','ignore'],
       windowsHide:true
