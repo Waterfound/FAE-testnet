@@ -139,7 +139,9 @@ function bindIpc(){
         filters:[{name:'FAE encrypted vault',extensions:['json']}]
       });
       if(selected.canceled||selected.filePaths.length!==1)return null;
-      const metadata=await readVaultPublicMetadata(selected.filePaths[0]);
+      let metadata;
+      try{metadata=await readVaultPublicMetadata(selected.filePaths[0])}
+      catch{throw Error('Selected encrypted FAE vault public metadata could not be validated')}
       return watchBook.importPublicVaultAddresses(metadata.addresses);
     }
   };
