@@ -1,9 +1,10 @@
 'use strict';
-const {app,BrowserWindow,ipcMain,session,utilityProcess}=require('electron');
+const {app,BrowserWindow,ipcMain,session,utilityProcess,dialog}=require('electron');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {ProcessController}=require('./controller.cjs');
 const {WatchAddressBook}=require('./watch-address-book.cjs');
+const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false;
@@ -131,7 +132,16 @@ function bindIpc(){
     'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
     'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
     'ts:watch-remove':address=>watchBook.remove(address),
-    'ts:watch-select':address=>watchBook.select(address)
+    'ts:watch-select':address=>watchBook.select(address),
+    'ts:watch-import-vault':async()=>{
+      const selected=await dialog.showOpenDialog(win,{
+        title:'Import public addresses from encrypted FAE vault',properties:['openFile'],
+        filters:[{name:'FAE encrypted vault',extensions:['json']}]
+      });
+      if(selected.canceled||selected.filePaths.length!==1)return null;
+      const metadata=await readVaultPublicMetadata(selected.filePaths[0]);
+      return watchBook.importPublicVaultAddresses(metadata.addresses);
+    }
   };
   for(const [verb,invoke] of Object.entries(calls)){
     ipcMain.handle(verb,(event,...args)=>{

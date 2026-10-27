@@ -83,6 +83,18 @@ class WatchAddressBook {
    if(!rows.some(row=>row.address===a))throw Error('Unknown public address');
    return a;
  })}
+ importPublicVaultAddresses(addresses){
+   if(!Array.isArray(addresses)||addresses.length!==5)throw Error('Expected five FAE public vault addresses');
+   const seen=new Set();
+   for(const a of addresses){address(a);if(seen.has(a))throw Error('Duplicate vault public address');seen.add(a)}
+   return this.mutate(rows=>{
+     for(let index=0;index<addresses.length;index++){
+       const a=addresses[index];
+       if(!rows.some(row=>row.address===a))
+         rows.push({address:a,alias:'Vault public address '+(index+1),hidden:false});
+     }
+   });
+ }
  remove(a){address(a);return this.mutate(rows=>{
    const i=rows.findIndex(v=>v.address===a);if(i<0)throw Error('Unknown public address');rows.splice(i,1);
    if(this.selected===a)return null

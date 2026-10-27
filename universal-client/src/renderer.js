@@ -172,6 +172,11 @@ get('node-refresh').addEventListener('click',status);
 get('miner-start').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.startMiner(get('mining-address').value.trim()));if(r)view(r)});
 get('miner-stop').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.stopMiner());if(r)view(r)});
 get('refresh-balance').addEventListener('click',balance);
+get('watch-import-vault').addEventListener('click',async()=>{
+  if(typeof window.triumph.watchImportVault!=='function')return;
+  const result=await safely(()=>window.triumph.watchImportVault());
+  if(result?.entries){watchRender(result);alertText('Public-only addresses imported. Vault remains locked and unverified.')}
+});
 get('watch-save').addEventListener('click',async()=>{
   const addr=get('wallet-address').value.trim(),label=get('watch-alias').value.trim();
   const r=await safely(()=>window.triumph.watchAdd(addr,label));

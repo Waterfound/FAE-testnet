@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/watch-address-book.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js && node --check src/single-instance-guard.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/watch-address-book.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js && node --check src/single-instance-guard.cjs && node --check src/wallet-vault-public-metadata.cjs",
     "test": "node --test test/*.test.cjs",
     "package:dir": "electron-builder --dir --publish never",
     "verify:package": "node scripts/verify-package.cjs",

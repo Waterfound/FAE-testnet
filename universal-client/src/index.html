@@ -50,7 +50,9 @@
 <div class="watch-book">
   <p class="fine"><strong>Saved addresses · watch only</strong> — names and visibility persist locally, without signing authority.</p>
   <div class="field-row"><input id="watch-alias" maxlength="40" placeholder="Public address alias">
-  <button id="watch-save">Save address</button></div>
+  <button id="watch-save">Save address</button>
+  <button id="watch-import-vault" type="button">Import vault public addresses</button></div>
+  <p class="fine">Uses a native file picker to read public metadata only. The encrypted vault stays locked; imported addresses are unverified and cannot sign or send transactions.</p>
   <div id="watch-entries" aria-live="polite">Loading saved public addresses…</div>
 </div>
 </article>

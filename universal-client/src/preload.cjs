@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('triumph',Object.freeze({
   watchUpdate:(address,changes)=>ipcRenderer.invoke('ts:watch-update',address,changes),
   watchRemove:address=>ipcRenderer.invoke('ts:watch-remove',address),
   watchSelect:address=>ipcRenderer.invoke('ts:watch-select',address),
+  watchImportVault:()=>ipcRenderer.invoke('ts:watch-import-vault'),
   onState:callback=>{
     if(typeof callback!=='function')throw Error('Listener required');
     const listener=(_event,state)=>callback(state);
