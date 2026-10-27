@@ -1,0 +1,36 @@
+name: TS isolated PSR-11 transport-cause diagnostic candidate
+on:
+  pull_request:
+    paths:
+      - 'universal-client/scripts/fetch-diagnostics.mjs'
+      - '.github/workflows/ts-transport-diagnostic-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  psr11-real-loopback-transport-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check diagnostic preloader
+        run: node --check universal-client/scripts/fetch-diagnostics.mjs
+      - name: Real PSR-11 independent-node differential - four bounded consecutive rounds
+        shell: bash
+        run: |
+          set -uo pipefail
+          failures=0
+          for i in 1 2 3 4; do
+            echo "TS_PSR11_DIAGNOSTIC_ROUND=$i"
+            if node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs; then
+              echo "TS_PSR11_DIAGNOSTIC_ROUND_PASS=$i"
+            else
+              failures=$((failures+1))
+              echo "TS_PSR11_DIAGNOSTIC_ROUND_FAIL=$i"
+            fi
+          done
+          echo "TS_PSR11_DIAGNOSTIC_FAILURES=$failures"
+          test "$failures" -eq 0
