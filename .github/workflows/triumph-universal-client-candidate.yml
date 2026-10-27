@@ -56,3 +56,22 @@ jobs:
         working-directory: universal-client
         # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-miner-smoke
+
+  desktop-ui-native-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned Electron in temporary native runner
+        working-directory: universal-client
+        run: npm install --no-audit --no-fund
+      - name: Actual native desktop window and IPC snapshot smoke
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-smoke
