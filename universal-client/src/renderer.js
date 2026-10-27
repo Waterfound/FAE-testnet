@@ -76,6 +76,26 @@ async function balance(){
   get('balance-amount').textContent=whole.toString()+(tail?'.'+tail:'')+' FAE';
   get('balance-status').textContent='Selected local node observation · not a finality guarantee';
 }
+async function walletActivity(){
+  const address=get('wallet-address').value.trim();
+  const output=get('wallet-activity-output');
+  output.textContent='Reading selected node…';
+  const observed=await safely(()=>window.triumph.explorer('/explorer/address',{address,limit:20}));
+  if(!observed||observed.address!==address||!Array.isArray(observed.events)){
+    output.textContent='No validated local address observation';return;
+  }
+  // No HTML injection; never treat node-reported pending/confirmed as independent finality.
+  output.textContent=JSON.stringify({
+    address:observed.address,
+    provenance:'selected_local_node_testnet_observation',
+    network:observed.network,
+    observed_tip_height:observed.observed_tip_height,
+    observed_tip_hash:observed.observed_tip_hash,
+    total_events:observed.total_events,
+    next_cursor:observed.next_cursor,
+    events:observed.events
+  },null,2);
+}
 async function explorer(route,query){
   get('explorer-output').textContent='Reading…';
   const r=await safely(()=>window.triumph.explorer(route,query));
@@ -88,6 +108,7 @@ get('node-refresh').addEventListener('click',status);
 get('miner-start').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.startMiner(get('mining-address').value.trim()));if(r)view(r)});
 get('miner-stop').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.stopMiner());if(r)view(r)});
 get('refresh-balance').addEventListener('click',balance);
+get('refresh-wallet-activity').addEventListener('click',walletActivity);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
 reduce.addEventListener('change',()=>{if(active==='home'){heroAtRest=true;hero()}balanceMedia()});

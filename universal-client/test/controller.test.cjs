@@ -47,6 +47,14 @@ test('independent validating node is real, loopback-only, read-only via Explorer
     assert.equal(explorer.network,NETWORK);
     assert.equal(explorer.observed_tip_height,0);
     assert.match(explorer.observed_tip_hash,/^[0-9a-f]{64}$/);
+    const rewardAddress='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+    const activity=await c.readExplorer('/explorer/address',{address:rewardAddress,limit:20});
+    assert.equal(activity.address,rewardAddress);
+    assert.equal(activity.network,NETWORK);
+    assert.equal(activity.observed_tip_height,0);
+    assert.equal(activity.balance_atoms,'0');
+    assert.deepEqual(activity.events,[]);
+    assert.equal(activity.total_events,0);
     await assert.rejects(()=>c.readBalance(ADDRESS),/HTTP 400|invalid/i);
     await c.stopNode();
     assert.equal(c.snapshot().node,'stopped');

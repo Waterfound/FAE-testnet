@@ -23,7 +23,7 @@ button.primary{background:var(--ts-action);color:white;border-color:var(--ts-act
 button:disabled{opacity:.42;cursor:default}button:focus-visible,input:focus-visible{outline:3px solid #94baf7;outline-offset:2px}
 .stats{margin:20px 0}.stats div{background:#f6f8fc;border:1px solid var(--ts-line);border-radius:9px;padding:13px}
 .stats strong{display:block;color:var(--ts-action);font-size:23px;margin-top:6px}
-#explorer-output{overflow:auto;max-height:450px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f9fafc;border:1px solid var(--ts-line);border-radius:9px;padding:15px;font-size:12px}
+#explorer-output,#wallet-activity-output{overflow:auto;max-height:450px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f9fafc;border:1px solid var(--ts-line);border-radius:9px;padding:15px;font-size:12px}
 .missing{border:1px dashed #e9d7c6;background:#fbf8f3;color:#ab9380;padding:14px;border-radius:13px;font-size:12px}
 #toast{position:fixed;bottom:22px;right:22px;max-width:400px;background:#223c5b;color:#fff;padding:14px;border-radius:10px}
 [hidden]{display:none!important}

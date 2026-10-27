@@ -134,7 +134,16 @@ class ProcessController extends EventEmitter{
   async readExplorer(route,params){
     this.assertNode();
     await fetchRead(new URL('/status',this.endpoint));
-    return fetchRead(explorerUrl(route,params,this.endpoint),'explorer');
+    const observed=await fetchRead(explorerUrl(route,params,this.endpoint),'explorer');
+    if(route==='/explorer/address'){
+      // An incompatible or mismatched selected-node response is never wallet activity.
+      if(observed.address!==params?.address||!Array.isArray(observed.events)||
+        observed.events.length>100||!Number.isSafeInteger(observed.total_events)||
+        observed.total_events<observed.events.length||
+        !/^\d+$/.test(String(observed.balance_atoms??'')))
+        throw Error('Unverified selected-node wallet activity response');
+    }
+    return observed;
   }
   ingestMiner(line){
     if(typeof line!=='string'||line.length>8192)return;
