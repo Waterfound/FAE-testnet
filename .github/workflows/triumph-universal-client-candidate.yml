@@ -110,6 +110,7 @@ jobs:
         run: |
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-miner-smoke
 
   desktop-packaged-native-smoke:
@@ -144,6 +145,8 @@ jobs:
           if ($gui.ExitCode -ne 0) { throw "Packaged Windows GUI smoke failed: exit $($gui.ExitCode)" }
           $node = Start-Process -FilePath $exe -ArgumentList "--ts-node-smoke" -Wait -PassThru -NoNewWindow
           if ($node.ExitCode -ne 0) { throw "Packaged Windows managed node smoke failed: exit $($node.ExitCode)" }
+          $watch = Start-Process -FilePath $exe -ArgumentList "--ts-watch-smoke" -Wait -PassThru -NoNewWindow
+          if ($watch.ExitCode -ne 0) { throw "Packaged Windows watch-list IPC smoke failed" }
           $miner = Start-Process -FilePath $exe -ArgumentList "--ts-miner-smoke" -Wait -PassThru -NoNewWindow
           if ($miner.ExitCode -ne 0) { throw "Packaged Windows managed miner smoke failed: exit $($miner.ExitCode)" }
       - name: Real packaged macOS Electron GUI and managed node
@@ -155,6 +158,8 @@ jobs:
           test -n "$BIN"
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
+          "$BIN" --ts-watch-smoke
+          "$BIN" --ts-watch-smoke
           "$BIN" --ts-miner-smoke
 
   desktop-installer-candidate-inspection:
@@ -219,6 +224,7 @@ jobs:
           export APPIMAGE_EXTRACT_AND_RUN=1
           xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-node-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-watch-smoke
           echo "TS_APPIMAGE_DIRECT_RUNTIME_PASS"
       - name: Mount the DMG and execute the enclosed macOS candidate
         if: runner.os == 'macOS'
@@ -253,7 +259,7 @@ jobs:
           if ($installation.ExitCode -ne 0) { throw "NSIS installer exit $($installation.ExitCode)" }
           $installed = Join-Path $target "triumph-sovereign.exe"
           if (-not (Test-Path $installed)) { throw "No installed candidate executable at $installed" }
-          foreach ($mode in @('--ts-smoke','--ts-node-smoke')) {
+          foreach ($mode in @('--ts-smoke','--ts-node-smoke','--ts-watch-smoke')) {
             $run = Start-Process -FilePath $installed -ArgumentList $mode -PassThru -Wait -NoNewWindow
             if ($run.ExitCode -ne 0) { throw "Installed FATIMA desktop failed $mode ($($run.ExitCode))" }
           }
