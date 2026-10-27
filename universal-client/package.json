@@ -14,7 +14,9 @@
     "test": "node --test test/*.test.cjs",
     "package:dir": "electron-builder --dir --publish never",
     "verify:package": "node scripts/verify-package.cjs",
-    "package:installer:candidate": "electron-builder --publish never"
+    "package:installer:candidate": "electron-builder --publish never",
+    "package:private:dir": "electron-builder --dir --config scripts/private-media-builder.cjs --publish never",
+    "package:private:candidate": "electron-builder --config scripts/private-media-builder.cjs --publish never"
   },
   "devDependencies": {
     "electron": "45.0.0",

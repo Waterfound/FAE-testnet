@@ -68,3 +68,11 @@ This isolated draft also supports `npm run package:installer:candidate`, using e
 The source-bound inspection `node scripts/verify-installer.cjs` validates one nonempty file of the appropriate target type and prints its hash and length. Linux verifies extracted AppImage resources; macOS invokes native `hdiutil imageinfo`. A successful candidate artifact build is not installation acceptance, valid code signature, sandbox/hardened-runtime certification, approved mainnet distribution, or proof that an end user can open an unsigned package without OS warnings.
 
 Before any actual distribution, separately verify real interactive installation, userData state durability, uninstall/relaunch, update/rollback, packaged media and wallet security across all target hosts.
+
+## Private canonical media — local opt-in packaging only
+
+The public GitHub checkout and CI packages intentionally contain no private original artwork. The renderer's `../assets/...` image paths are therefore unavailable in those packages; they show static unavailable fallbacks rather than substituting an invented logo.
+
+For an explicitly local Waterfound evaluation candidate only, place the exact approved files `hero.webp`, `hero-rest.png`, `balance.gif`, `balance-rest.png` in a dedicated private directory outside the public repository, set `TS_PRIVATE_MEDIA_DIR` to that absolute directory, and run `node scripts/private-media-builder.cjs --verify-only` before `npm run package:private:dir` or `npm run package:private:candidate`. The builder refuses missing, modified, symlinked, or wrong-hash assets and refuses to run when `CI=true` or `GITHUB_ACTIONS=true`. It packages privately supplied files into the app's expected `assets/` location without adding them to Git or GitHub Actions artifacts.
+
+The resulting local binary includes the private originals and must remain under Waterfound control; **do not publish or distribute** without separate authorization. This opt-in route is a build capability, not evidence of an executed private cross-platform GUI acceptance test, signed installer, secure native Wallet, or production readiness.
