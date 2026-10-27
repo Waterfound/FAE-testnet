@@ -58,8 +58,14 @@ class ProcessController extends EventEmitter{
       cwd:this.repoRoot,env,stdio:['ignore',script.endsWith('fae-miner.mjs')?'pipe':'ignore','ignore'],
       windowsHide:true
     });
-    child.on('error',()=>{child._tsFailed=true;this.emit('state',this.snapshot())});
-    child.on('exit',()=>this.emit('state',this.snapshot()));
+    const invalidateMiner=()=>{
+      // The UI may not report historical hashrate as live after an unexpected exit.
+      if(child===this.miner){
+        this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
+      }
+    };
+    child.on('error',()=>{child._tsFailed=true;invalidateMiner();this.emit('state',this.snapshot())});
+    child.on('exit',()=>{invalidateMiner();this.emit('state',this.snapshot())});
     return child;
   }
   async stop(child){

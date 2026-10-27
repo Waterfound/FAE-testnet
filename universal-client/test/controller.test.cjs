@@ -100,3 +100,21 @@ test('desktop controller starts real standalone miner, reports real hashrate and
     fs.rmSync(dir,{recursive:true,force:true});
   }
 });
+
+
+test('spontaneous miner exit invalidates stale operational hashrate immediately',()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),spawnFn:()=>child});
+  c.miner=c.spawnScript(path.join(root,'standalone','fae-miner.mjs'),[]);
+  c.ingestMiner(JSON.stringify({state:'MINING',hashrate_hs:999,total_hashes:3000,accepted:2}));
+  assert.equal(c.snapshot().telemetry.hashrate_hs,999);
+  const before=c.snapshot().miner;
+  assert.equal(before,'running');
+  child.exitCode=1;child.emit('exit',1);
+  assert.equal(c.snapshot().miner,'stopped');
+  assert.equal(c.snapshot().telemetry.state,'STOPPED');
+  assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+  assert.equal(c.snapshot().telemetry.accepted,2,'Do not erase observed accepted count');
+});
