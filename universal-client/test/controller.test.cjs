@@ -135,6 +135,7 @@ test('per-session loopback port propagates to node instead of static port',async
   child.kill=()=>{child.killed=true;setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});return true};
   const c=new ProcessController({repoRoot:root,dataDir:dir,port:43179,
     portProbe:async p=>attempts.push(['port',p]),
+    listenEvidence:async()=>attempts.push(['process-listening']),
     spawnFn:(_exec,args,opts)=>{attempts.push(['spawn',args,opts]);return child},
     readinessProbe:async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)})});
   try{

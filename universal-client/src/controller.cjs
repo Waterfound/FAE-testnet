@@ -6,7 +6,7 @@ const {EventEmitter,once}=require('node:events');
 const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
-const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness}=require('./managed-node-gate.cjs');
+const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
 const ADDRESS=/^faet1[023456789acdefghjklmnpqrstuvwxyz]{25,85}$/;
@@ -42,7 +42,7 @@ async function fetchRead(url,kind='status',address){
 }
 class ProcessController extends EventEmitter{
   constructor({repoRoot,dataDir,port=randomInt(32768,61000),nodeExecutable=process.execPath,
-    spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe}={}){
+    spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe,listenEvidence=waitForManagedListenEvidence}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
@@ -50,7 +50,7 @@ class ProcessController extends EventEmitter{
     this.port=port;
     this.endpoint='http://127.0.0.1:'+port;
     this.nodeExecutable=nodeExecutable;
-    this.spawnFn=spawnFn;this.portProbe=portProbe;
+    this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
@@ -60,7 +60,7 @@ class ProcessController extends EventEmitter{
   spawnScript(script,args,extra={}){
     const env=makeEnv(extra);
     const child=this.spawnFn(this.nodeExecutable,[script,...args],{
-      cwd:this.repoRoot,env,stdio:['ignore',script.endsWith('fae-miner.mjs')?'pipe':'ignore','ignore'],
+      cwd:this.repoRoot,env,stdio:['ignore','pipe','ignore'],
       windowsHide:true
     });
     const invalidateMiner=()=>{
@@ -108,6 +108,9 @@ class ProcessController extends EventEmitter{
         FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
         FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''
       });
+      // The child must itself report successful listen before any HTTP status
+      // could be considered. This closes the basic prebind spoof admission gap.
+      await this.listenEvidence({child:this.node,host:'127.0.0.1',port:this.port});
       await verifyManagedReadiness({child:this.node,readStatus:this.readinessProbe});
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();

@@ -44,4 +44,51 @@ async function verifyManagedReadiness({child,readStatus,timeoutMs=5000,pollMs=90
   }while(Date.now()<deadline);
   throw Error('Managed FAE node readiness timed out');
 }
-module.exports={isManagedChildAlive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness};
+
+function waitForManagedListenEvidence({child,host='127.0.0.1',port,timeoutMs=6000}={}){
+  if(host!=='127.0.0.1'||!Number.isInteger(port)||port<1||port>65535)
+    return Promise.reject(Error('Invalid managed node startup endpoint'));
+  if(!isManagedChildAlive(child)||!child.stdout||typeof child.stdout.on!=='function')
+    return Promise.reject(Error('Managed node lacks process-bound stdout startup evidence'));
+  // Canonical immutable FAE node logs this line only after server.listen callback.
+  // A selected HTTP port or a plausible /status response cannot replace it.
+  const prefix='[FAE] independent node ';
+  const hostMarker=' listening on http://127.0.0.1:'+port+' height=';
+  return new Promise((resolve,reject)=>{
+    let ended=false,buffer='';
+    const timer=setTimeout(()=>finish(Error('Managed node listener evidence timed out')),timeoutMs);
+    function finish(error){
+      if(ended)return;
+      ended=true;clearTimeout(timer);
+      child.stdout.off('data',onData);
+      child.off('exit',onExit);
+      child.off('error',onError);
+      if(error)reject(error);else resolve({owned_process_log:true,host,port});
+    }
+    function onExit(){finish(Error('Managed node exited before bound-port evidence'))}
+    function onError(){finish(Error('Managed node failed before bound-port evidence'))}
+    function onData(chunk){
+      if(ended)return;
+      buffer+=String(chunk);
+      if(buffer.length>16384)return finish(Error('Managed node startup output exceeded bound'));
+      let newline;
+      while((newline=buffer.indexOf('\n'))!==-1){
+        const line=buffer.slice(0,newline).replace(/\r$/,'');
+        buffer=buffer.slice(newline+1);
+        if(!line.startsWith(prefix))continue;
+        const index=line.indexOf(hostMarker);
+        if(index>prefix.length&&/^\d+$/.test(line.slice(index+hostMarker.length))){
+          if(!isManagedChildAlive(child))return finish(Error('Managed node terminated before bound-port evidence'));
+          return finish();
+        }
+        if(line.includes(' listening on http://'))
+          return finish(Error('Managed node announced unexpected endpoint'));
+      }
+    }
+    child.stdout.on('data',onData);
+    child.on('exit',onExit);
+    child.on('error',onError);
+  });
+}
+
+module.exports={isManagedChildAlive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence};
