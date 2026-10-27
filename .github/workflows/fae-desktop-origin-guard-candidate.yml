@@ -1,0 +1,29 @@
+name: FAE isolated desktop read gateway candidate
+on:
+  pull_request:
+    paths:
+      - 'standalone/desktop-read-gateway.cjs'
+      - 'tests/desktop-origin-guard.test.mjs'
+      - '.github/workflows/fae-desktop-origin-guard-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  origin-only-regression:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify immutable node and candidate gateway syntax
+        run: |
+          node --check sovereign-forge/node/fae-node.mjs
+          node --check standalone/desktop-read-gateway.cjs
+      - name: Real independent-node read gateway positive and negative security tests
+        run: node --test tests/desktop-origin-guard.test.mjs
