@@ -111,6 +111,7 @@ jobs:
         run: |
           cmp ../sovereign-forge/node/fae-node.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
           cmp ../sovereign-forge/node/explorer-read.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/explorer-read.mjs
+          cmp ../sovereign-forge/node/authoritative/address.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/authoritative/address.mjs
           cmp ../standalone/fae-miner.mjs dist/linux-unpacked/resources/fae-runtime/standalone/fae-miner.mjs
           cmp ../standalone/mining-core.mjs dist/linux-unpacked/resources/fae-runtime/standalone/mining-core.mjs
       - name: Real packaged Linux Electron GUI and node IPC smoke

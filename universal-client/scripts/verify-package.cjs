@@ -26,6 +26,7 @@ const resources=resolveResources();
 const files=[
   'sovereign-forge/node/fae-node.mjs',
   'sovereign-forge/node/explorer-read.mjs',
+  'sovereign-forge/node/authoritative/address.mjs',
   'standalone/fae-miner.mjs',
   'standalone/mining-core.mjs'
 ];

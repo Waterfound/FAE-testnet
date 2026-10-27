@@ -47,6 +47,10 @@
       {
         "from": "../standalone/mining-core.mjs",
         "to": "fae-runtime/standalone/mining-core.mjs"
+      },
+      {
+        "from": "../sovereign-forge/node/authoritative/address.mjs",
+        "to": "fae-runtime/sovereign-forge/node/authoritative/address.mjs"
       }
     ],
     "directories": {

@@ -149,7 +149,11 @@ function bindIpc(){
       });
       if(selected.canceled||selected.filePaths.length!==1)return null;
       let metadata;
-      try{metadata=await readVaultPublicMetadata(selected.filePaths[0])}
+      try{
+        const source=path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
+          'sovereign-forge','node','authoritative','address.mjs');
+        metadata=await readVaultPublicMetadata(selected.filePaths[0],{addressSource:source})
+      }
       catch{throw Error('Selected encrypted FAE vault public metadata could not be validated')}
       return watchBook.importPublicVaultAddresses(metadata.addresses);
     }
