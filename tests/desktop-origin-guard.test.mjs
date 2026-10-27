@@ -1,88 +1,93 @@
-'use strict';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {createServer} from 'node:net';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+const require=createRequire(import.meta.url);
+const {createDesktopReadGateway}=require('../standalone/desktop-read-gateway.cjs');
 const NODE=fileURLToPath(new URL('../sovereign-forge/node/fae-node.mjs',import.meta.url));
-const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function availablePort(){
-  const s=createServer();
-  s.listen(0,'127.0.0.1');
-  await once(s,'listening');
-  const port=s.address().port;
-  await new Promise(resolve=>s.close(resolve));
-  return port;
+const MANIFEST=fileURLToPath(new URL('../FAE_FORGE_MAIN.sha256',import.meta.url));
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function freePort(){
+  const server=createServer();server.listen(0,'127.0.0.1');
+  await once(server,'listening');
+  const port=server.address().port;
+  await new Promise(resolve=>server.close(resolve));return port;
 }
-async function fixture(desktopLock){
-  const port=await availablePort(),base='http://127.0.0.1:'+port;
-  const root=await mkdtemp(join(tmpdir(),'fae-origin-guard-'));
+async function fixture(){
+  const port=await freePort(),base='http://127.0.0.1:'+port;
+  const root=await mkdtemp(join(tmpdir(),'ts-desktop-origin-'));
   const child=spawn(process.execPath,[NODE],{
     env:{...process.env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),
       FAE_DATA_FILE:join(root,'state.json'),FAE_SYNC:'0',
-      FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:'',
-      FAE_DESKTOP_LOCAL_ONLY:desktopLock?'1':'0'},
+      FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''},
     stdio:['ignore','ignore','pipe']
   });
-  let stderr='';
-  child.stderr.on('data',v=>{stderr+=String(v).slice(0,2048)});
+  let stderr='';child.stderr.on('data',data=>{stderr+=String(data).slice(0,1000)});
+  const gateway=createDesktopReadGateway({upstream:base});let active=false;
   async function stop(){
+    if(active)await gateway.stop();
     if(child.exitCode===null){
       const done=once(child,'exit').catch(()=>{});
       child.kill('SIGTERM');
-      await Promise.race([done,pause(2000)]);
+      await Promise.race([done,wait(1200)]);
     }
     if(child.exitCode===null)child.kill('SIGKILL');
     await rm(root,{recursive:true,force:true});
   }
   try{
-    for(let i=0;i<110;i++){
-      if(child.exitCode!==null)throw Error('Node exited before status: '+stderr);
+    let ready=false;
+    for(let i=0;i<120;i++){
+      if(child.exitCode!==null)throw Error('Frozen node crashed: '+stderr);
       try{
-        const r=await fetch(base+'/status',{signal:AbortSignal.timeout(500)});
-        if(r.ok&&((await r.json()).network==='fairyelf-public-testnet-v4'))
-          return {base,stop};
+        const r=await fetch(base+'/status',{signal:AbortSignal.timeout(550)});
+        if(r.ok&&(await r.json()).network==='fairyelf-public-testnet-v4'){ready=true;break}
       }catch{}
-      await pause(40);
+      await wait(45);
     }
-    throw Error('Node not ready: '+stderr);
+    if(!ready)throw Error('Frozen node readiness failure: '+stderr);
+    const access=await gateway.start();active=true;
+    return {...access,base,stop};
   }catch(e){await stop();throw e}
 }
-test('opt-in desktop node rejects browser origins and OPTIONS without wildcard CORS',async()=>{
-  const f=await fixture(true);
-  try{
-    const headers={origin:'https://other.example'};
-    const good=await fetch(f.base+'/status');
-    assert.equal(good.status,200);
-    assert.equal(good.headers.get('access-control-allow-origin'),null);
-    const blocked=await fetch(f.base+'/status',{headers});
-    assert.equal(blocked.status,403);
-    assert.equal((await blocked.json()).error,'desktop_browser_origin_forbidden');
-    assert.equal(blocked.headers.get('access-control-allow-origin'),null);
-    const preflight=await fetch(f.base+'/submit-tx',{method:'OPTIONS',headers:{...headers,
-      'access-control-request-method':'POST'}});
-    assert.equal(preflight.status,403);
-    assert.equal(preflight.headers.get('access-control-allow-origin'),null);
-    const post=await fetch(f.base+'/submit-block',{method:'POST',headers:{...headers,'content-type':'application/json'},
-      body:'{}'});
-    assert.equal(post.status,403);
-    const final=await(await fetch(f.base+'/status')).json();
-    assert.equal(final.height,0,'Origin rejection must not change chain state');
-  }finally{await f.stop()}
+test('immutable FAE snapshot retains the exact authoritative checksum',async()=>{
+  const manifest=await readFile(MANIFEST,'utf8');
+  const line=manifest.split('\n').find(x=>x.endsWith('  sovereign-forge/node/fae-node.mjs'));
+  assert.ok(line);
+  assert.equal(createHash('sha256').update(await readFile(NODE)).digest('hex'),line.slice(0,64));
 });
-test('without opt-in, current public-testnet CORS contract remains intact',async()=>{
-  const f=await fixture(false);
+test('native-only read gateway denies browser origins, unauthorized reads and mutation',async()=>{
+  const f=await fixture();const headers={'x-ts-read-token':f.key};
   try{
-    const request=await fetch(f.base+'/status',{headers:{origin:'https://app.example'}});
-    assert.equal(request.status,200);
-    assert.equal(request.headers.get('access-control-allow-origin'),'*');
-    const preflight=await fetch(f.base+'/explorer/status',{method:'OPTIONS',headers:{origin:'https://app.example',
-      'access-control-request-method':'GET'}});
-    assert.equal(preflight.status,204);
-    assert.equal(preflight.headers.get('access-control-allow-origin'),'*');
+    const status=await fetch(f.url+'/status',{headers});
+    assert.equal(status.status,200);
+    assert.equal(status.headers.get('access-control-allow-origin'),null);
+    const state=await status.json();
+    assert.equal(state.network,'fairyelf-public-testnet-v4');
+    assert.equal(state.height,0);
+    const explorer=await fetch(f.url+'/explorer/status',{headers});
+    assert.equal(explorer.status,200);
+    assert.equal((await explorer.json()).network,state.network);
+    assert.equal((await fetch(f.url+'/status')).status,401);
+    assert.equal((await fetch(f.url+'/status',{headers:{'x-ts-read-token':'0'.repeat(64)}})).status,401);
+    const hostile=await fetch(f.url+'/status',{headers:{...headers,origin:'https://hostile.example'}});
+    assert.equal(hostile.status,403);
+    assert.equal(hostile.headers.get('access-control-allow-origin'),null);
+    assert.equal((await fetch(f.url+'/submit-tx',{method:'OPTIONS',headers:{origin:'https://hostile.example'}})).status,403);
+    assert.equal((await fetch(f.url+'/submit-block',{method:'POST',headers,body:'{}'})).status,405);
+    assert.equal((await fetch(f.url+'/template',{headers})).status,400);
+    const after=await(await fetch(f.base+'/status')).json();
+    assert.equal(after.height,0);
+    // The immutable original listener is still reachable directly and has permissive CORS:
+    // This gateway is defense-in-depth, NOT a complete node-authentication fix.
+    const direct=await fetch(f.base+'/status',{headers:{origin:'https://hostile.example'}});
+    assert.equal(direct.status,200);
+    assert.equal(direct.headers.get('access-control-allow-origin'),'*');
   }finally{await f.stop()}
 });
