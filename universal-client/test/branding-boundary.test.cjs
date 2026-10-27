@@ -14,6 +14,10 @@ test('TRIUM is explicit intended ticker, without presenting FAE testnet balance 
   assert.match(html,/— FAE/);
   assert.ok(renderer.includes("+' FAE'"));
   assert.ok(!renderer.includes("+' TRIUM'"));
+  assert.doesNotMatch(html,/FATIMA/, 'legacy ticker cannot remain visible in the desktop UI');
+  assert.doesNotMatch(renderer,/FATIMA/, 'runtime UI labels must not reintroduce the legacy ticker');
+  assert.match(html,/Project: Triumph Sovereign · Intended ticker: <strong>TRIUM<\/strong>/);
+  assert.match(html,/TRIUM is the intended monetary symbol\. Observed testnet balances remain FAE/);
 });
 test('display-only branding leaves FAE v4 network and node contract identifiers intact',()=>{
   assert.match(controller,/const \{NETWORK,validateRead\}/);

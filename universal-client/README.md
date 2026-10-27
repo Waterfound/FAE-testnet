@@ -2,6 +2,8 @@
 
 Source in this folder is candidate-only and targets Windows, macOS and Linux.
 
+**Brand and monetary unit boundary:** The intended Triumph Sovereign ticker is **TRIUM**. The live candidate network remains **FAE public-testnet-v4**, with FAE balances, `faet1` addresses, native transaction formats and unchanged economic/consensus rules. Never relabel a testnet balance as TRIUM or infer mainnet/asset migration from this display-only identity update.
+
 ## Current exact technical scope
 
 - Electron 45 sandboxed desktop shell with isolated renderer, context bridge, IPC sender checks and no web navigation or remote code.
