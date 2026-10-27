@@ -28,6 +28,19 @@ function windowCreate(){
       }catch(error){clearTimeout(timeout);console.error('TS_GUI_SMOKE_FAIL '+error.message);app.exit(1)}
     });
   }
+  if(process.argv.includes('--ts-node-smoke')){
+    // Explicitly opt-in only on isolated CI; true Electron utilityProcess + FAE node.
+    const timeout=setTimeout(()=>{console.error('TS_NODE_SMOKE_TIMEOUT');app.exit(2)},35000);
+    win.webContents.once('did-finish-load',async()=>{
+      try{
+        const s=await win.webContents.executeJavaScript(
+          "(async()=>{let started=false;try{const a=await window.triumph.startNode();started=a.node==='running';const status=await window.triumph.status();const explorer=await window.triumph.explorer('/explorer/status',{});return {started,network:status.network,height:status.height,explorer_network:explorer.network,tip_height:explorer.observed_tip_height};}finally{if(started)await window.triumph.stopNode();}})()");
+        if(!s.started||s.network!=='fairyelf-public-testnet-v4'||s.explorer_network!==s.network||
+          !Number.isSafeInteger(s.height)||s.height!==s.tip_height)throw Error('Native node/Explorer mismatch');
+        console.log('TS_NODE_SMOKE_PASS '+JSON.stringify(s));clearTimeout(timeout);app.exit(0);
+      }catch(error){console.error('TS_NODE_SMOKE_FAIL '+error.message);clearTimeout(timeout);app.exit(1)}
+    });
+  }
   win.loadFile(path.join(__dirname,'index.html'));
 }
 function bindIpc(){

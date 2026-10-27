@@ -48,3 +48,7 @@ jobs:
         working-directory: universal-client
         # --no-sandbox is CI/Xvfb-only and provides NO packaged sandbox certification.
         run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-smoke
+      - name: Real Electron utilityProcess FAE node and Explorer smoke
+        working-directory: universal-client
+        # Disposable runner only, loopback, external sync disabled by controller.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-node-smoke
