@@ -159,7 +159,6 @@ jobs:
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
           "$BIN" --ts-watch-smoke
-          "$BIN" --ts-watch-smoke
           "$BIN" --ts-miner-smoke
 
   desktop-installer-candidate-inspection:
@@ -244,6 +243,7 @@ jobs:
           test -x "$BIN"
           "$BIN" --ts-smoke
           "$BIN" --ts-node-smoke
+          "$BIN" --ts-watch-smoke
           echo "TS_DMG_MOUNT_RUNTIME_PASS"
       - name: Install NSIS per-user in disposable Windows runner and run installed client
         if: runner.os == 'Windows'
