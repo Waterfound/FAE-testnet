@@ -94,3 +94,18 @@ test('native-only read gateway denies browser origins, unauthorized reads and mu
     assert.equal(direct.headers.get('access-control-allow-origin'),'*');
   }finally{await f.stop()}
 });
+
+test('gateway bounds untrusted upstream streaming bodies even without Content-Length',async()=>{
+  const gateway=createDesktopReadGateway({
+    upstream:'http://127.0.0.1:8787',
+    fetchFn:async()=>new Response(new ReadableStream({start(controller){
+      controller.enqueue(new Uint8Array(1048577));controller.close();
+    }}),{status:200,headers:{'content-type':'application/json'}})
+  });
+  const access=await gateway.start();
+  try{
+    const reply=await fetch(access.url+'/status',{headers:{'x-ts-read-token':access.key}});
+    assert.equal(reply.status,502);
+    assert.equal((await reply.json()).error,'unverified_read');
+  }finally{await gateway.stop()}
+});
