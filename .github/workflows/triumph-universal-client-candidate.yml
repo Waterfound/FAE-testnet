@@ -9,8 +9,12 @@ permissions:
   contents: read
 jobs:
   desktop-source-and-real-node:
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
