@@ -28,11 +28,9 @@ jobs:
             for i in 1 2 3 4; do
               echo "TS_PSR11_MODE=$mode ROUND=$i"
               if [ "$mode" = fresh ]; then
-                TS_PSR11_DIAG_FRESH_CONNECTION=1 node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs
-                rc=$?
+                if TS_PSR11_DIAG_FRESH_CONNECTION=1 node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs; then rc=0; else rc=$?; fi
               else
-                node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs
-                rc=$?
+                if node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs; then rc=0; else rc=$?; fi
               fi
               if [ "$rc" -ne 0 ]; then
                 if [ "$mode" = baseline ]; then baseline_failures=$((baseline_failures+1)); else fresh_failures=$((fresh_failures+1)); fi
