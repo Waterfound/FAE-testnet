@@ -58,7 +58,7 @@ async function fixture(){
 }
 test('immutable FAE snapshot retains the exact authoritative checksum',async()=>{
   const manifest=await readFile(MANIFEST,'utf8');
-  const line=manifest.split('\n').find(x=>x.endsWith('  sovereign-forge/node/fae-node.mjs'));
+  const line=manifest.split(/\r?\n/).find(x=>x.trimEnd().endsWith('  sovereign-forge/node/fae-node.mjs'));
   assert.ok(line);
   assert.equal(createHash('sha256').update(await readFile(NODE)).digest('hex'),line.slice(0,64));
 });
