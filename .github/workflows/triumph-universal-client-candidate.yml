@@ -104,3 +104,44 @@ jobs:
         run: |
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
           xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
+
+  desktop-packaged-native-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build unsigned unpacked candidate (never publish)
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm install --no-audit --no-fund
+          npm run package:dir
+      - name: Verify exact bytes for canonical node and miner source in packaged candidate
+        working-directory: universal-client
+        run: npm run verify:package
+      - name: Real packaged Windows Electron GUI and managed node
+        if: runner.os == 'Windows'
+        working-directory: universal-client
+        shell: pwsh
+        run: |
+          & ".\\dist\\win-unpacked\\triumph-sovereign.exe" --ts-smoke
+          if ($LASTEXITCODE -ne 0) { throw "Packaged Windows GUI smoke failed" }
+          & ".\\dist\\win-unpacked\\triumph-sovereign.exe" --ts-node-smoke
+          if ($LASTEXITCODE -ne 0) { throw "Packaged Windows managed node smoke failed" }
+      - name: Real packaged macOS Electron GUI and managed node
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          BIN="$(find dist -type f -path '*/Contents/MacOS/triumph-sovereign' | head -n 1)"
+          test -n "$BIN"
+          "$BIN" --ts-smoke
+          "$BIN" --ts-node-smoke
