@@ -85,6 +85,36 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
+function watchRender(result){
+  const target=get('watch-entries');target.replaceChildren();
+  if(!Array.isArray(result?.entries)){target.textContent='Local public-address catalog unavailable';return}
+  if(!result.entries.length){target.textContent='No saved public addresses';return}
+  for(const entry of result.entries){
+    const row=document.createElement('div');row.className='watch-entry';
+    const label=document.createElement('span');
+    label.textContent=entry.alias+' · '+(entry.hidden?'hidden':entry.address);
+    row.append(label);
+    const select=document.createElement('button');select.textContent='Select';
+    select.addEventListener('click',()=>{
+      get('wallet-address').value=entry.address;
+      get('mining-address').value=entry.address;
+    });
+    row.append(select);
+    const toggle=document.createElement('button');toggle.textContent=entry.hidden?'Show':'Hide';
+    toggle.addEventListener('click',async()=>{
+      const r=await safely(()=>window.triumph.watchUpdate(entry.address,{hidden:!entry.hidden}));
+      if(r)watchRender(r);
+    });
+    row.append(toggle);
+    const remove=document.createElement('button');remove.textContent='Remove';
+    remove.addEventListener('click',async()=>{
+      const r=await safely(()=>window.triumph.watchRemove(entry.address));
+      if(r)watchRender(r);
+    });
+    row.append(remove);target.append(row);
+  }
+}
+async function watchLoad(){watchRender(await safely(()=>window.triumph.watchList()))}
 async function balance(){
   get('balance-amount').textContent='— FAE';
   get('balance-status').textContent='Reading node…';
@@ -129,6 +159,11 @@ get('node-refresh').addEventListener('click',status);
 get('miner-start').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.startMiner(get('mining-address').value.trim()));if(r)view(r)});
 get('miner-stop').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.stopMiner());if(r)view(r)});
 get('refresh-balance').addEventListener('click',balance);
+get('watch-save').addEventListener('click',async()=>{
+  const addr=get('wallet-address').value.trim(),label=get('watch-alias').value.trim();
+  const r=await safely(()=>window.triumph.watchAdd(addr,label));
+  if(r){get('watch-alias').value='';watchRender(r)}
+});
 get('refresh-wallet-activity').addEventListener('click',walletActivity);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
@@ -137,5 +172,5 @@ document.addEventListener('visibilitychange',()=>{
   if(active==='home'&&document.hidden){heroAtRest=true;hero()}
   balanceMedia();
 });
-if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{})}
+if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{});void watchLoad()}
 hero({entry:true});

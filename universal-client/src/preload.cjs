@@ -9,6 +9,10 @@ contextBridge.exposeInMainWorld('triumph',Object.freeze({
   status:()=>ipcRenderer.invoke('ts:status'),
   balance:address=>ipcRenderer.invoke('ts:balance',address),
   explorer:(route,query)=>ipcRenderer.invoke('ts:explorer',route,query),
+  watchList:()=>ipcRenderer.invoke('ts:watch-list'),
+  watchAdd:(address,alias)=>ipcRenderer.invoke('ts:watch-add',address,alias),
+  watchUpdate:(address,changes)=>ipcRenderer.invoke('ts:watch-update',address,changes),
+  watchRemove:address=>ipcRenderer.invoke('ts:watch-remove',address),
   onState:callback=>{
     if(typeof callback!=='function')throw Error('Listener required');
     const listener=(_event,state)=>callback(state);

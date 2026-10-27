@@ -3,8 +3,9 @@ const {app,BrowserWindow,ipcMain,session,utilityProcess}=require('electron');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {ProcessController}=require('./controller.cjs');
+const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
-let win,controller,quitting=false;
+let win,controller,watchBook,quitting=false;
 function windowCreate(){
   win=new BrowserWindow({
     title:'Triumph Sovereign — Public Testnet Candidate',width:1220,height:820,minWidth:850,minHeight:610,
@@ -65,7 +66,11 @@ function bindIpc(){
     'ts:stop-miner':()=>controller.stopMiner(),
     'ts:status':()=>controller.readStatus(),
     'ts:balance':addr=>controller.readBalance(addr),
-    'ts:explorer':(route,query)=>controller.readExplorer(route,query)
+    'ts:explorer':(route,query)=>controller.readExplorer(route,query),
+    'ts:watch-list':()=>watchBook.list(),
+    'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
+    'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
+    'ts:watch-remove':address=>watchBook.remove(address)
   };
   for(const [verb,invoke] of Object.entries(calls)){
     ipcMain.handle(verb,(event,...args)=>{
@@ -80,6 +85,7 @@ app.whenReady().then(()=>{
   session.defaultSession.setPermissionCheckHandler(()=>false);
   controller=new ProcessController({repoRoot:app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),dataDir:app.getPath('userData'),
     spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess))});
+  watchBook=new WatchAddressBook(app.getPath('userData'));
   bindIpc();windowCreate();
 });
 app.on('window-all-closed',()=>app.quit());

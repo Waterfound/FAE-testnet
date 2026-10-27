@@ -30,3 +30,5 @@ button:disabled{opacity:.42;cursor:default}button:focus-visible,input:focus-visi
 @media(max-width:930px){.tiles{grid-template-columns:1fr}.top span:nth-child(2){display:none}.top #network-tag{margin-left:auto}}
 @media(max-width:740px){.shell{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap;padding:10px}.sidebar .eyebrow{display:none}main{padding:23px 18px}.balance-grid{flex-wrap:wrap}.top strong{font-size:15px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.watch-book{margin-top:20px}.watch-entry{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.watch-entry span{flex:1;overflow-wrap:anywhere}.watch-entry button{white-space:nowrap}

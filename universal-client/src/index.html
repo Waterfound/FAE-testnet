@@ -47,6 +47,12 @@
 <div class="field-row"><input id="wallet-address" spellcheck="false" autocomplete="off" placeholder="faet1…">
 <button class="primary" id="refresh-balance">Check balance</button></div>
 <p class="fine">No seed phrase, PIN, recovery secret or private key is accepted by this view.</p>
+<div class="watch-book">
+  <p class="fine"><strong>Saved addresses · watch only</strong> — names and visibility persist locally, without signing authority.</p>
+  <div class="field-row"><input id="watch-alias" maxlength="40" placeholder="Public address alias">
+  <button id="watch-save">Save address</button></div>
+  <div id="watch-entries" aria-live="polite">Loading saved public addresses…</div>
+</div>
 </article>
 <article class="panel">
   <small>RECENT FAE TESTNET ACTIVITY · READ ONLY</small>
