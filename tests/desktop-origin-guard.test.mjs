@@ -6,8 +6,9 @@ import {once} from 'node:events';
 import {createServer} from 'node:net';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
-const NODE=resolve(new URL('../sovereign-forge/node/fae-node.mjs',import.meta.url).pathname);
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const NODE=fileURLToPath(new URL('../sovereign-forge/node/fae-node.mjs',import.meta.url));
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function availablePort(){
   const s=createServer();
