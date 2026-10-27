@@ -9,7 +9,20 @@ function safeCode(error){
 }
 globalThis.fetch=async function isolatedTransportDiagnostic(input,options){
   const started=Date.now();
-  try{return await originalFetch(input,options)}
+  let requestOptions=options;
+  // Differential *diagnosis only*: ensure each local HTTP request creates a
+  // fresh connection. Do not use this preloader in the product or canonical CI.
+  if(process.env.TS_PSR11_DIAG_FRESH_CONNECTION==='1'){
+    try{
+      const u=new URL(typeof input==='string'?input:input?.url);
+      if(u.protocol==='http:'&&(u.hostname==='127.0.0.1'||u.hostname==='localhost')){
+        const headers=new Headers(options?.headers);
+        headers.set('connection','close');
+        requestOptions={...options,headers};
+      }
+    }catch{}
+  }
+  try{return await originalFetch(input,requestOptions)}
   catch(error){
     let route='other';
     try{
