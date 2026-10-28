@@ -184,6 +184,12 @@ function bindIpc(){
   const origin=pathToFileURL(path.join(__dirname,'index.html')).href;
   const addressSource=path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
     'sovereign-forge','node','authoritative','address.mjs');
+  const checkedWatchMutation=async operation=>{
+    // Refuse to append to or rewrite a legacy invalid address catalog.
+    // Preserve its bytes for independent recovery rather than silently purging.
+    await validateSavedWatchCatalog(await watchBook.list(),addressSource);
+    return operation();
+  };
   const calls={
     'ts:snapshot':()=>controller.snapshot(),
     'ts:start-node':()=>controller.startNode(),
@@ -211,10 +217,10 @@ function bindIpc(){
       return compareObservedFunds(review,observed);
     },
     'ts:watch-list':async()=>validateSavedWatchCatalog(await watchBook.list(),addressSource),
-    'ts:watch-add':async(address,alias)=>watchBook.add(await canonicalAddress(address,addressSource),alias),
-    'ts:watch-update':async(address,changes)=>watchBook.update(await canonicalAddress(address,addressSource),changes),
-    'ts:watch-remove':async address=>watchBook.remove(await canonicalAddress(address,addressSource)),
-    'ts:watch-select':async address=>watchBook.select(await canonicalAddress(address,addressSource)),
+    'ts:watch-add':async(address,alias)=>checkedWatchMutation(async()=>watchBook.add(await canonicalAddress(address,addressSource),alias)),
+    'ts:watch-update':async(address,changes)=>checkedWatchMutation(async()=>watchBook.update(await canonicalAddress(address,addressSource),changes)),
+    'ts:watch-remove':async address=>checkedWatchMutation(async()=>watchBook.remove(await canonicalAddress(address,addressSource))),
+    'ts:watch-select':async address=>checkedWatchMutation(async()=>watchBook.select(await canonicalAddress(address,addressSource))),
     'ts:watch-import-vault':async()=>{
       const selected=ciVaultSelection&&process.env.CI==='true'&&process.argv.includes('--ts-vault-import-smoke')
         ?{canceled:false,filePaths:[ciVaultSelection]}
@@ -230,7 +236,7 @@ function bindIpc(){
         metadata=await readVaultPublicMetadata(selected.filePaths[0],{addressSource:source})
       }
       catch{throw Error('Selected encrypted FAE vault public metadata could not be validated')}
-      return watchBook.importPublicVaultAddresses(metadata.addresses);
+      return checkedWatchMutation(()=>watchBook.importPublicVaultAddresses(metadata.addresses));
     }
   };
   for(const [verb,invoke] of Object.entries(calls)){
