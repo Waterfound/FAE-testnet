@@ -8,8 +8,6 @@ const {constants}=require('node:fs');
 const {spawn}=require('node:child_process');
 const {createHash}=require('node:crypto');
 const COMMANDS=new Set(['create','recover','address','receive','balance','history','outbox']);
-const TTY_REQUIRED=new Set(['create','recover','address','receive','balance','history','outbox']);
-const MAX_SOURCE_BYTES=32768;
 // Independently fetched from protected Wallet Draft PR #342 exact head
 // 17c90ffc313fd11de17396437436e4429472f616; candidate evidence only.
 // Publishing this public digest does not admit a release or cryptographic signer.
@@ -35,26 +33,6 @@ const WALLET_IMPORT_CLOSURE=Object.freeze([
   'sovereign-forge/node/authoritative/canonical.mjs',
   'bip39-en.js'
 ]);
-async function authenticatedWalletScript(file,expectedSha256){
-  if(typeof file!=='string'||!path.isAbsolute(file)||
-     path.basename(file)!=='fae-wallet.mjs'||
-     !/^[0-9a-f]{64}$/.test(expectedSha256||''))
-    throw Error('Native Wallet companion source not admitted');
-  const st=await fs.lstat(file);
-  if(!st.isFile()||st.isSymbolicLink()||st.size<100||st.size>MAX_SOURCE_BYTES||
-     (process.platform!=='win32'&&(st.mode&0o022)!==0))
-    throw Error('Native Wallet companion file unsafe');
-  const f=await fs.open(file,constants.O_RDONLY|(constants.O_NOFOLLOW||0));
-  let bytes;try{
-    const actual=await f.stat();
-    if(actual.ino!==st.ino||actual.dev!==st.dev||actual.size!==st.size)
-      throw Error('Native Wallet companion changed during read');
-    bytes=await f.readFile();
-  }finally{await f.close()}
-  if(createHash('sha256').update(bytes).digest('hex')!==expectedSha256)
-    throw Error('Native Wallet companion SHA-256 mismatch');
-  return file;
-}
 async function authenticatedWalletBundle(script){
   const manifest=PINNED_WALLET_BUNDLE;
   if(typeof script!=='string'||!path.isAbsolute(script)||!manifest||
@@ -114,4 +92,4 @@ async function runPrivilegedWalletTerminal(command,{
     });
   });
 }
-module.exports={WALLET_OWNER_HEAD,authenticatedWalletScript,authenticatedWalletBundle,runPrivilegedWalletTerminal};
+module.exports={WALLET_OWNER_HEAD,authenticatedWalletBundle,runPrivilegedWalletTerminal};
