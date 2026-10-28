@@ -6,8 +6,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');
 const os=require('node:os');
 const path=require('node:path');
+const {EventEmitter}=require('node:events');
 const {pathToFileURL}=require('node:url');
-const {authenticatedWalletBundle,prepareAttestedWalletSource,WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
+const {authenticatedWalletBundle,prepareAttestedWalletSource,runPrivilegedWalletTerminal,WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
 const {readVaultPublicMetadata}=require('../src/wallet-vault-public-metadata.cjs');
 const {WatchAddressBook}=require('../src/watch-address-book.cjs');
 
@@ -57,6 +58,67 @@ async function verifySourceSnapshotRejectsMutation(ownerScript){
     await assert.rejects(fs.stat(redirectedRoot),{code:'ENOENT'});
   }
 }
+async function verifyPrivilegedTerminalLifecycle(ownerScript){
+  const tempRoot=await fs.realpath(os.tmpdir());
+  const before=new Set((await fs.readdir(tempRoot)).filter(name=>name.startsWith('ts-wallet-snapshot-')));
+  const tty={stdin:true,stdout:true,stderr:true};
+  const publicVault=path.join(tempRoot,'ts-wallet-lifecycle-fixture.json');
+  let firstChild;
+  const pending=runPrivilegedWalletTerminal('address',{
+    script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
+    spawnFn:()=>{
+      firstChild=new EventEmitter();
+      return firstChild;
+    }
+  });
+  await assert.rejects(
+    runPrivilegedWalletTerminal('history',{
+      script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
+      spawnFn:()=>{throw Error('Concurrent request reached spawn')}
+    }),
+    /request already active/,
+    'A concurrent privileged Wallet terminal request must fail before staging or spawn');
+  for(let attempt=0;!firstChild&&attempt<200;attempt++)
+    await new Promise(resolve=>setImmediate(resolve));
+  assert.ok(firstChild,'First native terminal child must reach bounded spawn');
+  firstChild.emit('exit',7,null);
+  assert.equal((await pending).status,'CLI_EXIT_UNCONFIRMED',
+    'Abnormal CLI exit must never be reported as signer success');
+
+  const completed=await runPrivilegedWalletTerminal('address',{
+    script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
+    spawnFn:()=>{
+      const child=new EventEmitter();
+      setImmediate(()=>child.emit('exit',0,null));
+      return child;
+    }
+  });
+  assert.equal(completed.status,'CLI_EXIT_SUCCESS',
+    'A fresh request is admitted after the prior child exits and cleanup finishes');
+
+  await assert.rejects(
+    runPrivilegedWalletTerminal('address',{
+      script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
+      spawnFn:()=>{throw Error('CI fixture synchronous start failure')}
+    }),
+    /terminal start failed/);
+  await assert.rejects(
+    runPrivilegedWalletTerminal('address',{
+      script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
+      spawnFn:()=>{
+        const child=new EventEmitter();
+        setImmediate(()=>child.emit('error',Error('CI fixture child error')));
+        return child;
+      }
+    }),
+    /process unavailable/);
+
+  const after=(await fs.readdir(tempRoot)).filter(name=>
+    name.startsWith('ts-wallet-snapshot-')&&!before.has(name));
+  assert.deepEqual(after,[],'Every terminal lifecycle outcome must remove its attested source stage');
+  console.log('TS_WALLET_TERMINAL_SINGLE_FLIGHT_PASS');
+  console.log('TS_WALLET_TERMINAL_FAILURE_CLEANUP_PASS');
+}
 async function main(){
   const root=process.env.TS_OWNER_WALLET_ROOT;
   if(typeof root!=='string'||!path.isAbsolute(root)||process.env.CI!=='true')
@@ -99,6 +161,7 @@ async function main(){
     console.log('TS_REAL_OWNER_VAULT_TO_DESKTOP_WATCH_PASS: 5 public addresses; native signing remains disabled');
     console.log('TS_WALLET_ATTESTED_SOURCE_SNAPSHOT_PASS');
     await verifySourceSnapshotRejectsMutation(script);
+    await verifyPrivilegedTerminalLifecycle(script);
   }finally{await fs.rm(dir,{recursive:true,force:true})}
   }finally{await stage.release()}
 }
