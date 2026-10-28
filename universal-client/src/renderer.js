@@ -94,9 +94,10 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
-let balanceRequest=0,activityRequest=0,paymentRequest=0,activityPage=null;
+let balanceRequest=0,activityRequest=0,paymentRequest=0,txReceiptRequest=0,activityPage=null;
 function clearWalletObservations(reason='Select an address and refresh its local observation'){
-  balanceRequest++;activityRequest++;paymentRequest++;
+  balanceRequest++;activityRequest++;paymentRequest++;txReceiptRequest++;
+  get('wallet-tx-output').textContent='Selected-node observation cleared. Recheck the TXID after restarting the node.';
   get('payment-review-output').textContent='Review reset. No payment signed or submitted.';
   get('balance-amount').textContent='— FAE';
   get('balance-status').textContent=reason;
@@ -277,6 +278,61 @@ async function observePaymentFunds(){
     'No independent confirmation or node process-authentication claim.'
   ].join('\n');
 }
+// Public-only receipt reader: the existing ProcessController binds Explorer
+// responses to a stable selected-node tip. No submit or signing IPC is exposed.
+async function trackWalletTransaction(){
+  const id=get('wallet-txid').value.trim();
+  const generation=++txReceiptRequest;
+  const output=get('wallet-tx-output');
+  if(!/^[0-9a-f]{64}$/.test(id)){
+    output.textContent='Invalid FAE testnet transaction ID. Use exactly 64 lowercase hexadecimal characters.';
+    return;
+  }
+  if(state.node!=='running'){
+    output.textContent='Start your local node to observe a public transaction. Nothing was submitted.';
+    return;
+  }
+  output.textContent='Checking the selected managed node at a stable chain tip…';
+  const receipt=await safely(()=>window.triumph.explorer('/explorer/transaction',{txid:id}));
+  if(generation!==txReceiptRequest||get('wallet-txid').value.trim()!==id||state.node!=='running')return;
+  const tx=receipt?.transaction;
+  const tip=receipt?.observed_tip_height,tipHash=receipt?.observed_tip_hash;
+  const hash=/^[0-9a-f]{64}$/;
+  if(receipt?.ok!==true||receipt.network!=='fairyelf-public-testnet-v4'||
+     !Number.isSafeInteger(tip)||tip<0||typeof tipHash!=='string'||!hash.test(tipHash)||
+     tx?.txid!==id||tx.network!==receipt.network||
+     !['pending','confirmed'].includes(tx.status)){
+    output.textContent='No compatible transaction observation from the selected node. No confirmation asserted.';
+    return;
+  }
+  let stateLabel;
+  if(tx.status==='confirmed'){
+    const h=tx.confirmed_height,confirmations=tx.confirmations;
+    if(!Number.isSafeInteger(h)||h<1||h>tip||
+       typeof tx.block_hash!=='string'||!hash.test(tx.block_hash)||
+       !Number.isSafeInteger(confirmations)||confirmations!==tip-h+1){
+      output.textContent='Inconsistent confirmed transaction observation. No confirmation asserted.';
+      return;
+    }
+    stateLabel='CONFIRMED BY SELECTED NODE · '+confirmations+' local-chain confirmation(s)';
+  }else{
+    if(tx.confirmed_height!==null||tx.block_hash!==null||tx.confirmations!==null){
+      output.textContent='Contradictory pending transaction observation. No pending state asserted.';
+      return;
+    }
+    stateLabel='PENDING · SELECTED NODE MEMPOOL CLAIM';
+  }
+  output.textContent=[
+    'FAE PUBLIC TESTNET · READ-ONLY TRANSACTION RECEIPT',
+    'Transaction: '+id,
+    'Status: '+stateLabel,
+    ...(tx.status==='confirmed'?['Included at block #'+tx.confirmed_height,'Block hash: '+tx.block_hash]:[]),
+    'Observed tip: #'+tip+' · '+tipHash,
+    'Source: selected managed local node / Explorer stable-tip observation.',
+    'Not independently finalized or authenticated for signing.',
+    'Desktop Wallet signing: UNAVAILABLE · Desktop submission: NOT PERFORMED'
+  ].join('\\n');
+}
 async function explorer(route,query){
   get('explorer-output').textContent='Reading…';
   const r=await safely(()=>window.triumph.explorer(route,query));
@@ -342,6 +398,11 @@ get('native-wallet-create').addEventListener('click',()=>nativeWalletTerminal('c
 get('native-wallet-recover').addEventListener('click',()=>nativeWalletTerminal('recover'));
 get('native-wallet-address').addEventListener('click',()=>nativeWalletTerminal('address'));
 get('payment-funds').addEventListener('click',observePaymentFunds);
+get('wallet-tx-track').addEventListener('click',trackWalletTransaction);
+get('wallet-txid').addEventListener('input',()=>{
+  txReceiptRequest++;
+  get('wallet-tx-output').textContent='Transaction ID changed. Recheck the selected node; no prior observation remains current.';
+});
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
 reduce.addEventListener('change',()=>{if(active==='home'){heroAtRest=true;hero()}balanceMedia()});
