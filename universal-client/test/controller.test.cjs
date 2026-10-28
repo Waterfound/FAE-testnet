@@ -480,7 +480,7 @@ test('Stop Node revokes pre-spawn startup even when prior port probe completes a
     assert.equal(c.snapshot().node,'starting');
     const stopping=c.stopNode();
     assert.equal(c.snapshot().node,'stopping');
-    assert.equal((await stopping).node,'stopped');
+    assert.equal((await stopping).node,'stopping','Cancellation remains pending until preflight settles');
     finishProbe();
     await assert.rejects(()=>starting,/startup canceled by Stop Node/);
     assert.equal(spawns,0,'No process can be launched after successful Stop Node');
@@ -518,7 +518,7 @@ test('Stop Node rejects stale post-spawn listener success and permits fresh rest
     assert.equal(children.length,1);
     await c.stopNode();
     assert.equal(children[0].killed,true);
-    assert.equal(c.snapshot().node,'starting','The stale startup is still being canceled');
+    assert.equal(c.snapshot().node,'stopping','The stale startup remains cancellation-pending');
     releaseListen({owned_process_log:true});
     await assert.rejects(()=>pending,/startup canceled by Stop Node/);
     assert.equal(c.snapshot().node,'stopped');
