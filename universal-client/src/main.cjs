@@ -257,6 +257,7 @@ function bindIpc(){
     'ts:stop-miner':()=>controller.stopMiner(),
     'ts:status':()=>controller.readStatus(),
     'ts:balance':async addr=>controller.readBalance(await canonicalAddress(addr,addressSource)),
+    'ts:funding-candidates':async addr=>controller.readFundingCandidates(await canonicalAddress(addr,addressSource)),
     'ts:explorer':async(route,query)=>{
       if(route==='/explorer/address'&&query?.address!==undefined)
         await canonicalAddress(query.address,addressSource);
