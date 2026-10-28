@@ -61,6 +61,19 @@
   <p class="fine">Selected-node block and transfer observations only, tip-bound. This is not independent confirmation or complete historical indexing.</p>
   <button id="refresh-wallet-activity">Read observed activity</button>
   <pre id="wallet-activity-output">Enter a public FAE address and start your local node.</pre>
+</article>
+<article class="panel" id="payment-review-panel">
+  <small>PAYMENT REVIEW · PUBLIC-ONLY DRAFT</small>
+  <p class="fine">Prepare a public FAE testnet payment for review. This does not unlock any Wallet, verify funds, sign, send or save a transaction.</p>
+  <label for="payment-to">Recipient · canonical FAE testnet address</label>
+  <input id="payment-to" spellcheck="false" autocomplete="off" placeholder="faet1…">
+  <div class="field-row">
+    <div><label for="payment-amount">Amount · FAE</label><input id="payment-amount" inputmode="decimal" spellcheck="false" placeholder="1.00000000"></div>
+    <div><label for="payment-fee">Fee · FAE (review only)</label><input id="payment-fee" inputmode="decimal" spellcheck="false" value="0"></div>
+  </div>
+  <button id="payment-review" type="button">Review unsigned payment</button>
+  <pre id="payment-review-output" aria-live="polite">No payment reviewed. No signing authority is connected.</pre>
+  <p class="fine">The source address is the currently selected watch-only address. Intended ticker TRIUM is not yet the FAE testnet asset.</p>
 </article></section>
 <section class="page" id="page-mining"><p class="eyebrow">GENERAL-PURPOSE PARTICIPATION</p><h1>Mining</h1>
 <p class="lead">The existing standalone FAE miner runs in its own process without wallet signing authority.</p>
