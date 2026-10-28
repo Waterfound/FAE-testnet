@@ -2,7 +2,7 @@
 const {spawn}=require('node:child_process');
 const {mkdir}=require('node:fs/promises');
 const path=require('node:path');
-const {EventEmitter,once}=require('node:events');
+const {EventEmitter}=require('node:events');
 const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
@@ -78,8 +78,8 @@ class ProcessController extends EventEmitter{
     this.minerStopPromise=null;this.minerGeneration=0;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
-  snapshot(){return {network:NETWORK,node:this.nodeStopping||(this.nodeStarting&&this.nodeStartGeneration!==this.nodeGeneration)?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
-    miner:this.minerStopPending?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
+  snapshot(){return {network:NETWORK,node:this.nodeStopping||(this.nodeStarting&&this.nodeStartGeneration!==this.nodeGeneration)||this.node&&this.node.killed&&!this.node._tsExited&&this.node.exitCode===null?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
+    miner:this.minerStopPending||this.miner&&this.miner.killed&&!this.miner._tsExited&&this.miner.exitCode===null?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
     telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
     const env=makeEnv(extra);
@@ -105,24 +105,42 @@ class ProcessController extends EventEmitter{
       this.emit('state',this.snapshot());
     });
     child.on('exit',()=>{
+      child._tsExited=true;
       invalidateMiner();invalidateDependentMiner();
       this.emit('state',this.snapshot());
     });
     return child;
   }
-  async stop(child){
-    if(!child||child.exitCode!==null)return;
-    if(!child.killed)child.kill('SIGTERM');
-    if(child.exitCode!==null)return;
-    let timer;
-    try{await Promise.race([once(child,'exit').catch(()=>{}),
-      new Promise(resolve=>{timer=setTimeout(()=>{if(child.exitCode===null)child.kill('SIGKILL');resolve()},3000)})])}
-    finally{clearTimeout(timer)}
+  async stop(child,{graceMs=3000,killMs=1500}={}){
+    if(!child||child._tsExited||child.exitCode!==null)return;
+    // A successful kill() call or child.killed only confirms a signal attempt.
+    // Never drop the owner reference before an actual exit event or exitCode.
+    const waitForExit=(signal,timeoutMs)=>new Promise(resolve=>{
+      let settled=false;
+      const finish=observed=>{
+        if(settled)return;
+        settled=true;clearTimeout(timer);
+        child.off('exit',onExit);
+        resolve(observed);
+      };
+      const onExit=()=>{child._tsExited=true;finish(true)};
+      child.on('exit',onExit);
+      const timer=setTimeout(()=>finish(false),timeoutMs);
+      if(child._tsExited||child.exitCode!==null)return finish(true);
+      try{if(signal)child.kill(signal)}catch{finish(false);return}
+      if(child._tsExited||child.exitCode!==null)finish(true);
+    });
+    if(await waitForExit(child.killed?null:'SIGTERM',graceMs))return;
+    if(await waitForExit('SIGKILL',killMs))return;
+    throw Error('Managed process termination not confirmed');
   }
   async startNode(){
     if(this.nodeStopping)throw Error('Node shutdown pending');
     if(this.nodeStarting)throw Error('Node startup pending');
-    if(alive(this.node))return this.snapshot();
+    if(this.node&&this.node.exitCode===null&&!this.node._tsExited){
+      if(this.node.killed||this.node._tsFailed)throw Error('Managed node termination not confirmed');
+      return this.snapshot();
+    }
     this.nodeStarting=true;
     const generation=this.nodeGeneration;
     this.nodeStartGeneration=generation;
@@ -154,8 +172,12 @@ class ProcessController extends EventEmitter{
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();
     }catch(e){
-      const old=this.node;this.node=null;this.nodeStarting=false;
-      await this.stop(old).catch(()=>{});
+      const old=this.node;this.nodeStarting=false;
+      try{await this.stop(old)}catch(shutdownError){
+        this.emit('state',this.snapshot());
+        throw Error('Managed node startup failed; '+shutdownError.message);
+      }
+      if(this.node===old)this.node=null;
       this.emit('state',this.snapshot());throw e;
     }
   }
@@ -263,7 +285,10 @@ class ProcessController extends EventEmitter{
     // renderer requests must never create a second, untracked miner process.
     if(this.minerStarting)throw Error('Miner startup pending');
     if(this.minerStopPending)throw Error('Miner shutdown pending');
-    if(alive(this.miner))throw Error('Miner already running');
+    if(this.miner&&this.miner.exitCode===null&&!this.miner._tsExited){
+      if(this.miner.killed||this.miner._tsFailed)throw Error('Miner termination not confirmed');
+      throw Error('Miner already running');
+    }
     this.minerStarting=true;
     const owned=this.node,launchGeneration=this.minerGeneration;
     this.emit('state',this.snapshot());
