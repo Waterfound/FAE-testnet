@@ -598,3 +598,50 @@ test('unconfirmed miner shutdown retains the process and refuses duplicate miner
   miner.exitCode=0;miner._tsExited=true;
   c.miner=null;c.node=null;
 });
+
+
+test('wallet activity pagination binds offset and next cursor to one exact node tip',async()=>{
+  const http=require('node:http');
+  const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const tip='b'.repeat(64);
+  let mode='normal';
+  const server=http.createServer((req,res)=>{
+    res.setHeader('content-type','application/json');
+    if(req.url==='/status')
+      return res.end(JSON.stringify({ok:true,network:NETWORK,height:3,tip_hash:tip}));
+    if(req.url.startsWith('/explorer/address?')){
+      const query=new URL(req.url,'http://localhost').searchParams;
+      const isSecond=query.has('cursor');
+      const page={ok:true,network:NETWORK,observed_tip_height:3,observed_tip_hash:tip,
+        address:addr,balance_atoms:'0',total_events:2,
+        events:[{id:isSecond?'reward:b':'reward:a',status:'confirmed'}],
+        next_cursor:isSecond?null:tip+':1'};
+      if(mode==='stale')page.next_cursor='c'.repeat(64)+':1';
+      if(mode==='repeat')page.next_cursor=tip+':0';
+      if(mode==='false-end')page.next_cursor=null;
+      if(mode==='duplicate')page.events=[{id:'reward:a'},{id:'reward:a'}];
+      return res.end(JSON.stringify(page));
+    }
+    res.statusCode=404;res.end('{}');
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),port:server.address().port});
+  c.node={exitCode:null,killed:false,_tsFailed:false};
+  try{
+    const first=await c.readExplorer('/explorer/address',{address:addr,limit:1});
+    assert.equal(first.next_cursor,tip+':1');
+    const second=await c.readExplorer('/explorer/address',{address:addr,cursor:first.next_cursor,limit:1});
+    assert.equal(second.next_cursor,null);
+    assert.equal(second.events[0].id,'reward:b');
+    await assert.rejects(()=>c.readExplorer('/explorer/address',{address:addr,cursor:'c'.repeat(64)+':1',limit:1}),
+      /wallet activity cursor/);
+    for(const variant of['stale','repeat','false-end','duplicate']){
+      mode=variant;
+      await assert.rejects(()=>c.readExplorer('/explorer/address',{address:addr,limit:1}),
+        /Unverified selected-node wallet activity response/);
+    }
+  }finally{
+    c.node=null;
+    await new Promise(resolve=>server.close(resolve));
+  }
+});
