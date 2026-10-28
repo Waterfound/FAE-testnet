@@ -407,4 +407,4 @@ class ProcessController extends EventEmitter{
   }
   async dispose(){await this.stopNode()}
 }
-module.exports={ProcessController,makeEnv,explorerUrl,addressValid,fetchRead,HOST,NETWORK};
+module.exports={ProcessController,makeEnv,explorerUrl,addressValid,fetchRead,validateFundingCandidatePayload,HOST,NETWORK};
