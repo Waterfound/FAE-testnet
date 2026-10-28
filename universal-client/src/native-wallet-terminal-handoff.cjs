@@ -72,7 +72,11 @@ async function prepareAttestedWalletSource(script){
   // to the original checkout from silently changing the launch bytes.
   await authenticatedWalletBundle(script);
   const sourceRoot=path.resolve(path.dirname(script),'..','..');
-  const stageRoot=await fs.mkdtemp(path.join(os.tmpdir(),'ts-wallet-snapshot-'));
+  // OS temporary paths can traverse an alias/junction on Windows.
+  // Resolve the parent FIRST; the new private directory must have a direct,
+  // canonical path without relaxing the attestation of staged code.
+  const canonicalTempParent=await fs.realpath(os.tmpdir());
+  const stageRoot=await fs.mkdtemp(path.join(canonicalTempParent,'ts-wallet-snapshot-'));
   try{
     await fs.chmod(stageRoot,0o700);
     for(const relative of WALLET_IMPORT_CLOSURE){
