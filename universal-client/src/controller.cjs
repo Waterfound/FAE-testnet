@@ -34,8 +34,59 @@ function explorerUrl(route,params={},endpoint=HOST){
   }
   return url;
 }
+const ATOMIC=/^(?:0|[1-9][0-9]*)$/;
+const OUTPOINT=/^[0-9a-f]{64}:(?:0|[1-9][0-9]*)$/;
+const DIGEST=/^[0-9a-f]{64}$/;
+// Read-only original FAE v4 /spendable claim. It contains confirmed outputs
+// and unconfirmed mempool descendants, NOT a cryptographic spendability proof.
+// In particular, coinbase maturity and key ownership are NOT attested here.
+function validateFundingCandidatePayload(payload,{address}={}){
+  if(!payload||typeof payload!=='object'||Array.isArray(payload)||
+     payload.ok!==true||payload.address!==address||
+     (payload.network!==undefined&&payload.network!==NETWORK)||
+     typeof payload.spendable_atoms!=='string'||
+     payload.spendable_atoms.length>80||!ATOMIC.test(payload.spendable_atoms)||
+     !Array.isArray(payload.utxos)||payload.utxos.length>500)
+    throw Error('Invalid selected-node funding candidate observation');
+  const outpoints=new Set();
+  let summed=0n,confirmed=0n,pending=0n;
+  const rows=[];
+  for(const row of payload.utxos){
+    if(!row||typeof row!=='object'||Array.isArray(row)||
+       typeof row.outpoint!=='string'||!OUTPOINT.test(row.outpoint)||
+       outpoints.has(row.outpoint)||typeof row.amount_atoms!=='string'||
+       row.amount_atoms.length>80||!ATOMIC.test(row.amount_atoms)||
+       BigInt(row.amount_atoms)===0n||
+       !['confirmed','pending'].includes(row.source))
+      throw Error('Invalid selected-node funding candidate entry');
+    if(row.source==='confirmed'&&
+       (!Number.isSafeInteger(row.created_height)||row.created_height<1))
+      throw Error('Invalid confirmed candidate height');
+    if(row.source==='pending'&&
+       (typeof row.parent_txid!=='string'||!DIGEST.test(row.parent_txid)||
+        row.created_height!==undefined))
+      throw Error('Invalid pending candidate provenance');
+    outpoints.add(row.outpoint);
+    const amount=BigInt(row.amount_atoms);
+    summed+=amount;
+    if(row.source==='confirmed')confirmed+=amount;else pending+=amount;
+    rows.push(Object.freeze({outpoint:row.outpoint,amount_atoms:row.amount_atoms,
+      source:row.source,
+      ...(row.source==='confirmed'?{created_height:row.created_height}:
+        {parent_txid:row.parent_txid})}));
+  }
+  if(summed!==BigInt(payload.spendable_atoms))
+    throw Error('Selected-node funding candidate total mismatch');
+  return Object.freeze({ok:true,address,network:NETWORK,
+    candidate_atoms:summed.toString(),confirmed_candidate_atoms:confirmed.toString(),
+    pending_candidate_atoms:pending.toString(),candidate_count:rows.length,
+    outputs:Object.freeze(rows),
+    authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',
+    maturity:'NOT_VERIFIED',ownership:'NOT_VERIFIED',
+    signer:'UNAVAILABLE',submission:'NOT_PERFORMED'});
+}
 const MAX_READ_BYTES=2*1024*1024;
-async function fetchRead(url,kind='status',address){
+async function fetchRead(url,kind='status',address,validator=validateRead){
   const response=await fetch(url,{method:'GET',redirect:'error',headers:{accept:'application/json'},
     signal:AbortSignal.timeout(4000)});
   if(!response.ok)throw Error('FAE local read HTTP '+response.status);
@@ -58,7 +109,7 @@ async function fetchRead(url,kind='status',address){
   let payload;
   try{payload=JSON.parse(Buffer.concat(chunks,total).toString('utf8'))}
   catch{throw Error('FAE local read is not JSON')}
-  return validateRead(payload,{kind,address});
+  return validator(payload,{kind,address});
 }
 class ProcessController extends EventEmitter{
   constructor({repoRoot,dataDir,port=randomInt(32768,61000),nodeExecutable=process.execPath,
@@ -268,6 +319,15 @@ class ProcessController extends EventEmitter{
     const requested=addressValid(address);
     return this.observedReadAtStableTip(()=>
       fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested),{includeTip:true});
+  }
+  async readFundingCandidates(address){
+    const requested=addressValid(address);
+    const observed=await this.observedReadAtStableTip(()=>
+      fetchRead(new URL('/spendable?address='+encodeURIComponent(requested),this.endpoint),
+        'funding',requested,validateFundingCandidatePayload),{includeTip:true});
+    if(observed.outputs.some(row=>row.source==='confirmed'&&row.created_height>observed.observed_tip_height))
+      throw Error('Selected-node funding candidate exceeds observed chain tip');
+    return observed;
   }
   async readExplorer(route,params){
     const url=explorerUrl(route,params,this.endpoint);
