@@ -6,7 +6,7 @@ const {ProcessController}=require('./controller.cjs');
 const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
-const {reviewPublicPayment}=require('./wallet-payment-review.cjs');
+const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-review.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false,ciVaultSelection=null;
@@ -189,6 +189,15 @@ function bindIpc(){
       addressSource:path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
         'sovereign-forge','node','authoritative','address.mjs')
     }),
+    'ts:observe-payment-funds':async draft=>{
+      const addressSource=path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
+        'sovereign-forge','node','authoritative','address.mjs');
+      const review=await reviewPublicPayment(draft,{addressSource});
+      // The managed node itself remains an untrusted source of claims.
+      // Balance is stable-tip-bound; signing and spendability remain disabled.
+      const observed=await controller.readBalance(review.from);
+      return compareObservedFunds(review,observed);
+    },
     'ts:watch-list':()=>watchBook.list(),
     'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
     'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
