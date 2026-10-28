@@ -63,11 +63,13 @@ async function verifyPrivilegedTerminalLifecycle(ownerScript){
   const before=new Set((await fs.readdir(tempRoot)).filter(name=>name.startsWith('ts-wallet-snapshot-')));
   const tty={stdin:true,stdout:true,stderr:true};
   const publicVault=path.join(tempRoot,'ts-wallet-lifecycle-fixture.json');
-  let firstChild;
+  let firstChild,markSpawned;
+  const spawned=new Promise(resolve=>{markSpawned=resolve});
   const pending=runPrivilegedWalletTerminal('address',{
     script:ownerScript,nodeExecutable:process.execPath,publicVault,tty,
     spawnFn:()=>{
       firstChild=new EventEmitter();
+      markSpawned();
       return firstChild;
     }
   });
@@ -78,8 +80,11 @@ async function verifyPrivilegedTerminalLifecycle(ownerScript){
     }),
     /request already active/,
     'A concurrent privileged Wallet terminal request must fail before staging or spawn');
-  for(let attempt=0;!firstChild&&attempt<200;attempt++)
-    await new Promise(resolve=>setImmediate(resolve));
+  await Promise.race([
+    spawned,
+    new Promise((_,reject)=>setTimeout(
+      ()=>reject(Error('First native terminal child did not reach spawn within 10 seconds')),10000))
+  ]);
   assert.ok(firstChild,'First native terminal child must reach bounded spawn');
   firstChild.emit('exit',7,null);
   assert.equal((await pending).status,'CLI_EXIT_UNCONFIRMED',
