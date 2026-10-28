@@ -7,7 +7,7 @@ const fs=require('node:fs/promises');
 const os=require('node:os');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
-const {authenticatedWalletBundle,WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
+const {authenticatedWalletBundle,prepareAttestedWalletSource,WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
 const {readVaultPublicMetadata}=require('../src/wallet-vault-public-metadata.cjs');
 const {WatchAddressBook}=require('../src/watch-address-book.cjs');
 
@@ -20,8 +20,10 @@ async function main(){
   const {execFileSync}=require('node:child_process');
   const checkout=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8',timeout:5000}).trim();
   if(checkout!==WALLET_OWNER_HEAD)throw Error('Protected Wallet checkout head mismatch');
-  const crypto=await import(pathToFileURL(path.join(root,'standalone','wallet','crypto.mjs')).href);
-  const {writeVault}=await import(pathToFileURL(path.join(root,'standalone','wallet','vault.mjs')).href);
+  const stage=await prepareAttestedWalletSource(script);
+  try{
+  const crypto=await import(pathToFileURL(path.join(stage.root,'standalone','wallet','crypto.mjs')).href);
+  const {writeVault}=await import(pathToFileURL(path.join(stage.root,'standalone','wallet','vault.mjs')).href);
   const dir=await fs.mkdtemp(path.join(os.tmpdir(),'ts-wallet-real-interop-'));
   try{
     await fs.chmod(dir,0o700);
@@ -30,7 +32,7 @@ async function main(){
     const ownerAddresses=(await writeVault(vault,disposable,'','CI_DISPOSABLE_TEST_ONLY')).map(x=>x.address);
     const original=await fs.readFile(vault,'utf8');
     const bridge=await readVaultPublicMetadata(vault,{
-      addressSource:path.join(root,'sovereign-forge','node','authoritative','address.mjs')
+      addressSource:path.join(stage.root,'sovereign-forge','node','authoritative','address.mjs')
     });
     assert.deepEqual(bridge.addresses,ownerAddresses);
     assert.equal(bridge.provenance,'unverified_encrypted_vault_public_metadata');
@@ -49,6 +51,8 @@ async function main(){
     assert.equal((await fs.readFile(vault,'utf8')),original,
       'Read-only integration must preserve the exact encrypted owner vault');
     console.log('TS_REAL_OWNER_VAULT_TO_DESKTOP_WATCH_PASS: 5 public addresses; native signing remains disabled');
+    console.log('TS_WALLET_ATTESTED_SOURCE_SNAPSHOT_PASS');
   }finally{await fs.rm(dir,{recursive:true,force:true})}
+  }finally{await stage.release()}
 }
 main().catch(error=>{console.error('TS_OWNER_INTEROP_FAIL: '+error.message);process.exitCode=1});
