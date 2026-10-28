@@ -44,4 +44,43 @@ async function reviewPublicPayment(input,{addressSource}={}){
     notice:'Public unsigned draft only. No vault ownership, spendability, signing or transaction submission.'
   });
 }
-module.exports={parseFaeAmount,formatAtoms,reviewPublicPayment};
+
+function compareObservedFunds(publicReview,nodeBalance){
+  // This does not confer signer authority, confirmed UTXO spendability, or
+  // independently verified consensus. The caller must use a stable-tip read.
+  if(!publicReview||publicReview.state!=='UNSIGNED_PUBLIC_REVIEW_ONLY'||
+     publicReview.network!==NETWORK||typeof publicReview.from!=='string'||
+     typeof publicReview.amount_fae!=='string'||typeof publicReview.fee_fae!=='string'||
+     typeof publicReview.total_fae!=='string'){
+    throw Error('Unverified public payment review');
+  }
+  if(!nodeBalance||typeof nodeBalance!=='object'||Array.isArray(nodeBalance)||
+     nodeBalance.address!==publicReview.from||nodeBalance.ok!==true||
+     (nodeBalance.network!==undefined&&nodeBalance.network!==NETWORK)||
+     typeof nodeBalance.balance_atoms!=='string'||
+     !/^(?:0|[1-9][0-9]*)$/.test(nodeBalance.balance_atoms)||
+     nodeBalance.balance_atoms.length>80){
+    throw Error('Invalid selected-node funding observation');
+  }
+  const amount=parseFaeAmount(publicReview.amount_fae);
+  const fee=parseFaeAmount(publicReview.fee_fae,{allowZero:true});
+  if(formatAtoms(amount+fee)!==publicReview.total_fae)
+    throw Error('Public payment total mismatched');
+  const observed=BigInt(nodeBalance.balance_atoms);
+  return Object.freeze({
+    ...publicReview,
+    balance:'SELECTED_NODE_OBSERVATION',
+    node:'CURRENT_MANAGED_LOCAL_NODE_ASSERTION',
+    observed_fae:formatAtoms(observed),
+    observed_atoms:observed.toString(),
+    funding:'NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL' ,
+    ...((observed>=amount+fee)?{funding:'NODE_REPORTED_BALANCE_AT_LEAST_DRAFT_TOTAL'}:{}),
+    spendability:'NOT_VERIFIED',
+    confirmation:'NOT_INDEPENDENTLY_VERIFIED',
+    signing:'UNAVAILABLE',
+    submission:'NOT_SUBMITTED',
+    notice:'Selected local node reports balance only. No vault ownership, confirmed spendability, signing or transaction submission.'
+  });
+}
+
+module.exports={parseFaeAmount,formatAtoms,reviewPublicPayment,compareObservedFunds};
