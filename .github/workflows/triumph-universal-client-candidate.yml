@@ -28,6 +28,20 @@ jobs:
         run: cd universal-client && npm run check
       - name: Bounded unit and real isolated local-node tests
         run: cd universal-client && npm test
+      - name: Owner-exact Wallet companion attestation and real isolated A-to-B transaction
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          export WALLET_OWNER_SHA
+          WALLET_ROOT="$RUNNER_TEMP/ts-wallet-owner-v10"
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          git worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
+          test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
+          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node -e "const path=require('node:path');const {authenticatedWalletBundle,WALLET_OWNER_HEAD}=require('./universal-client/src/native-wallet-terminal-handoff.cjs');if(WALLET_OWNER_HEAD!==process.env.WALLET_OWNER_SHA)process.exit(9);authenticatedWalletBundle(path.join(process.env.TS_OWNER_WALLET_ROOT,'standalone/wallet/fae-wallet.mjs')).then(()=>console.log('TS_WALLET_OWNER_EXACT_BUNDLE_PASS')).catch(()=>process.exit(10))"
+          (cd "$WALLET_ROOT" && node --test tests/sovereign-standalone-wallet.test.mjs)
+          git worktree remove --force "$WALLET_ROOT"
       - name: Unchanged consensus and economics files
         run: |
           git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
