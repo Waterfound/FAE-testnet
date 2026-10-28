@@ -246,7 +246,7 @@ class ProcessController extends EventEmitter{
     if(this.node!==owned)throw Error('Managed node changed during status observation');
     return observed;
   }
-  async observedReadAtStableTip(read){
+  async observedReadAtStableTip(read,{includeTip=false}={}){
     this.assertNode();
     const ownedChild=this.node;
     const before=await fetchRead(new URL('/status',this.endpoint));
@@ -262,12 +262,12 @@ class ProcessController extends EventEmitter{
     if(result?.observed_tip_height!==undefined&&
        (result.observed_tip_height!==before.height||result.observed_tip_hash!==before.tip_hash))
       throw Error('Explorer observation does not match stable chain tip');
-    return result;
+    return includeTip?{...result,observed_tip_height:before.height,observed_tip_hash:before.tip_hash}:result;
   }
   async readBalance(address){
     const requested=addressValid(address);
     return this.observedReadAtStableTip(()=>
-      fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested));
+      fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested),{includeTip:true});
   }
   async readExplorer(route,params){
     const url=explorerUrl(route,params,this.endpoint);
