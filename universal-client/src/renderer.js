@@ -327,9 +327,14 @@ async function nativeWalletTerminal(command){
   nativeWalletBusy=true;nativeWalletButtonsState();
   get('native-wallet-operation').textContent='Use the separate attached terminal for this candidate operation. Nothing is entered in the desktop window.';
   const result=await safely(()=>window.triumph.nativeWalletTerminal(command));
-  get('native-wallet-operation').textContent=result?.status==='CLI_EXIT_SUCCESS'
-    ?'Native CLI exited successfully. This does not attest vault ownership or authorize desktop signing. Import public metadata separately.'
-    :'Native CLI did not confirm successful completion; no desktop signing was enabled.';
+  if(result?.public_import==='WATCH_ONLY_UNVERIFIED')await watchLoad();
+  get('native-wallet-operation').textContent=result?.public_import==='WATCH_ONLY_UNVERIFIED'
+    ?'Native CLI completed. '+result.imported_count+' public watch-only addresses were imported. The vault remains locked and signing is unavailable.'
+    :result?.public_import==='NOT_IMPORTED_VAULT_PRESERVED'
+      ?'Native CLI completed, but public address import was not verified. Vault data was preserved; use the separate native import dialog.'
+      :result?.status==='CLI_EXIT_SUCCESS'
+        ?'Native CLI exited successfully. Desktop signing is not admitted; public-only observation remains separate.'
+        :'Native CLI did not confirm successful completion; no desktop signing was enabled.';
   nativeWalletBusy=false;
   await refreshNativeWalletCandidate();
 }
