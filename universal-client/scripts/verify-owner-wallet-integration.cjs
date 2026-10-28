@@ -11,6 +11,52 @@ const {authenticatedWalletBundle,prepareAttestedWalletSource,WALLET_OWNER_HEAD}=
 const {readVaultPublicMetadata}=require('../src/wallet-vault-public-metadata.cjs');
 const {WatchAddressBook}=require('../src/watch-address-book.cjs');
 
+// Real disposable attested-source fixtures: never mutate the protected owner
+// checkout or its encrypted vault. Each negative case must fail closed.
+async function verifySourceSnapshotRejectsMutation(ownerScript){
+  const mutated=await prepareAttestedWalletSource(ownerScript);
+  const mutatedRoot=mutated.root;
+  try{
+    const dependency=path.join(mutatedRoot,'standalone','wallet','crypto.mjs');
+    await fs.chmod(dependency,0o600);
+    await fs.appendFile(dependency,'\n// CI fixture tamper: not an executable release\n');
+    await assert.rejects(()=>authenticatedWalletBundle(mutated.script),
+      /Wallet bundle dependency digest mismatch/,
+      'Mutated staged import must never pass bundle attestation');
+    await assert.rejects(()=>prepareAttestedWalletSource(mutated.script),
+      /Wallet bundle dependency digest mismatch/,
+      'Mutated candidate original must never be accepted for a second staging');
+    console.log('TS_WALLET_MUTATED_IMPORT_REJECTED');
+  }finally{await mutated.release()}
+  await assert.rejects(fs.stat(mutatedRoot),{code:'ENOENT'},
+    'Source snapshot must be removed even after rejected attestation');
+
+  const missing=await prepareAttestedWalletSource(ownerScript);
+  const missingRoot=missing.root;
+  try{
+    await fs.unlink(path.join(missingRoot,'standalone','wallet','outbox.mjs'));
+    await assert.rejects(()=>authenticatedWalletBundle(missing.script),
+      /ENOENT/, 'Missing owner dependency must fail closed');
+    console.log('TS_WALLET_MISSING_IMPORT_REJECTED');
+  }finally{await missing.release()}
+  await assert.rejects(fs.stat(missingRoot),{code:'ENOENT'});
+
+  if(process.platform!=='win32'){
+    const redirected=await prepareAttestedWalletSource(ownerScript);
+    const redirectedRoot=redirected.root;
+    try{
+      const dependency=path.join(redirectedRoot,'standalone','wallet','crypto.mjs');
+      const real=dependency+'.original';
+      await fs.rename(dependency,real);
+      await fs.symlink(real,dependency);
+      await assert.rejects(()=>authenticatedWalletBundle(redirected.script),
+        /Wallet bundle dependency is redirected/,
+        'Owner source import symlink must not be followed');
+      console.log('TS_WALLET_SYMLINK_IMPORT_REJECTED');
+    }finally{await redirected.release()}
+    await assert.rejects(fs.stat(redirectedRoot),{code:'ENOENT'});
+  }
+}
 async function main(){
   const root=process.env.TS_OWNER_WALLET_ROOT;
   if(typeof root!=='string'||!path.isAbsolute(root)||process.env.CI!=='true')
@@ -52,6 +98,7 @@ async function main(){
       'Read-only integration must preserve the exact encrypted owner vault');
     console.log('TS_REAL_OWNER_VAULT_TO_DESKTOP_WATCH_PASS: 5 public addresses; native signing remains disabled');
     console.log('TS_WALLET_ATTESTED_SOURCE_SNAPSHOT_PASS');
+    await verifySourceSnapshotRejectsMutation(script);
   }finally{await fs.rm(dir,{recursive:true,force:true})}
   }finally{await stage.release()}
 }
