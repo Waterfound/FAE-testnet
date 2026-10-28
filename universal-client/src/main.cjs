@@ -230,7 +230,13 @@ app.on('window-all-closed',()=>app.quit());
 app.on('before-quit',e=>{
   if(quitting||!controller)return;
   e.preventDefault();quitting=true;
-  void controller.dispose().finally(()=>app.quit());
+  // A termination timeout is NOT evidence that a child has exited. Refuse to
+  // abandon a still-owned node/miner on ordinary application close.
+  void controller.dispose().then(
+    ()=>app.quit(),
+    ()=>{quitting=false;dialog.showErrorBox('Triumph Sovereign — shutdown incomplete',
+      'A managed process did not confirm termination. The client remains active so it can be stopped safely.');}
+  );
 });
 
 }
