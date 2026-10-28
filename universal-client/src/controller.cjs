@@ -76,11 +76,12 @@ class ProcessController extends EventEmitter{
     this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;this.nodeStartGeneration=0;
     this.minerStarting=false;this.minerStopPending=false;
     this.minerStopPromise=null;this.minerGeneration=0;
+    this.recoveryIssue=null;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
   snapshot(){return {network:NETWORK,node:this.nodeStopping||(this.nodeStarting&&this.nodeStartGeneration!==this.nodeGeneration)||this.node&&this.node.killed&&!this.node._tsExited&&this.node.exitCode===null?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
     miner:this.minerStopPending||this.miner&&this.miner.killed&&!this.miner._tsExited&&this.miner.exitCode===null?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
-    telemetry:{...this.telemetry}}}
+    node_recovery:this.recoveryIssue,telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
     const env=makeEnv(extra);
     const child=this.spawnFn(this.nodeExecutable,[script,...args],{
@@ -155,7 +156,19 @@ class ProcessController extends EventEmitter{
       const dir=path.join(this.dataDir,'node');
       await mkdir(dir,{recursive:true,mode:0o700});
       assertNotCanceled();
-      await assertRecoverableLocalNodeState(path.join(dir,'state.json'));
+      try{
+        await assertRecoverableLocalNodeState(path.join(dir,'state.json'));
+        this.recoveryIssue=null;
+      }catch(error){
+        const message=String(error?.message||'');
+        if(message.startsWith('Unresolved FAE node temporary state'))
+          this.recoveryIssue='INTERRUPTED_STATE_WRITE';
+        else if(message.startsWith('FAE node persisted state')||
+          message.startsWith('FAE node state changed during preflight'))
+          this.recoveryIssue='UNSAFE_PERSISTED_STATE';
+        // No raw filesystem details are returned to the renderer.
+        throw error;
+      }
       // The shutdown may have completed while asynchronous preflight ran.
       // A stale startup can never launch a new process after Stop Node.
       assertNotCanceled();
