@@ -70,6 +70,13 @@ function view(s){
   for(const key of ['hashrate_hs','accepted','rejected']){
     const value=s.telemetry?.[key];get('miner-'+key).textContent=Number.isSafeInteger(value)?String(value):'—';
   }
+  const recovery=get('node-recovery');
+  recovery.hidden=!s.node_recovery;
+  recovery.textContent=s.node_recovery==='INTERRUPTED_STATE_WRITE'
+    ?'Recovery required: an interrupted node state write was detected. No files were erased. Review verified recovery evidence before restarting.'
+    :s.node_recovery==='UNSAFE_PERSISTED_STATE'
+      ?'Recovery required: saved node state is corrupted or unsafe. No chain reset or destructive repair was attempted.'
+      :s.node_recovery?'Recovery required: node state needs independent verification.':'';
   get('node-start').disabled=s.node!=='stopped';
   get('node-stop').disabled=s.node==='stopped';
   get('miner-start').disabled=s.miner!=='stopped';
