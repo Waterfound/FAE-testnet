@@ -79,7 +79,8 @@ async function runPrivilegedWalletTerminal(command,{
         shell:false,windowsHide:false,stdio:'inherit',cwd:path.dirname(script),
         env:{PATH:process.env.PATH||'',SystemRoot:process.env.SystemRoot||'',WINDIR:process.env.WINDIR||'',
           HOME:process.env.HOME||'',USERPROFILE:process.env.USERPROFILE||'',TMP:process.env.TMP||'',
-          TEMP:process.env.TEMP||'',LANG:process.env.LANG||''}
+          TEMP:process.env.TEMP||'',LANG:process.env.LANG||'',
+          ...(process.versions.electron?{ELECTRON_RUN_AS_NODE:'1'}:{})}
       });
     }catch{return reject(Error('Native Wallet terminal start failed'))}
     child.once('error',()=>reject(Error('Native Wallet terminal process unavailable')));
