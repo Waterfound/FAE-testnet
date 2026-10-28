@@ -189,7 +189,7 @@ function windowCreate(){
 async function trustedWalletTerminalCandidate(){
   // Developer-only candidate integration. The protected Wallet PR #342 has
   // not been merged into this client and installed release admission is HOLD.
-  if(app.isPackaged||typeof process.env.TS_WALLET_COMPANION_ROOT!=='string'||
+  if(app.isPackaged||process.env.CI||typeof process.env.TS_WALLET_COMPANION_ROOT!=='string'||
      !path.isAbsolute(process.env.TS_WALLET_COMPANION_ROOT)||
      !process.stdin.isTTY||!process.stdout.isTTY||!process.stderr.isTTY)
     return null;
@@ -208,10 +208,11 @@ async function nativeWalletCandidateCommand(command){
   if(!['create','recover','address','receive','outbox'].includes(command))
     throw Error('Wallet terminal command is not admitted');
   if(walletTerminalActive)throw Error('Native Wallet terminal already in progress');
-  const script=await trustedWalletTerminalCandidate();
-  if(!script)throw Error('Authenticated interactive Wallet companion unavailable');
+  // Acquire synchronously before any asynchronous source attestation.
   walletTerminalActive=true;
   try{
+    const script=await trustedWalletTerminalCandidate();
+    if(!script)throw Error('Authenticated interactive Wallet companion unavailable');
     const vault=path.join(app.getPath('userData'),'native-wallet','fae-wallet.vault.json');
     await fsPromises.mkdir(path.dirname(vault),{recursive:true,mode:0o700});
     return await runPrivilegedWalletTerminal(command,{script,
