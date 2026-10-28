@@ -20,7 +20,7 @@ function receipt(status='pending'){
     }
   };
 }
-async function boot(explorer){
+async function boot(explorer,{fundingCandidates=async()=>{throw Error('Funding fixture unavailable')}}={}){
   const elements=new Map();
   const get=id=>{
     if(!elements.has(id)){
@@ -41,7 +41,7 @@ async function boot(explorer){
   const window={triumph:{
     onState:callback=>{onState=callback;return()=>{}},
     snapshot:async()=>({node:'running',miner:'stopped',telemetry:{}}),
-    explorer
+    explorer,fundingCandidates
   }};
   const filename=path.resolve(__dirname,'../src/renderer.js');
   vm.runInNewContext(fs.readFileSync(filename,'utf8'),{
@@ -115,4 +115,49 @@ test('changed TXID and node shutdown invalidate an in-flight receipt',async()=>{
   release(receipt('confirmed'));
   await next;
   assert.match(ui.get('wallet-tx-output').textContent,/Selected-node observation cleared/);
+});
+
+test('Wallet renders exact selected-node confirmed and pending funding candidate amounts without signing',async()=>{
+  const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  let calls=0;
+  const ui=await boot(async()=>null,{fundingCandidates:async requested=>{
+    calls++;assert.equal(requested,addr);
+    return {authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',
+      address:addr,candidate_atoms:'9007199254741000',
+      confirmed_candidate_atoms:'9007199254740993',
+      pending_candidate_atoms:'7',candidate_count:2,
+      observed_tip_height:12,observed_tip_hash:TIP,
+      outputs:[
+        {outpoint:TX+':0',amount_atoms:'9007199254740993',source:'confirmed',created_height:1},
+        {outpoint:BLOCK+':1',amount_atoms:'7',source:'pending',parent_txid:BLOCK}
+      ]};
+  }});
+  ui.get('wallet-address').value=addr;
+  await ui.get('funding-candidates-refresh').events.get('click')();
+  const displayed=ui.get('funding-candidates-output').textContent;
+  assert.match(displayed,/SELECTED NODE FUNDING CANDIDATES/);
+  assert.match(displayed,/90071992\.54740993 FAE/);
+  assert.match(displayed,/Claimed pending outputs: 0\.00000007 FAE/);
+  assert.match(displayed,/Coinbase maturity: NOT VERIFIED/);
+  assert.match(displayed,/Signing: UNAVAILABLE/);
+  assert.ok(displayed.includes('\n'));
+  assert.equal(calls,1);
+});
+test('funding candidate read is revoked when the address or managed node changes',async()=>{
+  const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  let release;
+  const ui=await boot(async()=>null,{fundingCandidates:()=>new Promise(resolve=>{release=resolve})});
+  ui.get('wallet-address').value=addr;
+  const first=ui.get('funding-candidates-refresh').events.get('click')();
+  ui.get('wallet-address').value='different-address';
+  ui.get('wallet-address').events.get('input')();
+  release({authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',address:addr});
+  await first;
+  assert.match(ui.get('funding-candidates-output').textContent,/Node or selected address changed/);
+  ui.get('wallet-address').value=addr;
+  const second=ui.get('funding-candidates-refresh').events.get('click')();
+  ui.setNode('stopped');
+  release({authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',address:addr});
+  await second;
+  assert.match(ui.get('funding-candidates-output').textContent,/Node or selected address changed/);
 });
