@@ -62,9 +62,9 @@ function view(s){
   const nodeWasRunning=state.node==='running';
   state=s;
   if(nodeWasRunning&&s.node!=='running')clearWalletObservations('Local node stopped; no current balance observation');
-  get('node-state').textContent=s.node==='running'?'Running (process)':s.node==='starting'?'Starting':'Stopped';
+  get('node-state').textContent=s.node==='running'?'Running (process)':s.node==='starting'?'Starting':s.node==='stopping'?'Stopping':'Stopped';
   get('miner-state').textContent=s.miner==='running'?(s.telemetry?.state||'Running'):s.miner==='starting'?'Starting':s.miner==='stopping'?'Stopping':'Stopped';
-  get('home-node').textContent=s.node==='running'?'Process running':'Stopped';
+  get('home-node').textContent=s.node==='running'?'Process running':s.node==='starting'?'Starting':s.node==='stopping'?'Stopping':'Stopped';
   get('home-miner').textContent=s.miner==='running'?'Process running':s.miner==='starting'?'Starting':s.miner==='stopping'?'Stopping':'Stopped';
   get('network-tag').textContent=s.node==='running'?'LOCAL NODE PROCESS':'LOCAL NODE OFFLINE';
   for(const key of ['hashrate_hs','accepted','rejected']){
