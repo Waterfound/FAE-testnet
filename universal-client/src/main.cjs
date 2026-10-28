@@ -8,15 +8,17 @@ const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
 const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-review.cjs');
 const {canonicalAddress,validateSavedWatchCatalog}=require('./canonical-public-address.cjs');
+const {createShutdownGate}=require('./shutdown-gate.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
-let win,controller,watchBook,quitting=false,ciVaultSelection=null;
+let win,controller,watchBook,shutdownGate=null,ciVaultSelection=null;
 function windowCreate(){
   win=new BrowserWindow({
     title:'Triumph Sovereign — Public Testnet Candidate',width:1220,height:820,minWidth:850,minHeight:610,
     backgroundColor:'#faf9f6',autoHideMenuBar:true,
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}
   });
+  win.on('close',event=>{if(shutdownGate)shutdownGate.request(event)});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.on('will-navigate',e=>e.preventDefault());
   if(process.argv.includes('--ts-smoke')) {
@@ -264,19 +266,17 @@ app.whenReady().then(()=>{
   controller=new ProcessController({repoRoot:app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),dataDir:app.getPath('userData'),
     spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess))});
   watchBook=new WatchAddressBook(app.getPath('userData'));
+  shutdownGate=createShutdownGate({
+    dispose:()=>controller.dispose(),
+    quit:()=>app.quit(),
+    onFailure:()=>dialog.showErrorBox('Triumph Sovereign — shutdown incomplete',
+      'The managed node or miner did not confirm termination. The window stays open; safely stop the process before closing.')
+  });
   bindIpc();windowCreate();
 });
 app.on('window-all-closed',()=>app.quit());
 app.on('before-quit',e=>{
-  if(quitting||!controller)return;
-  e.preventDefault();quitting=true;
-  // A termination timeout is NOT evidence that a child has exited. Refuse to
-  // abandon a still-owned node/miner on ordinary application close.
-  void controller.dispose().then(
-    ()=>app.quit(),
-    ()=>{quitting=false;dialog.showErrorBox('Triumph Sovereign — shutdown incomplete',
-      'A managed process did not confirm termination. The client remains active so it can be stopped safely.');}
-  );
+  if(shutdownGate)shutdownGate.request(e);
 });
 
 }
