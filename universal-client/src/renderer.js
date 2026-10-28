@@ -94,9 +94,10 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
-let balanceRequest=0,activityRequest=0,paymentRequest=0,txReceiptRequest=0,activityPage=null;
+let balanceRequest=0,activityRequest=0,paymentRequest=0,txReceiptRequest=0,fundingRequest=0,activityPage=null;
 function clearWalletObservations(reason='Select an address and refresh its local observation'){
-  balanceRequest++;activityRequest++;paymentRequest++;txReceiptRequest++;
+  balanceRequest++;activityRequest++;paymentRequest++;txReceiptRequest++;fundingRequest++;
+  get('funding-candidates-output').textContent='Node or selected address changed. Funding candidates must be read again.';
   get('wallet-tx-output').textContent='Selected-node observation cleared. Recheck the TXID after restarting the node.';
   get('payment-review-output').textContent='Review reset. No payment signed or submitted.';
   get('balance-amount').textContent='— FAE';
@@ -163,6 +164,45 @@ async function balance(){
   const atoms=BigInt(raw),whole=atoms/100000000n,tail=(atoms%100000000n).toString().padStart(8,'0').replace(/0+$/,'');
   get('balance-amount').textContent=whole.toString()+(tail?'.'+tail:'')+' FAE';
   get('balance-status').textContent='Selected local node observation · not a finality guarantee';
+}
+// Selected node claims only: candidate outputs include unconfirmed descendants
+// and may contain immature coinbase rewards. Never permit signing from here.
+async function inspectFundingCandidates(){
+  const generation=++fundingRequest;
+  const address=get('wallet-address').value.trim();
+  const output=get('funding-candidates-output');
+  if(state.node!=='running'){
+    output.textContent='Start the managed local node before observing public outputs.';
+    return;
+  }
+  output.textContent='Reading source-bound selected-node UTXO candidates…';
+  const result=await safely(()=>window.triumph.fundingCandidates(address));
+  if(generation!==fundingRequest||address!==get('wallet-address').value.trim()||
+     state.node!=='running')return;
+  if(!result||result.authority!=='SELECTED_NODE_UNTRUSTED_UTXO_CLAIM'||
+     result.address!==address){
+    output.textContent='No compatible selected-node funding candidate observation.';
+    return;
+  }
+  const exact=(atoms)=>{
+    const n=BigInt(atoms),whole=n/100000000n,tail=(n%100000000n).toString().padStart(8,'0').replace(/0+$/,'');
+    return whole.toString()+(tail?'.'+tail:'');
+  };
+  output.textContent=[
+    'FAE TESTNET · SELECTED NODE FUNDING CANDIDATES · READ ONLY',
+    'Address: '+address,
+    'Claimed total: '+exact(result.candidate_atoms)+' FAE',
+    'Claimed confirmed outputs: '+exact(result.confirmed_candidate_atoms)+' FAE',
+    'Claimed pending outputs: '+exact(result.pending_candidate_atoms)+' FAE',
+    'Output count: '+result.candidate_count,
+    'Observed tip: #'+result.observed_tip_height+' · '+result.observed_tip_hash,
+    ...result.outputs.slice(0,20).map(item=>
+      item.source.toUpperCase()+' · '+item.outpoint+' · '+exact(item.amount_atoms)+' FAE'),
+    ...(result.outputs.length>20?['Additional output rows omitted from display.']:[]),
+    'Coinbase maturity: NOT VERIFIED · Key ownership: NOT VERIFIED',
+    'Managed node process identity: NOT CRYPTOGRAPHICALLY AUTHENTICATED',
+    'Signing: UNAVAILABLE · Submission: NOT PERFORMED'
+  ].join('\\n');
 }
 async function walletActivity({append=false}={}){
   const address=get('wallet-address').value.trim();
@@ -345,6 +385,7 @@ get('node-refresh').addEventListener('click',status);
 get('miner-start').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.startMiner(get('mining-address').value.trim()));if(r)view(r)});
 get('miner-stop').addEventListener('click',async()=>{const r=await safely(()=>window.triumph.stopMiner());if(r)view(r)});
 get('refresh-balance').addEventListener('click',balance);
+get('funding-candidates-refresh').addEventListener('click',inspectFundingCandidates);
 get('wallet-address').addEventListener('input',()=>clearWalletObservations());
 get('watch-import-vault').addEventListener('click',async()=>{
   if(typeof window.triumph.watchImportVault!=='function')return;
