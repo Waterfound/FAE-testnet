@@ -331,7 +331,7 @@ async function trackWalletTransaction(){
     'Source: selected managed local node / Explorer stable-tip observation.',
     'Not independently finalized or authenticated for signing.',
     'Desktop Wallet signing: UNAVAILABLE · Desktop submission: NOT PERFORMED'
-  ].join('\\n');
+  ].join('\n');
 }
 async function explorer(route,query){
   get('explorer-output').textContent='Reading…';
