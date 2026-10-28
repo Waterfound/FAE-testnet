@@ -255,6 +255,12 @@ get('watch-save').addEventListener('click',async()=>{
 });
 get('refresh-wallet-activity').addEventListener('click',()=>walletActivity());
 get('wallet-activity-more').addEventListener('click',()=>walletActivity({append:true}));
+for(const id of ['payment-to','payment-amount','payment-fee']){
+  get(id).addEventListener('input',()=>{
+    paymentRequest++;
+    get('payment-review-output').textContent='Payment details changed. Review again; nothing signed or submitted.';
+  });
+}
 get('payment-review').addEventListener('click',reviewPayment);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
