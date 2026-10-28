@@ -309,6 +309,33 @@ for(const id of ['payment-to','payment-amount','payment-fee']){
   });
 }
 get('payment-review').addEventListener('click',reviewPayment);
+let nativeWalletReady=false,nativeWalletBusy=false;
+const nativeWalletButtons=['native-wallet-create','native-wallet-recover','native-wallet-address'];
+function nativeWalletButtonsState(){
+  for(const id of nativeWalletButtons)get(id).disabled=!nativeWalletReady||nativeWalletBusy;
+}
+async function refreshNativeWalletCandidate(){
+  const result=await safely(()=>window.triumph.nativeWalletStatus());
+  nativeWalletReady=result?.state==='TRUSTED_SOURCE_AND_TTY_CANDIDATE';
+  nativeWalletButtonsState();
+  get('native-wallet-availability').textContent=nativeWalletReady
+    ?'Exact Wallet owner files verified and an interactive terminal is attached. Candidate use only; no signing admission.'
+    :'Privileged terminal Wallet unavailable in this installation. Public-only observation remains available.';
+}
+async function nativeWalletTerminal(command){
+  if(!nativeWalletReady||nativeWalletBusy)return;
+  nativeWalletBusy=true;nativeWalletButtonsState();
+  get('native-wallet-operation').textContent='Use the separate attached terminal for this candidate operation. Nothing is entered in the desktop window.';
+  const result=await safely(()=>window.triumph.nativeWalletTerminal(command));
+  get('native-wallet-operation').textContent=result?.status==='CLI_EXIT_SUCCESS'
+    ?'Native CLI exited successfully. This does not attest vault ownership or authorize desktop signing. Import public metadata separately.'
+    :'Native CLI did not confirm successful completion; no desktop signing was enabled.';
+  nativeWalletBusy=false;
+  await refreshNativeWalletCandidate();
+}
+get('native-wallet-create').addEventListener('click',()=>nativeWalletTerminal('create'));
+get('native-wallet-recover').addEventListener('click',()=>nativeWalletTerminal('recover'));
+get('native-wallet-address').addEventListener('click',()=>nativeWalletTerminal('address'));
 get('payment-funds').addEventListener('click',observePaymentFunds);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
@@ -317,5 +344,5 @@ document.addEventListener('visibilitychange',()=>{
   if(active==='home'&&document.hidden){heroAtRest=true;hero()}
   balanceMedia();
 });
-if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{});if(typeof window.triumph.watchList==='function')void watchLoad()}
+if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{});if(typeof window.triumph.watchList==='function')void watchLoad();void refreshNativeWalletCandidate()}
 hero({entry:true});
