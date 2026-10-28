@@ -202,7 +202,7 @@ async function inspectFundingCandidates(){
     'Coinbase maturity: NOT VERIFIED · Key ownership: NOT VERIFIED',
     'Managed node process identity: NOT CRYPTOGRAPHICALLY AUTHENTICATED',
     'Signing: UNAVAILABLE · Submission: NOT PERFORMED'
-  ].join('\\n');
+  ].join('\n');
 }
 async function walletActivity({append=false}={}){
   const address=get('wallet-address').value.trim();
