@@ -199,6 +199,7 @@ test('existing malformed node disk state fails before launch and remains unchang
     assert.equal(launches,0);
     assert.equal(fs.readFileSync(file,'utf8'),corrupt);
     assert.equal(c.snapshot().node,'stopped');
+    assert.equal(c.snapshot().node_recovery,'UNSAFE_PERSISTED_STATE');
     fs.writeFileSync(file,JSON.stringify({format:'FAE_NODE_STATE_V1',network:'attacker',chain:[],transactions:{}}));
     await assert.rejects(()=>c.startNode(),/invalid format or network/);
     assert.equal(launches,0);
@@ -220,6 +221,7 @@ test('interrupted node write leaves evidence untouched and refuses automatic res
     await assert.rejects(()=>controller.startNode(),/Unresolved FAE node temporary state/);
     assert.equal(called,0);
     assert.equal(fs.readFileSync(file+'.tmp','utf8'),'{"partial":');
+    assert.equal(controller.snapshot().node_recovery,'INTERRUPTED_STATE_WRITE');
     assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),prior);
     fs.rmSync(file+'.tmp');
     // Cold start from the unchanged, well-formed canonical FAE v4 state.
@@ -644,4 +646,28 @@ test('wallet activity pagination binds offset and next cursor to one exact node 
     c.node=null;
     await new Promise(resolve=>server.close(resolve));
   }
+});
+
+
+test('recoverable node data correction clears stale recovery alert on the same real controller',async()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-recovery-alert-clear-'));
+  const nodeDir=path.join(dir,'node'),file=path.join(nodeDir,'state.json');
+  fs.mkdirSync(nodeDir,{recursive:true});
+  fs.writeFileSync(file,'{invalid saved snapshot');
+  const c=new ProcessController({repoRoot:root,dataDir:dir,nodeExecutable:process.execPath});
+  try{
+    await assert.rejects(()=>c.startNode(),/corrupt; refused empty-chain restart/);
+    assert.equal(c.snapshot().node_recovery,'UNSAFE_PERSISTED_STATE');
+    assert.equal(c.snapshot().node,'stopped');
+    // Simulate independently verified external restoration, not automatic client repair.
+    const safe={format:'FAE_NODE_STATE_V1',network:NETWORK,chain:[],transactions:{},
+      mempoolOrder:[],mempoolSeq:0,utxos:{},mempoolSpends:{},mempoolOutputs:{}};
+    fs.writeFileSync(file,JSON.stringify(safe));
+    assert.equal((await c.startNode()).node,'running');
+    assert.equal(c.snapshot().node_recovery,null);
+    assert.equal((await c.readStatus()).network,NETWORK);
+    await c.stopNode();
+    assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),safe,
+      'Desktop did not reset the externally restored snapshot');
+  }finally{await c.dispose().catch(()=>{});fs.rmSync(dir,{recursive:true,force:true})}
 });
