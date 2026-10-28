@@ -4,6 +4,7 @@
 // Do not use this for graphical secret prompts or headless CI signing.
 const fs=require('node:fs/promises');
 const path=require('node:path');
+const os=require('node:os');
 const {constants}=require('node:fs');
 const {spawn}=require('node:child_process');
 const {createHash}=require('node:crypto');
@@ -59,6 +60,49 @@ async function authenticatedWalletBundle(script){
     throw Error('Native Wallet CLI outside attested bundle');
   return script;
 }
+async function prepareAttestedWalletSource(script){
+  // Copy source-owned code (not vaults or other private material) to a
+  // freshly owned source snapshot, preventing a post-attestation change
+  // to the original checkout from silently changing the launch bytes.
+  await authenticatedWalletBundle(script);
+  const sourceRoot=path.resolve(path.dirname(script),'..','..');
+  const stageRoot=await fs.mkdtemp(path.join(os.tmpdir(),'ts-wallet-snapshot-'));
+  try{
+    await fs.chmod(stageRoot,0o700);
+    for(const relative of WALLET_IMPORT_CLOSURE){
+      const original=path.join(sourceRoot,...relative.split('/'));
+      if(await fs.realpath(original)!==original)
+        throw Error('Wallet source changed before staging');
+      const before=await fs.lstat(original);
+      if(!before.isFile()||before.isSymbolicLink()||before.size<64||
+         before.size>65536||(process.platform!=='win32'&&(before.mode&0o022)!==0))
+        throw Error('Unsafe Wallet source during snapshot');
+      const handle=await fs.open(original,constants.O_RDONLY|(constants.O_NOFOLLOW||0));
+      let bytes;
+      try{
+        const actual=await handle.stat();
+        if(!actual.isFile()||actual.dev!==before.dev||actual.ino!==before.ino||
+           actual.size!==before.size)throw Error('Wallet source changed during staging');
+        bytes=await handle.readFile();
+      }finally{await handle.close()}
+      if(createHash('sha256').update(bytes).digest('hex')!==PINNED_WALLET_BUNDLE[relative])
+        throw Error('Wallet source mismatch during staging');
+      const destination=path.join(stageRoot,...relative.split('/'));
+      await fs.mkdir(path.dirname(destination),{recursive:true,mode:0o700});
+      await fs.writeFile(destination,bytes,{flag:'wx',mode:0o400});
+    }
+    const launchScript=path.join(stageRoot,'standalone','wallet','fae-wallet.mjs');
+    await authenticatedWalletBundle(launchScript);
+    return Object.freeze({
+      script:launchScript,
+      root:stageRoot,
+      release:()=>fs.rm(stageRoot,{recursive:true,force:true})
+    });
+  }catch(error){
+    await fs.rm(stageRoot,{recursive:true,force:true});
+    throw error;
+  }
+}
 async function runPrivilegedWalletTerminal(command,{
   script,nodeExecutable,publicVault,tty,spawnFn=spawn
 }={}){
@@ -70,13 +114,13 @@ async function runPrivilegedWalletTerminal(command,{
      publicVault.includes('\0')||publicVault.length>1024)
     throw Error('Wallet executable or local vault target not admitted');
   // Full source-owned static import closure is mandatory, not only the CLI.
-  await authenticatedWalletBundle(script);
-  const args=[script,command,'--vault',publicVault];
-  return new Promise((resolve,reject)=>{
+  const stage=await prepareAttestedWalletSource(script);
+  const args=[stage.script,command,'--vault',publicVault];
+  try{return await new Promise((resolve,reject)=>{
     let child;
     try{
       child=spawnFn(nodeExecutable,args,{
-        shell:false,windowsHide:false,stdio:'inherit',cwd:path.dirname(script),
+        shell:false,windowsHide:false,stdio:'inherit',cwd:path.dirname(stage.script),
         env:{PATH:process.env.PATH||'',SystemRoot:process.env.SystemRoot||'',WINDIR:process.env.WINDIR||'',
           HOME:process.env.HOME||'',USERPROFILE:process.env.USERPROFILE||'',TMP:process.env.TMP||'',
           TEMP:process.env.TEMP||'',LANG:process.env.LANG||'',
@@ -91,6 +135,6 @@ async function runPrivilegedWalletTerminal(command,{
         signer:'NOT_ATTESTED_BY_THIS_BRIDGE',
         outbox:'NOT_INSPECTED_BY_THIS_BRIDGE'}));
     });
-  });
+  });}finally{await stage.release()}
 }
-module.exports={WALLET_OWNER_HEAD,authenticatedWalletBundle,runPrivilegedWalletTerminal};
+module.exports={WALLET_OWNER_HEAD,authenticatedWalletBundle,prepareAttestedWalletSource,runPrivilegedWalletTerminal};
