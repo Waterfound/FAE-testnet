@@ -39,7 +39,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
           git worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
           test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
-          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node -e "const path=require('node:path');const {authenticatedWalletBundle,WALLET_OWNER_HEAD}=require('./universal-client/src/native-wallet-terminal-handoff.cjs');if(WALLET_OWNER_HEAD!==process.env.WALLET_OWNER_SHA)process.exit(9);authenticatedWalletBundle(path.join(process.env.TS_OWNER_WALLET_ROOT,'standalone/wallet/fae-wallet.mjs')).then(()=>console.log('TS_WALLET_OWNER_EXACT_BUNDLE_PASS')).catch(()=>process.exit(10))"
+          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
           (cd "$WALLET_ROOT" && node --test tests/sovereign-standalone-wallet.test.mjs)
           git worktree remove --force "$WALLET_ROOT"
       - name: Unchanged consensus and economics files
