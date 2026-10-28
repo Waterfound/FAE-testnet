@@ -63,6 +63,17 @@ async function verifyPrivilegedTerminalLifecycle(ownerScript){
   const before=new Set((await fs.readdir(tempRoot)).filter(name=>name.startsWith('ts-wallet-snapshot-')));
   const tty={stdin:true,stdout:true,stderr:true};
   const publicVault=path.join(tempRoot,'ts-wallet-lifecycle-fixture.json');
+  let unownedRuntimeSpawned=false;
+  await assert.rejects(
+    runPrivilegedWalletTerminal('address',{
+      script:ownerScript,nodeExecutable:path.join(tempRoot,'unowned-runtime'),
+      publicVault,tty,spawnFn:()=>{unownedRuntimeSpawned=true;throw Error('must not spawn')}
+    }),
+    /executable or local vault target not admitted/,
+    'Privileged Wallet bridge must be bound to the current owned runtime');
+  assert.equal(unownedRuntimeSpawned,false,'Unowned absolute executable must be rejected before staging or spawn');
+  console.log('TS_WALLET_TERMINAL_OWNED_RUNTIME_PASS');
+
   let firstChild,markSpawned;
   const spawned=new Promise(resolve=>{markSpawned=resolve});
   const pending=runPrivilegedWalletTerminal('address',{
