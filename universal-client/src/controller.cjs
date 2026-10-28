@@ -262,10 +262,23 @@ class ProcessController extends EventEmitter{
       fetchRead(url,'explorer'));
     if(route==='/explorer/address'){
       // An incompatible or mismatched selected-node response is never wallet activity.
+      const cursor=params?.cursor;
+      const match=cursor===undefined?null:/^([0-9a-f]{64}):(0|[1-9][0-9]*)$/.exec(String(cursor));
+      const start=match?Number(match[2]):0;
+      if(cursor!==undefined&&(!match||match[1]!==observed.observed_tip_hash||
+          !Number.isSafeInteger(start)))throw Error('Unverified wallet activity cursor');
+      const next=observed.next_cursor;
+      const expected=start+(Array.isArray(observed.events)?observed.events.length:0);
+      const nextMatches=typeof next==='string'&&
+        next===observed.observed_tip_hash+':'+expected;
       if(observed.address!==params?.address||!Array.isArray(observed.events)||
         observed.events.length>100||!Number.isSafeInteger(observed.total_events)||
-        observed.total_events<observed.events.length||
-        !/^\d+$/.test(String(observed.balance_atoms??'')))
+        observed.total_events<expected||
+        !/^\d+$/.test(String(observed.balance_atoms??''))||
+        new Set(observed.events.map(e=>e?.id)).size!==observed.events.length||
+        observed.events.some(e=>typeof e?.id!=='string'||e.id.length>130)||
+        (next!==null&&!(nextMatches&&expected<observed.total_events))||
+        (next===null&&expected<observed.total_events))
         throw Error('Unverified selected-node wallet activity response');
     }
     return observed;
