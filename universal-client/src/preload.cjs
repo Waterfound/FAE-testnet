@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('triumph',Object.freeze({
   stopMiner:()=>ipcRenderer.invoke('ts:stop-miner'),
   status:()=>ipcRenderer.invoke('ts:status'),
   balance:address=>ipcRenderer.invoke('ts:balance',address),
+  reviewPayment:publicDraft=>ipcRenderer.invoke('ts:review-payment',publicDraft),
   explorer:(route,query)=>ipcRenderer.invoke('ts:explorer',route,query),
   watchList:()=>ipcRenderer.invoke('ts:watch-list'),
   watchAdd:(address,alias)=>ipcRenderer.invoke('ts:watch-add',address,alias),
