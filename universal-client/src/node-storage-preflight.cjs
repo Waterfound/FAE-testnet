@@ -23,7 +23,10 @@ async function assertRecoverableLocalNodeState(file){
   const handle=await open(file,constants.O_RDONLY|(constants.O_NOFOLLOW||0));
   try{
     const observed=await handle.stat();
-    if(!observed.isFile()||observed.size!==stat.size)
+    // Match file identity across lstat/open. A same-sized replacement between
+    // the two operations is not an authenticated, stable recovery snapshot.
+    if(!observed.isFile()||observed.size!==stat.size||
+       observed.dev!==stat.dev||observed.ino!==stat.ino)
       throw Error('FAE node state changed during preflight');
     let data;
     try{data=JSON.parse(await handle.readFile('utf8'))}
