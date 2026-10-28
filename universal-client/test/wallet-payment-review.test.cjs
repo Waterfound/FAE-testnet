@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('node:path');
-const {parseFaeAmount,formatAtoms,reviewPublicPayment}=require('../src/wallet-payment-review.cjs');
+const {parseFaeAmount,formatAtoms,reviewPublicPayment,compareObservedFunds}=require('../src/wallet-payment-review.cjs');
 const addressSource=path.resolve(__dirname,'..','..','sovereign-forge/node/authoritative/address.mjs');
 const valid='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
 test('real canonical Bech32m public payment review returns exact, explicitly unsigned FAE values',async()=>{
@@ -41,4 +41,39 @@ test('reject unexpected secret-bearing IPC fields and never open a vault or acce
     {from:valid,to:valid,amount:'1',fee:'0',privateKey:'not-allowed'},
     null,[]
   ])await assert.rejects(()=>reviewPublicPayment(x,{addressSource}));
+});
+
+
+test('selected-node balance comparison remains unsigned, explicitly unspendable, and exact to 8 decimal FAE',async()=>{
+  const draft=await reviewPublicPayment({from:valid,to:valid,amount:'1.00000001',fee:'0.00000002'},{addressSource});
+  const low=compareObservedFunds(draft,{ok:true,address:valid,balance_atoms:'100000002'});
+  assert.equal(low.funding,'NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL');
+  assert.equal(low.observed_fae,'1.00000002');
+  assert.equal(low.total_fae,'1.00000003');
+  assert.equal(low.spendability,'NOT_VERIFIED');
+  assert.equal(low.signing,'UNAVAILABLE');
+  assert.equal(low.submission,'NOT_SUBMITTED');
+  assert.equal(low.custody,'SOURCE_ADDRESS_NOT_AUTHENTICATED');
+  assert.equal(low.confirmation,'NOT_INDEPENDENTLY_VERIFIED');
+  const exact=compareObservedFunds(draft,{ok:true,address:valid,balance_atoms:'100000003'});
+  assert.equal(exact.funding,'NODE_REPORTED_BALANCE_AT_LEAST_DRAFT_TOTAL');
+  assert.equal(exact.node,'CURRENT_MANAGED_LOCAL_NODE_ASSERTION');
+});
+test('wrong sender, contradictory draft total and malformed selected-node funds fail closed',async()=>{
+  const draft=await reviewPublicPayment({from:valid,to:valid,amount:'1',fee:'0.1'},{addressSource});
+  for(const observed of [
+    null,[],{},
+    {ok:true,address:'faet1'+'q'.repeat(38),balance_atoms:'999999999'},
+    {ok:false,address:valid,balance_atoms:'999999999'},
+    {ok:true,address:valid,network:'attacker-network',balance_atoms:'999999999'},
+    {ok:true,address:valid,balance_atoms:'-1'},
+    {ok:true,address:valid,balance_atoms:'1e13'},
+    {ok:true,address:valid,balance_atoms:'01'},
+    {ok:true,address:valid,balance_atoms:100},
+    {ok:true,address:valid,balance_atoms:'1'.repeat(81)}
+  ])assert.throws(()=>compareObservedFunds(draft,observed));
+  assert.throws(()=>compareObservedFunds({...draft,total_fae:'0'},{
+    ok:true,address:valid,balance_atoms:'999999999'}),/total mismatched/);
+  assert.throws(()=>compareObservedFunds({...draft,state:'SIGNED'},{
+    ok:true,address:valid,balance_atoms:'999999999'}),/Unverified/);
 });
