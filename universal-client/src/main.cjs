@@ -215,10 +215,26 @@ async function nativeWalletCandidateCommand(command){
     if(!script)throw Error('Authenticated interactive Wallet companion unavailable');
     const vault=path.join(app.getPath('userData'),'native-wallet','fae-wallet.vault.json');
     await fsPromises.mkdir(path.dirname(vault),{recursive:true,mode:0o700});
-    return await runPrivilegedWalletTerminal(command,{script,
+    const result=await runPrivilegedWalletTerminal(command,{script,
       nodeExecutable:process.execPath,publicVault:vault,
       tty:{stdin:!!process.stdin.isTTY,stdout:!!process.stdout.isTTY,
         stderr:!!process.stderr.isTTY}});
+    if(result.status!=='CLI_EXIT_SUCCESS'||!['create','recover'].includes(command))
+      return result;
+    // Public watch-only handoff only. A successful CLI exit cannot authenticate
+    // ownership until a separately admitted signer unlocks and rederives keys.
+    try{
+      const addressSource=path.join(process.env.TS_WALLET_COMPANION_ROOT,
+        'sovereign-forge','node','authoritative','address.mjs');
+      const metadata=await readVaultPublicMetadata(vault,{addressSource});
+      await validateSavedWatchCatalog(await watchBook.list(),addressSource);
+      await watchBook.importPublicVaultAddresses(metadata.addresses);
+      return {...result,public_import:'WATCH_ONLY_UNVERIFIED',
+        imported_count:metadata.addresses.length};
+    }catch{
+      // Keep the independently created vault intact. No secret or path in UI.
+      return {...result,public_import:'NOT_IMPORTED_VAULT_PRESERVED'};
+    }
   }finally{walletTerminalActive=false}
 }
 function bindIpc(){
