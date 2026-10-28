@@ -28,6 +28,18 @@ jobs:
         run: cd universal-client && npm run check
       - name: Bounded unit and real isolated local-node tests
         run: cd universal-client && npm test
+      - name: Native owner Wallet vault interoperability — Windows and macOS
+        if: runner.os != 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          WALLET_ROOT="$RUNNER_TEMP/ts-wallet-owner-v11-interop"
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          git worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
+          trap 'git worktree remove --force "$WALLET_ROOT"' EXIT
+          test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
+          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
       - name: Owner-exact Wallet companion attestation and real isolated A-to-B transaction
         if: runner.os == 'Linux'
         shell: bash
