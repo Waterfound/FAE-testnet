@@ -74,10 +74,13 @@ class ProcessController extends EventEmitter{
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.nodeStopping=false;this.nodeStopPromise=null;
+    this.minerStarting=false;this.minerStopPending=false;
+    this.minerStopPromise=null;this.minerGeneration=0;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
   snapshot(){return {network:NETWORK,node:this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
-    miner:alive(this.miner)?'running':'stopped',telemetry:{...this.telemetry}}}
+    miner:this.minerStopPending?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
+    telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
     const env=makeEnv(extra);
     const child=this.spawnFn(this.nodeExecutable,[script,...args],{
@@ -142,10 +145,26 @@ class ProcessController extends EventEmitter{
       this.emit('state',this.snapshot());throw e;
     }
   }
-  async stopMiner(){
-    await this.stop(this.miner);this.miner=null;
-    this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
-    this.emit('state',this.snapshot());return this.snapshot();
+  stopMiner(){
+    if(this.minerStopPromise)return this.minerStopPromise;
+    // Revoke pending launch authority before the first asynchronous boundary.
+    // Otherwise Stop Mining can return before an in-flight /status check starts a miner.
+    this.minerGeneration++;
+    this.minerStopPending=true;
+    this.minerStopPromise=(async()=>{
+      try{
+        await this.stop(this.miner);
+        this.miner=null;
+        this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
+      }finally{
+        this.minerStopPending=false;
+        this.minerStopPromise=null;
+        this.emit('state',this.snapshot());
+      }
+      return this.snapshot();
+    })();
+    this.emit('state',this.snapshot());
+    return this.minerStopPromise;
   }
   async stopNode(){
     if(this.nodeStopPromise)return this.nodeStopPromise;
@@ -223,22 +242,40 @@ class ProcessController extends EventEmitter{
   }
   async startMiner(address){
     addressValid(address);this.assertNode();
+    // The pending bit is acquired synchronously, before status I/O. Two
+    // renderer requests must never create a second, untracked miner process.
+    if(this.minerStarting)throw Error('Miner startup pending');
+    if(this.minerStopPending)throw Error('Miner shutdown pending');
     if(alive(this.miner))throw Error('Miner already running');
-    const owned=this.node;
-    await fetchRead(new URL('/status',this.endpoint));
-    this.assertNode();
-    if(this.node!==owned)throw Error('Managed node changed before miner launch');
-    this.telemetry={state:'CONNECTING',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
-    this.miner=this.spawnScript(path.join(this.repoRoot,'standalone','fae-miner.mjs'),
-      ['--node',this.endpoint,'--address',address,'--json','--yield-ms','20']);
-    let buffer='';
-    this.miner.stdout?.setEncoding?.('utf8');
-    this.miner.stdout?.on?.('data',data=>{
-      buffer+=data;
-      if(buffer.length>16384){buffer='';return}
-      let end;while((end=buffer.indexOf('\n'))>=0){this.ingestMiner(buffer.slice(0,end));buffer=buffer.slice(end+1)}
-    });
-    this.emit('state',this.snapshot());return this.snapshot();
+    this.minerStarting=true;
+    const owned=this.node,launchGeneration=this.minerGeneration;
+    this.emit('state',this.snapshot());
+    try{
+      // Includes the existing managed-child before/after lifecycle checks.
+      await this.readStatus();
+      this.assertNode();
+      if(this.minerStopPending||launchGeneration!==this.minerGeneration)
+        throw Error('Miner launch canceled by Stop Mining');
+      if(this.node!==owned)throw Error('Managed node changed before miner launch');
+      if(alive(this.miner))throw Error('Miner already running');
+      this.telemetry={state:'CONNECTING',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
+      this.miner=this.spawnScript(path.join(this.repoRoot,'standalone','fae-miner.mjs'),
+        ['--node',this.endpoint,'--address',address,'--json','--yield-ms','20']);
+      let buffer='';
+      this.miner.stdout?.setEncoding?.('utf8');
+      this.miner.stdout?.on?.('data',data=>{
+        buffer+=data;
+        if(buffer.length>16384){buffer='';return}
+        let end;while((end=buffer.indexOf('\\n'))>=0){this.ingestMiner(buffer.slice(0,end));buffer=buffer.slice(end+1)}
+      });
+      this.minerStarting=false;
+      this.emit('state',this.snapshot());return this.snapshot();
+    }catch(error){
+      if(!alive(this.miner))this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
+      this.minerStarting=false;
+      this.emit('state',this.snapshot());
+      throw error;
+    }
   }
   async dispose(){await this.stopNode()}
 }
