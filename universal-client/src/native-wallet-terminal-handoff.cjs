@@ -24,6 +24,12 @@ const PINNED_WALLET_BUNDLE=Object.freeze({
   "bip39-en.js": "46e6d96b5b262d16152f7006d24910afc4243de7f72ccb89650d37bc588c278a"
 });
 
+function sameCanonicalSourcePath(actual,expected){
+  // Windows paths are case-insensitive. A case-only realpath difference must
+  // not masquerade as a symlink, but changed components still fail closed.
+  const a=path.normalize(actual),b=path.normalize(expected);
+  return process.platform==='win32'?a.toLowerCase()===b.toLowerCase():a===b;
+}
 const WALLET_IMPORT_CLOSURE=Object.freeze([
   'standalone/wallet/fae-wallet.mjs',
   'standalone/wallet/crypto.mjs',
@@ -42,12 +48,12 @@ async function authenticatedWalletBundle(script){
     throw Error('Complete Wallet source-owner bundle attestation required');
   const root=path.resolve(path.dirname(script),'..','..');
   const realRoot=await fs.realpath(root);
-  if(realRoot!==root)throw Error('Native Wallet source root must not be symlinked');
+  if(!sameCanonicalSourcePath(realRoot,root))throw Error('Native Wallet source root must not be symlinked');
   for(const relative of WALLET_IMPORT_CLOSURE){
     if(!Object.hasOwn(manifest,relative)||!(/^[0-9a-f]{64}$/.test(manifest[relative])))
       throw Error('Wallet bundle dependency SHA-256 unavailable');
     const full=path.join(root,...relative.split('/'));
-    if(await fs.realpath(full)!==full)throw Error('Wallet bundle dependency is redirected');
+    if(!sameCanonicalSourcePath(await fs.realpath(full),full))throw Error('Wallet bundle dependency is redirected');
     const st=await fs.lstat(full);
     if(!st.isFile()||st.isSymbolicLink()||st.size<64||st.size>65536||
        (process.platform!=='win32'&&(st.mode&0o022)!==0))
@@ -71,7 +77,7 @@ async function prepareAttestedWalletSource(script){
     await fs.chmod(stageRoot,0o700);
     for(const relative of WALLET_IMPORT_CLOSURE){
       const original=path.join(sourceRoot,...relative.split('/'));
-      if(await fs.realpath(original)!==original)
+      if(!sameCanonicalSourcePath(await fs.realpath(original),original))
         throw Error('Wallet source changed before staging');
       const before=await fs.lstat(original);
       if(!before.isFile()||before.isSymbolicLink()||before.size<64||
