@@ -237,6 +237,45 @@ async function reviewPayment(){
     'TRIUM is the intended future ticker; the existing asset is FAE.'
   ].join('\n');
 }
+async function observePaymentFunds(){
+  const generation=++paymentRequest;
+  const draft={
+    from:get('wallet-address').value.trim(),
+    to:get('payment-to').value.trim(),
+    amount:get('payment-amount').value.trim(),
+    fee:get('payment-fee').value.trim()
+  };
+  const output=get('payment-review-output');
+  if(state.node!=='running'){
+    output.textContent='Local node is not running. No balance observed, signed or submitted.';
+    return;
+  }
+  output.textContent='Reading current selected-node FAE balance for unsigned draft…';
+  const observed=await safely(()=>window.triumph.observePaymentFunds(draft));
+  if(generation!==paymentRequest||state.node!=='running'||
+     get('wallet-address').value.trim()!==draft.from||
+     get('payment-to').value.trim()!==draft.to||
+     get('payment-amount').value.trim()!==draft.amount||
+     get('payment-fee').value.trim()!==draft.fee)return;
+  if(!observed||observed.node!=='CURRENT_MANAGED_LOCAL_NODE_ASSERTION'){
+    output.textContent='No compatible local funding observation. Nothing signed or submitted.';return;
+  }
+  output.textContent=[
+    'FAE PUBLIC TESTNET · UNSIGNED REVIEW · NODE-REPORTED BALANCE',
+    'From: '+observed.from,
+    'To: '+observed.to,
+    'Amount: '+observed.amount_fae+' FAE',
+    'Fee: '+observed.fee_fae+' FAE',
+    'Total: '+observed.total_fae+' FAE',
+    'Local selected node reports: '+observed.observed_fae+' FAE',
+    observed.funding==='NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL'
+      ?'Node-reported balance is below draft total.'
+      :'Node-reported balance meets draft total; this is NOT spendability proof.',
+    'Custody: NOT AUTHENTICATED · Spendable UTXOs: NOT VERIFIED',
+    'Signing: UNAVAILABLE · Submission: NOT SUBMITTED',
+    'No independent confirmation or node process-authentication claim.'
+  ].join('\n');
+}
 async function explorer(route,query){
   get('explorer-output').textContent='Reading…';
   const r=await safely(()=>window.triumph.explorer(route,query));
@@ -269,6 +308,7 @@ for(const id of ['payment-to','payment-amount','payment-fee']){
   });
 }
 get('payment-review').addEventListener('click',reviewPayment);
+get('payment-funds').addEventListener('click',observePaymentFunds);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
 reduce.addEventListener('change',()=>{if(active==='home'){heroAtRest=true;hero()}balanceMedia()});
