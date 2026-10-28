@@ -60,6 +60,8 @@ function windowCreate(){
           s.funding?.node!=='CURRENT_MANAGED_LOCAL_NODE_ASSERTION'||
           s.funding?.funding!=='NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL'||
           s.funding?.observed_atoms!=='0'||
+          s.funding?.observed_tip_height!==s.height||
+          s.funding?.observed_tip_hash!==s.tip_hash||
           s.funding?.spendability!=='NOT_VERIFIED'||
           s.funding?.signing!=='UNAVAILABLE'||s.funding?.submission!=='NOT_SUBMITTED')
           throw Error('Native node/Explorer/Wallet watch-only tip mismatch');
