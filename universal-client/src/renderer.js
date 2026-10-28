@@ -87,9 +87,10 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
-let balanceRequest=0,activityRequest=0;
+let balanceRequest=0,activityRequest=0,paymentRequest=0;
 function clearWalletObservations(reason='Select an address and refresh its local observation'){
-  balanceRequest++;activityRequest++;
+  balanceRequest++;activityRequest++;paymentRequest++;
+  get('payment-review-output').textContent='Review reset. No payment signed or submitted.';
   get('balance-amount').textContent='— FAE';
   get('balance-status').textContent=reason;
   get('wallet-activity-output').textContent='No current local node activity observation';
@@ -176,6 +177,36 @@ async function walletActivity(){
     events:observed.events
   },null,2);
 }
+async function reviewPayment(){
+  const generation=++paymentRequest;
+  const draft={
+    from:get('wallet-address').value.trim(),
+    to:get('payment-to').value.trim(),
+    amount:get('payment-amount').value.trim(),
+    fee:get('payment-fee').value.trim()
+  };
+  const output=get('payment-review-output');
+  output.textContent='Validating public FAE testnet payment…';
+  const result=await safely(()=>window.triumph.reviewPayment(draft));
+  if(generation!==paymentRequest||
+     get('wallet-address').value.trim()!==draft.from||
+     get('payment-to').value.trim()!==draft.to||
+     get('payment-amount').value.trim()!==draft.amount||
+     get('payment-fee').value.trim()!==draft.fee)return;
+  if(!result){output.textContent='Unsigned payment review unavailable. No transaction submitted.';return}
+  // Only text projection, no HTML; no signing or submission capability exists here.
+  output.textContent=[
+    'FAE PUBLIC TESTNET · UNSIGNED REVIEW ONLY',
+    'From: '+result.from,
+    'To: '+result.to,
+    'Amount: '+result.amount_fae+' FAE',
+    'Fee: '+result.fee_fae+' FAE',
+    'Total: '+result.total_fae+' FAE',
+    'Custody: NOT AUTHENTICATED · Balance: NOT CHECKED',
+    'Signing: UNAVAILABLE · Submission: NOT SUBMITTED',
+    'TRIUM is the intended future ticker; the existing asset is FAE.'
+  ].join('\n');
+}
 async function explorer(route,query){
   get('explorer-output').textContent='Reading…';
   const r=await safely(()=>window.triumph.explorer(route,query));
@@ -200,6 +231,7 @@ get('watch-save').addEventListener('click',async()=>{
   if(r){get('watch-alias').value='';watchRender(r)}
 });
 get('refresh-wallet-activity').addEventListener('click',walletActivity);
+get('payment-review').addEventListener('click',reviewPayment);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
 reduce.addEventListener('change',()=>{if(active==='home'){heroAtRest=true;hero()}balanceMedia()});
