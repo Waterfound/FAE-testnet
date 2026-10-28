@@ -73,12 +73,12 @@ class ProcessController extends EventEmitter{
     this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
-    this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;
+    this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;this.nodeStartGeneration=0;
     this.minerStarting=false;this.minerStopPending=false;
     this.minerStopPromise=null;this.minerGeneration=0;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
-  snapshot(){return {network:NETWORK,node:this.nodeStopping?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
+  snapshot(){return {network:NETWORK,node:this.nodeStopping||(this.nodeStarting&&this.nodeStartGeneration!==this.nodeGeneration)?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
     miner:this.minerStopPending?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
     telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
@@ -125,6 +125,7 @@ class ProcessController extends EventEmitter{
     if(alive(this.node))return this.snapshot();
     this.nodeStarting=true;
     const generation=this.nodeGeneration;
+    this.nodeStartGeneration=generation;
     const assertNotCanceled=()=>{
       if(this.nodeStopping||generation!==this.nodeGeneration)
         throw Error('Managed node startup canceled by Stop Node');
@@ -191,12 +192,12 @@ class ProcessController extends EventEmitter{
         await this.stopMiner();
         await this.stop(this.node);
         this.node=null;
-        this.emit('state',this.snapshot());
-        return this.snapshot();
       }finally{
         this.nodeStopping=false;
         this.nodeStopPromise=null;
+        this.emit('state',this.snapshot());
       }
+      return this.snapshot();
     })();
     return this.nodeStopPromise;
   }
