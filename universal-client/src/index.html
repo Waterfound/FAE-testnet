@@ -81,6 +81,13 @@
   <pre id="payment-review-output" aria-live="polite">No payment reviewed. No signing authority is connected.</pre>
   <p class="fine">The source address is the currently selected watch-only address. Intended ticker TRIUM is not yet the FAE testnet asset.</p>
 </article>
+<article class="panel" id="tx-receipt-panel">
+  <small>FAE TRANSACTION RECEIPT · SELECTED-NODE OBSERVATION</small>
+  <p class="fine">Look up a real public transaction ID on the currently running managed node. Pending and confirmed labels are claims of that selected node, not independent finality or proof of payment authorization.</p>
+  <label for="wallet-txid">FAE testnet transaction ID · 64 hexadecimal characters</label>
+  <div class="field-row"><input id="wallet-txid" spellcheck="false" autocomplete="off" maxlength="64" placeholder="64-character TXID"><button type="button" id="wallet-tx-track">Check transaction</button></div>
+  <pre id="wallet-tx-output" aria-live="polite">No transaction observed. Nothing signed, submitted or confirmed by the desktop Wallet.</pre>
+</article>
 <article class="panel" id="native-wallet-panel">
   <small>NATIVE WALLET COMPANION · PRIVILEGED TERMINAL CANDIDATE</small>
   <p class="fine">Source-owned standalone Wallet remains separately protected. No mnemonic, vault password or signing key is entered in this window.</p>
