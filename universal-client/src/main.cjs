@@ -7,6 +7,7 @@ const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
 const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-review.cjs');
+const {canonicalAddress,validateSavedWatchCatalog}=require('./canonical-public-address.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false,ciVaultSelection=null;
@@ -181,15 +182,21 @@ function windowCreate(){
 }
 function bindIpc(){
   const origin=pathToFileURL(path.join(__dirname,'index.html')).href;
+  const addressSource=path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
+    'sovereign-forge','node','authoritative','address.mjs');
   const calls={
     'ts:snapshot':()=>controller.snapshot(),
     'ts:start-node':()=>controller.startNode(),
     'ts:stop-node':()=>controller.stopNode(),
-    'ts:start-miner':addr=>controller.startMiner(addr),
+    'ts:start-miner':async addr=>controller.startMiner(await canonicalAddress(addr,addressSource)),
     'ts:stop-miner':()=>controller.stopMiner(),
     'ts:status':()=>controller.readStatus(),
-    'ts:balance':addr=>controller.readBalance(addr),
-    'ts:explorer':(route,query)=>controller.readExplorer(route,query),
+    'ts:balance':async addr=>controller.readBalance(await canonicalAddress(addr,addressSource)),
+    'ts:explorer':async(route,query)=>{
+      if(route==='/explorer/address'&&query?.address!==undefined)
+        await canonicalAddress(query.address,addressSource);
+      return controller.readExplorer(route,query);
+    },
     'ts:review-payment':draft=>reviewPublicPayment(draft,{
       addressSource:path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
         'sovereign-forge','node','authoritative','address.mjs')
@@ -203,11 +210,11 @@ function bindIpc(){
       const observed=await controller.readBalance(review.from);
       return compareObservedFunds(review,observed);
     },
-    'ts:watch-list':()=>watchBook.list(),
-    'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
-    'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
-    'ts:watch-remove':address=>watchBook.remove(address),
-    'ts:watch-select':address=>watchBook.select(address),
+    'ts:watch-list':async()=>validateSavedWatchCatalog(await watchBook.list(),addressSource),
+    'ts:watch-add':async(address,alias)=>watchBook.add(await canonicalAddress(address,addressSource),alias),
+    'ts:watch-update':async(address,changes)=>watchBook.update(await canonicalAddress(address,addressSource),changes),
+    'ts:watch-remove':async address=>watchBook.remove(await canonicalAddress(address,addressSource)),
+    'ts:watch-select':async address=>watchBook.select(await canonicalAddress(address,addressSource)),
     'ts:watch-import-vault':async()=>{
       const selected=ciVaultSelection&&process.env.CI==='true'&&process.argv.includes('--ts-vault-import-smoke')
         ?{canceled:false,filePaths:[ciVaultSelection]}
