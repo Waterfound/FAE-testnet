@@ -87,12 +87,13 @@ async function status(){
   get('node-height').textContent=Number.isSafeInteger(h)&&h>=0?String(h):'—';
   get('home-network').textContent=r?'FAE v4 · local node responding':'Not connected';
 }
-let balanceRequest=0,activityRequest=0,paymentRequest=0;
+let balanceRequest=0,activityRequest=0,paymentRequest=0,activityPage=null;
 function clearWalletObservations(reason='Select an address and refresh its local observation'){
   balanceRequest++;activityRequest++;paymentRequest++;
   get('payment-review-output').textContent='Review reset. No payment signed or submitted.';
   get('balance-amount').textContent='— FAE';
   get('balance-status').textContent=reason;
+  activityPage=null;get('wallet-activity-more').hidden=true;
   get('wallet-activity-output').textContent='No current local node activity observation';
 }
 let selectedWatchAddress=null;
@@ -155,27 +156,49 @@ async function balance(){
   get('balance-amount').textContent=whole.toString()+(tail?'.'+tail:'')+' FAE';
   get('balance-status').textContent='Selected local node observation · not a finality guarantee';
 }
-async function walletActivity(){
-  const generation=++activityRequest;
+async function walletActivity({append=false}={}){
   const address=get('wallet-address').value.trim();
-  const output=get('wallet-activity-output');
-  output.textContent='Reading selected node…';
-  const observed=await safely(()=>window.triumph.explorer('/explorer/address',{address,limit:20}));
+  const previous=append?activityPage:null;
+  if(append&&(!previous||previous.address!==address||!previous.cursor))return;
+  const generation=++activityRequest;
+  const output=get('wallet-activity-output'),loadMore=get('wallet-activity-more');
+  loadMore.hidden=true;
+  if(!append){activityPage=null;output.textContent='Reading selected node…'}
+  else output.textContent='Loading additional selected-node events…';
+  const query={address,limit:20};
+  if(append)query.cursor=previous.cursor;
+  const observed=await safely(()=>window.triumph.explorer('/explorer/address',query));
   if(generation!==activityRequest||get('wallet-address').value.trim()!==address||state.node!=='running')return;
   if(!observed||observed.address!==address||!Array.isArray(observed.events)){
-    output.textContent='No validated local address observation';return;
+    activityPage=null;
+    output.textContent='No validated local address observation. Reload activity.';
+    return;
   }
-  // No HTML injection; never treat node-reported pending/confirmed as independent finality.
+  if(append&&(observed.observed_tip_height!==previous.height||
+    observed.observed_tip_hash!==previous.hash)){
+    activityPage=null;
+    output.textContent='Chain tip changed; the prior page is stale. Refresh observations.';
+    return;
+  }
+  const events=append?[...previous.events,...observed.events]:observed.events;
+  // Never claim full lifetime history; these are current selected-node indexed events.
+  if(events.length>1000||new Set(events.map(x=>x.id)).size!==events.length){
+    activityPage=null;output.textContent='Inconsistent or excessive history page. Refresh observations.';return;
+  }
+  activityPage={address,height:observed.observed_tip_height,hash:observed.observed_tip_hash,
+    cursor:observed.next_cursor,events};
   output.textContent=JSON.stringify({
-    address:observed.address,
-    provenance:'selected_local_node_testnet_observation',
+    address,
+    provenance:'selected_local_node_testnet_observation_not_independent_finality',
+    coverage:'current_selected_node_index_not_guaranteed_lifetime_history',
     network:observed.network,
     observed_tip_height:observed.observed_tip_height,
     observed_tip_hash:observed.observed_tip_hash,
-    total_events:observed.total_events,
+    shown_events:events.length,total_events:observed.total_events,
     next_cursor:observed.next_cursor,
-    events:observed.events
+    events
   },null,2);
+  loadMore.hidden=!observed.next_cursor||events.length>=1000;
 }
 async function reviewPayment(){
   const generation=++paymentRequest;
@@ -230,7 +253,8 @@ get('watch-save').addEventListener('click',async()=>{
   const r=await safely(()=>window.triumph.watchAdd(addr,label));
   if(r){get('watch-alias').value='';watchRender(r)}
 });
-get('refresh-wallet-activity').addEventListener('click',walletActivity);
+get('refresh-wallet-activity').addEventListener('click',()=>walletActivity());
+get('wallet-activity-more').addEventListener('click',()=>walletActivity({append:true}));
 get('payment-review').addEventListener('click',reviewPayment);
 get('explorer-latest').addEventListener('click',()=>explorer('/explorer/blocks',{limit:12}));
 get('explorer-search').addEventListener('click',()=>{const q=get('explorer-query').value.trim();if(q)void explorer('/explorer/search',{q})});
