@@ -74,7 +74,10 @@
     <div><label for="payment-amount">Amount · FAE</label><input id="payment-amount" inputmode="decimal" spellcheck="false" placeholder="1.00000000"></div>
     <div><label for="payment-fee">Fee · FAE (review only)</label><input id="payment-fee" inputmode="decimal" spellcheck="false" value="0"></div>
   </div>
-  <button id="payment-review" type="button">Review unsigned payment</button>
+  <div class="field-row">
+    <button id="payment-review" type="button">Review unsigned payment</button>
+    <button id="payment-funds" type="button">Observe local FAE balance for draft</button>
+  </div>
   <pre id="payment-review-output" aria-live="polite">No payment reviewed. No signing authority is connected.</pre>
   <p class="fine">The source address is the currently selected watch-only address. Intended ticker TRIUM is not yet the FAE testnet asset.</p>
 </article></section>
