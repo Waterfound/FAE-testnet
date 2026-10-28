@@ -68,3 +68,53 @@ test('real optional managed FAE v4 node serves zero source-bound candidates at g
     fs.rmSync(temp,{recursive:true,force:true});
   }
 });
+
+test('real managed miner funding candidates survive persisted node stop and cold restart',
+  {timeout:60000},async t=>{
+  if(!fs.existsSync(path.join(root,'sovereign-forge','node','fae-node.mjs'))||
+     !fs.existsSync(path.join(root,'standalone','fae-miner.mjs')))
+    return t.skip('Canonical node or miner not present in this source checkout');
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ts-funding-restart-'));
+  const node=new ProcessController({repoRoot:root,dataDir:temp,nodeExecutable:process.execPath});
+  try{
+    assert.equal((await node.startNode()).node,'running');
+    await node.startMiner(ADDRESS);
+    const deadline=Date.now()+35000;
+    let observed=null;
+    while(Date.now()<deadline){
+      observed=await node.readFundingCandidates(ADDRESS);
+      if(BigInt(observed.confirmed_candidate_atoms)>0n)break;
+      await new Promise(resolve=>setTimeout(resolve,120));
+    }
+    assert.ok(observed&&BigInt(observed.confirmed_candidate_atoms)>0n,
+      'Real managed miner must create a selected-node confirmed output');
+    await node.stopMiner();
+    const persisted=await node.readFundingCandidates(ADDRESS);
+    assert.ok(BigInt(persisted.confirmed_candidate_atoms)>0n);
+    assert.equal(persisted.pending_candidate_atoms,'0');
+    assert.ok(persisted.outputs.every(row=>row.source==='confirmed'));
+    const before={
+      candidate_atoms:persisted.candidate_atoms,
+      confirmed_candidate_atoms:persisted.confirmed_candidate_atoms,
+      pending_candidate_atoms:persisted.pending_candidate_atoms,
+      outputs:persisted.outputs,
+      observed_tip_height:persisted.observed_tip_height,
+      observed_tip_hash:persisted.observed_tip_hash
+    };
+    await node.stopNode();
+    await assert.rejects(()=>node.readFundingCandidates(ADDRESS),/not ready or not owned/);
+    assert.equal((await node.startNode()).node,'running');
+    const recovered=await node.readFundingCandidates(ADDRESS);
+    assert.deepEqual({
+      candidate_atoms:recovered.candidate_atoms,
+      confirmed_candidate_atoms:recovered.confirmed_candidate_atoms,
+      pending_candidate_atoms:recovered.pending_candidate_atoms,
+      outputs:recovered.outputs,
+      observed_tip_height:recovered.observed_tip_height,
+      observed_tip_hash:recovered.observed_tip_hash
+    },before);
+  }finally{
+    await node.dispose().catch(()=>{});
+    fs.rmSync(temp,{recursive:true,force:true});
+  }
+});
