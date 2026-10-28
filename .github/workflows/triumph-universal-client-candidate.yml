@@ -34,7 +34,9 @@ jobs:
         run: |
           set -euo pipefail
           WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
-          WALLET_ROOT="$RUNNER_TEMP/ts-wallet-owner-v11-interop"
+          # Avoid runner temporary-directory junctions; the source attestor
+          # deliberately rejects redirected roots, including NTFS junctions.
+          WALLET_ROOT="$GITHUB_WORKSPACE/../ts-wallet-owner-v11-interop"
           git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
           # Windows Git may rewrite LF blobs to CRLF; hash attestation must
           # compare the original owner bytes, never a platform-normalized copy.
