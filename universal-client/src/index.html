@@ -47,6 +47,9 @@
 <div class="field-row"><input id="wallet-address" spellcheck="false" autocomplete="off" placeholder="faet1…">
 <button class="primary" id="refresh-balance">Check balance</button></div>
 <p class="fine">No seed phrase, PIN, recovery secret or private key is accepted by this view.</p>
+<div class="field-row"><button id="funding-candidates-refresh" type="button">Inspect node-reported UTXO candidates</button></div>
+<pre id="funding-candidates-output" aria-live="polite">No candidate outputs observed. UTXO, maturity and signing authority are not verified.</pre>
+<p class="fine">Original FAE v4 /spendable data, bound to one selected-node chain tip. Includes pending candidates; coinbase maturity, input ownership and signer authorization are not independently verified.</p>
 <div class="watch-book">
   <p class="fine"><strong>Saved addresses · watch only</strong> — names and visibility persist locally, without signing authority.</p>
   <div class="field-row"><input id="watch-alias" maxlength="40" placeholder="Public address alias">
