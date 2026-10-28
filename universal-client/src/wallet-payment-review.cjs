@@ -58,6 +58,9 @@ function compareObservedFunds(publicReview,nodeBalance){
      nodeBalance.address!==publicReview.from||nodeBalance.ok!==true||
      (nodeBalance.network!==undefined&&nodeBalance.network!==NETWORK)||
      typeof nodeBalance.balance_atoms!=='string'||
+     !Number.isSafeInteger(nodeBalance.observed_tip_height)||
+     nodeBalance.observed_tip_height<0||
+     !/^[0-9a-f]{64}$/.test(String(nodeBalance.observed_tip_hash))||
      !/^(?:0|[1-9][0-9]*)$/.test(nodeBalance.balance_atoms)||
      nodeBalance.balance_atoms.length>80){
     throw Error('Invalid selected-node funding observation');
@@ -73,6 +76,9 @@ function compareObservedFunds(publicReview,nodeBalance){
     node:'CURRENT_MANAGED_LOCAL_NODE_ASSERTION',
     observed_fae:formatAtoms(observed),
     observed_atoms:observed.toString(),
+    observed_tip_height:nodeBalance.observed_tip_height,
+    observed_tip_hash:nodeBalance.observed_tip_hash,
+    provenance:'selected_managed_node_stable_tip_claim_not_independent_finality',
     funding:'NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL' ,
     ...((observed>=amount+fee)?{funding:'NODE_REPORTED_BALANCE_AT_LEAST_DRAFT_TOTAL'}:{}),
     spendability:'NOT_VERIFIED',
