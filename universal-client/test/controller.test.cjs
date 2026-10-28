@@ -466,3 +466,67 @@ test('Start Mining is refused during asynchronous Stop Mining, then permits a ne
   assert.equal((await c.startMiner(ADDRESS)).miner,'running');
   assert.equal(launches,1);
 });
+
+
+test('Stop Node revokes pre-spawn startup even when prior port probe completes afterwards',async()=>{
+  const {mkdtemp,rm}=require('node:fs/promises');
+  const dir=await mkdtemp(path.join(os.tmpdir(),'ts-node-preflight-stop-'));
+  let finishProbe,spawns=0;
+  const c=new ProcessController({repoRoot:root,dataDir:dir,
+    portProbe:()=>new Promise(resolve=>{finishProbe=resolve}),
+    spawnFn:()=>{spawns++;throw Error('Canceled startup spawned a node')}});
+  try{
+    const starting=c.startNode();
+    assert.equal(c.snapshot().node,'starting');
+    const stopping=c.stopNode();
+    assert.equal(c.snapshot().node,'stopping');
+    assert.equal((await stopping).node,'stopped');
+    finishProbe();
+    await assert.rejects(()=>starting,/startup canceled by Stop Node/);
+    assert.equal(spawns,0,'No process can be launched after successful Stop Node');
+    assert.equal(c.node,null);
+    assert.equal(c.snapshot().node,'stopped');
+  }finally{await c.dispose();await rm(dir,{recursive:true,force:true})}
+});
+
+test('Stop Node rejects stale post-spawn listener success and permits fresh restart',async()=>{
+  const {EventEmitter}=require('node:events');
+  const {mkdtemp,rm}=require('node:fs/promises');
+  const dir=await mkdtemp(path.join(os.tmpdir(),'ts-node-listener-stop-'));
+  const children=[];
+  const makeChild=()=>{
+    const child=new EventEmitter();
+    child.exitCode=null;child.killed=false;child._tsFailed=false;
+    child.kill=()=>{child.killed=true;setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});return true};
+    children.push(child);return child;
+  };
+  let notifyListen,releaseListen;
+  const listenReached=new Promise(resolve=>{notifyListen=resolve});
+  let holdFirst=true;
+  const c=new ProcessController({repoRoot:root,dataDir:dir,portProbe:async()=>{},
+    spawnFn:()=>makeChild(),
+    listenEvidence:()=>{
+      if(!holdFirst)return Promise.resolve({owned_process_log:true});
+      notifyListen();
+      return new Promise(resolve=>{releaseListen=resolve});
+    },
+    readinessProbe:async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)})
+  });
+  try{
+    const pending=c.startNode();
+    await listenReached;
+    assert.equal(children.length,1);
+    await c.stopNode();
+    assert.equal(children[0].killed,true);
+    assert.equal(c.snapshot().node,'starting','The stale startup is still being canceled');
+    releaseListen({owned_process_log:true});
+    await assert.rejects(()=>pending,/startup canceled by Stop Node/);
+    assert.equal(c.snapshot().node,'stopped');
+    assert.equal(c.node,null);
+    holdFirst=false;
+    assert.equal((await c.startNode()).node,'running');
+    assert.equal(children.length,2,'New authenticated startup needs a fresh child');
+    await c.stopNode();
+    assert.equal(children[1].killed,true);
+  }finally{await c.dispose();await rm(dir,{recursive:true,force:true})}
+});
