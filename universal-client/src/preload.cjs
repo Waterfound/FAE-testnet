@@ -2,6 +2,8 @@
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('triumph',Object.freeze({
   snapshot:()=>ipcRenderer.invoke('ts:snapshot'),
+  nativeWalletStatus:()=>ipcRenderer.invoke('ts:native-wallet-status'),
+  nativeWalletTerminal:command=>ipcRenderer.invoke('ts:native-wallet-terminal',command),
   startNode:()=>ipcRenderer.invoke('ts:start-node'),
   stopNode:()=>ipcRenderer.invoke('ts:stop-node'),
   startMiner:address=>ipcRenderer.invoke('ts:start-miner',address),
