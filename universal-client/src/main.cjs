@@ -6,6 +6,7 @@ const {ProcessController}=require('./controller.cjs');
 const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
 const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
+const {reviewPublicPayment}=require('./wallet-payment-review.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false,ciVaultSelection=null;
@@ -178,6 +179,10 @@ function bindIpc(){
     'ts:status':()=>controller.readStatus(),
     'ts:balance':addr=>controller.readBalance(addr),
     'ts:explorer':(route,query)=>controller.readExplorer(route,query),
+    'ts:review-payment':draft=>reviewPublicPayment(draft,{
+      addressSource:path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
+        'sovereign-forge','node','authoritative','address.mjs')
+    }),
     'ts:watch-list':()=>watchBook.list(),
     'ts:watch-add':(address,alias)=>watchBook.add(address,alias),
     'ts:watch-update':(address,changes)=>watchBook.update(address,changes),
