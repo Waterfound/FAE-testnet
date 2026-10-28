@@ -9,6 +9,7 @@ const {constants}=require('node:fs');
 const {spawn}=require('node:child_process');
 const {createHash}=require('node:crypto');
 const COMMANDS=new Set(['create','recover','address','receive','balance','history','outbox']);
+let activeTerminalRequest=false;
 // Independently fetched from protected Wallet Draft PR #342 exact head
 // 17c90ffc313fd11de17396437436e4429472f616; candidate evidence only.
 // Publishing this public digest does not admit a release or cryptographic signer.
@@ -123,28 +124,36 @@ async function runPrivilegedWalletTerminal(command,{
      typeof publicVault!=='string'||!path.isAbsolute(publicVault)||
      publicVault.includes('\0')||publicVault.length>1024)
     throw Error('Wallet executable or local vault target not admitted');
-  // Full source-owned static import closure is mandatory, not only the CLI.
-  const stage=await prepareAttestedWalletSource(script);
-  const args=[stage.script,command,'--vault',publicVault];
-  try{return await new Promise((resolve,reject)=>{
-    let child;
-    try{
-      child=spawnFn(nodeExecutable,args,{
-        shell:false,windowsHide:false,stdio:'inherit',cwd:path.dirname(stage.script),
-        env:{PATH:process.env.PATH||'',SystemRoot:process.env.SystemRoot||'',WINDIR:process.env.WINDIR||'',
-          HOME:process.env.HOME||'',USERPROFILE:process.env.USERPROFILE||'',TMP:process.env.TMP||'',
-          TEMP:process.env.TEMP||'',LANG:process.env.LANG||'',
-          ...(process.versions.electron?{ELECTRON_RUN_AS_NODE:'1'}:{})}
+  if(activeTerminalRequest)throw Error('Native Wallet terminal request already active');
+  activeTerminalRequest=true;
+  let stage;
+  try{
+    // Full source-owned static import closure is mandatory, not only the CLI.
+    stage=await prepareAttestedWalletSource(script);
+    const args=[stage.script,command,'--vault',publicVault];
+    return await new Promise((resolve,reject)=>{
+      let child;
+      try{
+        child=spawnFn(nodeExecutable,args,{
+          shell:false,windowsHide:false,stdio:'inherit',cwd:path.dirname(stage.script),
+          env:{PATH:process.env.PATH||'',SystemRoot:process.env.SystemRoot||'',WINDIR:process.env.WINDIR||'',
+            HOME:process.env.HOME||'',USERPROFILE:process.env.USERPROFILE||'',TMP:process.env.TMP||'',
+            TEMP:process.env.TEMP||'',LANG:process.env.LANG||'',
+            ...(process.versions.electron?{ELECTRON_RUN_AS_NODE:'1'}:{})}
+        });
+      }catch{return reject(Error('Native Wallet terminal start failed'))}
+      child.once('error',()=>reject(Error('Native Wallet terminal process unavailable')));
+      child.once('exit',(code,signal)=>{
+        resolve(Object.freeze({command,status:code===0&&signal===null?'CLI_EXIT_SUCCESS':'CLI_EXIT_UNCONFIRMED',
+          // Do not return stdout, stderr, seed, mnemonic or password to GUI.
+          custody:'NATIVE_TERMINAL_SEPARATE_FROM_RENDERER',
+          signer:'NOT_ATTESTED_BY_THIS_BRIDGE',
+          outbox:'NOT_INSPECTED_BY_THIS_BRIDGE'}));
       });
-    }catch{return reject(Error('Native Wallet terminal start failed'))}
-    child.once('error',()=>reject(Error('Native Wallet terminal process unavailable')));
-    child.once('exit',(code,signal)=>{
-      resolve(Object.freeze({command,status:code===0&&signal===null?'CLI_EXIT_SUCCESS':'CLI_EXIT_UNCONFIRMED',
-        // Do not return stdout, stderr, seed, mnemonic or password to GUI.
-        custody:'NATIVE_TERMINAL_SEPARATE_FROM_RENDERER',
-        signer:'NOT_ATTESTED_BY_THIS_BRIDGE',
-        outbox:'NOT_INSPECTED_BY_THIS_BRIDGE'}));
     });
-  });}finally{await stage.release()}
+  }finally{
+    if(stage)await stage.release();
+    activeTerminalRequest=false;
+  }
 }
 module.exports={WALLET_OWNER_HEAD,authenticatedWalletBundle,prepareAttestedWalletSource,runPrivilegedWalletTerminal};
