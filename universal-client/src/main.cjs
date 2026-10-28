@@ -50,12 +50,17 @@ function windowCreate(){
     win.webContents.once('did-finish-load',async()=>{
       try{
         const s=await win.webContents.executeJavaScript(
-          "(async()=>{let started=false;try{const a=await window.triumph.startNode();started=a.node==='running';const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const status=await window.triumph.status();const explorer=await window.triumph.explorer('/explorer/status',{});const balance=await window.triumph.balance(addr);const activity=await window.triumph.explorer('/explorer/address',{address:addr,limit:5});return {started,network:status.network,height:status.height,tip_hash:status.tip_hash,explorer_network:explorer.network,tip_height:explorer.observed_tip_height,balance_address:balance.address,balance_atoms:balance.balance_atoms,activity_address:activity.address,activity_tip:activity.observed_tip_hash,activity_count:activity.events.length};}finally{if(started)await window.triumph.stopNode();}})()");
+          "(async()=>{let started=false;try{const a=await window.triumph.startNode();started=a.node==='running';const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const status=await window.triumph.status();const explorer=await window.triumph.explorer('/explorer/status',{});const balance=await window.triumph.balance(addr);const activity=await window.triumph.explorer('/explorer/address',{address:addr,limit:5});const funding=await window.triumph.observePaymentFunds({from:addr,to:addr,amount:'1',fee:'0'});return {started,funding,network:status.network,height:status.height,tip_hash:status.tip_hash,explorer_network:explorer.network,tip_height:explorer.observed_tip_height,balance_address:balance.address,balance_atoms:balance.balance_atoms,activity_address:activity.address,activity_tip:activity.observed_tip_hash,activity_count:activity.events.length};}finally{if(started)await window.triumph.stopNode();}})()");
         if(!s.started||s.network!=='fairyelf-public-testnet-v4'||s.explorer_network!==s.network||
           !Number.isSafeInteger(s.height)||s.height!==s.tip_height||
           s.balance_address!=='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn'||
           !/^[0-9]+$/.test(String(s.balance_atoms))||s.activity_address!==s.balance_address||
-          s.activity_tip!==s.tip_hash||!Number.isSafeInteger(s.activity_count))
+          s.activity_tip!==s.tip_hash||!Number.isSafeInteger(s.activity_count)||
+          s.funding?.node!=='CURRENT_MANAGED_LOCAL_NODE_ASSERTION'||
+          s.funding?.funding!=='NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL'||
+          s.funding?.observed_atoms!=='0'||
+          s.funding?.spendability!=='NOT_VERIFIED'||
+          s.funding?.signing!=='UNAVAILABLE'||s.funding?.submission!=='NOT_SUBMITTED')
           throw Error('Native node/Explorer/Wallet watch-only tip mismatch');
         console.log('TS_NODE_SMOKE_PASS '+JSON.stringify(s));clearTimeout(timeout);app.exit(0);
       }catch(error){console.error('TS_NODE_SMOKE_FAIL '+error.message);clearTimeout(timeout);app.exit(1)}
