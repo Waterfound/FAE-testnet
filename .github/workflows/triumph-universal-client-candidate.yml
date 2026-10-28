@@ -36,7 +36,9 @@ jobs:
           WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
           WALLET_ROOT="$RUNNER_TEMP/ts-wallet-owner-v11-interop"
           git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
-          git worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
+          # Windows Git may rewrite LF blobs to CRLF; hash attestation must
+          # compare the original owner bytes, never a platform-normalized copy.
+          git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
           trap 'git worktree remove --force "$WALLET_ROOT"' EXIT
           test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
           TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
