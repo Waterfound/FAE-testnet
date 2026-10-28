@@ -530,3 +530,71 @@ test('Stop Node rejects stale post-spawn listener success and permits fresh rest
     assert.equal(children[1].killed,true);
   }finally{await c.dispose();await rm(dir,{recursive:true,force:true})}
 });
+
+
+test('process shutdown requires observed exit, not merely a successful kill signal',async()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  const signals=[];
+  child.kill=signal=>{signals.push(signal);child.killed=true;return true};
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  await assert.rejects(()=>c.stop(child,{graceMs:12,killMs:12}),
+    /termination not confirmed/);
+  assert.deepEqual(signals,['SIGTERM','SIGKILL']);
+  assert.equal(child.exitCode,null,'Signal sent is not evidence of process exit');
+});
+
+test('observed child exit after forced kill closes process ownership cleanly',async()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  const signals=[];
+  child.kill=signal=>{
+    signals.push(signal);child.killed=true;
+    if(signal==='SIGKILL')setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});
+    return true;
+  };
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  await c.stop(child,{graceMs:12,killMs:120});
+  assert.deepEqual(signals,['SIGTERM','SIGKILL']);
+  assert.equal(child._tsExited,true);
+});
+
+test('unconfirmed node shutdown retains ownership and rejects replacement startup',async()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  const signals=[];
+  child.kill=signal=>{signals.push(signal);child.killed=true;return true};
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),
+    portProbe:async()=>{throw Error('Cannot bind while owner unresolved')}});
+  c.node=child;
+  c.stop=owned=>ProcessController.prototype.stop.call(c,owned,{graceMs:12,killMs:12});
+  await assert.rejects(()=>c.stopNode(),/termination not confirmed/);
+  assert.equal(c.node,child,'Never abandon an unconfirmed OS process');
+  assert.equal(c.snapshot().node,'stopping','Do not claim stopped before observed exit');
+  await assert.rejects(()=>c.startNode(),/termination not confirmed/);
+  assert.ok(signals.includes('SIGKILL'));
+  child.exitCode=0;child._tsExited=true;child.emit('exit',0);
+  assert.equal(c.snapshot().node,'stopped');
+  c.node=null;
+});
+
+test('unconfirmed miner shutdown retains the process and refuses duplicate miner',async()=>{
+  const {EventEmitter}=require('node:events');
+  const node=new EventEmitter();
+  node.exitCode=null;node.killed=false;node._tsFailed=false;
+  const miner=new EventEmitter();
+  miner.exitCode=null;miner.killed=false;miner._tsFailed=false;
+  miner.kill=()=>{miner.killed=true;return true};
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=node;c.miner=miner;
+  c.stop=child=>ProcessController.prototype.stop.call(c,child,{graceMs:12,killMs:12});
+  await assert.rejects(()=>c.stopMiner(),/termination not confirmed/);
+  assert.equal(c.miner,miner);
+  assert.equal(c.snapshot().miner,'stopping');
+  await assert.rejects(()=>c.startMiner(ADDRESS),/Miner termination not confirmed/);
+  miner.exitCode=0;miner._tsExited=true;
+  c.miner=null;c.node=null;
+});
