@@ -121,6 +121,7 @@ async function runPrivilegedWalletTerminal(command,{
   if(!tty||tty.stdin!==true||tty.stdout!==true||tty.stderr!==true)
     throw Error('Protected interactive terminal unavailable');
   if(typeof nodeExecutable!=='string'||!path.isAbsolute(nodeExecutable)||
+     !sameCanonicalSourcePath(path.resolve(nodeExecutable),path.resolve(process.execPath))||
      typeof publicVault!=='string'||!path.isAbsolute(publicVault)||
      publicVault.includes('\0')||publicVault.length>1024)
     throw Error('Wallet executable or local vault target not admitted');
