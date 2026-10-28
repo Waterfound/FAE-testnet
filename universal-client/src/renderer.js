@@ -268,6 +268,7 @@ async function observePaymentFunds(){
     'Fee: '+observed.fee_fae+' FAE',
     'Total: '+observed.total_fae+' FAE',
     'Local selected node reports: '+observed.observed_fae+' FAE',
+    'Observed at local tip: #'+observed.observed_tip_height+' · '+observed.observed_tip_hash,
     observed.funding==='NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL'
       ?'Node-reported balance is below draft total.'
       :'Node-reported balance meets draft total; this is NOT spendability proof.',
