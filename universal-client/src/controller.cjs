@@ -73,12 +73,12 @@ class ProcessController extends EventEmitter{
     this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
-    this.nodeStopping=false;this.nodeStopPromise=null;
+    this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;
     this.minerStarting=false;this.minerStopPending=false;
     this.minerStopPromise=null;this.minerGeneration=0;
     this.telemetry={state:'STOPPED',hashrate_hs:null,total_hashes:null,accepted:null,rejected:null};
   }
-  snapshot(){return {network:NETWORK,node:this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
+  snapshot(){return {network:NETWORK,node:this.nodeStopping?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
     miner:this.minerStopPending?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
     telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
@@ -124,11 +124,22 @@ class ProcessController extends EventEmitter{
     if(this.nodeStarting)throw Error('Node startup pending');
     if(alive(this.node))return this.snapshot();
     this.nodeStarting=true;
+    const generation=this.nodeGeneration;
+    const assertNotCanceled=()=>{
+      if(this.nodeStopping||generation!==this.nodeGeneration)
+        throw Error('Managed node startup canceled by Stop Node');
+    };
+    this.emit('state',this.snapshot());
     try{
       await this.portProbe(this.port);
+      assertNotCanceled();
       const dir=path.join(this.dataDir,'node');
       await mkdir(dir,{recursive:true,mode:0o700});
+      assertNotCanceled();
       await assertRecoverableLocalNodeState(path.join(dir,'state.json'));
+      // The shutdown may have completed while asynchronous preflight ran.
+      // A stale startup can never launch a new process after Stop Node.
+      assertNotCanceled();
       this.node=this.spawnScript(path.join(this.repoRoot,'sovereign-forge','node','fae-node.mjs'),[],{
         FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
         FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''
@@ -136,7 +147,9 @@ class ProcessController extends EventEmitter{
       // The child must itself report successful listen before any HTTP status
       // could be considered. This closes the basic prebind spoof admission gap.
       await this.listenEvidence({child:this.node,host:'127.0.0.1',port:this.port});
+      assertNotCanceled();
       await verifyManagedReadiness({child:this.node,readStatus:this.readinessProbe});
+      assertNotCanceled();
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();
     }catch(e){
@@ -168,8 +181,11 @@ class ProcessController extends EventEmitter{
   }
   async stopNode(){
     if(this.nodeStopPromise)return this.nodeStopPromise;
-    // Synchronously revoke read and miner-launch authority before any await.
+    // Revoke all in-flight startup continuations before the first await.
+    // The generation is not reset when shutdown finishes.
+    this.nodeGeneration++;
     this.nodeStopping=true;
+    this.emit('state',this.snapshot());
     this.nodeStopPromise=(async()=>{
       try{
         await this.stopMiner();
