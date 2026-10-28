@@ -344,5 +344,5 @@ document.addEventListener('visibilitychange',()=>{
   if(active==='home'&&document.hidden){heroAtRest=true;hero()}
   balanceMedia();
 });
-if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{});if(typeof window.triumph.watchList==='function')void watchLoad();void refreshNativeWalletCandidate()}
+if(window.triumph){window.triumph.onState(view);window.triumph.snapshot().then(view).catch(()=>{});if(typeof window.triumph.watchList==='function')void watchLoad();if(typeof window.triumph.nativeWalletStatus==='function')void refreshNativeWalletCandidate()}
 hero({entry:true});
