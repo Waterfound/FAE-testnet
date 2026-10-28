@@ -71,6 +71,7 @@ test('real optional managed FAE v4 node serves zero source-bound candidates at g
 
 test('real managed miner funding candidates survive persisted node stop and cold restart',
   {timeout:60000},async t=>{
+  const root=path.resolve(__dirname,'..','..');
   if(!fs.existsSync(path.join(root,'sovereign-forge','node','fae-node.mjs'))||
      !fs.existsSync(path.join(root,'standalone','fae-miner.mjs')))
     return t.skip('Canonical node or miner not present in this source checkout');
