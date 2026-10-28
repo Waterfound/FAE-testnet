@@ -5,6 +5,7 @@ const {pathToFileURL}=require('node:url');
 const {ProcessController}=require('./controller.cjs');
 const {WatchAddressBook}=require('./watch-address-book.cjs');
 const {readVaultPublicMetadata}=require('./wallet-vault-public-metadata.cjs');
+const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
 let win,controller,watchBook,quitting=false,ciVaultSelection=null;
@@ -202,7 +203,7 @@ function bindIpc(){
   };
   for(const [verb,invoke] of Object.entries(calls)){
     ipcMain.handle(verb,(event,...args)=>{
-      if(!win||win.isDestroyed()||event.sender!==win.webContents||event.senderFrame?.url!==origin)throw Error('Untrusted IPC');
+      assertTrustedIpcFrame(event,win,origin);
       return invoke(...args);
     });
   }
