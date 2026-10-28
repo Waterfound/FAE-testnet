@@ -24,14 +24,19 @@ function windowCreate(){
     win.webContents.once('did-finish-load',async()=>{
       try{
         const snapshot=await win.webContents.executeJavaScript(
-          "(async()=>{const pages=document.querySelectorAll('.nav[data-page]').length;const bridge=typeof window.triumph==='object';const state=bridge?await window.triumph.snapshot():null;return {title:document.title,pages,bridge,node:state?.node,miner:state?.miner,home:document.getElementById('page-home').classList.contains('visible'),ticker:document.querySelector('#page-home .eyebrow')?.textContent,displayedBalance:document.getElementById('balance-amount')?.textContent,unitLabel:document.querySelector('#page-wallet .balance-grid small')?.textContent,header:document.querySelector('header.top')?.textContent}})()"
+          "(async()=>{const pages=document.querySelectorAll('.nav[data-page]').length;const bridge=typeof window.triumph==='object';const state=bridge?await window.triumph.snapshot():null;const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const draft=await window.triumph.reviewPayment({from:addr,to:addr,amount:'1.00000001',fee:'0.00000002'});return {draft,reviewButton:document.getElementById('payment-review')?.textContent,title:document.title,pages,bridge,node:state?.node,miner:state?.miner,home:document.getElementById('page-home').classList.contains('visible'),ticker:document.querySelector('#page-home .eyebrow')?.textContent,displayedBalance:document.getElementById('balance-amount')?.textContent,unitLabel:document.querySelector('#page-wallet .balance-grid small')?.textContent,header:document.querySelector('header.top')?.textContent}})()"
         );
         if(snapshot.pages!==6||!snapshot.bridge||snapshot.node!=='stopped'||snapshot.miner!=='stopped'||!snapshot.home||
           !snapshot.ticker?.includes('TRIUM · OFFICIAL INTENDED TICKER')||
           snapshot.displayedBalance!=='— FAE'||
           snapshot.unitLabel!=='OBSERVED FAE TESTNET BALANCE · NOT TRIUM'||
           !snapshot.header?.includes('TRIUM · OFFICIAL INTENDED TICKER')||
-          snapshot.header.includes('FATIMA'))
+          snapshot.header.includes('FATIMA')||
+          snapshot.draft?.state!=='UNSIGNED_PUBLIC_REVIEW_ONLY'||
+          snapshot.draft?.total_fae!=='1.00000003'||
+          snapshot.draft?.submission!=='NOT_SUBMITTED'||
+          snapshot.draft?.signing!=='UNAVAILABLE'||
+          !snapshot.reviewButton?.includes('Review unsigned payment'))
           throw Error('Desktop UI/IPC smoke assertion failed: '+JSON.stringify(snapshot));
         console.log('TS_GUI_SMOKE_PASS '+JSON.stringify(snapshot));
         clearTimeout(timeout);app.exit(0);
