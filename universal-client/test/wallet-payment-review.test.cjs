@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),path=requir
 const {parseFaeAmount,formatAtoms,reviewPublicPayment,compareObservedFunds}=require('../src/wallet-payment-review.cjs');
 const addressSource=path.resolve(__dirname,'..','..','sovereign-forge/node/authoritative/address.mjs');
 const valid='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+const bound=observation=>({...observation,observed_tip_height:0,observed_tip_hash:'0'.repeat(64)});
 test('real canonical Bech32m public payment review returns exact, explicitly unsigned FAE values',async()=>{
   const draft=await reviewPublicPayment({from:valid,to:valid,amount:'1.00000001',fee:'0.00000002'},{addressSource});
   assert.equal(draft.amount_fae,'1.00000001');
@@ -46,7 +47,7 @@ test('reject unexpected secret-bearing IPC fields and never open a vault or acce
 
 test('selected-node balance comparison remains unsigned, explicitly unspendable, and exact to 8 decimal FAE',async()=>{
   const draft=await reviewPublicPayment({from:valid,to:valid,amount:'1.00000001',fee:'0.00000002'},{addressSource});
-  const low=compareObservedFunds(draft,{ok:true,address:valid,balance_atoms:'100000002'});
+  const low=compareObservedFunds(draft,bound({ok:true,address:valid,balance_atoms:'100000002'}));
   assert.equal(low.funding,'NODE_REPORTED_BALANCE_BELOW_DRAFT_TOTAL');
   assert.equal(low.observed_fae,'1.00000002');
   assert.equal(low.total_fae,'1.00000003');
@@ -55,9 +56,11 @@ test('selected-node balance comparison remains unsigned, explicitly unspendable,
   assert.equal(low.submission,'NOT_SUBMITTED');
   assert.equal(low.custody,'SOURCE_ADDRESS_NOT_AUTHENTICATED');
   assert.equal(low.confirmation,'NOT_INDEPENDENTLY_VERIFIED');
-  const exact=compareObservedFunds(draft,{ok:true,address:valid,balance_atoms:'100000003'});
+  const exact=compareObservedFunds(draft,bound({ok:true,address:valid,balance_atoms:'100000003'}));
   assert.equal(exact.funding,'NODE_REPORTED_BALANCE_AT_LEAST_DRAFT_TOTAL');
   assert.equal(exact.node,'CURRENT_MANAGED_LOCAL_NODE_ASSERTION');
+  assert.equal(exact.observed_tip_height,0);
+  assert.equal(exact.observed_tip_hash,'0'.repeat(64));
 });
 test('wrong sender, contradictory draft total and malformed selected-node funds fail closed',async()=>{
   const draft=await reviewPublicPayment({from:valid,to:valid,amount:'1',fee:'0.1'},{addressSource});
@@ -71,9 +74,12 @@ test('wrong sender, contradictory draft total and malformed selected-node funds 
     {ok:true,address:valid,balance_atoms:'01'},
     {ok:true,address:valid,balance_atoms:100},
     {ok:true,address:valid,balance_atoms:'1'.repeat(81)}
-  ])assert.throws(()=>compareObservedFunds(draft,observed));
-  assert.throws(()=>compareObservedFunds({...draft,total_fae:'0'},{
-    ok:true,address:valid,balance_atoms:'999999999'}),/total mismatched/);
-  assert.throws(()=>compareObservedFunds({...draft,state:'SIGNED'},{
-    ok:true,address:valid,balance_atoms:'999999999'}),/Unverified/);
+  ])assert.throws(()=>compareObservedFunds(draft,
+    observed&&typeof observed==='object'&&!Array.isArray(observed)?bound(observed):observed));
+  assert.throws(()=>compareObservedFunds({...draft,total_fae:'0'},bound({
+    ok:true,address:valid,balance_atoms:'999999999'})),/total mismatched/);
+  assert.throws(()=>compareObservedFunds({...draft,state:'SIGNED'},bound({
+    ok:true,address:valid,balance_atoms:'999999999'})),/Unverified/);
+  assert.throws(()=>compareObservedFunds(draft,{ok:true,address:valid,balance_atoms:'100'}),/funding observation/);
+  assert.throws(()=>compareObservedFunds(draft,{...bound({ok:true,address:valid,balance_atoms:'100'}),observed_tip_hash:'not-a-tip'}),/funding observation/);
 });
