@@ -9,9 +9,11 @@ const {assertTrustedIpcFrame}=require('./ipc-frame-gate.cjs');
 const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-review.cjs');
 const {canonicalAddress,validateSavedWatchCatalog}=require('./canonical-public-address.cjs');
 const {createShutdownGate}=require('./shutdown-gate.cjs');
+const {authenticatedWalletBundle,runPrivilegedWalletTerminal}=require('./native-wallet-terminal-handoff.cjs');
+const fsPromises=require('node:fs/promises');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
-let win,controller,watchBook,shutdownGate=null,ciVaultSelection=null;
+let win,controller,watchBook,shutdownGate=null,ciVaultSelection=null,walletTerminalActive=false;
 function windowCreate(){
   win=new BrowserWindow({
     title:'Triumph Sovereign — Public Testnet Candidate',width:1220,height:820,minWidth:850,minHeight:610,
@@ -184,6 +186,40 @@ function windowCreate(){
   }
   win.loadFile(path.join(__dirname,'index.html'));
 }
+async function trustedWalletTerminalCandidate(){
+  // Developer-only candidate integration. The protected Wallet PR #342 has
+  // not been merged into this client and installed release admission is HOLD.
+  if(app.isPackaged||typeof process.env.TS_WALLET_COMPANION_ROOT!=='string'||
+     !path.isAbsolute(process.env.TS_WALLET_COMPANION_ROOT)||
+     !process.stdin.isTTY||!process.stdout.isTTY||!process.stderr.isTTY)
+    return null;
+  const script=path.join(process.env.TS_WALLET_COMPANION_ROOT,
+    'standalone','wallet','fae-wallet.mjs');
+  try{await authenticatedWalletBundle(script);return script}
+  catch{return null}
+}
+async function nativeWalletCandidateStatus(){
+  const source=await trustedWalletTerminalCandidate();
+  return Object.freeze({state:source?'TRUSTED_SOURCE_AND_TTY_CANDIDATE':'UNAVAILABLE',
+    custody:'EXTERNAL_NATIVE_TERMINAL_ONLY',signing:'NOT_ADMITTED',
+    send:'DISABLED',testnet:'FAE_PUBLIC_TESTNET_V4'});
+}
+async function nativeWalletCandidateCommand(command){
+  if(!['create','recover','address','receive','outbox'].includes(command))
+    throw Error('Wallet terminal command is not admitted');
+  if(walletTerminalActive)throw Error('Native Wallet terminal already in progress');
+  const script=await trustedWalletTerminalCandidate();
+  if(!script)throw Error('Authenticated interactive Wallet companion unavailable');
+  walletTerminalActive=true;
+  try{
+    const vault=path.join(app.getPath('userData'),'native-wallet','fae-wallet.vault.json');
+    await fsPromises.mkdir(path.dirname(vault),{recursive:true,mode:0o700});
+    return await runPrivilegedWalletTerminal(command,{script,
+      nodeExecutable:process.execPath,publicVault:vault,
+      tty:{stdin:!!process.stdin.isTTY,stdout:!!process.stdout.isTTY,
+        stderr:!!process.stderr.isTTY}});
+  }finally{walletTerminalActive=false}
+}
 function bindIpc(){
   const origin=pathToFileURL(path.join(__dirname,'index.html')).href;
   const addressSource=path.join(app.isPackaged?path.join(process.resourcesPath,'fae-runtime'):path.resolve(__dirname,'..','..'),
@@ -196,6 +232,8 @@ function bindIpc(){
   };
   const calls={
     'ts:snapshot':()=>controller.snapshot(),
+    'ts:native-wallet-status':()=>nativeWalletCandidateStatus(),
+    'ts:native-wallet-terminal':command=>nativeWalletCandidateCommand(command),
     'ts:start-node':()=>controller.startNode(),
     'ts:stop-node':()=>controller.stopNode(),
     'ts:start-miner':async addr=>controller.startMiner(await canonicalAddress(addr,addressSource)),
@@ -267,7 +305,10 @@ app.whenReady().then(()=>{
     spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess))});
   watchBook=new WatchAddressBook(app.getPath('userData'));
   shutdownGate=createShutdownGate({
-    dispose:()=>controller.dispose(),
+    dispose:()=>{
+      if(walletTerminalActive)throw Error('Native Wallet terminal is still active');
+      return controller.dispose();
+    },
     quit:()=>app.quit(),
     onFailure:()=>dialog.showErrorBox('Triumph Sovereign — shutdown incomplete',
       'The managed node or miner did not confirm termination. The window stays open; safely stop the process before closing.')
