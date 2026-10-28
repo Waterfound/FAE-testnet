@@ -400,3 +400,69 @@ test('node shutdown revokes API/miner authority before first await and concurren
   assert.equal(c.nodeStopPromise,null);
   assert.equal(c.node,null);
 });
+
+
+test('simultaneous Start Mining requests cannot spawn an unowned second miner',async()=>{
+  const {EventEmitter}=require('node:events');
+  const fakeChild=()=>{
+    const child=new EventEmitter();
+    child.exitCode=null;child.killed=false;child._tsFailed=false;
+    child.kill=()=>{child.killed=true;setImmediate(()=>{child.exitCode=0;child.emit('exit',0)});return true};
+    return child;
+  };
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=fakeChild();
+  let releaseStatus,launches=0;
+  c.readStatus=()=>new Promise(resolve=>{releaseStatus=resolve});
+  c.spawnScript=()=>{launches++;return fakeChild()};
+  const first=c.startMiner(ADDRESS);
+  assert.equal(c.snapshot().miner,'starting');
+  await assert.rejects(()=>c.startMiner(ADDRESS),/Miner startup pending/);
+  releaseStatus({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  assert.equal((await first).miner,'running');
+  assert.equal(launches,1,'Only one tracked standalone miner can exist');
+  await c.stopMiner();
+  assert.equal(c.snapshot().miner,'stopped');
+});
+
+test('Stop Mining cancels a pending launch before any subprocess is spawned',async()=>{
+  const {EventEmitter}=require('node:events');
+  const node=new EventEmitter();node.exitCode=null;node.killed=false;node._tsFailed=false;
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=node;
+  let releaseStatus,launches=0;
+  c.readStatus=()=>new Promise(resolve=>{releaseStatus=resolve});
+  c.spawnScript=()=>{launches++;throw Error('Stale miner spawned after stop')};
+  const opening=c.startMiner(ADDRESS);
+  assert.equal(c.snapshot().miner,'starting');
+  const stopping=c.stopMiner();
+  assert.equal(c.snapshot().miner,'stopping');
+  releaseStatus({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  await assert.rejects(()=>opening,/Miner launch canceled by Stop Mining/);
+  await stopping;
+  assert.equal(launches,0);
+  assert.equal(c.snapshot().miner,'stopped');
+  assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+});
+
+test('Start Mining is refused during asynchronous Stop Mining, then permits a new session',async()=>{
+  const {EventEmitter}=require('node:events');
+  const fake=()=>{
+    const p=new EventEmitter();p.exitCode=null;p.killed=false;p._tsFailed=false;return p;
+  };
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=fake();c.miner=fake();
+  let finishStop,launches=0;
+  c.stop=()=>new Promise(resolve=>{finishStop=resolve});
+  c.readStatus=async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  c.spawnScript=()=>{launches++;return fake()};
+  const stopping=c.stopMiner();
+  assert.equal(c.snapshot().miner,'stopping');
+  await assert.rejects(()=>c.startMiner(ADDRESS),/Miner shutdown pending/);
+  assert.equal(launches,0);
+  finishStop();
+  await stopping;
+  assert.equal(c.snapshot().miner,'stopped');
+  assert.equal((await c.startMiner(ADDRESS)).miner,'running');
+  assert.equal(launches,1);
+});
