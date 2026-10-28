@@ -43,6 +43,10 @@ jobs:
           git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
           trap 'git worktree remove --force "$WALLET_ROOT"' EXIT
           test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Ephemeral CI paths only; never print keys, source contents or credentials.
+            TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node -e 'const fs=require("node:fs"),p=require("node:path");const root=p.resolve(process.env.TS_OWNER_WALLET_ROOT);const real=fs.realpathSync(root);console.log("TS_WIN_REALPATH_DIAG",JSON.stringify({requested:root,actual:real,onlyCaseDifference:p.normalize(real).toLowerCase()===p.normalize(root).toLowerCase(),requestedRoot:p.parse(root).root,actualRoot:p.parse(real).root}));'
+          fi
           TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
       - name: Owner-exact Wallet companion attestation and real isolated A-to-B transaction
         if: runner.os == 'Linux'
