@@ -10,6 +10,21 @@ const {createHash}=require('node:crypto');
 const COMMANDS=new Set(['create','recover','address','receive','balance','history','outbox']);
 const TTY_REQUIRED=new Set(['create','recover','address','receive','balance','history','outbox']);
 const MAX_SOURCE_BYTES=32768;
+// Independently fetched from protected Wallet Draft PR #342 exact head
+// 17c90ffc313fd11de17396437436e4429472f616; candidate evidence only.
+// Publishing this public digest does not admit a release or cryptographic signer.
+const WALLET_OWNER_HEAD='17c90ffc313fd11de17396437436e4429472f616';
+const PINNED_WALLET_BUNDLE=Object.freeze({
+  "standalone/wallet/fae-wallet.mjs": "fd734253fdb43de7c64bc968048b12506a7a4faa25c1a340b5a036971b0feae1",
+  "standalone/wallet/crypto.mjs": "482ed15976e876c2728dcfff88dc845ae325d5c982ac92aaba4af9ed516e8805",
+  "standalone/wallet/vault.mjs": "6861fa4c60c4f2530dded90a4bc4d70a026f50783b33fff857fa9b905bc514d7",
+  "standalone/wallet/outbox.mjs": "94c038446dc0ef148c42df0c720db18d85c418e182226ace816bb978a28ddc8b",
+  "sovereign-forge/node/authoritative/address.mjs": "a7ba18463aa85bc40ed8bf9410ab046542102a63b30b9f84532d16b27b0b24f1",
+  "sovereign-forge/node/authoritative/crypto.mjs": "c327ae561a1d0052032ca4d2fb025018a1aab9fd20b64711f184388cda2c7a7f",
+  "sovereign-forge/node/authoritative/canonical.mjs": "1193a597e16a9138903742c19d7a94367beb79084ad1857f5f016b63f82f9feb",
+  "bip39-en.js": "46e6d96b5b262d16152f7006d24910afc4243de7f72ccb89650d37bc588c278a"
+});
+
 const WALLET_IMPORT_CLOSURE=Object.freeze([
   'standalone/wallet/fae-wallet.mjs',
   'standalone/wallet/crypto.mjs',
@@ -40,7 +55,8 @@ async function authenticatedWalletScript(file,expectedSha256){
     throw Error('Native Wallet companion SHA-256 mismatch');
   return file;
 }
-async function authenticatedWalletBundle(script,manifest){
+async function authenticatedWalletBundle(script){
+  const manifest=PINNED_WALLET_BUNDLE;
   if(typeof script!=='string'||!path.isAbsolute(script)||!manifest||
     typeof manifest!=='object'||Array.isArray(manifest)||
     Object.keys(manifest).length!==WALLET_IMPORT_CLOSURE.length)
@@ -66,7 +82,7 @@ async function authenticatedWalletBundle(script,manifest){
   return script;
 }
 async function runPrivilegedWalletTerminal(command,{
-  script,manifest,nodeExecutable,publicVault,tty,spawnFn=spawn
+  script,nodeExecutable,publicVault,tty,spawnFn=spawn
 }={}){
   if(!COMMANDS.has(command))throw Error('Unsupported native Wallet command');
   if(!tty||tty.stdin!==true||tty.stdout!==true||tty.stderr!==true)
@@ -76,7 +92,7 @@ async function runPrivilegedWalletTerminal(command,{
      publicVault.includes('\0')||publicVault.length>1024)
     throw Error('Wallet executable or local vault target not admitted');
   // Full source-owned static import closure is mandatory, not only the CLI.
-  await authenticatedWalletBundle(script,manifest);
+  await authenticatedWalletBundle(script);
   const args=[script,command,'--vault',publicVault];
   return new Promise((resolve,reject)=>{
     let child;
@@ -98,4 +114,4 @@ async function runPrivilegedWalletTerminal(command,{
     });
   });
 }
-module.exports={authenticatedWalletScript,authenticatedWalletBundle,runPrivilegedWalletTerminal};
+module.exports={WALLET_OWNER_HEAD,authenticatedWalletScript,authenticatedWalletBundle,runPrivilegedWalletTerminal};
