@@ -9,7 +9,7 @@ process.on('message',message=>{
     type:'TRIUM_FAE_NODE_IPC_REPLY_V1',
     session:process.env.IPC_FIXTURE_MODE==='wrong-session'?'0'.repeat(64):message.session,
     network:process.env.IPC_FIXTURE_MODE==='wrong-network'?'wrong-network':NETWORK,
-    request_id:process.env.IPC_FIXTURE_MODE==='replay'?message.request_id-1:message.request_id,
+    request_id:process.env.IPC_FIXTURE_MODE==='replay'?message.request_id+1:message.request_id,
     ok:true,
     result:{network:NETWORK,height:1,source:'REAL_CHILD_OS_IPC_FIXTURE_ONLY'}
   };
