@@ -107,6 +107,25 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
     const verified=await planWithOwnedNodeFinalityCheck(args);
     assert.equal(verified.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
     assert.equal(verified.input_authorization,'DENIED_UNVERIFIED');
+    // V44 RED: a pending spend can reserve the selected confirmed UTXO
+    // while height/hash remain identical. A stable tip does NOT prove that
+    // the original public input selection is still available.
+    let fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      fundingReads++;
+      if(fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs=changed.outputs.filter(row=>row.source==='pending');
+      changed.confirmed_candidate_atoms='0';
+      changed.candidate_atoms='1000000000';
+      return changed;
+    };
+    const sameTipSpent=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(sameTipSpent.state,'NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(sameTipSpent,'selected_inputs'));
+    assert.ok(fundingReads>=2,'must obtain a fresh original node UTXO observation AFTER planning');
+    // Preserve node source and pending proof isolation in subsequent cases.
+    controller.readFundingCandidates=async()=>candidates();
     // The original original code selected valid public inputs, but chain
     // progression immediately revokes the result.
     controller.readStatus=async()=>({height:251,tip_hash:H('d')});
