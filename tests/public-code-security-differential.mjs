@@ -56,7 +56,10 @@ function mine(template,{maxNonce=8_000_000}={}){
 }
 
 async function json(url,options={}){
-  const response=await fetch(url,options);
+  // Exact proven V33 source-test fixture correction: multi-second synchronous
+  // PoW must not reuse a stale pooled idle socket. No retry, no change to
+  // product node transport, consensus, or ambiguous submission behavior.
+  const response=await fetch(url,{...options,headers:{...options.headers,Connection:'close'}});
   const payload=await response.json().catch(()=>({}));
   return{response,payload};
 }
