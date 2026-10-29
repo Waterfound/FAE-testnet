@@ -1,0 +1,41 @@
+name: TRIUM V36 Original Wallet Public Planner
+on:
+  pull_request:
+    paths:
+      - 'universal-client/src/v36-original-wallet-public-plan.cjs'
+      - 'universal-client/src/main.cjs'
+      - 'universal-client/src/renderer.js'
+      - 'universal-client/test/v36-original-wallet-public-plan.test.cjs'
+      - '.github/workflows/trium-v36-original-wallet-public-planning.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-original-wallet-three-os:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    env:
+      TS_V36_REAL_ORIGINAL_WALLET: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch exact protected original Wallet source-owner candidate read-only
+        shell: bash
+        run: |
+          git fetch --no-tags origin 17c90ffc313fd11de17396437436e4429472f616
+          test "$(git rev-parse FETCH_HEAD)" = '17c90ffc313fd11de17396437436e4429472f616'
+      - name: Syntax and source authenticated original Wallet public plan
+        run: |
+          node --check universal-client/src/v36-original-wallet-public-plan.cjs
+          node --check universal-client/test/v36-original-wallet-public-plan.test.cjs
+          node --test universal-client/test/v36-original-wallet-public-plan.test.cjs
+      - name: Protected Wallet and original node files unchanged from original V35 base
+        run: git diff --exit-code 721c17ebce469ca83fe2c2c309558c26120d4dbf HEAD -- standalone/wallet/crypto.mjs standalone/wallet/vault.mjs standalone/wallet/outbox.mjs standalone/wallet/fae-wallet.mjs sovereign-forge/node/fae-node.mjs
