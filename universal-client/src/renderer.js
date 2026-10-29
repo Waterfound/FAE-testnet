@@ -180,8 +180,13 @@ async function inspectFundingCandidates(){
   if(generation!==fundingRequest||address!==get('wallet-address').value.trim()||
      state.node!=='running')return;
   if(!result||result.authority!=='SELECTED_NODE_UNTRUSTED_UTXO_CLAIM'||
-     result.address!==address){
-    output.textContent='No compatible selected-node funding candidate observation.';
+     result.address!==address||
+     result.funding_authorization!=='DENIED_UNVERIFIED'||
+     result.eligible_candidate_atoms!=='0'||result.eligible_candidate_count!==0||
+     !Array.isArray(result.outputs)||result.outputs.some(item=>
+       item?.spend_eligibility!=='UNVERIFIED'||
+       !Array.isArray(item.exclusion_reasons)||item.exclusion_reasons.length<4)){
+    output.textContent='No compatible fail-closed selected-node funding observation.';
     return;
   }
   const exact=(atoms)=>{
@@ -194,10 +199,14 @@ async function inspectFundingCandidates(){
     'Claimed total: '+exact(result.candidate_atoms)+' FAE',
     'Claimed confirmed outputs: '+exact(result.confirmed_candidate_atoms)+' FAE',
     'Claimed pending outputs: '+exact(result.pending_candidate_atoms)+' FAE',
-    'Output count: '+result.candidate_count,
+    'Observed output count: '+result.candidate_count,
+    'Eligible for signing or submission: '+exact(result.eligible_candidate_atoms)+
+      ' FAE · '+result.eligible_candidate_count+' outputs',
+    'Funding authorization: '+result.funding_authorization,
     'Observed tip: #'+result.observed_tip_height+' · '+result.observed_tip_hash,
     ...result.outputs.slice(0,20).map(item=>
-      item.source.toUpperCase()+' · '+item.outpoint+' · '+exact(item.amount_atoms)+' FAE'),
+      item.source.toUpperCase()+' · '+item.outpoint+' · '+exact(item.amount_atoms)+
+      ' FAE · '+item.spend_eligibility+' · '+item.exclusion_reasons.join(', ')),
     ...(result.outputs.length>20?['Additional output rows omitted from display.']:[]),
     'Coinbase maturity: NOT VERIFIED · Key ownership: NOT VERIFIED',
     'Managed node process identity: NOT CRYPTOGRAPHICALLY AUTHENTICATED',
