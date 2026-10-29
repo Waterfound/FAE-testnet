@@ -33,6 +33,6 @@ jobs:
       - name: Actual original FAE miner OS child, real PoW and fail-closed owner channel
         run: node --test tests/fae-v34-real-os-owned-miner-denial.test.mjs
       - name: Protected original FAE network and Wallet remain unchanged
-        run: git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs standalone/wallet/fae-wallet.mjs
+        run: git diff --exit-code 3ac488929d5f4d19213e12e18752fe8769cb924e HEAD -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs standalone/wallet/fae-wallet.mjs
       - name: Original FAE source manifests remain valid
         run: node tests/verify-fae-manifest-git-blob.mjs
