@@ -57,6 +57,19 @@ test('original pending UTXO parent attribution must match its canonical outpoint
     /candidate total mismatch/);
 });
 
+test('V44 balance contract forbids noncanonical or precision-losing untrusted atomic values',()=>{
+  const {validateRead}=require('../src/bridge-contract.cjs');
+  const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const valid={ok:true,address,balance_atoms:'120000000',balance_fae:'1.2'};
+  assert.equal(validateRead(valid,{kind:'balance',address}).balance_atoms,'120000000');
+  assert.equal(validateRead({...valid,balance_atoms:'0'},{kind:'balance',address}).balance_atoms,'0');
+  for(const bad of [0,10,Number.MAX_SAFE_INTEGER+1,0n,null,undefined,false,{},[],
+    '', '00','01','-1','+1','1e4',' 1','1.0','9'.repeat(81)]){
+    assert.throws(()=>validateRead({...valid,balance_atoms:bad},{kind:'balance',address}),
+      /Invalid node balance payload/, 'untrusted balance requires a bounded canonical decimal string');
+  }
+});
+
 test('node/miner subprocess environment strips credential-bearing variables',()=>{
   process.env.TS_CANARY_SECRET='should-not-pass-through';
   const actual=makeEnv({FAE_SYNC:'0'});
