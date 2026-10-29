@@ -65,6 +65,7 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     assert.equal((await controller.readStatus()).height,0);
     console.log('TS_V27_ELECTRON_CONTROLLER_IPC_PASS '+JSON.stringify({
       node:'ORIGINAL_FAE_V4',transport:'ACTUAL_ELECTRON_UTILITY_PROCESS',
+      original_source_modules_pinned:Object.keys(OWNER_PINS).length,
       status:true,balance:true,funding:true,session_revoked:true,
       cold_restart:true,managed_browser_origin:'DENIED',managed_local_http_tx:'DENIED',explorer_http_fallback:'DENIED',
       signer:'DISABLED',submission:'DISABLED'
