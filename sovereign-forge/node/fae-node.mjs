@@ -7,6 +7,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { createExplorerReader } from './explorer-read.mjs';
 import { installFAENodeParentPort } from './node-parent-port.mjs';
+import { managedHttpRequestAllowed,managedHttpCors } from './managed-http-guard.mjs';
 
 const NETWORK='fairyelf-public-testnet-v4';
 const COIN=100000000n;
@@ -45,6 +46,10 @@ const DEFAULT_CHAIN_FEED='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/
 
 const PORT=Number(process.env.FAE_PORT||8787);
 const HOST=process.env.FAE_HOST||'0.0.0.0';
+const MANAGED_MODE=process.env.FAE_TRIUM_IPC==='1';
+// Fail closed before network startup: managed native child must bind only to
+// literal IPv4 loopback. Ordinary standalone/public node remains unchanged.
+if(MANAGED_MODE&&HOST!=='127.0.0.1')throw Error('Managed FAE node requires literal IPv4 loopback binding');
 const DATA_FILE=resolve(process.env.FAE_DATA_FILE||'./data/fae-state.json');
 const SYNC_MS=Math.max(5000,Number(process.env.FAE_SYNC_MS||15000));
 const UPSTREAM_API=(process.env.FAE_UPSTREAM_API===undefined?DEFAULT_PUBLIC_API:process.env.FAE_UPSTREAM_API).trim().replace(/\/$/,'');
@@ -123,11 +128,11 @@ function reorgRecordOrder(a,b){const ah=a.confirmed_height===null||a.confirmed_h
 function reconcileDetachedTransactions(candidate,previous){const detached=Object.values(previous.transactions).filter(record=>record&&record.txid&&!candidate.transactions[record.txid]).sort(reorgRecordOrder);const waiting=new Map(detached.map(record=>[String(record.txid),record]));const reacceptedRecords=[];let rejected=0,progress=true;while(progress&&waiting.size){progress=false;for(const [txid,record] of [...waiting.entries()]){try{acceptTxInto(candidate,{version:2,network:NETWORK,inputs:[...(record.inputs||[])],outputs:(record.outputs||[]).map(output=>({address:String(output.address),amount_atoms:String(output.amount_atoms)})),public_key_spki:String(record.public_key_spki),signature:String(record.signature),txid,from_address:String(record.from_address),mempool_seq:Number(record.mempool_seq||0),created_at:record.created_at},{fromFeed:true});waiting.delete(txid);reacceptedRecords.push(candidate.transactions[txid]);progress=true}catch(error){if(String(error.code||error.message)==='missing_or_spent_input')continue;waiting.delete(txid);rejected++}}}rejected+=waiting.size;return{state:candidate,reacceptedRecords,rejected}}
 async function syncOnce(){if(syncRunning)return;syncRunning=true;try{for(const source of [...new Set([...FEEDS,...PEERS])]){try{const candidate=await fetchCandidate(source);if(preferred(candidate,state)){await serial(async()=>{if(preferred(candidate,state)){const previous=state;const reconciled=reconcileDetachedTransactions(candidate,previous);state=reconciled.state;await persist();for(const record of reconciled.reacceptedRecords)relay('/submit-tx',{tx:normalizeTx(record)}).catch(()=>{});console.log(`[FAE] adopted verified chain height ${state.chain.length} from ${source}; mempool reaccepted=${reconciled.reacceptedRecords.length} dropped=${reconciled.rejected}`)}})}}catch(error){console.warn(`[FAE] sync source ${source}: ${error.message}`)}}}finally{syncRunning=false}}
 
-function cors(methods='GET,POST,OPTIONS'){return{'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':methods,'content-type':'application/json; charset=utf-8','cache-control':'no-store'}}
+function cors(methods='GET,POST,OPTIONS'){if(MANAGED_MODE)return managedHttpCors(methods);return{'access-control-allow-origin':'*','access-control-allow-headers':'content-type','access-control-allow-methods':methods,'content-type':'application/json; charset=utf-8','cache-control':'no-store'}}
 function send(res,status,payload,headers=cors()){res.writeHead(status,headers);res.end(JSON.stringify(payload))}
 async function readBody(req){let body='';for await(const chunk of req){body+=chunk;if(body.length>2_000_000)throw Error('body_too_large')}return body?JSON.parse(body):{}}
 
-async function handler(req,res){try{const url=new URL(req.url,'http://localhost');const explorerPath=url.pathname==='/explorer'||url.pathname.startsWith('/explorer/');if(req.method==='OPTIONS'){res.writeHead(204,explorerPath?cors('GET,OPTIONS'):cors());return res.end()}if(explorerPath){const snapshot=cloneState(state);const result=explorerReader.handle(req.method,url,snapshot);return send(res,result.status,result.payload,cors('GET,OPTIONS'))}
+async function handler(req,res){try{if(MANAGED_MODE&&!managedHttpRequestAllowed(req))return send(res,403,{ok:false,error:'managed_http_ingress_denied'});const url=new URL(req.url,'http://localhost');const explorerPath=url.pathname==='/explorer'||url.pathname.startsWith('/explorer/');if(req.method==='OPTIONS'){res.writeHead(204,explorerPath?cors('GET,OPTIONS'):cors());return res.end()}if(explorerPath){const snapshot=cloneState(state);const result=explorerReader.handle(req.method,url,snapshot);return send(res,result.status,result.payload,cors('GET,OPTIONS'))}
   if(url.pathname==='/'||url.pathname==='/status')return send(res,200,statusPayload());
   if(url.pathname==='/state'){const recent=state.chain.slice(-12).reverse().map(publicBlock);return send(res,200,{...statusPayload(),recent})}
   if(url.pathname==='/feed'){const from=Math.max(1,Number(url.searchParams.get('from')||1)),limit=Math.max(1,Math.min(250,Number(url.searchParams.get('limit')||100))),to=from+limit-1;const blocks=state.chain.filter(b=>b.height>=from&&b.height<=to).map(publicBlock);const heights=new Set(blocks.map(b=>b.height));const transactions=Object.values(state.transactions).filter(t=>t.status==='confirmed'&&heights.has(Number(t.confirmed_height))).sort((a,b)=>Number(a.confirmed_height)-Number(b.confirmed_height)||Number(a.mempool_seq)-Number(b.mempool_seq));const last=tip(state);return send(res,200,{ok:true,feed_version:1,network:NETWORK,from,limit,tip_height:last?.height||0,tip_hash:last?.hash||ZERO_HASH,blocks,transactions})}
@@ -135,6 +140,11 @@ async function handler(req,res){try{const url=new URL(req.url,'http://localhost'
   if(url.pathname==='/balance'){const address=url.searchParams.get('address')||'';if(!validAddress(address))return send(res,400,{ok:false,error:'invalid address'});const utxos=Object.entries(state.utxos).filter(([,u])=>u.address===address&&!u.spent).map(([outpoint,u])=>({outpoint,amount_atoms:String(u.amount_atoms),created_height:u.created_height}));const total=balanceAtoms(state,address);return send(res,200,{ok:true,address,balance_atoms:total.toString(),balance_fae:formatAtoms(total),utxo_count:utxos.length,utxos})}
   if(url.pathname==='/spendable'){const address=url.searchParams.get('address')||'';if(!validAddress(address))return send(res,400,{ok:false,error:'invalid address'});const utxos=spendableOutputs(state,address);const total=utxos.reduce((sum,u)=>sum+BigInt(u.amount_atoms),0n);return send(res,200,{ok:true,address,spendable_atoms:total.toString(),spendable_fae:formatAtoms(total),utxos})}
   if(url.pathname==='/transactions'){const address=url.searchParams.get('address')||'';if(!validAddress(address))return send(res,400,{ok:false,error:'invalid address'});const transactions=Object.values(state.transactions).filter(t=>t.from_address===address||t.outputs.some(o=>o.address===address)).sort((a,b)=>Number(b.mempool_seq)-Number(a.mempool_seq)).slice(0,30);return send(res,200,{ok:true,transactions})}
+  // Wallet submission in managed-native mode must not be accepted from an
+  // unauthenticated local HTTP process. Future owner-approved signing and
+  // transmission must use a private OS-bound channel; miner /submit-block
+  // remains available to the existing native miner.
+  if(MANAGED_MODE&&url.pathname==='/submit-tx'&&req.method==='POST')return send(res,403,{ok:false,error:'managed_tx_ingress_requires_native_owner'});
   if(url.pathname==='/submit-tx'&&req.method==='POST'){const body=await readBody(req);let accepted;try{await serial(async()=>{accepted=acceptTxInto(state,body?.tx||body);await persist()})}catch(error){return send(res,409,{ok:false,error:error.code||error.message})}relay('/submit-tx',{tx:normalizeTx(body?.tx||body)}).catch(()=>{});return send(res,200,{ok:true,txid:accepted.txid,fee_atoms:accepted.fee_atoms})}
   if(url.pathname==='/submit-block'&&req.method==='POST'){const body=await readBody(req);let accepted;try{await serial(async()=>{const next=appendBlockFromSubmission(state,{header:body.header,nonce:Number(body.nonce),hash:String(body.hash||''),txids:(body.txids||[]).map(String)});state=next;accepted=tip(state);await persist()})}catch(error){const code=String(error.message).split(':')[0];return send(res,code==='stale_tip'?409:400,{ok:false,error:code,reason:code,height:tip(state)?.height||0,tip_hash:tip(state)?.hash||ZERO_HASH})}relay('/submit-block',{header:body.header,nonce:Number(body.nonce),hash:String(body.hash),txids:(body.txids||[]).map(String)}).catch(()=>{});return send(res,200,{ok:true,height:accepted.height,hash:accepted.hash,tx_count:accepted.txids.length})}
   if(url.pathname==='/peers')return send(res,200,{ok:true,network:NETWORK,upstream_api:UPSTREAM_API||null,peers:PEERS,feeds:FEEDS});
@@ -145,7 +155,7 @@ await loadState();
 if(ENABLE_SYNC)await syncOnce().catch(()=>{});
 // Explicit opt-in for OS child processes; ordinary node deployment unchanged.
 // Source-owner admission and original-node SHA/package update are still gated.
-if(process.env.FAE_TRIUM_IPC==='1'){
+if(MANAGED_MODE){
   installFAENodeParentPort({
     network:NETWORK,
     readStatus:()=>statusPayload(),

@@ -2,7 +2,7 @@ FROM node:22-bookworm-slim
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
-COPY fae-node.mjs explorer-read.mjs node-parent-port.mjs ./
+COPY fae-node.mjs explorer-read.mjs node-parent-port.mjs managed-http-guard.mjs ./
 ENV FAE_HOST=0.0.0.0 \
     FAE_PORT=8787 \
     FAE_DATA_FILE=/data/fae-state.json

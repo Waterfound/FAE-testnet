@@ -5,6 +5,8 @@ on:
       - 'sovereign-forge/node/fae-node.mjs'
       - 'sovereign-forge/node/node-parent-port.mjs'
       - 'tests/fae-node-parent-port.test.mjs'
+      - 'tests/fae-v29-managed-http-origin.test.mjs'
+      - 'sovereign-forge/node/managed-http-guard.mjs'
       - '.github/workflows/fae-original-node-ipc-candidate.yml'
   workflow_dispatch:
 permissions:
@@ -30,7 +32,12 @@ jobs:
         run: |
           node --check sovereign-forge/node/fae-node.mjs
           node --check sovereign-forge/node/node-parent-port.mjs
+          node --check sovereign-forge/node/managed-http-guard.mjs
       - name: Genuine original-node fork IPC adversarial suite
         run: node --test tests/fae-node-parent-port.test.mjs
+      - name: V29 real original node browser-origin and DNS-rebinding adversarial controls
+        run: node --test tests/fae-v29-managed-http-origin.test.mjs
+      - name: Committed Git source manifest integrity
+        run: node tests/verify-fae-manifest-git-blob.mjs
       - name: Original consensus and protected wallet still unchanged
         run: git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js standalone/wallet/crypto.mjs standalone/wallet/fae-wallet.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
