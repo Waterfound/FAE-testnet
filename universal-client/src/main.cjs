@@ -319,8 +319,13 @@ function bindIpc(){
       const review=await reviewPublicPayment(draft,{addressSource});
       // The managed node itself remains an untrusted source of claims.
       // Balance is stable-tip-bound; signing and spendability remain disabled.
+      const expectedNode=controller.node;
       const observed=await controller.readBalance(review.from);
       const view=compareObservedFunds(review,observed);
+      if(!expectedNode||controller.node!==expectedNode)
+        return {...view,original_wallet_plan:{
+          state:'NODE_PROCESS_REPLACED_NO_PLAN',signing:'NOT_ADMITTED',
+          submission:'NOT_SUBMITTED',input_authorization:'DENIED_UNVERIFIED'}};
       // Candidate original Wallet planner is enabled only with exact source
       // pin, managed node's stable-tip UTXO data, and matching observations.
       // A plan is HYPOTHETICAL: no ownership/maturity/IPC admission or signer.
@@ -332,7 +337,7 @@ function bindIpc(){
         // V37: source snapshot and original coin selection are asynchronous.
         // A node restart or tip advance AFTER planning revokes the preview.
         const original_wallet_plan=await planWithOwnedNodeFinalityCheck({
-          controller,walletScript:script,review,observed});
+          controller,expectedNode,walletScript:script,review,observed});
         return {...view,original_wallet_plan};
       }catch{
         // No HTTP fallback, no unchecked candidate inputs, no signing.
