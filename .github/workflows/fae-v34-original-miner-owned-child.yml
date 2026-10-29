@@ -5,6 +5,8 @@ on:
       - 'universal-client/src/v34-original-miner-owner.cjs'
       - 'universal-client/src/v34-original-miner-owned-worker.mjs'
       - 'tests/fae-v34-real-os-owned-miner-denial.test.mjs'
+      - 'tests/public-code-security-differential.mjs'
+      - 'sovereign-forge/tests/partition-recovery-3node.mjs'
       - '.github/workflows/fae-v34-original-miner-owned-child.yml'
   workflow_dispatch:
 permissions:
