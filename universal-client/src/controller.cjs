@@ -6,7 +6,7 @@ const {EventEmitter}=require('node:events');
 const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
-const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
+const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
 const ADDRESS=/^faet1[023456789acdefghjklmnpqrstuvwxyz]{25,85}$/;
@@ -133,14 +133,20 @@ async function fetchRead(url,kind='status',address,validator=validateRead){
   return validator(payload,{kind,address});
 }
 class ProcessController extends EventEmitter{
-  constructor({repoRoot,dataDir,port=randomInt(32768,61000),nodeExecutable=process.execPath,
+  constructor({repoRoot,dataDir,port,nodeExecutable=process.execPath,
     spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe,listenEvidence=waitForManagedListenEvidence}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
-    if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid managed node port');
-    this.port=port;
-    this.endpoint='http://127.0.0.1:'+port;
+    const selectedPort=port===undefined?randomInt(32768,61000):port;
+    if(!Number.isInteger(selectedPort)||selectedPort<1024||selectedPort>65535)
+      throw Error('Invalid managed node port');
+    this.port=selectedPort;
+    this.endpoint='http://127.0.0.1:'+selectedPort;
+    // With the real default probe, the first start asks the OS for an allowed
+    // local port; explicit-port/test-probe callers retain their exact port.
+    // A selected port is pinned through this controller's stop/restart cycle.
+    this.osAssignedPortPending=port===undefined&&portProbe===probeLoopbackPort;
     this.nodeExecutable=nodeExecutable;
     this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
@@ -223,6 +229,13 @@ class ProcessController extends EventEmitter{
     };
     this.emit('state',this.snapshot());
     try{
+      if(this.osAssignedPortPending){
+        const allowed=await allocateOsAssignedLoopbackPort();
+        assertNotCanceled();
+        this.port=allowed;
+        this.endpoint='http://127.0.0.1:'+allowed;
+        this.osAssignedPortPending=false;
+      }
       await this.portProbe(this.port);
       assertNotCanceled();
       const dir=path.join(this.dataDir,'node');
