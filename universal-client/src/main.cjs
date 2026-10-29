@@ -263,6 +263,21 @@ function bindIpc(){
     'ts:status':()=>controller.readStatus(),
     'ts:balance':async addr=>controller.readBalance(await canonicalAddress(addr,addressSource)),
     'ts:funding-candidates':async addr=>controller.readFundingCandidates(await canonicalAddress(addr,addressSource)),
+    'ts:transaction-lookup':async txid=>{
+      // One renderer-facing observation API; mode is selected exclusively by
+      // the actual parent-owned ProcessController, never by a renderer flag.
+      if(typeof txid!=='string'||!/^[0-9a-f]{64}$/.test(txid))
+        throw Error('Exact public FAE transaction ID required');
+      if(controller.nativeIpcCandidate){
+        // No local HTTP fallback even after native restart/revocation/error.
+        const result=await controller.readTransactionByTxid(txid);
+        return {origin:'PARENT_OWNED_NATIVE_IPC',result};
+      }
+      // Existing unadmitted GUI continues to show the historical, explicitly
+      // untrusted Explorer observation; this is not a signer or a native claim.
+      const result=await controller.readExplorer('/explorer/transaction',{txid});
+      return {origin:'LOCAL_HTTP_EXPLORER_CLAIM',result};
+    },
     'ts:explorer':async(route,query)=>{
       if(route==='/explorer/address'&&query?.address!==undefined)
         await canonicalAddress(query.address,addressSource);
