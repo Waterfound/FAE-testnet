@@ -1,0 +1,34 @@
+name: FAE original-node inherited IPC (protected owner proposal)
+on:
+  pull_request:
+    paths:
+      - 'sovereign-forge/node/fae-node.mjs'
+      - 'sovereign-forge/node/node-parent-port.mjs'
+      - 'tests/fae-node-parent-port.test.mjs'
+      - '.github/workflows/fae-original-node-ipc-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-original-node-ipc:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact source identity
+        run: git rev-parse HEAD
+      - name: Original node and native module syntax
+        run: |
+          node --check sovereign-forge/node/fae-node.mjs
+          node --check sovereign-forge/node/node-parent-port.mjs
+      - name: Genuine original-node fork IPC adversarial suite
+        run: node --test tests/fae-node-parent-port.test.mjs
+      - name: Original consensus and protected wallet still unchanged
+        run: git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js standalone/wallet/crypto.mjs standalone/wallet/fae-wallet.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
