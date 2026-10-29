@@ -6,7 +6,7 @@ const {EventEmitter}=require('node:events');
 const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
-const {OwnedNodeIpc}=require('./owned-node-ipc.cjs');
+const {OwnedNodeIpc,IPC_ENV_FLAG}=require('./owned-node-ipc.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
@@ -286,7 +286,7 @@ class ProcessController extends EventEmitter{
       this.node=this.spawnScript(path.join(this.repoRoot,'sovereign-forge','node','fae-node.mjs'),[],{
         FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
         FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:'',
-        ...(this.nativeIpcCandidate?{FAE_TRIUM_IPC:'1'}:{})
+        ...(this.nativeIpcCandidate?{[IPC_ENV_FLAG]:'1'}:{})
       });
       // The child must itself report successful listen before any HTTP status
       // could be considered. This closes the basic prebind spoof admission gap.
