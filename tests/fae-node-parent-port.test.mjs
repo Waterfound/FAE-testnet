@@ -15,8 +15,28 @@ async function withNode(enabled,work){
     ...process.env,FAE_TRIUM_IPC:enabled?'1':'0',FAE_SYNC:'0',
     FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:'',
     FAE_DATA_FILE:join(dir,'state.json'),FAE_PORT:'0',FAE_HOST:'127.0.0.1'
-  },stdio:['ignore','ignore','pipe','ipc']});
-  try{return await work(child)}
+  },stdio:['ignore','pipe','pipe','ipc']});
+  try{
+    // The actual original node must finish loading and report its own OS
+    // listener startup; do not assume fork() implies node readiness.
+    await new Promise((resolveReady,rejectReady)=>{
+      let started=false,buffer='';
+      const timer=setTimeout(()=>finish(Error('original_node_startup_timeout')),6000);
+      const onExit=()=>finish(Error('original_node_exited_before_readiness'));
+      const onData=data=>{
+        buffer+=String(data);
+        if(buffer.length>8192)buffer=buffer.slice(-8192);
+        if(buffer.includes(' listening on http://127.0.0.1:0 height='))finish();
+      };
+      function finish(error){
+        if(started)return;started=true;clearTimeout(timer);
+        child.stdout.off('data',onData);child.off('exit',onExit);
+        if(error)rejectReady(error);else resolveReady();
+      }
+      child.stdout.on('data',onData);child.on('exit',onExit);
+    });
+    return await work(child)
+  }
   finally{
     if(child.connected)child.disconnect();
     if(child.exitCode===null&&!child.killed)child.kill();
