@@ -6,9 +6,9 @@ import {mkdtemp,mkdir,copyFile,readFile,writeFile,realpath,rm} from 'node:fs/pro
 import {tmpdir} from 'node:os';
 import {join,resolve,dirname} from 'node:path';
 import {createRequire} from 'node:module';
-import {hashHeaderNonce,workMeetsTarget} from '../standalone/mining-core.mjs';
+import {hashHeaderNonce,workMeetsTarget,buildSubmission} from '../standalone/mining-core.mjs';
 const require=createRequire(import.meta.url);
-const {runDeniedOriginalMiner,verifyOriginalMinerSource,SOURCE_BLOBS}=
+const {runDeniedOriginalMiner,verifyOriginalMinerSource,assertOriginalMinerProposal,SOURCE_BLOBS}=
   require('../universal-client/src/v34-original-miner-owner.cjs');
 const ROOT=resolve('.');
 const NODE=resolve('sovereign-forge/node/fae-node.mjs');
@@ -71,6 +71,22 @@ test('V34 genuine ORIGINAL miner child finds valid PoW but OS parent denies muta
       assert.equal(result.block_height,1);
       assert.equal(hashHeaderNonce(result.header,result.nonce),result.block_hash);
       assert.equal(workMeetsTarget(result.block_hash,result.header.difficulty_bits),true);
+      // The SAME original mining-core validates the parent-side boundary.
+      // A valid original OS child block is admitted only as proof, never as
+      // an original-node state mutation without owner authorization.
+      const proposed={header:result.header,nonce:result.nonce,
+        hash:result.block_hash,txids:result.txids};
+      assert.equal(assertOriginalMinerProposal(proposed,buildSubmission),true);
+      const tampered=[
+        {...proposed,hash:'f'.repeat(64)},
+        {...proposed,txids:['a'.repeat(64)]},
+        {...proposed,header:{...proposed.header,network:'untrusted-mainnet'}},
+        {...proposed,header:{...proposed.header,tx_root:'b'.repeat(64)}},
+        {...proposed,unauthorized_mutation:true}
+      ];
+      for(const forged of tampered)
+        assert.throws(()=>assertOriginalMinerProposal(forged,buildSubmission),
+          /Original miner proposal proof rejected/);
       const after=await status(base);
       assert.equal(after.height,0,'rejected owner cannot mutate original chain');
       assert.equal(after.tip_hash,start.tip_hash);
