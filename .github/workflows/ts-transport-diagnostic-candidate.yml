@@ -1,0 +1,46 @@
+name: TS isolated PSR-11 transport-cause diagnostic candidate
+on:
+  pull_request:
+    paths:
+      - 'universal-client/scripts/fetch-diagnostics.mjs'
+      - '.github/workflows/ts-transport-diagnostic-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  psr11-real-loopback-transport-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      TS_PSR11_DIAG_SOCKET_META: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check diagnostic preloader
+        run: node --check universal-client/scripts/fetch-diagnostics.mjs
+      - name: Reproduce PSR-11 baseline versus isolated fresh-connection transport
+        shell: bash
+        run: |
+          set -uo pipefail
+          baseline_failures=0
+          fresh_failures=0
+          for mode in baseline fresh; do
+            for i in 1 2 3 4; do
+              echo "TS_PSR11_MODE=$mode ROUND=$i"
+              if [ "$mode" = fresh ]; then
+                if TS_PSR11_DIAG_FRESH_CONNECTION=1 node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs; then rc=0; else rc=$?; fi
+              else
+                if node --import ./universal-client/scripts/fetch-diagnostics.mjs --test tests/public-code-security-differential.mjs; then rc=0; else rc=$?; fi
+              fi
+              if [ "$rc" -ne 0 ]; then
+                if [ "$mode" = baseline ]; then baseline_failures=$((baseline_failures+1)); else fresh_failures=$((fresh_failures+1)); fi
+              fi
+            done
+          done
+          echo "TS_PSR11_BASELINE_FAILURES=$baseline_failures"
+          echo "TS_PSR11_FRESH_CONNECTION_FAILURES=$fresh_failures"
+          # Differential diagnostic only: an improved transport cannot waive the
+          # real canonical test. Both modes must pass for a GREEN diagnostic.
+          test "$baseline_failures" -eq 0 && test "$fresh_failures" -eq 0

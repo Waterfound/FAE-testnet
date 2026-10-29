@@ -1,0 +1,23 @@
+/* Triumph Sovereign Universal Client — authored color semantics.
+   ORANGE: identity/top; WHITE: work; BLUE: active decisions and movement.
+   The sovereign's metallic/gem colors are owned by the canonical media assets. */
+:root{
+  color-scheme:light;
+  --ts-identity:#b65b18;
+  --ts-identity-deep:#a34e0f;
+  --ts-workspace:#faf9f6;
+  --ts-surface:#ffffff;
+  --ts-action:#286ac6;
+  --ts-active-soft:#edf3fc;
+  --ts-ink:#252e39;
+  --ts-muted:#6d7886;
+  --ts-line:#e6e8eb;
+  --orange:var(--ts-identity);
+  --orange-dark:var(--ts-identity-deep);
+  --white:var(--ts-surface);
+  --blue:var(--ts-action);
+  --ink:var(--ts-ink);
+  --muted:var(--ts-muted);
+  --line:var(--ts-line);
+  --soft:#f4f6f9;
+}

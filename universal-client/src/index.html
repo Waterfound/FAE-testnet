@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'">
+<title>Triumph Sovereign — Universal Client</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="top"><strong>⚜ TRIUMPH SOVEREIGN</strong><span>TRIUM · OFFICIAL INTENDED TICKER · FAE PUBLIC TESTNET V4</span><span id="network-tag">LOCAL NODE OFFLINE</span></header>
+<div class="shell">
+<nav class="sidebar" aria-label="Primary navigation">
+<p class="eyebrow">WORKSPACE</p>
+<button class="nav active" data-page="home" aria-current="page">Overview</button>
+<button class="nav" data-page="wallet">Wallet</button>
+<button class="nav" data-page="mining">Mining</button>
+<button class="nav" data-page="node">Run a Node</button>
+<button class="nav" data-page="explorer">Explorer</button>
+<button class="nav" data-page="settings">Settings</button>
+</nav>
+<main>
+<section class="page visible" id="page-home">
+<div class="hero"><div class="hero-media">
+<img id="hero-motion" alt="Triumph Sovereign official Hero Wordmark" hidden>
+<img id="hero-rest" alt="Triumph Sovereign resting Hero Wordmark" hidden>
+<div id="hero-unavailable" class="missing">Official Hero asset unavailable in this checkout</div>
+</div>
+<p class="eyebrow">TRIUM · OFFICIAL INTENDED TICKER</p>
+<p class="fine">Existing FAE public testnet · no consensus or asset migration</p>
+<h1>Triumph Sovereign</h1>
+<p class="lead">Wallet, mining, independent node and blockchain exploration in one place.</p>
+<p class="fine">TRIUM is the intended monetary symbol. Observed testnet balances remain FAE. No mainnet or economic activation.</p>
+</div>
+<div class="tiles"><article class="panel"><small>NETWORK</small><h2 id="home-network">Not connected</h2><p>No simulated chain state.</p></article>
+<article class="panel"><small>NODE</small><h2 id="home-node">Stopped</h2><p>Optional local process.</p></article>
+<article class="panel"><small>MINER</small><h2 id="home-miner">Stopped</h2><p>Public reward address only.</p></article></div>
+</section>
+<section class="page" id="page-wallet"><p class="eyebrow">WALLET · WATCH-ONLY OBSERVATION</p><h1>Your wallet</h1>
+<p class="lead">Watch-only balance observation. Encrypted native vault, signing and wallet recovery require separate audited candidate admission.</p>
+<article class="panel"><div class="balance-grid"><div><small>OBSERVED FAE TESTNET BALANCE · NOT TRIUM</small>
+<div id="balance-amount" class="amount">— FAE</div><p class="fine" id="balance-status">Enter a public FAE address.</p></div>
+<div class="balance-media"><img id="balance-motion" alt="Triumph Sovereign Balance sovereign" hidden>
+<img id="balance-rest" alt="Triumph Sovereign Balance static" hidden>
+<div id="balance-unavailable" class="missing">Balance art unavailable</div></div></div>
+<label for="wallet-address">Public address · watch only</label>
+<div class="field-row"><input id="wallet-address" spellcheck="false" autocomplete="off" placeholder="faet1…">
+<button class="primary" id="refresh-balance">Check balance</button></div>
+<p class="fine">No seed phrase, PIN, recovery secret or private key is accepted by this view.</p>
+<div class="field-row"><button id="funding-candidates-refresh" type="button">Inspect observed outputs (never authorizes spending)</button></div>
+<pre id="funding-candidates-output" aria-live="polite">No outputs observed. Eligibility remains zero until process identity, provenance, maturity and key ownership are independently verified.</pre>
+<p class="fine">Original FAE v4 /spendable data, bound to one selected-node chain tip. Every row is observation-only and excluded from signing/submission; process identity, source provenance, coinbase maturity and key ownership remain unverified.</p>
+<div class="watch-book">
+  <p class="fine"><strong>Saved addresses · watch only</strong> — names and visibility persist locally, without signing authority.</p>
+  <div class="field-row"><input id="watch-alias" maxlength="40" placeholder="Public address alias">
+  <button id="watch-save">Save address</button>
+  <button id="watch-import-vault" type="button">Import vault public addresses</button></div>
+  <p class="fine">Uses a native file picker to read public metadata only. The encrypted vault stays locked; imported addresses are unverified and cannot sign or send transactions.</p>
+  <div id="watch-entries" aria-live="polite">Loading saved public addresses…</div>
+</div>
+</article>
+<article class="panel">
+  <small>RECENT FAE TESTNET ACTIVITY · READ ONLY</small>
+  <p class="fine">Selected-node block and transfer observations only, tip-bound. This is not independent confirmation or complete historical indexing.</p>
+  <div class="field-row">
+    <button id="refresh-wallet-activity">Read observed activity</button>
+    <button id="wallet-activity-more" type="button" hidden>Load more observed events</button>
+  </div>
+  <pre id="wallet-activity-output">Enter a public FAE address and start your local node.</pre>
+</article>
+<article class="panel" id="payment-review-panel">
+  <small>PAYMENT REVIEW · PUBLIC-ONLY DRAFT</small>
+  <p class="fine">Prepare a public FAE testnet payment for review. This does not unlock any Wallet, verify funds, sign, send or save a transaction.</p>
+  <label for="payment-to">Recipient · canonical FAE testnet address</label>
+  <input id="payment-to" spellcheck="false" autocomplete="off" placeholder="faet1…">
+  <div class="field-row">
+    <div><label for="payment-amount">Amount · FAE</label><input id="payment-amount" inputmode="decimal" spellcheck="false" placeholder="1.00000000"></div>
+    <div><label for="payment-fee">Fee · FAE (review only)</label><input id="payment-fee" inputmode="decimal" spellcheck="false" value="0"></div>
+  </div>
+  <div class="field-row">
+    <button id="payment-review" type="button">Review unsigned payment</button>
+    <button id="payment-funds" type="button">Observe local FAE balance for draft</button>
+  </div>
+  <pre id="payment-review-output" aria-live="polite">No payment reviewed. No signing authority is connected.</pre>
+  <p class="fine">The source address is the currently selected watch-only address. Intended ticker TRIUM is not yet the FAE testnet asset.</p>
+</article>
+<article class="panel" id="tx-receipt-panel">
+  <small>FAE TRANSACTION RECEIPT · SELECTED-NODE OBSERVATION</small>
+  <p class="fine">Look up a real public transaction ID on the currently running managed node. Pending and confirmed labels are claims of that selected node, not independent finality or proof of payment authorization.</p>
+  <label for="wallet-txid">FAE testnet transaction ID · 64 hexadecimal characters</label>
+  <div class="field-row"><input id="wallet-txid" spellcheck="false" autocomplete="off" maxlength="64" placeholder="64-character TXID"><button type="button" id="wallet-tx-track">Check transaction</button></div>
+  <pre id="wallet-tx-output" aria-live="polite">No transaction observed. Nothing signed, submitted or confirmed by the desktop Wallet.</pre>
+</article>
+<article class="panel" id="native-wallet-panel">
+  <small>NATIVE WALLET COMPANION · PRIVILEGED TERMINAL CANDIDATE</small>
+  <p class="fine">Source-owned standalone Wallet remains separately protected. No mnemonic, vault password or signing key is entered in this window.</p>
+  <p class="fine" id="native-wallet-availability" role="status" aria-live="polite">Checking native terminal and exact source integrity…</p>
+  <div class="field-row">
+    <button id="native-wallet-create" type="button" disabled>Create in protected terminal</button>
+    <button id="native-wallet-recover" type="button" disabled>Recover in protected terminal</button>
+    <button id="native-wallet-address" type="button" disabled>Show address in protected terminal</button>
+  </div>
+  <p class="fine" id="native-wallet-operation">Normal installed candidates remain locked to public-only observation until an authenticated Wallet companion is admitted. Sending is unavailable.</p>
+</article></section>
+<section class="page" id="page-mining"><p class="eyebrow">GENERAL-PURPOSE PARTICIPATION</p><h1>Mining</h1>
+<p class="lead">The existing standalone FAE miner runs in its own process without wallet signing authority.</p>
+<article class="panel"><small>MINER SESSION</small><h2 id="miner-state">Stopped</h2>
+<label for="mining-address">Public reward address</label><input id="mining-address" spellcheck="false" autocomplete="off" placeholder="faet1…">
+<div class="stats"><div><small>HASHRATE · H/S</small><strong id="miner-hashrate_hs">—</strong></div>
+<div><small>ACCEPTED</small><strong id="miner-accepted">—</strong></div><div><small>REJECTED</small><strong id="miner-rejected">—</strong></div></div>
+<div class="field-row"><button class="primary" id="miner-start">Start mining</button><button id="miner-stop">Stop mining</button></div>
+<p class="fine">Real miner-emitted metrics only. Start requires a verified client-managed local node.</p></article>
+</section>
+<section class="page" id="page-node"><p class="eyebrow">INDEPENDENT PARTICIPATION</p><h1>Run a Node</h1>
+<p class="lead">An optional validating process with local data; no wallet secrets required.</p>
+<article class="panel"><small>LOCAL NODE</small><h2 id="node-state">Stopped</h2>
+<p class="fine">Local loopback · per-session port · offline-first · no inbound public listener.</p>
+<div class="stats"><div><small>OBSERVED HEIGHT</small><strong id="node-height">—</strong></div></div>
+<div class="field-row"><button class="primary" id="node-start">Start node</button><button id="node-stop">Stop node</button><button id="node-refresh">Refresh status</button></div>
+<p class="fine" id="node-recovery" role="status" aria-live="polite" hidden></p>
+<p class="fine">Not certified 24/7. Persistent recovery hardening is separately staged in PR #345.</p></article>
+</section>
+<section class="page" id="page-explorer"><p class="eyebrow">BLOCK EXPLORER · READ ONLY</p><h1>Explore the chain</h1>
+<p class="lead">Query the existing independently validating node's tip-bound read APIs.</p>
+<article class="panel"><label for="explorer-query">Height, block hash, transaction ID or address</label>
+<div class="field-row"><input id="explorer-query" spellcheck="false" placeholder="Search verified node data"><button class="primary" id="explorer-search">Search</button>
+<button id="explorer-latest">Latest blocks</button></div>
+<pre id="explorer-output">Start the local node to browse its verified state.</pre></article>
+</section>
+<section class="page" id="page-settings"><p class="eyebrow">SETTINGS & DIAGNOSTICS</p><h1>Security boundaries</h1>
+<article class="panel"><p>Project: Triumph Sovereign · Intended ticker: <strong>TRIUM</strong></p><p>Existing testnet unit: <strong>FAE</strong> · Network: <code>fairyelf-public-testnet-v4</code></p><p>Sandboxed renderer; node and miner in separate processes; Explorer GET-only.</p>
+<p>Wallet keys never enter node or miner environments.</p>
+<p>Installer signing, platform certification and secure update channel are not yet provided.</p>
+<p>System reduced-motion displays static official artwork.</p></article>
+</section>
+</main></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<script src="./renderer.js" defer></script>
+</body></html>

@@ -1,0 +1,78 @@
+{
+  "name": "@triumph-sovereign/universal-client",
+  "version": "0.1.0-candidate.1",
+  "private": true,
+  "description": "Isolated Triumph Sovereign desktop candidate for FAE public-testnet-v4",
+  "type": "commonjs",
+  "main": "src/main.cjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/controller.cjs && node --check src/watch-address-book.cjs && node --check src/utility-process-adapter.cjs && node --check src/renderer.js && node --check src/single-instance-guard.cjs && node --check src/wallet-vault-public-metadata.cjs && node --check src/wallet-payment-review.cjs && node --check src/canonical-public-address.cjs && node --check src/native-wallet-terminal-handoff.cjs",
+    "test": "node --test test/*.test.cjs",
+    "package:dir": "electron-builder --dir --publish never",
+    "verify:package": "node scripts/verify-package.cjs",
+    "package:installer:candidate": "electron-builder --publish never",
+    "package:private:dir": "electron-builder --dir --config scripts/private-media-builder.cjs --publish never",
+    "package:private:candidate": "electron-builder --config scripts/private-media-builder.cjs --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "org.waterfound.triumphsovereign.candidate",
+    "productName": "Triumph Sovereign",
+    "executableName": "triumph-sovereign",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../sovereign-forge/node/fae-node.mjs",
+        "to": "fae-runtime/sovereign-forge/node/fae-node.mjs"
+      },
+      {
+        "from": "../sovereign-forge/node/explorer-read.mjs",
+        "to": "fae-runtime/sovereign-forge/node/explorer-read.mjs"
+      },
+      {
+        "from": "../standalone/fae-miner.mjs",
+        "to": "fae-runtime/standalone/fae-miner.mjs"
+      },
+      {
+        "from": "../standalone/mining-core.mjs",
+        "to": "fae-runtime/standalone/mining-core.mjs"
+      },
+      {
+        "from": "../sovereign-forge/node/authoritative/address.mjs",
+        "to": "fae-runtime/sovereign-forge/node/authoritative/address.mjs"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Finance"
+    }
+  }
+}

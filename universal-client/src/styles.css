@@ -1,0 +1,34 @@
+@import url("./design-tokens.css");
+*{box-sizing:border-box}body{margin:0;background:var(--ts-workspace);color:var(--ts-ink);font:15px/1.52 system-ui,-apple-system,"Segoe UI",sans-serif}
+.top{background:linear-gradient(95deg,var(--ts-identity),var(--ts-identity-deep));color:#fff;min-height:75px;padding:16px 28px;display:flex;align-items:center;gap:24px}
+.top strong{font:600 19px Georgia,serif;letter-spacing:.075em;white-space:nowrap}.top span{font-size:10px;letter-spacing:.07em}.top span:nth-child(2){margin-left:auto}
+#network-tag{border:1px solid #fcd7ac;border-radius:50px;padding:8px 12px;background:#b55d20;white-space:nowrap}
+.shell{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:calc(100vh - 75px)}
+.sidebar{border-right:1px solid var(--ts-line);background:white;padding:32px 14px;display:flex;flex-direction:column;gap:7px}
+.sidebar .eyebrow{margin-left:10px}.nav{border:0;background:transparent;text-align:left;padding:13px 15px;border-radius:9px;font-size:14px;color:#687582;cursor:pointer}
+.nav.active{color:var(--ts-action);background:var(--ts-active-soft);box-shadow:inset 3px 0 var(--ts-action);font-weight:700}
+main{padding:42px clamp(20px,4vw,60px);width:100%;max-width:1400px;margin:auto}.page{display:none}.page.visible{display:block}
+.eyebrow,small{font-size:10px;letter-spacing:.12em;color:var(--ts-muted);font-weight:750}.eyebrow{margin:0 0 12px}
+h1{font-size:clamp(30px,3.5vw,42px);margin:2px 0 8px;letter-spacing:-.035em;font-weight:650}
+h2{font-size:20px;letter-spacing:-.02em;margin:10px 0}.lead{font-size:16px;color:#68798b;max-width:690px;margin:0 0 25px}
+.fine{font-size:12px;color:#8996a4}.hero{text-align:center}.hero .lead{margin-inline:auto}.hero-media{max-width:720px;aspect-ratio:3/1;display:grid;place-items:center;margin:0 auto 29px;overflow:hidden}
+.hero-media img{width:100%;height:100%;object-fit:contain}.tiles,.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tiles{margin-top:33px}
+.panel{border:1px solid var(--ts-line);background:white;padding:25px;border-radius:15px;margin-top:22px;box-shadow:0 8px 25px #26324808}
+.panel p{color:#707c8a}.balance-grid{display:flex;justify-content:space-between;gap:20px;align-items:center}.amount{font-size:38px;font-weight:650}
+.balance-media{width:150px;height:150px;display:grid;place-items:center}.balance-media img{width:100%;height:100%;object-fit:contain}
+label{display:block;margin:17px 0 7px;font-size:13px;font-weight:680}.field-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px;align-items:center}
+input{flex:1;min-width:120px;border:1px solid #d9dfe7;border-radius:9px;padding:11px 12px;font:inherit}
+button{cursor:pointer;border:1px solid #dbe3ed;background:#f4f7fb;color:#3e5064;padding:11px 16px;font-weight:650;border-radius:9px}
+button.primary{background:var(--ts-action);color:white;border-color:var(--ts-action)}
+button:disabled{opacity:.42;cursor:default}button:focus-visible,input:focus-visible{outline:3px solid #94baf7;outline-offset:2px}
+.stats{margin:20px 0}.stats div{background:#f6f8fc;border:1px solid var(--ts-line);border-radius:9px;padding:13px}
+.stats strong{display:block;color:var(--ts-action);font-size:23px;margin-top:6px}
+#explorer-output,#wallet-activity-output{overflow:auto;max-height:450px;white-space:pre-wrap;overflow-wrap:anywhere;background:#f9fafc;border:1px solid var(--ts-line);border-radius:9px;padding:15px;font-size:12px}
+.missing{border:1px dashed #e9d7c6;background:#fbf8f3;color:#ab9380;padding:14px;border-radius:13px;font-size:12px}
+#toast{position:fixed;bottom:22px;right:22px;max-width:400px;background:#223c5b;color:#fff;padding:14px;border-radius:10px}
+[hidden]{display:none!important}
+@media(max-width:930px){.tiles{grid-template-columns:1fr}.top span:nth-child(2){display:none}.top #network-tag{margin-left:auto}}
+@media(max-width:740px){.shell{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap;padding:10px}.sidebar .eyebrow{display:none}main{padding:23px 18px}.balance-grid{flex-wrap:wrap}.top strong{font-size:15px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.watch-book{margin-top:20px}.watch-entry{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.watch-entry span{flex:1;overflow-wrap:anywhere}.watch-entry button{white-space:nowrap}

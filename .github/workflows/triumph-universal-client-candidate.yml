@@ -1,0 +1,334 @@
+name: Triumph Universal Client Candidate
+on:
+  pull_request:
+    paths:
+      - 'universal-client/**'
+      - '.github/workflows/triumph-universal-client-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop-source-and-real-node:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact checkout identity
+        run: git rev-parse HEAD
+      - name: Node/desktop source syntax
+        run: cd universal-client && npm run check
+      - name: Bounded unit and real isolated local-node tests
+        run: cd universal-client && npm test
+      - name: Native owner Wallet vault interoperability — Windows and macOS
+        if: runner.os != 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          # Avoid runner temporary-directory junctions; the source attestor
+          # deliberately rejects redirected roots, including NTFS junctions.
+          WALLET_ROOT="$GITHUB_WORKSPACE/../ts-wallet-owner-v11-interop"
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          # Windows Git may rewrite LF blobs to CRLF; hash attestation must
+          # compare the original owner bytes, never a platform-normalized copy.
+          git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
+          trap 'git worktree remove --force "$WALLET_ROOT"' EXIT
+          test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Ephemeral CI paths only; never print keys, source contents or credentials.
+            TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node -e 'const fs=require("node:fs"),p=require("node:path");const root=p.resolve(process.env.TS_OWNER_WALLET_ROOT);const real=fs.realpathSync(root);console.log("TS_WIN_REALPATH_DIAG",JSON.stringify({requested:root,actual:real,onlyCaseDifference:p.normalize(real).toLowerCase()===p.normalize(root).toLowerCase(),requestedRoot:p.parse(root).root,actualRoot:p.parse(real).root}));'
+          fi
+          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
+      - name: Owner-exact Wallet companion attestation and real isolated A-to-B transaction
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          export WALLET_OWNER_SHA
+          WALLET_ROOT="$RUNNER_TEMP/ts-wallet-owner-v10"
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          git worktree add --detach "$WALLET_ROOT" "$WALLET_OWNER_SHA"
+          test "$(git -C "$WALLET_ROOT" rev-parse HEAD)" = "$WALLET_OWNER_SHA"
+          TS_OWNER_WALLET_ROOT="$WALLET_ROOT" node universal-client/scripts/verify-owner-wallet-integration.cjs
+          (cd "$WALLET_ROOT" && node --test tests/sovereign-standalone-wallet.test.mjs)
+          git worktree remove --force "$WALLET_ROOT"
+      - name: Unchanged consensus and economics files
+        run: |
+          git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
+
+  linux-electron-runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned Electron 45 in disposable runner
+        run: cd universal-client && npm install --no-audit --no-fund
+      - name: Require Xvfb in GitHub runner
+        run: command -v xvfb-run
+      - name: Real Electron renderer and trusted IPC smoke
+        working-directory: universal-client
+        # --no-sandbox is CI/Xvfb-only and provides NO packaged sandbox certification.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-smoke
+      - name: Real Electron utilityProcess FAE node and Explorer smoke
+        working-directory: universal-client
+        # Disposable runner only, loopback, external sync disabled by controller.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-node-smoke
+      - name: Real watch-only public address IPC and persistence smoke
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-smoke
+      - name: Reload public address book from a second independent Electron process
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-watch-verify
+      - name: Native Electron renderer import of canonical-bound public encrypted-vault metadata
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-vault-import-smoke
+      - name: Real OS dual-launch test refuses second profile-writer process
+        working-directory: universal-client
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" bash scripts/test-single-instance-linux.sh
+      - name: Real Electron isolated mining process and observed hashrate
+        working-directory: universal-client
+        # Disposable v4 node: no wallet secrets, no public-chain mining or remote endpoints.
+        run: xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox . --ts-miner-smoke
+
+  desktop-ui-native-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned Electron in temporary native runner
+        working-directory: universal-client
+        run: npm install --no-audit --no-fund
+      - name: Real native watch-only public address IPC smoke
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-watch-smoke
+      - name: Verify saved address in a second native Electron launch
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-watch-verify
+      - name: Native Electron public-vault import through isolated file-picker fixture
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-vault-import-smoke
+      - name: Actual native desktop window and IPC snapshot smoke
+        working-directory: universal-client
+        run: npm exec -- electron . --ts-smoke
+
+  linux-packaged-electron-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Assemble unsigned candidate with canonical existing node/miner
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm install --no-audit --no-fund
+          npm run package:dir
+      - name: Verify packaged source identity against exact checkout
+        working-directory: universal-client
+        run: |
+          cmp ../sovereign-forge/node/fae-node.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
+          cmp ../sovereign-forge/node/explorer-read.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/explorer-read.mjs
+          cmp ../sovereign-forge/node/authoritative/address.mjs dist/linux-unpacked/resources/fae-runtime/sovereign-forge/node/authoritative/address.mjs
+          cmp ../standalone/fae-miner.mjs dist/linux-unpacked/resources/fae-runtime/standalone/fae-miner.mjs
+          cmp ../standalone/mining-core.mjs dist/linux-unpacked/resources/fae-runtime/standalone/mining-core.mjs
+      - name: Real packaged Linux Electron GUI and node IPC smoke
+        working-directory: universal-client
+        # Disposable Xvfb runner only; --no-sandbox is NOT a security-certified production flag.
+        run: |
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-node-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-watch-verify
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-vault-import-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" dist/linux-unpacked/triumph-sovereign --no-sandbox --ts-miner-smoke
+
+  desktop-packaged-native-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build unsigned unpacked candidate (never publish)
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm install --no-audit --no-fund
+          npm run package:dir
+      - name: Verify exact bytes for canonical node and miner source in packaged candidate
+        working-directory: universal-client
+        run: npm run verify:package
+      - name: Real packaged Windows Electron GUI and managed node
+        if: runner.os == 'Windows'
+        working-directory: universal-client
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path ".\\dist\\win-unpacked\\triumph-sovereign.exe").Path
+          $gui = Start-Process -FilePath $exe -ArgumentList "--ts-smoke" -Wait -PassThru -NoNewWindow
+          if ($gui.ExitCode -ne 0) { throw "Packaged Windows GUI smoke failed: exit $($gui.ExitCode)" }
+          $node = Start-Process -FilePath $exe -ArgumentList "--ts-node-smoke" -Wait -PassThru -NoNewWindow
+          if ($node.ExitCode -ne 0) { throw "Packaged Windows managed node smoke failed: exit $($node.ExitCode)" }
+          $watch = Start-Process -FilePath $exe -ArgumentList "--ts-watch-smoke" -Wait -PassThru -NoNewWindow
+          if ($watch.ExitCode -ne 0) { throw "Packaged Windows watch-list IPC smoke failed" }
+          $cold = Start-Process -FilePath $exe -ArgumentList "--ts-watch-verify" -Wait -PassThru -NoNewWindow
+          if ($cold.ExitCode -ne 0) { throw "Packaged Windows second-process catalog recovery failed" }
+          $vaultPublic = Start-Process -FilePath $exe -ArgumentList "--ts-vault-import-smoke" -Wait -PassThru -NoNewWindow
+          if ($vaultPublic.ExitCode -ne 0) { throw "Packaged Windows public-vault import smoke failed" }
+          $miner = Start-Process -FilePath $exe -ArgumentList "--ts-miner-smoke" -Wait -PassThru -NoNewWindow
+          if ($miner.ExitCode -ne 0) { throw "Packaged Windows managed miner smoke failed: exit $($miner.ExitCode)" }
+      - name: Real packaged macOS Electron GUI and managed node
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          BIN="$(find dist -type f -path '*/Contents/MacOS/triumph-sovereign' | head -n 1)"
+          test -n "$BIN"
+          "$BIN" --ts-smoke
+          "$BIN" --ts-node-smoke
+          "$BIN" --ts-watch-smoke
+          "$BIN" --ts-watch-verify
+          "$BIN" --ts-vault-import-smoke
+          "$BIN" --ts-miner-smoke
+
+  desktop-installer-candidate-inspection:
+    # Candidate-only: no GitHub release, no upload to public Actions artifacts,
+    # no signing, notarization, installation to persistent host, or production activation.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare exact isolated FAE desktop candidate
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm install --no-audit --no-fund
+      - name: Produce unsigned local candidate installer, never publish
+        working-directory: universal-client
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: 'false'
+        run: npm run package:installer:candidate
+      - name: Verify candidate installer file header, size, and provenance
+        working-directory: universal-client
+        run: node scripts/verify-installer.cjs
+      - name: Verify macOS DMG is an actual readable local image
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          DMG="$(find dist -maxdepth 1 -type f -iname '*.dmg' | head -n 1)"
+          test -n "$DMG"
+          hdiutil imageinfo "$DMG" >/dev/null
+          echo "TS_MACOS_DMG_IMAGEINFO_PASS"
+      - name: Verify Linux AppImage payload is extractable without host installation
+        if: runner.os == 'Linux'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          APP="$(find dist -maxdepth 1 -type f -iname '*.AppImage' | head -n 1)"
+          test -n "$APP"
+          chmod +x "$APP"
+          "$APP" --appimage-extract >/dev/null
+          test -f squashfs-root/AppRun
+          test -f squashfs-root/resources/app.asar
+          test -f squashfs-root/resources/fae-runtime/standalone/fae-miner.mjs
+          test -f squashfs-root/resources/fae-runtime/sovereign-forge/node/fae-node.mjs
+          echo "TS_LINUX_APPIMAGE_EXTRACT_PASS"
+
+      - name: Run the actual Linux AppImage (isolated runner; no system installation)
+        if: runner.os == 'Linux'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          APP="$(find dist -maxdepth 1 -type f -iname '*.AppImage' | head -n 1)"
+          test -n "$APP"
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-node-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-watch-smoke
+          xvfb-run -a --server-args="-screen 0 1280x800x24" "$APP" --no-sandbox --ts-watch-verify
+          echo "TS_APPIMAGE_DIRECT_RUNTIME_PASS"
+      - name: Mount the DMG and execute the enclosed macOS candidate
+        if: runner.os == 'macOS'
+        working-directory: universal-client
+        shell: bash
+        run: |
+          set -euo pipefail
+          DMG="$(find dist -maxdepth 1 -type f -iname '*.dmg' | head -n 1)"
+          test -n "$DMG"
+          MOUNT="$(mktemp -d "$RUNNER_TEMP/ts-fatima-dmg.XXXXXX")"
+          cleanup(){ hdiutil detach "$MOUNT" -quiet || true; rmdir "$MOUNT" || true; }
+          trap cleanup EXIT
+          hdiutil attach "$DMG" -quiet -nobrowse -readonly -mountpoint "$MOUNT"
+          APP="$(find "$MOUNT" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          BIN="$APP/Contents/MacOS/triumph-sovereign"
+          test -x "$BIN"
+          "$BIN" --ts-smoke
+          "$BIN" --ts-node-smoke
+          "$BIN" --ts-watch-smoke
+          echo "TS_DMG_MOUNT_RUNTIME_PASS"
+      - name: Install NSIS per-user in disposable Windows runner and run installed client
+        if: runner.os == 'Windows'
+        working-directory: universal-client
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $candidate = Get-ChildItem dist -File -Filter "*.exe" | Where-Object { $_.Name -match 'Setup|installer|Triumph' } | Select-Object -First 1
+          if (-not $candidate) { throw "No candidate NSIS installer found" }
+          $target = Join-Path $env:RUNNER_TEMP "ts-fatima-e2e"
+          # /D is an NSIS install-directory switch, not a production installation request.
+          $installation = Start-Process -FilePath $candidate.FullName -ArgumentList @('/S', "/D=$target") -PassThru -Wait
+          if ($installation.ExitCode -ne 0) { throw "NSIS installer exit $($installation.ExitCode)" }
+          $installed = Join-Path $target "triumph-sovereign.exe"
+          if (-not (Test-Path $installed)) { throw "No installed candidate executable at $installed" }
+          foreach ($mode in @('--ts-smoke','--ts-node-smoke','--ts-watch-smoke','--ts-watch-verify')) {
+            $run = Start-Process -FilePath $installed -ArgumentList $mode -PassThru -Wait -NoNewWindow
+            if ($run.ExitCode -ne 0) { throw "Installed FATIMA desktop failed $mode ($($run.ExitCode))" }
+          }
+          Write-Output "TS_NSIS_INSTALLED_RUNTIME_PASS"
+          # CI-only cleanup: machine is discarded; still remove candidate after testing.
+          $uninstaller = Get-ChildItem $target -Filter 'Uninstall*.exe' -File | Select-Object -First 1
+          if ($uninstaller) {
+            $removed = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -PassThru -Wait
+            if ($removed.ExitCode -ne 0) { throw "NSIS uninstall exit $($removed.ExitCode)" }
+            Write-Output "TS_NSIS_SILENT_UNINSTALL_PASS"
+          } else {
+            throw "Candidate installer missing uninstall executable"
+          }
