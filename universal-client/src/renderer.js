@@ -310,6 +310,16 @@ async function observePaymentFunds(){
   if(!observed||observed.node!=='CURRENT_MANAGED_LOCAL_NODE_ASSERTION'){
     output.textContent='No compatible local funding observation. Nothing signed or submitted.';return;
   }
+  const original=observed.original_wallet_plan;
+  const originalPlanLabel=original?.state==='ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN'
+    ?'Original Wallet #342 conditional public plan: '+original.input_count+
+      ' unverified inputs / '+original.outputs.length+
+      ' outputs; signing and spendability DENIED.'
+    :original?.state==='INSUFFICIENT_UNVERIFIED_CONFIRMED_CANDIDATES'
+      ?'Original Wallet #342: insufficient node-reported confirmed candidate outputs; NO spend authorization.'
+      :original?.state==='NODE_TIP_CHANGED_NO_PLAN'
+        ?'Original Wallet public plan unavailable: managed node tip changed during observations.'
+        :'Original Wallet source-owned planner unavailable or unadmitted; no public input selection.';
   output.textContent=[
     'FAE PUBLIC TESTNET · UNSIGNED REVIEW · NODE-REPORTED BALANCE',
     'From: '+observed.from,
@@ -323,6 +333,8 @@ async function observePaymentFunds(){
       ?'Node-reported balance is below draft total.'
       :'Node-reported balance meets draft total; this is NOT spendability proof.',
     'Custody: NOT AUTHENTICATED · Spendable UTXOs: NOT VERIFIED',
+    originalPlanLabel,
+    'Selected-node UTXOs: UNTRUSTED · Maturity: NOT VERIFIED · Wallet ownership: NOT VERIFIED',
     'Signing: UNAVAILABLE · Submission: NOT SUBMITTED',
     'No independent confirmation or node process-authentication claim.'
   ].join('\n');
