@@ -126,10 +126,18 @@ test('Wallet renders exact selected-node confirmed and pending funding candidate
       address:addr,candidate_atoms:'9007199254741000',
       confirmed_candidate_atoms:'9007199254740993',
       pending_candidate_atoms:'7',candidate_count:2,
+      eligible_candidate_atoms:'0',eligible_candidate_count:0,
+      funding_authorization:'DENIED_UNVERIFIED',
       observed_tip_height:12,observed_tip_hash:TIP,
       outputs:[
-        {outpoint:TX+':0',amount_atoms:'9007199254740993',source:'confirmed',created_height:1},
-        {outpoint:BLOCK+':1',amount_atoms:'7',source:'pending',parent_txid:BLOCK}
+        {outpoint:TX+':0',amount_atoms:'9007199254740993',source:'confirmed',created_height:1,
+          spend_eligibility:'UNVERIFIED',exclusion_reasons:[
+            'PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED',
+            'SOURCE_PROVENANCE_UNVERIFIED','MATURITY_POLICY_UNVERIFIED']},
+        {outpoint:BLOCK+':1',amount_atoms:'7',source:'pending',parent_txid:BLOCK,
+          spend_eligibility:'UNVERIFIED',exclusion_reasons:[
+            'PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED',
+            'SOURCE_PROVENANCE_UNVERIFIED','UNCONFIRMED_PARENT']}
       ]};
   }});
   ui.get('wallet-address').value=addr;
@@ -138,6 +146,10 @@ test('Wallet renders exact selected-node confirmed and pending funding candidate
   assert.match(displayed,/SELECTED NODE FUNDING CANDIDATES/);
   assert.match(displayed,/90071992\.54740993 FAE/);
   assert.match(displayed,/Claimed pending outputs: 0\.00000007 FAE/);
+  assert.match(displayed,/Eligible for signing or submission: 0 FAE · 0 outputs/);
+  assert.match(displayed,/DENIED_UNVERIFIED/);
+  assert.match(displayed,/MATURITY_POLICY_UNVERIFIED/);
+  assert.match(displayed,/UNCONFIRMED_PARENT/);
   assert.match(displayed,/Coinbase maturity: NOT VERIFIED/);
   assert.match(displayed,/Signing: UNAVAILABLE/);
   assert.ok(displayed.includes('\n'));
