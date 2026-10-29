@@ -16,7 +16,11 @@ function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 function legacyState(){let state=emptyState();for(const block of legacyBlocks)state=appendBlockFromFeed(state,block,new Map(),{activationHeight:null});return state}
 function wallet(){const{publicKey}=generateKeyPairSync('ed25519'),spki=publicKey.export({type:'spki',format:'der'});return encodeAddress(sha256(spki).subarray(0,20),'faet')}
 async function freePort(){const server=net.createServer();await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});const port=server.address().port;await new Promise(resolve=>server.close(resolve));return port}
-async function json(url,options={}){const response=await fetch(url,options),body=await response.json();if(!response.ok)throw new Error(`${response.status} ${url}: ${JSON.stringify(body)}`);return body}
+// Isolated P2P recovery TEST performs multi-second synchronous PoW and then
+// sends exactly one state-changing request. Avoid reusing pooled idle sockets
+// that the original node closed while the JS event loop was blocked.
+// This is not a retry, node transport change or consent to replay a block.
+async function json(url,options={}){const response=await fetch(url,{...options,headers:{...options.headers,Connection:'close'}}),body=await response.json();if(!response.ok)throw new Error(`${response.status} ${url}: ${JSON.stringify(body)}`);return body}
 async function waitStatus(base,height){let lastError=null;for(let i=0;i<200;i++){try{const status=await json(`${base}/status`);if(status.height===height)return status;lastError=new Error(`height=${status.height}`)}catch(error){lastError=error}await delay(50)}throw new Error(`node did not reach height ${height}: ${lastError?.message||'timeout'}`)}
 async function waitDurableHeight(path,height){let last=null;for(let i=0;i<120;i++){try{const envelope=JSON.parse(await readFile(path,'utf8'));last=envelope?.state?.chain?.length;if(last===height)return envelope}catch{}await delay(50)}throw new Error(`durable snapshot did not reach height ${height}; last=${last}`)}
 async function waitLog(child,pattern,{timeoutMs=3000}={}){const deadline=Date.now()+timeoutMs;while(Date.now()<deadline){const logs=child.logs();if(pattern.test(logs.stdout))return logs;if(child.exitCode!==null||child.signalCode!==null)throw new Error(`child exited before log ${pattern}: ${JSON.stringify(logs)}`);await delay(20)}throw new Error(`timed out waiting for log ${pattern}: ${JSON.stringify(child.logs())}`)}
