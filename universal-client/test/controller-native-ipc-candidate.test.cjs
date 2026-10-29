@@ -111,6 +111,7 @@ test('original FAE PR #354 node + actual ProcessController reads and cold restar
       assert.equal((await c.readStatus()).height,0);
       await c.stopNode();
       assert.equal(c.nodeIpc,null);
+      console.log('TS_V29_PINNED_ORIGINAL_NODE_CLOSURE_PASS '+JSON.stringify({source_pin_files:Object.keys(OWNER_PINS).length,managed_http_guard_pinned:true}));
       console.log('TS_V27_CONTROLLER_ORIGINAL_IPC_PASS '+JSON.stringify({
         original_node:true,owned_process:true,ipc_status:true,ipc_balance:true,
         ipc_funding:true,stop_revocation:true,cold_restart:true,
