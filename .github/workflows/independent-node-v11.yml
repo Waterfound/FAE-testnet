@@ -50,3 +50,20 @@ jobs:
 
       - name: Verify hard-crash restart and durable healing in the real v6 process
         run: node --test sovereign-forge/tests/independent-node-v11-process-recovery.mjs
+
+  original-node-native-port-candidate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact candidate source identity
+        run: git rev-parse HEAD
+      - name: Real original FAE Node inherited OS-port adversarial regression
+        run: node --test tests/fae-node-parent-port.test.mjs
