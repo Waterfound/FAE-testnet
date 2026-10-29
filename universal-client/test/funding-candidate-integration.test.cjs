@@ -107,7 +107,16 @@ test('real managed miner funding candidates survive persisted node stop and cold
     const deadline=Date.now()+35000;
     let observed=null;
     while(Date.now()<deadline){
-      observed=await node.readFundingCandidates(ADDRESS);
+      try{
+        observed=await node.readFundingCandidates(ADDRESS);
+      }catch(error){
+        // Active original mining can advance the chain BETWEEN the two real
+        // tip reads; the controller must reject that torn observation. Only
+        // a new bounded, read-only sample on the next tip is admissible.
+        if(error.message!=='FAE chain tip changed during observation')throw error;
+        await new Promise(resolve=>setTimeout(resolve,120));
+        continue;
+      }
       if(BigInt(observed.confirmed_candidate_atoms)>0n)break;
       await new Promise(resolve=>setTimeout(resolve,120));
     }
