@@ -16,7 +16,7 @@ const {makeUtilitySpawn}=require(adapter);
 (async()=>{
   await app.whenReady();
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ts-v25-electron-real-node-'));
-  let child,ipc;
+  let child,ipc,exitCode=0;
   const fail=setTimeout(()=>{console.error('TS_V25_ELECTRON_ORIGINAL_NODE_IPC_TIMEOUT');app.exit(2)},20000);
   try{
     const spawn=makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess));
@@ -59,13 +59,13 @@ const {makeUtilitySpawn}=require(adapter);
       status_ipc:true,spendable_ipc:true,tx_submission:'DISABLED',
       network:status.network
     }));
-    clearTimeout(fail);app.exit(0);
   }catch(e){
     console.error('TS_V25_ELECTRON_ORIGINAL_NODE_IPC_FAIL '+e.message);
-    clearTimeout(fail);app.exit(1);
+    exitCode=1;
   }finally{
-    ipc?.revoke();
+    clearTimeout(fail);ipc?.revoke();
     try{child?.kill()}catch{}
-    fs.rmSync(temp,{recursive:true,force:true});
+    try{fs.rmSync(temp,{recursive:true,force:true})}catch{}
+    app.exit(exitCode);
   }
 })().catch(e=>{console.error('TS_V25_ELECTRON_ORIGINAL_NODE_IPC_FATAL '+e.message);app.exit(1)});
