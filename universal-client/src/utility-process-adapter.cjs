@@ -16,8 +16,31 @@ function makeUtilitySpawn(fork){
     const child=new EventEmitter();
     child.exitCode=null;child.killed=false;child._tsFailed=false;
     Object.defineProperty(child,'stdout',{get:()=>utility.stdout??null});
+    // The Electron utilityProcess PID is OS-owned and becomes available after
+    // 'spawn'. Do not infer identity from a node HTTP response.
+    Object.defineProperty(child,'pid',{get:()=>utility.pid??null});
+    Object.defineProperty(child,'connected',{get:()=>!child._tsExited&&
+      !child._tsFailed&&typeof utility.pid==='number'&&
+      typeof utility.postMessage==='function'});
+    // A private OS process-port path for the future protected node RPC owner.
+    // Original FAE node currently lacks the matching process.parentPort
+    // listener. This cannot authorize reads/signing or fall back to HTTP.
+    if(script.endsWith('fae-node.mjs')){
+      child.send=(packet,callback)=>{
+        try{
+          if(!child.connected)throw Error('Managed node IPC disconnected');
+          utility.postMessage(packet);
+          if(typeof callback==='function')queueMicrotask(()=>callback(null));
+          return true;
+        }catch(error){
+          if(typeof callback==='function')queueMicrotask(()=>callback(error));
+          return false;
+        }
+      };
+      utility.on('message',packet=>child.emit('message',packet));
+    }
     child.kill=()=>{child.killed=true;return utility.kill()};
-    utility.on('exit',code=>{child.exitCode=code;child.emit('exit',code)});
+    utility.on('exit',code=>{child._tsExited=true;child.exitCode=code;child.emit('exit',code)});
     utility.on('error',()=>{child._tsFailed=true;child.emit('error',Error('Managed utility process failed'))});
     return child;
   };
