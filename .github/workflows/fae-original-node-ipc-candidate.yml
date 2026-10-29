@@ -41,6 +41,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum -c FAE_FORGE_MAIN.sha256 --ignore-missing
+          # MSYS/Windows may check out this manifest with CRLF line endings.
+          # Normalize only the check-list stream, never the hashed files.
+          tr -d '\\r' < FAE_FORGE_MAIN.sha256 | sha256sum -c - --ignore-missing
       - name: Original consensus and protected wallet still unchanged
         run: git diff --exit-code origin/main -- core.js wallet.js wallet-crypto.js mining.js standalone/wallet/crypto.mjs standalone/wallet/fae-wallet.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs
