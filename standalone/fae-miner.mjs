@@ -195,7 +195,11 @@ function randomNonceStart(){
   return Math.floor(Math.random()*1_000_000_000);
 }
 
-export async function runMiner(options,{emit=createEmitter({json:options.json}),signal}={}){
+export async function runMiner(options,{emit=createEmitter({json:options.json}),signal,submitMinedBlock=null}={}){
+  // Internal candidate-only integration hook; CLI continues to submit using
+  // the existing selected-node HTTP path. The host must own the native child.
+  if(submitMinedBlock!==null&&typeof submitMinedBlock!=='function')
+    throw Error('Native miner submission callback must be a function');
   let stopping=false;
   const onAbort=()=>{stopping=true};
   signal?.addEventListener?.('abort',onAbort,{once:false});
@@ -246,7 +250,12 @@ export async function runMiner(options,{emit=createEmitter({json:options.json}),
             }
             const submission=buildSubmission(rawTemplate,cycle.nonce,cycle.hash);
             try{
-              const response=await fetchJson(options.node,'/submit-block',{method:'POST',body:submission});
+              const response=submitMinedBlock===null?
+                await fetchJson(options.node,'/submit-block',{method:'POST',body:submission}):
+                await submitMinedBlock(submission);
+              if(!response||response.ok!==true||
+                 response.height!==template.header.height||response.hash!==cycle.hash)
+                throw new ProtocolError('Original-node mining receipt mismatch');
               accepted++;
               emit('WORK_ACCEPTED','Block accepted by selected node',{height:response.height??template.header.height,hash:response.hash??cycle.hash,accepted,rejected});
               if(options.once)return result();
