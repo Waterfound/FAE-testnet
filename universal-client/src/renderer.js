@@ -342,8 +342,60 @@ async function trackWalletTransaction(){
     return;
   }
   output.textContent='Checking the selected managed node at a stable chain tip…';
-  const receipt=await safely(()=>window.triumph.explorer('/explorer/transaction',{txid:id}));
+  const observation=await safely(()=>window.triumph.transactionLookup(id));
   if(generation!==txReceiptRequest||get('wallet-txid').value.trim()!==id||state.node!=='running')return;
+  // Only native parent owner may confer this provenance. No renderer flag
+  // chooses the transport; rejected IPC must NEVER downgrade to localhost.
+  if(observation?.origin==='PARENT_OWNED_NATIVE_IPC'){
+    const receipt=observation.result;
+    const hash=/^[0-9a-f]{64}$/;
+    const compatible=receipt&&receipt.txid===id&&
+      typeof receipt.result_known==='boolean'&&
+      Number.isSafeInteger(receipt.observed_tip_height)&&receipt.observed_tip_height>=0&&
+      hash.test(receipt.observed_tip_hash)&&
+      receipt.confirmation_finality==='NOT_PROVEN'&&
+      (receipt.result_known?
+        ['pending','confirmed'].includes(receipt.status)&&
+        (receipt.status==='pending'?receipt.confirmed_height===null:
+          Number.isSafeInteger(receipt.confirmed_height)&&
+          receipt.confirmed_height>=1&&
+          receipt.confirmed_height<=receipt.observed_tip_height):
+        receipt.status===null&&receipt.confirmed_height===null);
+    if(!compatible){
+      output.textContent='Invalid original-node native transaction evidence. No payment status asserted.';
+      return;
+    }
+    if(!receipt.result_known){
+      output.textContent=[
+        'FAE PUBLIC TESTNET · NATIVE ORIGINAL NODE READ',
+        'Transaction: '+id,
+        'Status: NOT OBSERVED ON THIS NODE · outcome UNKNOWN',
+        'Observed tip: #'+receipt.observed_tip_height+' · '+receipt.observed_tip_hash,
+        'Absence is not proof a previous submission failed. Never automatically resubmit.',
+        'Source: actual parent-owned OS IPC · local node assertion only.',
+        'Desktop signing: UNAVAILABLE · Submission: NOT PERFORMED'
+      ].join('\n');
+      return;
+    }
+    const stateLabel=receipt.status==='confirmed'
+      ?'CONFIRMED BY SELECTED NODE · independent finality NOT PROVEN'
+      :'PENDING · SELECTED NODE CLAIM';
+    output.textContent=[
+      'FAE PUBLIC TESTNET · NATIVE ORIGINAL NODE READ',
+      'Transaction: '+id,
+      'Status: '+stateLabel,
+      ...(receipt.status==='confirmed'?['Included at block #'+receipt.confirmed_height]:[]),
+      'Observed tip: #'+receipt.observed_tip_height+' · '+receipt.observed_tip_hash,
+      'Source: parent-owned OS IPC · original-node claim, not independently finalized.',
+      'No signing authorization or transaction submission occurred in this desktop view.'
+    ].join('\n');
+    return;
+  }
+  if(observation?.origin!=='LOCAL_HTTP_EXPLORER_CLAIM'){
+    output.textContent='Authenticated transaction lookup unavailable. No HTTP fallback or payment status asserted.';
+    return;
+  }
+  const receipt=observation.result;
   const tx=receipt?.transaction;
   const tip=receipt?.observed_tip_height,tipHash=receipt?.observed_tip_hash;
   const hash=/^[0-9a-f]{64}$/;
