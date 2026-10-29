@@ -102,7 +102,7 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
       readFundingCandidates:async()=>candidates(),
       readStatus:async()=>({...tip})
     };
-    const args={controller,walletScript:stage.script,review,
+    const args={controller,expectedNode:firstNode,walletScript:stage.script,review,
       observed:{observed_tip_height:250,observed_tip_hash:H('c')}};
     const verified=await planWithOwnedNodeFinalityCheck(args);
     assert.equal(verified.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
@@ -118,6 +118,10 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
     const restarted=await planWithOwnedNodeFinalityCheck(args);
     assert.equal(restarted.state,'NODE_PROCESS_REPLACED_NO_PLAN');
     assert.ok(!Object.hasOwn(restarted,'selected_inputs'));
+    controller.node={pid:904};
+    const replacedBetweenBalanceAndPlanner=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedBetweenBalanceAndPlanner.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedBetweenBalanceAndPlanner,'selected_inputs'));
     controller.node=firstNode;
     controller.readStatus=async()=>({...tip});
     controller.readFundingCandidates=async()=>{controller.node={pid:903};return candidates()};
