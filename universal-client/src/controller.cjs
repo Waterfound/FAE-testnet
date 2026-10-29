@@ -294,7 +294,7 @@ class ProcessController extends EventEmitter{
       assertNotCanceled();
       if(this.nativeIpcCandidate)this.nodeIpc=new OwnedNodeIpc(this.node,{timeoutMs:3500});
       await verifyManagedReadiness({child:this.node,
-        readStatus:this.nativeIpcCandidate?()=>this.nativeRead('status'):this.readinessProbe});
+        readStatus:this.nativeIpcCandidate?()=>this.nodeIpc.read('status'):this.readinessProbe});
       assertNotCanceled();
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();
