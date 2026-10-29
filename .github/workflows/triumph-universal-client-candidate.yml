@@ -361,3 +361,14 @@ jobs:
       - name: Genuine ProcessController -> original FAE inherited OS IPC, revoke and restart
         working-directory: universal-client
         run: node --test test/controller-native-ipc-candidate.test.cjs
+      - name: Real Electron utilityProcess plus ProcessController -> protected original node
+        working-directory: universal-client
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox scripts/v27-electron-controller-smoke.cjs
+          else
+            npm exec -- electron scripts/v27-electron-controller-smoke.cjs
+          fi
