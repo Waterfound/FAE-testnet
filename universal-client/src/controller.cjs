@@ -416,6 +416,33 @@ class ProcessController extends EventEmitter{
       throw Error('Selected-node funding candidate exceeds observed chain tip');
     return observed;
   }
+  async readTransactionByTxid(txid){
+    // Read-only deterministic reconciliation: never submit/retry from lookup.
+    // This is candidate-only; the default product has no native owner admission.
+    if(typeof txid!=='string'||!/^[0-9a-f]{64}$/.test(txid))
+      throw Error('Canonical transaction ID required for native lookup');
+    if(!this.nativeIpcCandidate)
+      throw Error('Authenticated original-node transaction lookup unavailable');
+    const result=await this.nativeRead('transaction-lookup',{txid});
+    if(!result||typeof result!=='object'||Array.isArray(result)||
+      result.ok!==true||result.network!==NETWORK||result.txid!==txid||
+      typeof result.found!=='boolean'||
+      !Number.isSafeInteger(result.tip_height)||result.tip_height<0||
+      typeof result.tip_hash!=='string'||!/^[0-9a-f]{64}$/.test(result.tip_hash)||
+      (result.found?
+        !['pending','confirmed'].includes(result.status)||
+        (result.confirmed_height!==null&&
+         (!Number.isSafeInteger(result.confirmed_height)||
+          result.confirmed_height<1||result.confirmed_height>result.tip_height)):
+        result.status!==null||result.confirmed_height!==null))
+      throw Error('Invalid native original-node transaction evidence');
+    return Object.freeze({
+      txid,result_known:result.found,status:result.status,
+      confirmed_height:result.confirmed_height,
+      observed_tip_height:result.tip_height,observed_tip_hash:result.tip_hash,
+      confirmation_finality:'NOT_PROVEN'
+    });
+  }
   async readExplorer(route,params){
     // Original node owner #354 presently exposes native status/balance/spendable
     // only. HTTP Explorer cannot inherit the native channel's provenance.

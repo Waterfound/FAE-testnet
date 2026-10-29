@@ -352,7 +352,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          NODE_OWNER_SHA=63c6438d37ad56d6fafd46ff71a3d337917b971c
+          NODE_OWNER_SHA=dd331bb57e8718caa45e030633a4ff4bc64f47c6
           NODE_ROOT="$GITHUB_WORKSPACE/../ts-original-node-owner-v27"
           git fetch --no-tags --depth=1 origin "$NODE_OWNER_SHA"
           git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$NODE_ROOT" "$NODE_OWNER_SHA"

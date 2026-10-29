@@ -55,6 +55,9 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     const funding=await controller.readFundingCandidates(address);
     assert.equal(funding.funding_authorization,'DENIED_UNVERIFIED');
     assert.equal(funding.eligible_candidate_count,0);
+    const unknownTx=await controller.readTransactionByTxid('b'.repeat(64));
+    assert.equal(unknownTx.result_known,false);
+    assert.equal(unknownTx.confirmation_finality,'NOT_PROVEN');
     await assert.rejects(controller.readExplorer('/explorer/status'),/HTTP fallback forbidden/);
     await assert.rejects(firstIpc.read('submit-tx'),/Unsupported native IPC read/);
     await controller.stopNode();
@@ -63,10 +66,14 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     assert.equal(second.node,'running');
     assert.notEqual(controller.nodeIpc.session,firstIpc.session);
     assert.equal((await controller.readStatus()).height,0);
+    const restartedTx=await controller.readTransactionByTxid('b'.repeat(64));
+    assert.equal(restartedTx.result_known,false);
+    assert.equal(restartedTx.observed_tip_height,0);
     console.log('TS_V27_ELECTRON_CONTROLLER_IPC_PASS '+JSON.stringify({
       node:'ORIGINAL_FAE_V4',transport:'ACTUAL_ELECTRON_UTILITY_PROCESS',
       status:true,balance:true,funding:true,session_revoked:true,
-      cold_restart:true,managed_browser_origin:'DENIED',managed_local_http_tx:'DENIED',explorer_http_fallback:'DENIED',
+      cold_restart:true,txid_lookup:true,txid_lookup_after_restart:true,
+      managed_browser_origin:'DENIED',managed_local_http_tx:'DENIED',explorer_http_fallback:'DENIED',
       signer:'DISABLED',submission:'DISABLED'
     }));
     code=0;

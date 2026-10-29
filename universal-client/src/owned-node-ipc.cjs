@@ -7,7 +7,7 @@ const NETWORK='fairyelf-public-testnet-v4';
 const IPC_ENV_FLAG='FAE_TRIUM_IPC';
 const REQUEST='TRIUM_FAE_NODE_IPC_REQUEST_V1';
 const REPLY='TRIUM_FAE_NODE_IPC_REPLY_V1';
-const ALLOWED_READS=new Set(['status','balance','spendable']);
+const ALLOWED_READS=new Set(['status','balance','spendable','transaction-lookup']);
 function alive(child){
   return child&&child.connected===true&&Number.isSafeInteger(child.pid)&&child.pid>0&&
     child.exitCode===null&&!child.killed&&!child._tsFailed;
@@ -63,9 +63,13 @@ class OwnedNodeIpc {
     if(this.revoked||!alive(this.child))
       return Promise.reject(Error('Managed node IPC channel unavailable'));
     if(!ALLOWED_READS.has(op)||!params||typeof params!=='object'||
-       Array.isArray(params)||Object.keys(params).some(k=>k!=='address')||
-       (op==='status'&&Object.keys(params).length!==0)||
-       (op!=='status'&&(typeof params.address!=='string'||params.address.length>90)))
+       Array.isArray(params)||!(op==='status'?
+         Object.keys(params).length===0:
+         op==='transaction-lookup'?
+           Object.keys(params).length===1&&
+           typeof params.txid==='string'&&/^[0-9a-f]{64}$/.test(params.txid):
+           Object.keys(params).length===1&&
+           typeof params.address==='string'&&params.address.length<=90))
       return Promise.reject(Error('Unsupported native IPC read'));
     if(this.pending)return Promise.reject(Error('Native node IPC request already pending'));
     const id=++this.counter;
