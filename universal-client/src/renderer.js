@@ -468,7 +468,7 @@ for(const id of ['payment-to','payment-amount','payment-fee']){
 }
 get('payment-review').addEventListener('click',reviewPayment);
 let nativeWalletReady=false,nativeWalletBusy=false;
-const nativeWalletButtons=['native-wallet-create','native-wallet-recover','native-wallet-address'];
+const nativeWalletButtons=['native-wallet-create','native-wallet-recover','native-wallet-address','native-wallet-outbox'];
 function nativeWalletButtonsState(){
   for(const id of nativeWalletButtons)get(id).disabled=!nativeWalletReady||nativeWalletBusy;
 }
@@ -491,14 +491,17 @@ async function nativeWalletTerminal(command){
     :result?.public_import==='NOT_IMPORTED_VAULT_PRESERVED'
       ?'Native CLI completed, but public address import was not verified. Vault data was preserved; use the separate native import dialog.'
       :result?.status==='CLI_EXIT_SUCCESS'
-        ?'Native CLI exited successfully. Desktop signing is not admitted; public-only observation remains separate.'
-        :'Native CLI did not confirm successful completion; no desktop signing was enabled.';
+        ?command==='outbox'
+          ?'Original Wallet outbox command exited successfully in the separate terminal. Inspect its result there; no password, decrypted intent or TXID was returned to this window. No payment was sent, retried or acknowledged.'
+          :'Native CLI exited successfully. Desktop signing is not admitted; public-only observation remains separate.'
+        :'Native CLI did not confirm successful completion; no desktop signing, submission or outbox acknowledgement was enabled.';
   nativeWalletBusy=false;
   await refreshNativeWalletCandidate();
 }
 get('native-wallet-create').addEventListener('click',()=>nativeWalletTerminal('create'));
 get('native-wallet-recover').addEventListener('click',()=>nativeWalletTerminal('recover'));
 get('native-wallet-address').addEventListener('click',()=>nativeWalletTerminal('address'));
+get('native-wallet-outbox').addEventListener('click',()=>nativeWalletTerminal('outbox'));
 get('payment-funds').addEventListener('click',observePaymentFunds);
 get('wallet-tx-track').addEventListener('click',trackWalletTransaction);
 get('wallet-txid').addEventListener('input',()=>{
