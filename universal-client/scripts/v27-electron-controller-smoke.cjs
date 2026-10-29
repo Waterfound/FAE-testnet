@@ -8,6 +8,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {ProcessController}=require('../src/controller.cjs');
 const {makeUtilitySpawn}=require('../src/utility-process-adapter.cjs');
+const OWNER_PINS=require('../test/v29-original-node-owner-pins.cjs');
 const root=process.env.TS_V27_ORIGINAL_NODE_ROOT;
 if(!root||!path.isAbsolute(root))throw Error('Pinned owner source root required');
 const original=path.join(root,'sovereign-forge','node','fae-node.mjs');
@@ -20,7 +21,8 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
   const controller=new ProcessController({
     repoRoot:root,dataDir:dir,
     spawnFn:makeUtilitySpawn(utilityProcess.fork.bind(utilityProcess)),
-    nativeIpcCandidate:true
+    nativeIpcCandidate:true,
+    nativeNodeSourcePins:OWNER_PINS
   });
   const stopTimeout=setTimeout(()=>{
     console.error('TS_V27_ELECTRON_CONTROLLER_IPC_TIMEOUT');
