@@ -127,7 +127,7 @@ const unavailable=(state)=>Object.freeze({
   input_authorization:'DENIED_UNVERIFIED'
 });
 async function planWithOwnedNodeFinalityCheck({
-  controller,walletScript,review,observed
+  controller,expectedNode,walletScript,review,observed
 }={}){
   if(!controller||typeof controller.readFundingCandidates!=='function'||
      typeof controller.readStatus!=='function'||!controller.node||
@@ -136,7 +136,12 @@ async function planWithOwnedNodeFinalityCheck({
      observed.observed_tip_height<0||
      typeof observed.observed_tip_hash!=='string'||!HEX.test(observed.observed_tip_hash))
     throw Error('Real managed-node observation required for original Wallet plan');
-  const owned=controller.node;
+  // expectedNode was captured by the trusted parent BEFORE the balance
+  // observation. A same-tip replacement between two reads cannot inherit
+  // the original review merely because its height and hash match.
+  if(!expectedNode||controller.node!==expectedNode)
+    return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
+  const owned=expectedNode;
   const funding=await controller.readFundingCandidates(review.from);
   if(controller.node!==owned)
     return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
