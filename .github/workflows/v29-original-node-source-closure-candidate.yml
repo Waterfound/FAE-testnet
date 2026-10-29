@@ -1,0 +1,53 @@
+name: V29 Pinned Original Node Candidate (isolated)
+on:
+  push:
+    branches:
+      - candidate/trium-v29-complete-original-node-source-pins-20261029
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v29-original-node-closure:
+    name: "Pinned original node and Electron IPC (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 14
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Checkout exact independently protected original FAE node
+        shell: bash
+        run: |
+          set -euo pipefail
+          OWNER_SHA=63c6438d37ad56d6fafd46ff71a3d337917b971c
+          NODE_ROOT="$GITHUB_WORKSPACE/../ts-v29-managed-original-owner"
+          git fetch --no-tags --depth=1 origin "$OWNER_SHA"
+          git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$NODE_ROOT" "$OWNER_SHA"
+          test "$(git -C "$NODE_ROOT" rev-parse HEAD)" = "$OWNER_SHA"
+          echo "TS_V27_ORIGINAL_NODE_ROOT=$NODE_ROOT" >> "$GITHUB_ENV"
+      - name: Original node source syntax and immutable closure adversarial acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check universal-client/src/pinned-node-source.cjs
+          node --check universal-client/src/controller.cjs
+          node --check universal-client/test/controller-native-ipc-candidate.test.cjs
+          node --test universal-client/test/controller-native-ipc-candidate.test.cjs
+      - name: Real Electron utilityProcess original FAE managed node process
+        shell: bash
+        working-directory: universal-client
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a --server-args="-screen 0 1280x800x24" ./node_modules/.bin/electron --no-sandbox scripts/v27-electron-controller-smoke.cjs
+          else
+            npm exec -- electron scripts/v27-electron-controller-smoke.cjs
+          fi
