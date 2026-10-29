@@ -70,16 +70,26 @@ function validateFundingCandidatePayload(payload,{address}={}){
     const amount=BigInt(row.amount_atoms);
     summed+=amount;
     if(row.source==='confirmed')confirmed+=amount;else pending+=amount;
+    const exclusionReasons=[
+      'PROCESS_IDENTITY_UNAUTHENTICATED',
+      'KEY_OWNERSHIP_UNVERIFIED',
+      'SOURCE_PROVENANCE_UNVERIFIED',
+      ...(row.source==='confirmed'?['MATURITY_POLICY_UNVERIFIED']:['UNCONFIRMED_PARENT'])
+    ];
     rows.push(Object.freeze({outpoint:row.outpoint,amount_atoms:row.amount_atoms,
       source:row.source,
       ...(row.source==='confirmed'?{created_height:row.created_height}:
-        {parent_txid:row.parent_txid})}));
+        {parent_txid:row.parent_txid}),
+      spend_eligibility:'UNVERIFIED',
+      exclusion_reasons:Object.freeze(exclusionReasons)}));
   }
   if(summed!==BigInt(payload.spendable_atoms))
     throw Error('Selected-node funding candidate total mismatch');
   return Object.freeze({ok:true,address,network:NETWORK,
     candidate_atoms:summed.toString(),confirmed_candidate_atoms:confirmed.toString(),
     pending_candidate_atoms:pending.toString(),candidate_count:rows.length,
+    eligible_candidate_atoms:'0',eligible_candidate_count:0,
+    funding_authorization:'DENIED_UNVERIFIED',
     outputs:Object.freeze(rows),
     authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',
     maturity:'NOT_VERIFIED',ownership:'NOT_VERIFIED',
