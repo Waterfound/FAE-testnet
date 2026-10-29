@@ -4,6 +4,7 @@
 // fall back to HTTP for an IPC failure or interpret it as authenticated.
 const {randomBytes}=require('node:crypto');
 const NETWORK='fairyelf-public-testnet-v4';
+const IPC_ENV_FLAG='FAE_TRIUM_IPC';
 const REQUEST='TRIUM_FAE_NODE_IPC_REQUEST_V1';
 const REPLY='TRIUM_FAE_NODE_IPC_REPLY_V1';
 const ALLOWED_READS=new Set(['status','balance','spendable']);
@@ -83,4 +84,4 @@ class OwnedNodeIpc {
     });
   }
 }
-module.exports={OwnedNodeIpc,NETWORK,REQUEST,REPLY};
+module.exports={OwnedNodeIpc,NETWORK,REQUEST,REPLY,IPC_ENV_FLAG};
