@@ -43,6 +43,13 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     });
     assert.equal(browserAttempt.status,403);
     assert.equal(browserAttempt.headers.get('access-control-allow-origin'),null);
+    // No unsigned native wallet send is admitted via local HTTP.
+    const deniedTx=await fetch(controller.endpoint+'/submit-tx',{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({invalid:true}),signal:AbortSignal.timeout(3000)
+    });
+    assert.equal(deniedTx.status,403);
+    assert.equal((await deniedTx.json()).error,'managed_tx_ingress_requires_native_owner');
     const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
     assert.equal((await controller.readBalance(address)).balance_atoms,'0');
     const funding=await controller.readFundingCandidates(address);
@@ -59,7 +66,7 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     console.log('TS_V27_ELECTRON_CONTROLLER_IPC_PASS '+JSON.stringify({
       node:'ORIGINAL_FAE_V4',transport:'ACTUAL_ELECTRON_UTILITY_PROCESS',
       status:true,balance:true,funding:true,session_revoked:true,
-      cold_restart:true,managed_browser_origin:'DENIED',explorer_http_fallback:'DENIED',
+      cold_restart:true,managed_browser_origin:'DENIED',managed_local_http_tx:'DENIED',explorer_http_fallback:'DENIED',
       signer:'DISABLED',submission:'DISABLED'
     }));
     code=0;
