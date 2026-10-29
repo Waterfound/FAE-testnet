@@ -34,6 +34,15 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     assert.equal(first.node,'running');
     const firstIpc=controller.nodeIpc;
     assert.equal((await controller.readStatus()).network,'fairyelf-public-testnet-v4');
+    // Managed original node V29: native OS IPC must coexist with browser-origin
+    // rejection at its legacy HTTP surface. An unrelated local process is
+    // still NOT authenticated by this check; signer/submit remain unavailable.
+    const browserAttempt=await fetch(controller.endpoint+'/status',{
+      headers:{Origin:'https://untrusted.invalid'},
+      signal:AbortSignal.timeout(3000)
+    });
+    assert.equal(browserAttempt.status,403);
+    assert.equal(browserAttempt.headers.get('access-control-allow-origin'),null);
     const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
     assert.equal((await controller.readBalance(address)).balance_atoms,'0');
     const funding=await controller.readFundingCandidates(address);
@@ -50,7 +59,7 @@ if(!fs.existsSync(original)||!fs.existsSync(handler))
     console.log('TS_V27_ELECTRON_CONTROLLER_IPC_PASS '+JSON.stringify({
       node:'ORIGINAL_FAE_V4',transport:'ACTUAL_ELECTRON_UTILITY_PROCESS',
       status:true,balance:true,funding:true,session_revoked:true,
-      cold_restart:true,explorer_http_fallback:'DENIED',
+      cold_restart:true,managed_browser_origin:'DENIED',explorer_http_fallback:'DENIED',
       signer:'DISABLED',submission:'DISABLED'
     }));
     code=0;
