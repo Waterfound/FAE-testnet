@@ -161,6 +161,26 @@ async function planWithOwnedNodeFinalityCheck({
   if(final.height!==observed.observed_tip_height||
      final.tip_hash!==observed.observed_tip_hash)
     return unavailable('NODE_TIP_CHANGED_AFTER_PLAN');
+  if(planned.state!=='ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN')return planned;
+  // The mempool can reserve confirmed UTXOs without changing the chain tip.
+  // A post-plan height/hash check alone cannot preserve coin selection.
+  // Re-observe the original node; this still grants NO spend/sign authority.
+  const fresh=await controller.readFundingCandidates(review.from);
+  if(controller.node!==owned)
+    return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
+  if(fresh.observed_tip_height!==observed.observed_tip_height||
+     fresh.observed_tip_hash!==observed.observed_tip_hash)
+    return unavailable('NODE_TIP_CHANGED_AFTER_PLAN');
+  validatePublicCandidates(review,fresh);
+  const selectedBefore=new Map(funding.outputs.filter(row=>row.source==='confirmed')
+    .map(row=>[row.outpoint,row.amount_atoms]));
+  const selectedNow=new Map(fresh.outputs.filter(row=>row.source==='confirmed')
+    .map(row=>[row.outpoint,row.amount_atoms]));
+  if(!Array.isArray(planned.selected_inputs)||
+     planned.selected_inputs.some(outpoint=>
+       !selectedBefore.has(outpoint)||
+       selectedBefore.get(outpoint)!==selectedNow.get(outpoint)))
+    return unavailable('NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
   return planned;
 }
 module.exports={planWithOriginalWallet,planWithOwnedNodeFinalityCheck};
