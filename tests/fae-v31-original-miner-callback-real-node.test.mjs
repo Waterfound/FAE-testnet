@@ -92,3 +92,33 @@ test('original miner mines REAL PoW and callback relays one original-node accept
     });
   }finally{await rm(dir,{recursive:true,force:true})}
 });
+
+test('native callback failure is fail-closed: one call, no automatic HTTP block fallback',
+ {timeout:180000},async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'fae-v31-miner-denied-'));
+  try{
+    const p=await port();
+    await originalNode(dir,p,async base=>{
+      const minerOpts={node:base,address:ADDRESS,chunkSize:4096,
+        tipPollMs:500,reconnectMinMs:100,reconnectMaxMs:1000,
+        rateIntervalMs:500,yieldMs:0,nonceStart:0,once:true,json:false};
+      let callbackCalls=0;
+      await assert.rejects(runMiner(minerOpts,{emit:()=>{},
+        submitMinedBlock:async submission=>{
+          callbackCalls++;
+          assert.equal(submission.header.network,'fairyelf-public-testnet-v4');
+          // No permission to mutate original node; simulate native owner gate.
+          throw Error('native_owner_mutation_gate_closed');
+        }}),/Non-stale block rejection/);
+      assert.equal(callbackCalls,1,'no implicit retry of unknown outcome');
+      const observed=await json(base,'/status');
+      assert.equal(observed.height,0,'HTTP fallback never occurs');
+      assert.equal(observed.mempool_size,0);
+    });
+  }finally{await rm(dir,{recursive:true,force:true})}
+});
+test('original miner refuses malformed callback before any mining begins',
+ async()=>{
+  await assert.rejects(runMiner({json:false},{emit:()=>{},submitMinedBlock:'not-owned'}),
+    /Native miner submission callback must be a function/);
+});
