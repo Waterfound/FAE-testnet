@@ -513,8 +513,13 @@ class ProcessController extends EventEmitter{
       this.miner=this.spawnScript(path.join(this.repoRoot,'standalone','fae-miner.mjs'),
         ['--node',this.endpoint,'--address',address,'--json','--yield-ms','20']);
       let buffer='';
-      this.miner.stdout?.setEncoding?.('utf8');
-      this.miner.stdout?.on?.('data',data=>{
+      const ownedMiner=this.miner;
+      ownedMiner.stdout?.setEncoding?.('utf8');
+      ownedMiner.stdout?.on?.('data',data=>{
+        if(this.miner!==ownedMiner||!alive(ownedMiner)||this.minerStopPending){
+          buffer='';
+          return;
+        }
         buffer+=data;
         if(buffer.length>16384){buffer='';return}
         let end;while((end=buffer.indexOf('\n'))>=0){this.ingestMiner(buffer.slice(0,end));buffer=buffer.slice(end+1)}
