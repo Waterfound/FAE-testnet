@@ -47,6 +47,12 @@ const DEFAULT_CHAIN_FEED='https://wfwwotuhectwknvbvgif.supabase.co/functions/v1/
 const PORT=Number(process.env.FAE_PORT||8787);
 const HOST=process.env.FAE_HOST||'0.0.0.0';
 const MANAGED_MODE=process.env.FAE_TRIUM_IPC==='1';
+// Isolated V30 source-owner proposal ONLY. This is not production admission.
+// Two explicit opt-ins are required; neither is set by the installed client.
+const SIGNED_TX_IPC_CANDIDATE=MANAGED_MODE&&
+  process.env.FAE_TRIUM_SIGNED_TX_IPC_CANDIDATE==='1';
+if(!MANAGED_MODE&&process.env.FAE_TRIUM_SIGNED_TX_IPC_CANDIDATE==='1')
+  throw Error('Signed original-node IPC candidate requires managed mode');
 // Fail closed before network startup: managed native child must bind only to
 // literal IPv4 loopback. Ordinary standalone/public node remains unchanged.
 if(MANAGED_MODE&&HOST!=='127.0.0.1')throw Error('Managed FAE node requires literal IPv4 loopback binding');
@@ -174,6 +180,27 @@ if(MANAGED_MODE){
       const total=utxos.reduce((sum,u)=>sum+BigInt(u.amount_atoms),0n);
       return {ok:true,network:NETWORK,address,spendable_atoms:total.toString(),
         spendable_fae:formatAtoms(total),utxos};
+    },
+    readTransaction:txid=>{
+      if(!/^[0-9a-f]{64}$/.test(txid))throw Error('invalid_txid');
+      const record=state.transactions[txid]||null;
+      const current=tip(state);
+      return {ok:true,network:NETWORK,txid,found:Boolean(record),
+        status:record?.status||null,
+        confirmed_height:record?.confirmed_height??null,
+        tip_height:current?.height||0,tip_hash:current?.hash||ZERO_HASH};
+    },
+    allowSignedMutation:SIGNED_TX_IPC_CANDIDATE,
+    submitSignedTx:async raw=>{
+      // Reuse the original consensus validation and authoritative node state.
+      // ACK only after durable original persistence, never pre-ack.
+      // Failed transport/persistence means UNKNOWN; never auto-resubmit.
+      if(!SIGNED_TX_IPC_CANDIDATE)throw Error('native_tx_admission_not_granted');
+      let accepted;
+      await serial(async()=>{accepted=acceptTxInto(state,raw);await persist()});
+      if(ENABLE_SYNC)relay('/submit-tx',{tx:normalizeTx(raw)}).catch(()=>{});
+      return {ok:true,network:NETWORK,txid:accepted.txid,
+        fee_atoms:accepted.fee_atoms,status:'accepted_unconfirmed'};
     }
   });
 }
