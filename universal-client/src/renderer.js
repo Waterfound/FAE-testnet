@@ -494,7 +494,9 @@ async function nativeWalletTerminal(command){
         ?command==='outbox'
           ?'Original Wallet outbox command exited successfully in the separate terminal. Inspect its result there; no password, decrypted intent or TXID was returned to this window. No payment was sent, retried or acknowledged.'
           :'Native CLI exited successfully. Desktop signing is not admitted; public-only observation remains separate.'
-        :'Native CLI did not confirm successful completion; no desktop signing, submission or outbox acknowledgement was enabled.';
+        :command==='outbox'
+          ?'Original Wallet outbox result is unresolved or unavailable in the separate terminal. A non-success exit may mean pending, unknown, or a terminal error; inspect the protected terminal. No transaction was sent, retried or acknowledged here.'
+          :'Native CLI did not confirm successful completion; no desktop signing or submission was enabled.';
   nativeWalletBusy=false;
   await refreshNativeWalletCandidate();
 }
