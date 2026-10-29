@@ -59,6 +59,8 @@ async function verifyOriginalMinerSource(root){
   }
   return path.join(root,'universal-client','src','v34-original-miner-owned-worker.mjs');
 }
+// Only a normal exit code 0 proves completion; signal termination is not proof.
+function cleanOriginalMinerExit(code,signal){return code===0&&signal===null}
 async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}){
   // No caller-supplied executable, callback, path or mutation privilege.
   if(typeof node!=='string'||!ENDPOINT.test(node)||
@@ -144,7 +146,7 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
       if(stopped)return;stopped=true;clearTimeout(timer);
       // SIGTERM/SIGKILL reports code=null: never accept a killed miner as
       // independent evidence of a completed, clean denial protocol.
-      if(!proposal||finish!=='FAIL_CLOSED'||code!==0||signal!==null)
+      if(!proposal||finish!=='FAIL_CLOSED'||!cleanOriginalMinerExit(code,signal))
         return reject(Error('Original miner owner denial was not independently witnessed'));
       resolve(Object.freeze({
         type:'REAL_ORIGINAL_MINER_OS_CHILD_DENIED',
@@ -165,4 +167,4 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
   });
   return done;
 }
-module.exports={verifyOriginalMinerSource,assertOriginalMinerProposal,runDeniedOriginalMiner,SOURCE_BLOBS,NETWORK};
+module.exports={verifyOriginalMinerSource,assertOriginalMinerProposal,cleanOriginalMinerExit,runDeniedOriginalMiner,SOURCE_BLOBS,NETWORK};
