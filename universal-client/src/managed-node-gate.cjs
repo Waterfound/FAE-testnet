@@ -20,6 +20,26 @@ function probeLoopbackPort(port=8787){
     server.listen(port,'127.0.0.1',()=>server.close(resolve));
   });
 }
+// Ask the operating system for an actually bindable local port, including
+// on Windows hosts with dynamic excluded/reserved TCP port ranges. The
+// reservation is released before the original node binds; this does NOT
+// establish endpoint ownership or process authentication.
+function allocateOsAssignedLoopbackPort(){
+  return new Promise((resolve,reject)=>{
+    const server=net.createServer();
+    server.once('error',error=>reject(Error('FAE OS-assigned loopback port unavailable: '+error.code)));
+    server.listen(0,'127.0.0.1',()=>{
+      const bound=server.address();
+      const port=bound&&typeof bound==='object'?bound.port:null;
+      server.close(error=>{
+        if(error)return reject(error);
+        if(!Number.isInteger(port)||port<1024||port>65535)
+          return reject(Error('FAE OS-assigned loopback port invalid'));
+        resolve(port);
+      });
+    });
+  });
+}
 async function verifyManagedReadiness({child,readStatus,timeoutMs=5000,pollMs=90}={}){
   if(typeof readStatus!=='function')throw Error('Readiness probe required');
   const deadline=Date.now()+timeoutMs;
@@ -91,4 +111,4 @@ function waitForManagedListenEvidence({child,host='127.0.0.1',port,timeoutMs=600
   });
 }
 
-module.exports={isManagedChildAlive,assertManagedNodeReady,probeLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence};
+module.exports={isManagedChildAlive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence};
