@@ -75,8 +75,11 @@ function validateFundingCandidatePayload(payload,{address}={}){
     if(row.source==='confirmed'&&
        (!Number.isSafeInteger(row.created_height)||row.created_height<1))
       throw Error('Invalid confirmed candidate height');
+    // The original node derives every pending outpoint from its real parent TXID.
+    // A different claimed parent is contradictory even for untrusted public reads.
     if(row.source==='pending'&&
        (typeof row.parent_txid!=='string'||!DIGEST.test(row.parent_txid)||
+        row.outpoint.slice(0,64)!==row.parent_txid||
         row.created_height!==undefined))
       throw Error('Invalid pending candidate provenance');
     outpoints.add(row.outpoint);
