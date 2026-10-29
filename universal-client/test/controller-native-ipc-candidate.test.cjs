@@ -8,6 +8,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {fork}=require('node:child_process');
 const {ProcessController}=require('../src/controller.cjs');
+const OWNER_PINS=require('./v29-original-node-owner-pins.cjs');
 const ADDRESS='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
 const root=path.resolve(__dirname,'..','..');
 const ownerRoot=process.env.TS_V27_ORIGINAL_NODE_ROOT;
@@ -21,12 +22,44 @@ function disposable(){
   return fs.mkdtempSync(path.join(os.tmpdir(),'trium-v27-ipc-controller-'));
 }
 function clean(dir){fs.rmSync(dir,{recursive:true,force:true})}
+
+test('native IPC refuses enablement without independently pinned owner source',()=>{
+  assert.throws(()=>new ProcessController({repoRoot:root,dataDir:os.tmpdir(),
+    nativeIpcCandidate:true}),/source pins required/);
+  assert.throws(()=>new ProcessController({repoRoot:root,dataDir:os.tmpdir(),
+    nativeIpcCandidate:true,nativeNodeSourcePins:{}}),/source pins required/);
+});
+test('changed original-node helper refuses spawn even with valid HTTP port',
+  {skip:!ownerRoot},async()=>{
+    const dir=disposable(),source=path.join(dir,'sources');
+    let spawned=0;
+    try{
+      for(const name of Object.keys(OWNER_PINS)){
+        const target=path.join(source,...name.split('/'));
+        fs.mkdirSync(path.dirname(target),{recursive:true});
+        fs.copyFileSync(path.join(ownerRoot,...name.split('/')),target);
+      }
+      const helper=path.join(source,'sovereign-forge','node','node-parent-port.mjs');
+      fs.appendFileSync(helper,'\\n// altered original node helper\\n');
+      const c=new ProcessController({repoRoot:source,dataDir:path.join(dir,'state'),
+        port:43187,portProbe:async()=>{},
+        spawnFn:()=>{spawned++;throw Error('UNAUTHORIZED_SPAWN')},
+        nativeIpcCandidate:true,nativeNodeSourcePins:OWNER_PINS});
+      try{
+        await assert.rejects(c.startNode(),/source verification failed/);
+        assert.equal(spawned,0,'tampered protected helper never launches');
+        assert.equal(c.snapshot().node,'stopped');
+      }finally{await c.dispose()}
+    }finally{clean(dir)}
+});
+
 test('native IPC is never silently enabled on an unmodified original node',async()=>{
   const dir=disposable();
   const c=new ProcessController({repoRoot:root,dataDir:dir,
-    spawnFn:forkWithNativePort,nativeIpcCandidate:true});
+    spawnFn:forkWithNativePort,nativeIpcCandidate:true,
+    nativeNodeSourcePins:OWNER_PINS});
   try{
-    await assert.rejects(c.startNode(),/IPC|readiness|channel|timeout|not ready/i);
+    await assert.rejects(c.startNode(),/IPC|readiness|channel|timeout|not ready|source verification/i);
     assert.notEqual(c.snapshot().node,'running');
     assert.equal(c.nodeIpc,null,'failed channel cannot retain IPC authority');
   }finally{
@@ -41,7 +74,8 @@ test('original FAE PR #354 node + actual ProcessController reads and cold restar
     assert.ok(fs.existsSync(path.join(ownerRoot,'sovereign-forge','node','node-parent-port.mjs')));
     const dir=disposable();
     const c=new ProcessController({repoRoot:ownerRoot,dataDir:dir,
-      spawnFn:forkWithNativePort,nativeIpcCandidate:true});
+      spawnFn:forkWithNativePort,nativeIpcCandidate:true,
+    nativeNodeSourcePins:OWNER_PINS});
     try{
       const first=await c.startNode();
       assert.equal(first.node,'running');
