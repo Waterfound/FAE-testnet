@@ -332,3 +332,32 @@ jobs:
           } else {
             throw "Candidate installer missing uninstall executable"
           }
+
+
+  v27-original-node-owned-controller-ipc:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Pin actual protected original-node proposal without altering client branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE_OWNER_SHA=d40a494045fe4fdc13502c05a5dde4284fc3144c
+          NODE_ROOT="$GITHUB_WORKSPACE/../ts-original-node-owner-v27"
+          git fetch --no-tags --depth=1 origin "$NODE_OWNER_SHA"
+          git -c core.autocrlf=false -c core.eol=lf worktree add --detach "$NODE_ROOT" "$NODE_OWNER_SHA"
+          test "$(git -C "$NODE_ROOT" rev-parse HEAD)" = "$NODE_OWNER_SHA"
+          echo "TS_V27_ORIGINAL_NODE_ROOT=$NODE_ROOT" >> "$GITHUB_ENV"
+      - name: Genuine ProcessController -> original FAE inherited OS IPC, revoke and restart
+        working-directory: universal-client
+        run: node --test test/controller-native-ipc-candidate.test.cjs
