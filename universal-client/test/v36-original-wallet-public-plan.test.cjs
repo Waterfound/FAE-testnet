@@ -5,14 +5,14 @@ const {mkdtemp,mkdir,writeFile,realpath,rm}=require('node:fs/promises');
 const {execFileSync}=require('node:child_process');
 const {tmpdir}=require('node:os');
 const {join,dirname}=require('node:path');
-const {planWithOriginalWallet}=require('../src/v36-original-wallet-public-plan.cjs');
+const {planWithOriginalWallet,planWithOwnedNodeFinalityCheck}=require('../src/v36-original-wallet-public-plan.cjs');
 const {WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
 const NETWORK='fairyelf-public-testnet-v4';
 const A='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
 const H=x=>x.repeat(64);
 const excluded=['PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED','SOURCE_PROVENANCE_UNVERIFIED','MATURITY_POLICY_UNVERIFIED'];
 const review=Object.freeze({network:NETWORK,from:A,to:A,
-  amount_fae:'1',fee_fae:'0.00000001',state:'UNSIGNED_PUBLIC_REVIEW_ONLY',
+  amount_fae:'1',fee_fae:'0.00000001',total_fae:'1.00000001',state:'UNSIGNED_PUBLIC_REVIEW_ONLY',
   signing:'UNAVAILABLE',submission:'NOT_SUBMITTED'});
 function candidates(){
   return {ok:true,network:NETWORK,address:A,authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',
@@ -93,6 +93,42 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
       walletScript:stage.script,review,candidates:noFunds});
     assert.equal(insufficient.state,'INSUFFICIENT_UNVERIFIED_CONFIRMED_CANDIDATES');
     assert.ok(!Object.hasOwn(insufficient,'selected_inputs'));
+    // V37: exact-source owner selection can complete after the chain tip moves.
+    // The plan must be discarded after original code has actually run.
+    const tip={height:250,tip_hash:H('c')};
+    const firstNode={pid:901};
+    const controller={
+      node:firstNode,
+      readFundingCandidates:async()=>candidates(),
+      readStatus:async()=>({...tip})
+    };
+    const args={controller,walletScript:stage.script,review,
+      observed:{observed_tip_height:250,observed_tip_hash:H('c')}};
+    const verified=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(verified.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
+    assert.equal(verified.input_authorization,'DENIED_UNVERIFIED');
+    // The original original code selected valid public inputs, but chain
+    // progression immediately revokes the result.
+    controller.readStatus=async()=>({height:251,tip_hash:H('d')});
+    const stale=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(stale.state,'NODE_TIP_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(stale,'selected_inputs'));
+    // Even the same tip hash must not carry across an owned OS child restart.
+    controller.readStatus=async()=>{controller.node={pid:902};return {...tip}};
+    const restarted=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(restarted.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(restarted,'selected_inputs'));
+    controller.node=firstNode;
+    controller.readStatus=async()=>({...tip});
+    controller.readFundingCandidates=async()=>{controller.node={pid:903};return candidates()};
+    const replacedMidRead=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedMidRead.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedMidRead,'selected_inputs'));
+    // Even in the original head, mismatched payment total is not an
+    // authorization-equivalent public quote.
+    await assert.rejects(planWithOriginalWallet({
+      walletScript:stage.script,review:{...review,total_fae:'2'},
+      candidates:candidates()}),/total differs from plan/);
     await writeFile(stage.script,'\n// tampered wallet original', {flag:'a'});
     await assert.rejects(planWithOriginalWallet({
       walletScript:stage.script,review,candidates:candidates()}),/digest mismatch|unsafe|mismatch/);
