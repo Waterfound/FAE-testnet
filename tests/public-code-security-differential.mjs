@@ -56,7 +56,11 @@ function mine(template,{maxNonce=8_000_000}={}){
 }
 
 async function json(url,options={}){
-  const response=await fetch(url,options);
+  // PSR-11 test fixture performs multi-second synchronous Proof of Work.
+  // Prevent reuse of a previously idle pooled socket after the event loop
+  // was blocked. This neither changes original-node transport nor retries a
+  // state-changing request with an ambiguous acceptance outcome.
+  const response=await fetch(url,{...options,headers:{...options.headers,Connection:'close'}});
   const payload=await response.json().catch(()=>({}));
   return{response,payload};
 }

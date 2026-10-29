@@ -20,7 +20,7 @@ function receipt(status='pending'){
     }
   };
 }
-async function boot(explorer,{fundingCandidates=async()=>{throw Error('Funding fixture unavailable')}}={}){
+async function boot(explorer,{fundingCandidates=async()=>{throw Error('Funding fixture unavailable')},transactionLookup=null}={}){
   const elements=new Map();
   const get=id=>{
     if(!elements.has(id)){
@@ -41,7 +41,13 @@ async function boot(explorer,{fundingCandidates=async()=>{throw Error('Funding f
   const window={triumph:{
     onState:callback=>{onState=callback;return()=>{}},
     snapshot:async()=>({node:'running',miner:'stopped',telemetry:{}}),
-    explorer,fundingCandidates
+    explorer,fundingCandidates,
+    // Mirror actual main-process transport choice. HTTP observation remains
+    // visibly untrusted and is not silently promoted to native identity.
+    transactionLookup:transactionLookup||(async txid=>({
+      origin:'LOCAL_HTTP_EXPLORER_CLAIM',
+      result:await explorer('/explorer/transaction',{txid})
+    }))
   }};
   const filename=path.resolve(__dirname,'../src/renderer.js');
   vm.runInNewContext(fs.readFileSync(filename,'utf8'),{
@@ -117,6 +123,63 @@ test('changed TXID and node shutdown invalidate an in-flight receipt',async()=>{
   assert.match(ui.get('wallet-tx-output').textContent,/Selected-node observation cleared/);
 });
 
+test('V33 real Wallet renderer displays native original-node absence as UNKNOWN, never rejection',async()=>{
+  let explorerCalls=0,nativeCalls=0;
+  const ui=await boot(async()=>{explorerCalls++;throw Error('HTTP is forbidden in native mode')},{
+    transactionLookup:async txid=>{
+      nativeCalls++;assert.equal(txid,TX);
+      return {origin:'PARENT_OWNED_NATIVE_IPC',result:{
+        txid:TX,result_known:false,status:null,confirmed_height:null,
+        observed_tip_height:12,observed_tip_hash:TIP,confirmation_finality:'NOT_PROVEN'
+      }};
+    }
+  });
+  await ui.query(TX);
+  const displayed=ui.get('wallet-tx-output').textContent;
+  assert.match(displayed,/NOT OBSERVED ON THIS NODE · outcome UNKNOWN/);
+  assert.match(displayed,/Never automatically resubmit/);
+  assert.doesNotMatch(displayed,/FAILED|CONFIRMED BY SELECTED NODE/);
+  assert.equal(nativeCalls,1);
+  assert.equal(explorerCalls,0,'never downgrade to untrusted Explorer');
+});
+test('V33 native node pending/confirmed claims remain explicitly non-final',async()=>{
+  let state='pending';
+  const ui=await boot(async()=>{throw Error('HTTP should not be called')},{
+    transactionLookup:async()=>({origin:'PARENT_OWNED_NATIVE_IPC',result:{
+      txid:TX,result_known:true,status:state,
+      confirmed_height:state==='confirmed'?10:null,
+      observed_tip_height:12,observed_tip_hash:TIP,
+      confirmation_finality:'NOT_PROVEN'
+    }})
+  });
+  await ui.query(TX);
+  assert.match(ui.get('wallet-tx-output').textContent,/PENDING · SELECTED NODE CLAIM/);
+  state='confirmed';
+  await ui.query(TX);
+  const out=ui.get('wallet-tx-output').textContent;
+  assert.match(out,/CONFIRMED BY SELECTED NODE · independent finality NOT PROVEN/);
+  assert.match(out,/Included at block #10/);
+  assert.doesNotMatch(out,/CONFIRMED BY SELECTED NODE · 3 local-chain confirmation/);
+});
+test('V33 native contradictory data or revoked channel cannot trigger HTTP fallback',async()=>{
+  let result={txid:TX,result_known:true,status:'confirmed',confirmed_height:null,
+    observed_tip_height:12,observed_tip_hash:TIP,confirmation_finality:'NOT_PROVEN'};
+  let calls=0;
+  const ui=await boot(async()=>{throw Error('HTTP was invoked')},{
+    transactionLookup:async()=>{calls++;return {origin:'PARENT_OWNED_NATIVE_IPC',result}}
+  });
+  await ui.query(TX);
+  assert.match(ui.get('wallet-tx-output').textContent,/Invalid original-node native transaction evidence/);
+  result={...result,status:'pending',confirmed_height:10};
+  await ui.query(TX);
+  assert.match(ui.get('wallet-tx-output').textContent,/Invalid original-node native transaction evidence/);
+  const revoked=await boot(async()=>{throw Error('HTTP should never be used')},{
+    transactionLookup:async()=>{throw Error('Native OS channel revoked')}
+  });
+  await revoked.query(TX);
+  assert.match(revoked.get('wallet-tx-output').textContent,/Authenticated transaction lookup unavailable/);
+  assert.equal(calls,2);
+});
 test('Wallet renders exact selected-node confirmed and pending funding candidate amounts without signing',async()=>{
   const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
   let calls=0;

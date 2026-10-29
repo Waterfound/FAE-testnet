@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('triumph',Object.freeze({
   status:()=>ipcRenderer.invoke('ts:status'),
   balance:address=>ipcRenderer.invoke('ts:balance',address),
   fundingCandidates:address=>ipcRenderer.invoke('ts:funding-candidates',address),
+  transactionLookup:txid=>ipcRenderer.invoke('ts:transaction-lookup',txid),
   reviewPayment:publicDraft=>ipcRenderer.invoke('ts:review-payment',publicDraft),
   observePaymentFunds:publicDraft=>ipcRenderer.invoke('ts:observe-payment-funds',publicDraft),
   explorer:(route,query)=>ipcRenderer.invoke('ts:explorer',route,query),

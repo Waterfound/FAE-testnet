@@ -430,10 +430,11 @@ class ProcessController extends EventEmitter{
       !Number.isSafeInteger(result.tip_height)||result.tip_height<0||
       typeof result.tip_hash!=='string'||!/^[0-9a-f]{64}$/.test(result.tip_hash)||
       (result.found?
-        !['pending','confirmed'].includes(result.status)||
-        (result.confirmed_height!==null&&
-         (!Number.isSafeInteger(result.confirmed_height)||
-          result.confirmed_height<1||result.confirmed_height>result.tip_height)):
+        result.status==='pending'?result.confirmed_height!==null:
+        result.status==='confirmed'?
+          !Number.isSafeInteger(result.confirmed_height)||
+          result.confirmed_height<1||result.confirmed_height>result.tip_height:
+        true:
         result.status!==null||result.confirmed_height!==null))
       throw Error('Invalid native original-node transaction evidence');
     return Object.freeze({

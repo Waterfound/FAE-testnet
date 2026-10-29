@@ -55,8 +55,9 @@ function windowCreate(){
     win.webContents.once('did-finish-load',async()=>{
       try{
         const s=await win.webContents.executeJavaScript(
-          "(async()=>{let started=false;try{const a=await window.triumph.startNode();started=a.node==='running';const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const status=await window.triumph.status();const explorer=await window.triumph.explorer('/explorer/status',{});const balance=await window.triumph.balance(addr);const activity=await window.triumph.explorer('/explorer/address',{address:addr,limit:5});const funding=await window.triumph.observePaymentFunds({from:addr,to:addr,amount:'1',fee:'0'});return {started,funding,network:status.network,height:status.height,tip_hash:status.tip_hash,explorer_network:explorer.network,tip_height:explorer.observed_tip_height,balance_address:balance.address,balance_atoms:balance.balance_atoms,activity_address:activity.address,activity_tip:activity.observed_tip_hash,activity_count:activity.events.length};}finally{if(started)await window.triumph.stopNode();}})()");
-        if(!s.started||s.network!=='fairyelf-public-testnet-v4'||s.explorer_network!==s.network||
+          "(async()=>{let started=false;try{const a=await window.triumph.startNode();started=a.node==='running';const addr='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';const status=await window.triumph.status();const explorer=await window.triumph.explorer('/explorer/status',{});const balance=await window.triumph.balance(addr);const activity=await window.triumph.explorer('/explorer/address',{address:addr,limit:5});const funding=await window.triumph.observePaymentFunds({from:addr,to:addr,amount:'1',fee:'0'});let malformedTxidDenied=false;try{await window.triumph.transactionLookup('bad')}catch{malformedTxidDenied=true}document.getElementById('wallet-txid').value='b'.repeat(64);let txUiReady=false;for(let n=0;n<100;n++){if(document.getElementById('node-state').textContent==='Running (process)'){txUiReady=true;break}await new Promise(resolve=>setTimeout(resolve,20))}document.getElementById('wallet-tx-track').click();let missingTxSafe=false;for(let n=0;n<240;n++){if(document.getElementById('wallet-tx-output').textContent.includes('No compatible transaction observation')){missingTxSafe=true;break}await new Promise(resolve=>setTimeout(resolve,25))}const txUiText=document.getElementById('wallet-tx-output').textContent;return {started,funding,malformedTxidDenied,missingTxSafe,txUiReady,txUiText,network:status.network,height:status.height,tip_hash:status.tip_hash,explorer_network:explorer.network,tip_height:explorer.observed_tip_height,balance_address:balance.address,balance_atoms:balance.balance_atoms,activity_address:activity.address,activity_tip:activity.observed_tip_hash,activity_count:activity.events.length};}finally{if(started)await window.triumph.stopNode();}})()");
+        if(!s.started||s.malformedTxidDenied!==true||s.missingTxSafe!==true||
+          s.network!=='fairyelf-public-testnet-v4'||s.explorer_network!==s.network||
           !Number.isSafeInteger(s.height)||s.height!==s.tip_height||
           s.balance_address!=='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn'||
           !/^[0-9]+$/.test(String(s.balance_atoms))||s.activity_address!==s.balance_address||
@@ -68,7 +69,7 @@ function windowCreate(){
           s.funding?.observed_tip_hash!==s.tip_hash||
           s.funding?.spendability!=='NOT_VERIFIED'||
           s.funding?.signing!=='UNAVAILABLE'||s.funding?.submission!=='NOT_SUBMITTED')
-          throw Error('Native node/Explorer/Wallet watch-only tip mismatch');
+          throw Error('Native node/Explorer/Wallet watch-only tip mismatch: '+JSON.stringify(s));
         console.log('TS_NODE_SMOKE_PASS '+JSON.stringify(s));clearTimeout(timeout);app.exit(0);
       }catch(error){console.error('TS_NODE_SMOKE_FAIL '+error.message);clearTimeout(timeout);app.exit(1)}
     });
@@ -263,6 +264,30 @@ function bindIpc(){
     'ts:status':()=>controller.readStatus(),
     'ts:balance':async addr=>controller.readBalance(await canonicalAddress(addr,addressSource)),
     'ts:funding-candidates':async addr=>controller.readFundingCandidates(await canonicalAddress(addr,addressSource)),
+    'ts:transaction-lookup':async txid=>{
+      // One renderer-facing observation API; mode is selected exclusively by
+      // the actual parent-owned ProcessController, never by a renderer flag.
+      if(typeof txid!=='string'||!/^[0-9a-f]{64}$/.test(txid))
+        throw Error('Exact public FAE transaction ID required');
+      if(controller.nativeIpcCandidate){
+        // No local HTTP fallback even after native restart/revocation/error.
+        const result=await controller.readTransactionByTxid(txid);
+        return {origin:'PARENT_OWNED_NATIVE_IPC',result};
+      }
+      // Existing unadmitted GUI continues to show the historical, explicitly
+      // untrusted Explorer observation; this is not a signer or a native claim.
+      let result;
+      try{
+        result=await controller.readExplorer('/explorer/transaction',{txid});
+      }catch(error){
+        // Legacy original-node Explorer uses HTTP 404 for an absent TXID.
+        // This is an UNTRUSTED no-observation claim, never proof of rejection.
+        // In native mode errors propagate above; no fallback can reach here.
+        if(String(error?.message)!=='FAE local read HTTP 404')throw error;
+        result=null;
+      }
+      return {origin:'LOCAL_HTTP_EXPLORER_CLAIM',result};
+    },
     'ts:explorer':async(route,query)=>{
       if(route==='/explorer/address'&&query?.address!==undefined)
         await canonicalAddress(query.address,addressSource);
