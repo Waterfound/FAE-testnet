@@ -11,6 +11,7 @@ const path=require('node:path');
 const FILES=Object.freeze([
   'sovereign-forge/node/fae-node.mjs',
   'sovereign-forge/node/node-parent-port.mjs',
+  'sovereign-forge/node/managed-http-guard.mjs',
   'sovereign-forge/node/explorer-read.mjs'
 ]);
 const SHA256=/^[0-9a-f]{64}$/;
