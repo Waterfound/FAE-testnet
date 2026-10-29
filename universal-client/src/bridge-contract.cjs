@@ -3,7 +3,7 @@
 // They do not trust a node as a consensus oracle or authorize transaction signing.
 const NETWORK='fairyelf-public-testnet-v4';
 const DIGEST=/^[0-9a-f]{64}$/;
-const DECIMAL=/^\d+$/;
+const DECIMAL=/^(?:0|[1-9][0-9]*)$/;
 function validateRead(payload,{kind='status',address}={}){
   if(!payload || typeof payload!=='object' || Array.isArray(payload) || payload.ok!==true){
     throw Error('Unverified or incompatible FAE network response');
@@ -12,7 +12,9 @@ function validateRead(payload,{kind='status',address}={}){
     // The genuine FAE v4 /balance payload has no `network`; caller MUST verify
     // GET /status on the same loopback node before requesting balance.
     if(payload.network!==undefined && payload.network!==NETWORK)throw Error('Invalid node balance payload');
-    if(typeof address!=='string' || payload.address!==address || !DECIMAL.test(String(payload.balance_atoms??''))){
+    if(typeof address!=='string'||payload.address!==address||
+       typeof payload.balance_atoms!=='string'||payload.balance_atoms.length>80||
+       !DECIMAL.test(payload.balance_atoms)){
       throw Error('Invalid node balance payload');
     }
     return payload;
