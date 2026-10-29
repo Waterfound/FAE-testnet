@@ -112,15 +112,17 @@ test('actual managed original node rejects browser origin, preflight, DNS rebind
     assert.equal(JSON.parse(stable.body).height,0);
   });
 });
-test('security gate remains open: a nonbrowser local process can still reach original HTTP mutation route',
+test('managed local wallet HTTP submission denied; miner block HTTP still requires owner gate',
   {timeout:15000},async()=>{
   await withOriginalNode(true,async port=>{
-    // Malformed unauthenticated request is rejected by transaction validation,
-    // NOT peer-process authentication. Do not misclassify this as full auth.
-    const r=await request(port,'POST','/submit-tx',{},{
+    const tx=await request(port,'POST','/submit-tx',{},{
       version:2,network:'fairyelf-public-testnet-v4',inputs:[],outputs:[]});
-    assert.equal(r.status,409);
-    assert.equal(JSON.parse(r.body).ok,false);
+    assert.equal(tx.status,403);
+    assert.equal(JSON.parse(tx.body).error,'managed_tx_ingress_requires_native_owner');
+    const block=await request(port,'POST','/submit-block',{},{
+      header:{},nonce:0,hash:'invalid',txids:[]});
+    assert.notEqual(block.status,403);
+    assert.equal(JSON.parse(block.body).ok,false);
     assert.equal(JSON.parse((await request(port,'GET','/status')).body).height,0);
   });
 });
