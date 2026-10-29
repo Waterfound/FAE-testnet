@@ -153,6 +153,36 @@ test('desktop controller starts real standalone miner, reports real hashrate and
 });
 
 
+test('V44 exited owned miner cannot resurrect stale hashrate from late stdout',async()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  child.stdout=new EventEmitter();
+  child.stdout.setEncoding=()=>{};
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),spawnFn:()=>child});
+  const node=new EventEmitter();node.exitCode=null;node.killed=false;node._tsFailed=false;
+  c.node=node;
+  c.readStatus=async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  try{
+    const state=await c.startMiner('faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn');
+    assert.equal(state.miner,'running');
+    child.stdout.emit('data',JSON.stringify({state:'MINING',hashrate_hs:347,total_hashes:800})+'\n');
+    assert.equal(c.snapshot().telemetry.hashrate_hs,347);
+    child.exitCode=1;child.emit('exit',1,null);
+    assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+    assert.equal(c.snapshot().telemetry.state,'STOPPED');
+    // OS pipe delivery can race the child exit event: stale bytes are never
+    // allowed to advertise live work after original miner is terminated.
+    child.stdout.emit('data',JSON.stringify({state:'MINING',hashrate_hs:99999,total_hashes:10000})+'\n');
+    assert.equal(c.snapshot().miner,'stopped');
+    assert.equal(c.snapshot().telemetry.state,'STOPPED');
+    assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+  }finally{
+    c.node=null;
+    await c.dispose();
+  }
+});
+
 test('spontaneous miner exit invalidates stale operational hashrate immediately',()=>{
   const {EventEmitter}=require('node:events');
   const child=new EventEmitter();
