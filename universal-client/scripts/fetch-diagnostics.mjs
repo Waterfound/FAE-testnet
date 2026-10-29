@@ -7,6 +7,13 @@ if(process.env.TS_PSR11_DIAG_SOCKET_META==='1'){
   // Undici diagnostic callbacks must remain synchronous, bounded and nonthrowing.
   const seenSockets=new WeakMap(),requestSockets=new WeakMap();
   let nextSocket=0;
+  function boundedMs(value){
+    return Math.min(600000,Math.max(0,Number.isFinite(value)?Math.round(value):0));
+  }
+  function safeReason(error){
+    const code=String(error?.code||error?.cause?.code||'UNKNOWN');
+    return /^[A-Z0-9_]{2,48}$/.test(code)?code:'REDACTED';
+  }
   function safeRoute(request){
     try{
       const origin=new URL(String(request?.origin));
@@ -15,18 +22,48 @@ if(process.env.TS_PSR11_DIAG_SOCKET_META==='1'){
       return ['/status','/template','/submit-block','/submit-tx','/balance','/transactions'].includes(route)?route:null;
     }catch{return null}
   }
+  function observeSocket(socket,record){
+    if(typeof socket?.once!=='function')return;
+    socket.once('error',error=>{
+      try{
+        console.error(JSON.stringify({
+          kind:'TS_PSR11_SOCKET_EVENT_ERROR',socket_sequence:record.id,
+          prior_request_count:record.count,reason:safeReason(error),
+          since_last_send_ms:boundedMs(Date.now()-(record.lastSendAt||Date.now()))
+        }));
+      }catch{}
+    });
+    socket.once('close',hadError=>{
+      try{
+        record.closed=true;
+        console.error(JSON.stringify({
+          kind:'TS_PSR11_SOCKET_EVENT_CLOSE',socket_sequence:record.id,
+          prior_request_count:record.count,had_error:Boolean(hadError),
+          since_last_send_ms:boundedMs(Date.now()-(record.lastSendAt||Date.now()))
+        }));
+      }catch{}
+    });
+  }
   diagnosticsChannel.channel('undici:client:sendHeaders').subscribe(({request,socket})=>{
     try{
       const route=safeRoute(request);
       if(!route||!socket)return;
       let record=seenSockets.get(socket);
-      if(!record){record={id:++nextSocket,count:0};seenSockets.set(socket,record)}
-      record.count++;
-      requestSockets.set(request,{route,id:record.id,count:record.count,socket});
+      if(!record){
+        record={id:++nextSocket,count:0,lastSendAt:null,closed:false};
+        seenSockets.set(socket,record);
+        observeSocket(socket,record);
+      }
+      const now=Date.now();
+      const idleMs=record.lastSendAt===null?0:boundedMs(now-record.lastSendAt);
+      record.count++;record.lastSendAt=now;
+      requestSockets.set(request,{route,id:record.id,count:record.count,socket,record,idleMs});
       if(route==='/submit-block')console.error(JSON.stringify({
         kind:'TS_PSR11_SOCKET_SEND',route,socket_sequence:record.id,
-        request_on_socket:record.count,reused:record.count>1,
-        destroyed_at_send:Boolean(socket.destroyed)
+        request_on_socket:record.count,reused:record.count>1,idle_since_prior_send_ms:idleMs,
+        destroyed_at_send:Boolean(socket.destroyed),closed_event_before_send:record.closed,
+        readable_ended_at_send:Boolean(socket.readableEnded),
+        writable_ended_at_send:Boolean(socket.writableEnded)
       }));
     }catch{}
   });
@@ -34,12 +71,15 @@ if(process.env.TS_PSR11_DIAG_SOCKET_META==='1'){
     try{
       const tracked=requestSockets.get(request);
       if(!tracked)return;
-      const code=String(error?.code||error?.cause?.code||'UNKNOWN');
       console.error(JSON.stringify({
         kind:'TS_PSR11_SOCKET_ERROR',route:tracked.route,socket_sequence:tracked.id,
         request_on_socket:tracked.count,reused:tracked.count>1,
+        idle_since_prior_send_ms:tracked.idleMs,
         destroyed_at_error:Boolean(tracked.socket.destroyed),
-        reason:/^[A-Z0-9_]{2,48}$/.test(code)?code:'REDACTED'
+        close_event_before_error:Boolean(tracked.record.closed),
+        readable_ended_at_error:Boolean(tracked.socket.readableEnded),
+        writable_ended_at_error:Boolean(tracked.socket.writableEnded),
+        reason:safeReason(error)
       }));
     }catch{}
   });
@@ -49,7 +89,8 @@ if(process.env.TS_PSR11_DIAG_SOCKET_META==='1'){
       if(!record)return;
       console.error(JSON.stringify({
         kind:'TS_PSR11_SOCKET_DISCONNECT',socket_sequence:record.id,
-        prior_request_count:record.count
+        prior_request_count:record.count,close_event_observed:record.closed,
+        since_last_send_ms:boundedMs(Date.now()-(record.lastSendAt||Date.now()))
       }));
     }catch{}
   });
