@@ -55,6 +55,10 @@ test('original FAE PR #354 node + actual ProcessController reads and cold restar
       assert.equal(candidates.funding_authorization,'DENIED_UNVERIFIED');
       assert.equal(candidates.eligible_candidate_atoms,'0');
       assert.equal(candidates.observed_tip_height,0);
+      // Explorer remains HTTP-only in original node #354. It cannot be
+      // silently represented as authenticated native process traffic.
+      await assert.rejects(c.readExplorer('/explorer/status'),
+        /Authenticated Explorer IPC unavailable; HTTP fallback forbidden/);
       // No signer/submission is present on the authenticated read-only channel.
       await assert.rejects(oldIpc.read('submit-tx',{tx:{}}),/Unsupported native IPC read/);
       await c.stopNode();
