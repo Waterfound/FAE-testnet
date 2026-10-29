@@ -37,11 +37,21 @@ function explorerUrl(route,params={},endpoint=HOST){
 const ATOMIC=/^(?:0|[1-9][0-9]*)$/;
 const OUTPOINT=/^[0-9a-f]{64}:(?:0|[1-9][0-9]*)$/;
 const DIGEST=/^[0-9a-f]{64}$/;
+const FORBIDDEN_NODE_AUTHORITY_CLAIMS=new Set([
+  'process_authenticated','process_identity','ownership_verified',
+  'maturity_verified','eligible_for_signing','funding_authorization',
+  'signer','submission_authorized'
+]);
+function hasForbiddenNodeAuthorityClaim(value){
+  return value&&typeof value==='object'&&
+    Object.keys(value).some(key=>FORBIDDEN_NODE_AUTHORITY_CLAIMS.has(key));
+}
 // Read-only original FAE v4 /spendable claim. It contains confirmed outputs
 // and unconfirmed mempool descendants, NOT a cryptographic spendability proof.
 // In particular, coinbase maturity and key ownership are NOT attested here.
 function validateFundingCandidatePayload(payload,{address}={}){
   if(!payload||typeof payload!=='object'||Array.isArray(payload)||
+     hasForbiddenNodeAuthorityClaim(payload)||
      payload.ok!==true||payload.address!==address||
      (payload.network!==undefined&&payload.network!==NETWORK)||
      typeof payload.spendable_atoms!=='string'||
@@ -53,6 +63,7 @@ function validateFundingCandidatePayload(payload,{address}={}){
   const rows=[];
   for(const row of payload.utxos){
     if(!row||typeof row!=='object'||Array.isArray(row)||
+       hasForbiddenNodeAuthorityClaim(row)||
        typeof row.outpoint!=='string'||!OUTPOINT.test(row.outpoint)||
        outpoints.has(row.outpoint)||typeof row.amount_atoms!=='string'||
        row.amount_atoms.length>80||!ATOMIC.test(row.amount_atoms)||
