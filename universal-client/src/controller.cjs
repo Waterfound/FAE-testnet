@@ -6,6 +6,7 @@ const {EventEmitter}=require('node:events');
 const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
+const {OwnedNodeIpc}=require('./owned-node-ipc.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
@@ -134,7 +135,8 @@ async function fetchRead(url,kind='status',address,validator=validateRead){
 }
 class ProcessController extends EventEmitter{
   constructor({repoRoot,dataDir,port,nodeExecutable=process.execPath,
-    spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe,listenEvidence=waitForManagedListenEvidence}={}){
+    spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe,listenEvidence=waitForManagedListenEvidence,
+    nativeIpcCandidate=false}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
@@ -149,6 +151,12 @@ class ProcessController extends EventEmitter{
     this.osAssignedPortPending=port===undefined&&portProbe===probeLoopbackPort;
     this.nodeExecutable=nodeExecutable;
     this.spawnFn=spawnFn;this.portProbe=portProbe;this.listenEvidence=listenEvidence;
+    // Inactive by default: protected node PR #354 is not yet admitted.
+    // Candidate sessions must use the actual child-owned OS message port.
+    // Never downgrade an attempted IPC read to localhost HTTP.
+    if(typeof nativeIpcCandidate!=='boolean')throw Error('Invalid native IPC candidate mode');
+    this.nativeIpcCandidate=nativeIpcCandidate;
+    this.nodeIpc=null;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;this.nodeStartGeneration=0;
@@ -180,10 +188,12 @@ class ProcessController extends EventEmitter{
       }
     };
     child.on('error',()=>{
+      if(child===this.node)this.revokeNodeIpc();
       child._tsFailed=true;invalidateMiner();invalidateDependentMiner();
       this.emit('state',this.snapshot());
     });
     child.on('exit',()=>{
+      if(child===this.node)this.revokeNodeIpc();
       child._tsExited=true;
       invalidateMiner();invalidateDependentMiner();
       this.emit('state',this.snapshot());
@@ -213,6 +223,21 @@ class ProcessController extends EventEmitter{
     if(await waitForExit('SIGKILL',killMs))return;
     throw Error('Managed process termination not confirmed');
   }
+  revokeNodeIpc(){
+    if(this.nodeIpc)this.nodeIpc.revoke();
+    this.nodeIpc=null;
+  }
+  async nativeRead(kind,params={}){
+    this.assertNode();
+    const child=this.node,channel=this.nodeIpc;
+    if(!this.nativeIpcCandidate||!channel||channel.child!==child)
+      throw Error('Native managed-node IPC channel unavailable');
+    const observed=await channel.read(kind,params);
+    this.assertNode();
+    if(this.node!==child||this.nodeIpc!==channel)
+      throw Error('Managed FAE IPC process changed during read');
+    return observed;
+  }
   async startNode(){
     if(this.nodeStopping)throw Error('Node shutdown pending');
     if(this.nodeStarting)throw Error('Node startup pending');
@@ -221,6 +246,7 @@ class ProcessController extends EventEmitter{
       return this.snapshot();
     }
     this.nodeStarting=true;
+    this.revokeNodeIpc();
     const generation=this.nodeGeneration;
     this.nodeStartGeneration=generation;
     const assertNotCanceled=()=>{
@@ -259,17 +285,21 @@ class ProcessController extends EventEmitter{
       assertNotCanceled();
       this.node=this.spawnScript(path.join(this.repoRoot,'sovereign-forge','node','fae-node.mjs'),[],{
         FAE_HOST:'127.0.0.1',FAE_PORT:String(this.port),FAE_DATA_FILE:path.join(dir,'state.json'),
-        FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:''
+        FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:'',
+        ...(this.nativeIpcCandidate?{FAE_TRIUM_IPC:'1'}:{})
       });
       // The child must itself report successful listen before any HTTP status
       // could be considered. This closes the basic prebind spoof admission gap.
       await this.listenEvidence({child:this.node,host:'127.0.0.1',port:this.port});
       assertNotCanceled();
-      await verifyManagedReadiness({child:this.node,readStatus:this.readinessProbe});
+      if(this.nativeIpcCandidate)this.nodeIpc=new OwnedNodeIpc(this.node,{timeoutMs:3500});
+      await verifyManagedReadiness({child:this.node,
+        readStatus:this.nativeIpcCandidate?()=>this.nativeRead('status'):this.readinessProbe});
       assertNotCanceled();
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();
     }catch(e){
+      this.revokeNodeIpc();
       const old=this.node;this.nodeStarting=false;
       try{await this.stop(old)}catch(shutdownError){
         this.emit('state',this.snapshot());
@@ -305,6 +335,7 @@ class ProcessController extends EventEmitter{
     // Revoke all in-flight startup continuations before the first await.
     // The generation is not reset when shutdown finishes.
     this.nodeGeneration++;
+    this.revokeNodeIpc();
     this.nodeStopping=true;
     this.emit('state',this.snapshot());
     this.nodeStopPromise=(async()=>{
@@ -323,6 +354,8 @@ class ProcessController extends EventEmitter{
   }
   assertNode(){assertManagedNodeReady(this.node,this.nodeStarting||this.nodeStopping)}
   async readStatus(){
+    if(this.nativeIpcCandidate)
+      return validateRead(await this.nativeRead('status'),{kind:'status'});
     this.assertNode();const owned=this.node;
     const observed=await fetchRead(new URL('/status',this.endpoint));
     // The loopback response could arrive AFTER managed-child death/replacement.
@@ -334,13 +367,17 @@ class ProcessController extends EventEmitter{
   async observedReadAtStableTip(read,{includeTip=false}={}){
     this.assertNode();
     const ownedChild=this.node;
-    const before=await fetchRead(new URL('/status',this.endpoint));
+    const before=this.nativeIpcCandidate?
+      validateRead(await this.nativeRead('status'),{kind:'status'}):
+      await fetchRead(new URL('/status',this.endpoint));
     this.assertNode();
     if(this.node!==ownedChild)throw Error('Managed FAE node changed during observation');
     const result=await read();
     this.assertNode();
     if(this.node!==ownedChild)throw Error('Managed FAE node changed during observation');
-    const after=await fetchRead(new URL('/status',this.endpoint));
+    const after=this.nativeIpcCandidate?
+      validateRead(await this.nativeRead('status'),{kind:'status'}):
+      await fetchRead(new URL('/status',this.endpoint));
     this.assertNode();
     if(this.node!==ownedChild||before.height!==after.height||before.tip_hash!==after.tip_hash)
       throw Error('FAE chain tip changed during observation');
@@ -352,13 +389,17 @@ class ProcessController extends EventEmitter{
   async readBalance(address){
     const requested=addressValid(address);
     return this.observedReadAtStableTip(()=>
-      fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested),{includeTip:true});
+      this.nativeIpcCandidate?
+        this.nativeRead('balance',{address:requested}).then(p=>validateRead(p,{kind:'balance',address:requested})):
+        fetchRead(new URL('/balance?address='+encodeURIComponent(requested),this.endpoint),'balance',requested),{includeTip:true});
   }
   async readFundingCandidates(address){
     const requested=addressValid(address);
     const observed=await this.observedReadAtStableTip(()=>
-      fetchRead(new URL('/spendable?address='+encodeURIComponent(requested),this.endpoint),
-        'funding',requested,validateFundingCandidatePayload),{includeTip:true});
+      this.nativeIpcCandidate?
+        this.nativeRead('spendable',{address:requested}).then(p=>validateFundingCandidatePayload(p,{address:requested})):
+        fetchRead(new URL('/spendable?address='+encodeURIComponent(requested),this.endpoint),
+          'funding',requested,validateFundingCandidatePayload),{includeTip:true});
     if(observed.outputs.some(row=>row.source==='confirmed'&&row.created_height>observed.observed_tip_height))
       throw Error('Selected-node funding candidate exceeds observed chain tip');
     return observed;
