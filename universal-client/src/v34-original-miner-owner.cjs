@@ -6,6 +6,7 @@ const {fork}=require('node:child_process');
 const {randomBytes,createHash}=require('node:crypto');
 const fs=require('node:fs/promises');
 const path=require('node:path');
+const {pathToFileURL}=require('node:url');
 const NETWORK='fairyelf-public-testnet-v4';
 // Git blob IDs are bound to original-miner PR #360 and THIS unmerged child.
 // Source substitutions fail closed before launching any mining process.
@@ -22,6 +23,24 @@ function samePath(a,b){
 }
 function blobId(bytes){
   return createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+}
+// Pre-mutation proof gate: use the EXACT original, source-pinned mining-core
+// buildSubmission implementation, never a parallel hash/target algorithm.
+// This does NOT authenticate a node or grant native mutation authority.
+function assertOriginalMinerProposal(submission,buildSubmission){
+  if(!submission||typeof submission!=='object'||Array.isArray(submission)||
+     typeof buildSubmission!=='function'||
+     Object.keys(submission).some(k=>!['header','nonce','hash','txids','coinbase_outputs'].includes(k)))
+    throw Error('Original miner proposal proof rejected');
+  try{
+    const template={header:submission.header,txids:submission.txids,
+      ...(Object.hasOwn(submission,'coinbase_outputs')?
+        {coinbase_outputs:submission.coinbase_outputs}:{})};
+    const canonical=buildSubmission(template,submission.nonce,submission.hash);
+    if(JSON.stringify(canonical)!==JSON.stringify(submission))
+      throw Error('Noncanonical mined-block envelope');
+  }catch{throw Error('Original miner proposal proof rejected')}
+  return true;
 }
 async function verifyOriginalMinerSource(root){
   if(typeof root!=='string'||!path.isAbsolute(root))throw Error('Owned original miner root required');
@@ -49,6 +68,12 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
      !Number.isInteger(timeoutMs)||timeoutMs<1000||timeoutMs>180000)
     throw Error('Original miner candidate parameters not admitted');
   const script=await verifyOriginalMinerSource(repoRoot);
+  // The already-pinned original mining-core is loaded before any child
+  // proposal. Node authoritative acceptance remains owner-only and disabled.
+  const {buildSubmission}=await import(pathToFileURL(
+    path.join(repoRoot,'standalone','mining-core.mjs')).href);
+  if(typeof buildSubmission!=='function')
+    throw Error('Pinned original mining-core proof verifier missing');
   const session=randomBytes(32).toString('hex');
   const safeEnv={};
   for(const k of ['PATH','SystemRoot','WINDIR','HOME','USERPROFILE','TMP','TEMP','TMPDIR'])
@@ -96,6 +121,8 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
            typeof m.submission.hash!=='string'||!DIGEST.test(m.submission.hash)||
            !Array.isArray(m.submission.txids))
           return fault(Error('Unauthorized or replayed mined-block proposal'));
+        try{assertOriginalMinerProposal(m.submission,buildSubmission)}
+        catch{return fault(Error('Original mined-block proof invalid'))}
         lastSeq=m.request_id;proposal=m.submission;state='DENIED';
         // Fail CLOSED. In particular, never use original HTTP /submit-block.
         denied();return;
@@ -136,4 +163,4 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
   });
   return done;
 }
-module.exports={verifyOriginalMinerSource,runDeniedOriginalMiner,SOURCE_BLOBS,NETWORK};
+module.exports={verifyOriginalMinerSource,assertOriginalMinerProposal,runDeniedOriginalMiner,SOURCE_BLOBS,NETWORK};
