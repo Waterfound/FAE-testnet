@@ -97,7 +97,8 @@ test('V35 rejected outbox terminal never asserts inspected, settled, signed or s
   const ui=boot({terminal:async()=>({command:'outbox',status:'CLI_EXIT_UNCONFIRMED'})});
   await ui.ready();await ui.click();
   const t=ui.get('native-wallet-operation').textContent;
-  assert.match(t,/did not confirm successful completion/);
-  assert.match(t,/no desktop signing, submission or outbox acknowledgement/);
+  assert.match(t,/outbox result is unresolved or unavailable/);
+  assert.match(t,/pending, unknown, or a terminal error/);
+  assert.match(t,/No transaction was sent, retried or acknowledged/);
   assert.doesNotMatch(t,/outbox command exited successfully/);
 });
