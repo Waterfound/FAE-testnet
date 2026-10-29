@@ -1,0 +1,47 @@
+name: FAE V34 Original Miner OS-Owner Candidate
+on:
+  pull_request:
+    paths:
+      - 'universal-client/src/v34-original-miner-owner.cjs'
+      - 'universal-client/src/v34-original-miner-owned-worker.mjs'
+      - 'tests/fae-v34-real-os-owned-miner-denial.test.mjs'
+      - 'tests/public-code-security-differential.mjs'
+      - 'sovereign-forge/tests/partition-recovery-3node.mjs'
+      - '.github/workflows/fae-v34-original-miner-owned-child.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-miner-actual-os-child:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exact checkout and original-miner syntax
+        run: |
+          git rev-parse HEAD
+          node --check universal-client/src/v34-original-miner-owner.cjs
+          node --check universal-client/src/v34-original-miner-owned-worker.mjs
+          node --check tests/fae-v34-real-os-owned-miner-denial.test.mjs
+      - name: Materialize exact original Git blob bytes on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        # git checkout may translate LF to CRLF. Production source attestation
+        # must verify the original owner bytes, not rewritten checkout text.
+        run: |
+          node -e 'const fs=require("node:fs");const cp=require("node:child_process");for(const p of ["standalone/fae-miner.mjs","standalone/mining-core.mjs","universal-client/src/v34-original-miner-owned-worker.mjs"]){fs.writeFileSync(p,cp.execFileSync("git",["show","HEAD:"+p]));}'
+      - name: Actual original FAE miner OS child, real PoW and fail-closed owner channel
+        run: node --test tests/fae-v34-real-os-owned-miner-denial.test.mjs
+      - name: Protected original FAE network and Wallet remain unchanged
+        run: git diff --exit-code 3ac488929d5f4d19213e12e18752fe8769cb924e HEAD -- core.js wallet.js wallet-crypto.js mining.js sovereign-forge/node/fae-node.mjs sovereign-forge/node/authoritative/fae-v4-core.mjs standalone/wallet/fae-wallet.mjs
+      - name: Original FAE source manifests remain valid
+        run: node tests/verify-fae-manifest-git-blob.mjs
