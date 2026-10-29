@@ -19,8 +19,21 @@ test('node funding candidates preserve >2^53 atoms exactly, isolate pending and 
   assert.equal(result.outputs[1].parent_txid,B);
   assert.equal(result.network,NETWORK);
   assert.equal(result.authority,'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM');
+  assert.equal(result.funding_authorization,'DENIED_UNVERIFIED');
+  assert.equal(result.eligible_candidate_atoms,'0');
+  assert.equal(result.eligible_candidate_count,0);
   assert.equal(result.maturity,'NOT_VERIFIED');
   assert.equal(result.ownership,'NOT_VERIFIED');
+  assert.equal(result.outputs[0].spend_eligibility,'UNVERIFIED');
+  assert.deepEqual(result.outputs[0].exclusion_reasons,[
+    'PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED',
+    'SOURCE_PROVENANCE_UNVERIFIED','MATURITY_POLICY_UNVERIFIED'
+  ]);
+  assert.deepEqual(result.outputs[1].exclusion_reasons,[
+    'PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED',
+    'SOURCE_PROVENANCE_UNVERIFIED','UNCONFIRMED_PARENT'
+  ]);
+  assert.ok(Object.isFrozen(result.outputs[0].exclusion_reasons));
   assert.equal(result.signer,'UNAVAILABLE');
   assert.equal(result.submission,'NOT_PERFORMED');
   assert.ok(Object.isFrozen(result)&&Object.isFrozen(result.outputs));
@@ -94,6 +107,12 @@ test('real managed miner funding candidates survive persisted node stop and cold
     assert.ok(BigInt(persisted.confirmed_candidate_atoms)>0n);
     assert.equal(persisted.pending_candidate_atoms,'0');
     assert.ok(persisted.outputs.every(row=>row.source==='confirmed'));
+    assert.equal(persisted.funding_authorization,'DENIED_UNVERIFIED');
+    assert.equal(persisted.eligible_candidate_atoms,'0');
+    assert.equal(persisted.eligible_candidate_count,0);
+    assert.ok(persisted.outputs.every(row=>
+      row.spend_eligibility==='UNVERIFIED'&&
+      row.exclusion_reasons.includes('MATURITY_POLICY_UNVERIFIED')));
     const before={
       candidate_atoms:persisted.candidate_atoms,
       confirmed_candidate_atoms:persisted.confirmed_candidate_atoms,
