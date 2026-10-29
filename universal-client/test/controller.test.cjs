@@ -30,6 +30,33 @@ test('cannot dispatch privileged API routes or arbitrary address strings',()=>{
   assert.throws(()=>addressValid('--node /etc/shadow'),/Invalid public/);
   assert.equal(addressValid(ADDRESS),ADDRESS);
 });
+test('original pending UTXO parent attribution must match its canonical outpoint (public, no signer)',()=>{
+  const {validateFundingCandidatePayload}=require('../src/controller.cjs');
+  const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const txid='a'.repeat(64),wrongParent='b'.repeat(64);
+  const pending={outpoint:txid+':1',amount_atoms:'120',source:'pending',parent_txid:txid};
+  const confirmed={outpoint:'c'.repeat(64)+':0',amount_atoms:'90',source:'confirmed',created_height:1};
+  const payload={ok:true,address,network:NETWORK,spendable_atoms:'210',utxos:[confirmed,pending]};
+  const valid=validateFundingCandidatePayload(payload,{address});
+  assert.equal(valid.candidate_atoms,'210');
+  assert.equal(valid.pending_candidate_atoms,'120');
+  assert.equal(valid.outputs[1].parent_txid,txid);
+  assert.equal(valid.outputs[1].spend_eligibility,'UNVERIFIED');
+  assert.equal(valid.funding_authorization,'DENIED_UNVERIFIED');
+  assert.equal(valid.signer,'UNAVAILABLE');
+  for(const invalid of [
+    {...pending,parent_txid:wrongParent},
+    {...pending,parent_txid:wrongParent,outpoint:txid+':0'},
+    {...pending,parent_txid:txid.toUpperCase()},
+    {...pending,parent_txid:txid,created_height:1}
+  ])assert.throws(()=>validateFundingCandidatePayload({...payload,utxos:[confirmed,invalid]},{address}),
+    /Invalid pending candidate provenance/);
+  assert.throws(()=>validateFundingCandidatePayload({...payload,utxos:[confirmed,pending,pending],spendable_atoms:'330'},{address}),
+    /Invalid selected-node funding candidate entry/);
+  assert.throws(()=>validateFundingCandidatePayload({...payload,spendable_atoms:'209'},{address}),
+    /candidate total mismatch/);
+});
+
 test('node/miner subprocess environment strips credential-bearing variables',()=>{
   process.env.TS_CANARY_SECRET='should-not-pass-through';
   const actual=makeEnv({FAE_SYNC:'0'});
