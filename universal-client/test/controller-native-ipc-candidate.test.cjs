@@ -89,6 +89,15 @@ test('original FAE PR #354 node + actual ProcessController reads and cold restar
       assert.equal(candidates.funding_authorization,'DENIED_UNVERIFIED');
       assert.equal(candidates.eligible_candidate_atoms,'0');
       assert.equal(candidates.observed_tip_height,0);
+      const txid='b'.repeat(64);
+      const unresolved=await c.readTransactionByTxid(txid);
+      assert.deepEqual(unresolved,{
+        txid,result_known:false,status:null,confirmed_height:null,
+        observed_tip_height:0,observed_tip_hash:'0'.repeat(64),
+        confirmation_finality:'NOT_PROVEN'
+      });
+      await assert.rejects(c.readTransactionByTxid('bad'),
+        /Canonical transaction ID required/);
       // Explorer remains HTTP-only in original node #354. It cannot be
       // silently represented as authenticated native process traffic.
       await assert.rejects(c.readExplorer('/explorer/status'),
@@ -104,6 +113,9 @@ test('original FAE PR #354 node + actual ProcessController reads and cold restar
       assert.notEqual(c.nodeIpc,oldIpc);
       assert.notEqual(c.nodeIpc.session,oldIpc.session);
       assert.equal((await c.readStatus()).height,0);
+      const recovered=await c.readTransactionByTxid('b'.repeat(64));
+      assert.equal(recovered.result_known,false);
+      assert.equal(recovered.observed_tip_height,0);
       await c.stopNode();
       assert.equal(c.nodeIpc,null);
       console.log('TS_V27_CONTROLLER_ORIGINAL_IPC_PASS '+JSON.stringify({
