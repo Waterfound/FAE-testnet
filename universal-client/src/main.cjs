@@ -10,6 +10,7 @@ const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-revie
 const {canonicalAddress,validateSavedWatchCatalog}=require('./canonical-public-address.cjs');
 const {createShutdownGate}=require('./shutdown-gate.cjs');
 const {authenticatedWalletBundle,runPrivilegedWalletTerminal}=require('./native-wallet-terminal-handoff.cjs');
+const {planWithOriginalWallet}=require('./v36-original-wallet-public-plan.cjs');
 const fsPromises=require('node:fs/promises');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
@@ -206,6 +207,19 @@ async function trustedWalletTerminalCandidate(){
   try{await authenticatedWalletBundle(script);return script}
   catch{return null}
 }
+async function trustedOriginalWalletPublicPlannerCandidate(){
+  // V36 source-owner public planning only. Deliberately no TTY requirement:
+  // this routine cannot unlock, sign or send, and uses the exact Wallet owner.
+  // It remains unavailable in installed builds until owner bundle admission.
+  if(app.isPackaged||process.env.CI||
+     typeof process.env.TS_WALLET_COMPANION_ROOT!=='string'||
+     !path.isAbsolute(process.env.TS_WALLET_COMPANION_ROOT))
+    return null;
+  const script=path.join(process.env.TS_WALLET_COMPANION_ROOT,
+    'standalone','wallet','fae-wallet.mjs');
+  try{await authenticatedWalletBundle(script);return script}
+  catch{return null}
+}
 async function nativeWalletCandidateStatus(){
   const source=await trustedWalletTerminalCandidate();
   return Object.freeze({state:source?'TRUSTED_SOURCE_AND_TTY_CANDIDATE':'UNAVAILABLE',
@@ -306,7 +320,30 @@ function bindIpc(){
       // The managed node itself remains an untrusted source of claims.
       // Balance is stable-tip-bound; signing and spendability remain disabled.
       const observed=await controller.readBalance(review.from);
-      return compareObservedFunds(review,observed);
+      const view=compareObservedFunds(review,observed);
+      // Candidate original Wallet planner is enabled only with exact source
+      // pin, managed node's stable-tip UTXO data, and matching observations.
+      // A plan is HYPOTHETICAL: no ownership/maturity/IPC admission or signer.
+      const script=await trustedOriginalWalletPublicPlannerCandidate();
+      if(!script)return {...view,original_wallet_plan:{
+        state:'ORIGINAL_WALLET_SOURCE_UNAVAILABLE',signing:'NOT_ADMITTED',
+        submission:'NOT_SUBMITTED'}};
+      try{
+        const candidates=await controller.readFundingCandidates(review.from);
+        if(candidates.observed_tip_height!==observed.observed_tip_height||
+           candidates.observed_tip_hash!==observed.observed_tip_hash)
+          return {...view,original_wallet_plan:{
+            state:'NODE_TIP_CHANGED_NO_PLAN',signing:'NOT_ADMITTED',
+            submission:'NOT_SUBMITTED'}};
+        const original_wallet_plan=await planWithOriginalWallet({
+          walletScript:script,review,candidates});
+        return {...view,original_wallet_plan};
+      }catch{
+        // No HTTP fallback, no unchecked candidate inputs, no signing.
+        return {...view,original_wallet_plan:{
+          state:'ORIGINAL_WALLET_PUBLIC_PLAN_UNAVAILABLE',
+          signing:'NOT_ADMITTED',submission:'NOT_SUBMITTED'}};
+      }
     },
     'ts:watch-list':async()=>validateSavedWatchCatalog(await watchBook.list(),addressSource),
     'ts:watch-add':async(address,alias)=>checkedWatchMutation(async()=>watchBook.add(await canonicalAddress(address,addressSource),alias)),
