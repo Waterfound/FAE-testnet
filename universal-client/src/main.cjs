@@ -10,7 +10,7 @@ const {reviewPublicPayment,compareObservedFunds}=require('./wallet-payment-revie
 const {canonicalAddress,validateSavedWatchCatalog}=require('./canonical-public-address.cjs');
 const {createShutdownGate}=require('./shutdown-gate.cjs');
 const {authenticatedWalletBundle,runPrivilegedWalletTerminal}=require('./native-wallet-terminal-handoff.cjs');
-const {planWithOriginalWallet}=require('./v36-original-wallet-public-plan.cjs');
+const {planWithOwnedNodeFinalityCheck}=require('./v36-original-wallet-public-plan.cjs');
 const fsPromises=require('node:fs/promises');
 const {registerSingleInstanceGuard}=require('./single-instance-guard.cjs');
 const {makeUtilitySpawn}=require('./utility-process-adapter.cjs');
@@ -329,14 +329,10 @@ function bindIpc(){
         state:'ORIGINAL_WALLET_SOURCE_UNAVAILABLE',signing:'NOT_ADMITTED',
         submission:'NOT_SUBMITTED'}};
       try{
-        const candidates=await controller.readFundingCandidates(review.from);
-        if(candidates.observed_tip_height!==observed.observed_tip_height||
-           candidates.observed_tip_hash!==observed.observed_tip_hash)
-          return {...view,original_wallet_plan:{
-            state:'NODE_TIP_CHANGED_NO_PLAN',signing:'NOT_ADMITTED',
-            submission:'NOT_SUBMITTED'}};
-        const original_wallet_plan=await planWithOriginalWallet({
-          walletScript:script,review,candidates});
+        // V37: source snapshot and original coin selection are asynchronous.
+        // A node restart or tip advance AFTER planning revokes the preview.
+        const original_wallet_plan=await planWithOwnedNodeFinalityCheck({
+          controller,walletScript:script,review,observed});
         return {...view,original_wallet_plan};
       }catch{
         // No HTTP fallback, no unchecked candidate inputs, no signing.
