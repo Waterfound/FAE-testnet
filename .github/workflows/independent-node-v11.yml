@@ -67,3 +67,14 @@ jobs:
         run: git rev-parse HEAD
       - name: Real original FAE Node inherited OS-port adversarial regression
         run: node --test tests/fae-node-parent-port.test.mjs
+      - name: Source-pinned V24 client parent IPC to actual original FAE node (separate OS process)
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLIENT_PARENT_SHA=84cce189df07f2be872a5f27ffa416dc2dae446d
+          CLIENT_ROOT="$RUNNER_TEMP/trium-v24-parent-source"
+          git fetch --no-tags --depth=1 origin "$CLIENT_PARENT_SHA"
+          git worktree add --detach "$CLIENT_ROOT" "$CLIENT_PARENT_SHA"
+          test "$(git -C "$CLIENT_ROOT" rev-parse HEAD)" = "$CLIENT_PARENT_SHA"
+          TS_EXACT_CLIENT_PARENT_FILE="$CLIENT_ROOT/universal-client/src/owned-node-ipc.cjs" node --test tests/fae-node-v24-parent-integration.test.mjs
+          git worktree remove --force "$CLIENT_ROOT"
