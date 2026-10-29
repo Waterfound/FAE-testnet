@@ -77,4 +77,16 @@ jobs:
           git worktree add --detach "$CLIENT_ROOT" "$CLIENT_PARENT_SHA"
           test "$(git -C "$CLIENT_ROOT" rev-parse HEAD)" = "$CLIENT_PARENT_SHA"
           TS_EXACT_CLIENT_PARENT_FILE="$CLIENT_ROOT/universal-client/src/owned-node-ipc.cjs" node --test tests/fae-node-v24-parent-integration.test.mjs
+          export TS_V25_ORIGINAL_NODE="$GITHUB_WORKSPACE/sovereign-forge/node/fae-node.mjs"
+          export TS_EXACT_CLIENT_PARENT_FILE="$CLIENT_ROOT/universal-client/src/owned-node-ipc.cjs"
+          export TS_EXACT_CLIENT_ADAPTER_FILE="$CLIENT_ROOT/universal-client/src/utility-process-adapter.cjs"
+          (
+            cd "$CLIENT_ROOT/universal-client"
+            npm install --no-audit --no-fund
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              xvfb-run -a npm exec -- electron --no-sandbox "$GITHUB_WORKSPACE/tests/fae-electron-original-node-ipc.cjs"
+            else
+              npm exec -- electron "$GITHUB_WORKSPACE/tests/fae-electron-original-node-ipc.cjs"
+            fi
+          )
           git worktree remove --force "$CLIENT_ROOT"
