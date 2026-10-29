@@ -26,7 +26,10 @@ function hrpExpand(hrp){return [...hrp].map(c=>c.charCodeAt(0)>>>5).concat([0],[
 function convertBits(data,fromBits,toBits,pad=true){let acc=0,bits=0;const out=[],mask=(1<<toBits)-1,maxAcc=(1<<(fromBits+toBits-1))-1;for(const value of data){acc=((acc<<fromBits)|value)&maxAcc;bits+=fromBits;while(bits>=toBits){bits-=toBits;out.push((acc>>>bits)&mask)}}if(pad&&bits)out.push((acc<<(toBits-bits))&mask);return out}
 function addressFromSpki(spki){const payload=sha256(spki).subarray(0,20),data5=convertBits(payload,8,5,true),mod=(polymod([...hrpExpand(HRP),...data5,0,0,0,0,0,0])^BECH32M_CONST)>>>0,checksum=Array.from({length:6},(_,i)=>(mod>>>(5*(5-i)))&31);return HRP+'1'+[...data5,...checksum].map(v=>CHARSET[v]).join('')}
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
-async function json(url,options){const r=await fetch(url,options);const body=await r.json();if(!r.ok)throw Error(`${r.status} ${url}: ${JSON.stringify(body)}`);return body}
+// V34-proven source-specific partition TEST fixture repair: synchronous PoW
+// must not reuse idle HTTP sockets after the selected node closes them.
+// No request retry or runtime/consensus/transaction policy change.
+async function json(url,options){const r=await fetch(url,{...options,headers:{...options?.headers,Connection:'close'}});const body=await r.json();if(!r.ok)throw Error(`${r.status} ${url}: ${JSON.stringify(body)}`);return body}
 async function waitFor(name,height,mempool){for(let i=0;i<160;i++){try{const s=await json(bases[name]+'/status');if((height===undefined||s.height===height)&&(mempool===undefined||s.mempool_size===mempool))return s}catch{}await delay(50)}throw Error(`node ${name} did not reach expected state height=${height} mempool=${mempool}`)}
 async function start(name,{sync='0',peers='',feeds=''}={}){const child=spawn(process.execPath,[nodeFile],{env:{...process.env,FAE_PORT:String(ports[name]),FAE_HOST:'127.0.0.1',FAE_DATA_FILE:data[name],FAE_SYNC:sync,FAE_SYNC_MS:'5000',FAE_UPSTREAM_API:'',FAE_PEERS:peers,FAE_BOOTSTRAP_FEEDS:feeds},stdio:['ignore','pipe','pipe']});let stderr='';child.stderr.on('data',d=>stderr+=d);child._stderr=()=>stderr;children.set(name,child);return child}
 async function stop(name){const child=children.get(name);if(!child)return;child.kill('SIGTERM');await Promise.race([new Promise(r=>child.once('exit',r)),delay(500)]);children.delete(name)}
