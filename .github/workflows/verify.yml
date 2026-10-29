@@ -28,6 +28,9 @@ jobs:
           sha256sum sovereign-forge/browser/mining.js
           sha256sum sovereign-forge/browser/coordinator-trust.js
 
+      - name: V25 original FAE process-port owner proposal — genuine Node child
+        run: node --test tests/fae-node-parent-port.test.mjs
+
       - name: Verify imported Sovereign Forge snapshot
         run: sha256sum -c FAE_FORGE_MAIN.sha256
 
