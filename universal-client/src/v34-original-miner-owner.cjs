@@ -142,7 +142,9 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
     child.on('error',error=>fault(Error('Original miner OS child failed: '+error.message)));
     child.on('exit',(code,signal)=>{
       if(stopped)return;stopped=true;clearTimeout(timer);
-      if(!proposal||finish!=='FAIL_CLOSED'||(code!==0&&code!==null))
+      // SIGTERM/SIGKILL reports code=null: never accept a killed miner as
+      // independent evidence of a completed, clean denial protocol.
+      if(!proposal||finish!=='FAIL_CLOSED'||code!==0||signal!==null)
         return reject(Error('Original miner owner denial was not independently witnessed'));
       resolve(Object.freeze({
         type:'REAL_ORIGINAL_MINER_OS_CHILD_DENIED',
