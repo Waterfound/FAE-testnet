@@ -124,6 +124,44 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
     assert.equal(sameTipSpent.state,'NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
     assert.ok(!Object.hasOwn(sameTipSpent,'selected_inputs'));
     assert.ok(fundingReads>=2,'must obtain a fresh original node UTXO observation AFTER planning');
+    // Same-tip forged changes to a SELECTED amount must also revoke.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs[0].amount_atoms='150000001';
+      changed.confirmed_candidate_atoms='150000001';
+      changed.candidate_atoms='1150000001';
+      return changed;
+    };
+    const changedValue=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(changedValue.state,'NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(changedValue,'selected_inputs'));
+    // Unrelated newly pending funds MUST NOT invalidate an unchanged selected
+    // confirmed input: a stable public preview remains possible.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs[1].amount_atoms='1000000001';
+      changed.candidate_atoms='1150000001';
+      return changed;
+    };
+    const independentMempoolChange=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(independentMempoolChange.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
+    assert.equal(independentMempoolChange.input_authorization,'DENIED_UNVERIFIED');
+    assert.equal(independentMempoolChange.signing,'NOT_ADMITTED');
+    // The selected original node can die during the final funding refresh.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      controller.node={pid:905};
+      return candidates();
+    };
+    const replacedAtFinalRead=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedAtFinalRead.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedAtFinalRead,'selected_inputs'));
+    controller.node=firstNode;
     // Preserve node source and pending proof isolation in subsequent cases.
     controller.readFundingCandidates=async()=>candidates();
     // The original original code selected valid public inputs, but chain
