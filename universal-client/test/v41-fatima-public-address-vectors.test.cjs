@@ -76,3 +76,21 @@ test('V41 unadmitted FATIMA HRPs cannot enter current desktop watch or public pa
     from:VECTORS.faet,to:VECTORS.faet,amount:'1',fee:'0'
   },{addressSource:source})).state,'UNSIGNED_PUBLIC_REVIEW_ONLY');
 });
+
+test('V41 original FAE v4 consensus rejects future HRP payments and miner rewards',async()=>{
+  const core=path.resolve(__dirname,'..','..','sovereign-forge','node','authoritative','fae-v4-core.mjs');
+  const {emptyState,createMiningTemplate,verifyTxCrypto}=await import(pathToFileURL(core).href);
+  for(const name of ['fatima','testfatima']){
+    const address=VECTORS[name];
+    assert.throws(()=>createMiningTemplate(emptyState(),address),
+      /invalid_address/,'future HRP cannot mine onto FAE v4');
+    const check=verifyTxCrypto({
+      version:2,network:'fairyelf-public-testnet-v4',
+      inputs:['a'.repeat(64)+':0'],outputs:[{address,amount_atoms:'1'}],
+      public_key_spki:'AA==',signature:'AA=='
+    });
+    assert.equal(check.ok,false);
+    assert.equal(check.error,'invalid_output',
+      'future HRP cannot be received by FAE v4 canonical transaction validation');
+  }
+});
