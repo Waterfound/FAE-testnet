@@ -30,6 +30,13 @@ jobs:
           node --check universal-client/src/v34-original-miner-owner.cjs
           node --check universal-client/src/v34-original-miner-owned-worker.mjs
           node --check tests/fae-v34-real-os-owned-miner-denial.test.mjs
+      - name: Materialize exact original Git blob bytes on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        # git checkout may translate LF to CRLF. Production source attestation
+        # must verify the original owner bytes, not rewritten checkout text.
+        run: |
+          node -e 'const fs=require("node:fs");const cp=require("node:child_process");for(const p of ["standalone/fae-miner.mjs","standalone/mining-core.mjs","universal-client/src/v34-original-miner-owned-worker.mjs"]){fs.writeFileSync(p,cp.execFileSync("git",["show","HEAD:"+p]));}'
       - name: Actual original FAE miner OS child, real PoW and fail-closed owner channel
         run: node --test tests/fae-v34-real-os-owned-miner-denial.test.mjs
       - name: Protected original FAE network and Wallet remain unchanged
