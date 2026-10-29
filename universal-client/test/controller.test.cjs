@@ -4,9 +4,25 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
+const net=require('node:net');
 const {ProcessController,makeEnv,addressValid,explorerUrl,NETWORK}=require('../src/controller.cjs');
 const root=path.resolve(__dirname,'..','..');
 const ADDRESS='faet1'+'q'.repeat(38);
+function availableLoopbackPort(){
+  return new Promise((resolve,reject)=>{
+    const server=net.createServer();
+    server.once('error',reject);
+    server.listen(0,'127.0.0.1',()=>{
+      const address=server.address();
+      const port=address&&typeof address==='object'?address.port:null;
+      server.close(error=>{
+        if(error)return reject(error);
+        if(!Number.isInteger(port))return reject(Error('No loopback port assigned'));
+        resolve(port);
+      });
+    });
+  });
+}
 test('cannot dispatch privileged API routes or arbitrary address strings',()=>{
   assert.throws(()=>explorerUrl('/submit-block'),/Forbidden/);
   assert.throws(()=>explorerUrl('/explorer/blocks',{permission:'unsafe'}),/Forbidden/);
@@ -216,7 +232,10 @@ test('interrupted node write leaves evidence untouched and refuses automatic res
   fs.writeFileSync(file,JSON.stringify(prior));
   fs.writeFileSync(file+'.tmp','{"partial":');
   let called=0;
-  const controller=new ProcessController({repoRoot:root,dataDir:dir,spawnFn:()=>{called++;throw Error('Must not launch')}});
+  // This assertion targets the storage preflight. Do not let an unrelated
+  // platform port reservation failure mask whether the child was prevented.
+  const controller=new ProcessController({repoRoot:root,dataDir:dir,
+    portProbe:async()=>{},spawnFn:()=>{called++;throw Error('Must not launch')}});
   try{
     await assert.rejects(()=>controller.startNode(),/Unresolved FAE node temporary state/);
     assert.equal(called,0);
@@ -225,7 +244,10 @@ test('interrupted node write leaves evidence untouched and refuses automatic res
     assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),prior);
     fs.rmSync(file+'.tmp');
     // Cold start from the unchanged, well-formed canonical FAE v4 state.
-    const real=new ProcessController({repoRoot:root,dataDir:dir,nodeExecutable:process.execPath});
+    // Ask the OS for a permitted loopback port instead of guessing a number
+    // that may be in a Windows excluded/reserved range.
+    const port=await availableLoopbackPort();
+    const real=new ProcessController({repoRoot:root,dataDir:dir,port,nodeExecutable:process.execPath});
     try{
       const started=await real.startNode();
       assert.equal(started.node,'running');
