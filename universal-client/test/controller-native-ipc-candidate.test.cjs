@@ -29,28 +29,33 @@ test('native IPC refuses enablement without independently pinned owner source',(
   assert.throws(()=>new ProcessController({repoRoot:root,dataDir:os.tmpdir(),
     nativeIpcCandidate:true,nativeNodeSourcePins:{}}),/source pins required/);
 });
-test('changed original-node helper refuses spawn even with valid HTTP port',
+test('changed original-node IPC helper or managed HTTP guard refuses process launch',
   {skip:!ownerRoot},async()=>{
-    const dir=disposable(),source=path.join(dir,'sources');
-    let spawned=0;
-    try{
-      for(const name of Object.keys(OWNER_PINS)){
-        const target=path.join(source,...name.split('/'));
-        fs.mkdirSync(path.dirname(target),{recursive:true});
-        fs.copyFileSync(path.join(ownerRoot,...name.split('/')),target);
-      }
-      const helper=path.join(source,'sovereign-forge','node','node-parent-port.mjs');
-      fs.appendFileSync(helper,'\\n// altered original node helper\\n');
-      const c=new ProcessController({repoRoot:source,dataDir:path.join(dir,'state'),
-        port:43187,portProbe:async()=>{},
-        spawnFn:()=>{spawned++;throw Error('UNAUTHORIZED_SPAWN')},
-        nativeIpcCandidate:true,nativeNodeSourcePins:OWNER_PINS});
+    for(const mutation of [
+      'sovereign-forge/node/node-parent-port.mjs',
+      'sovereign-forge/node/managed-http-guard.mjs'
+    ]){
+      const dir=disposable(),source=path.join(dir,'sources');
+      let spawned=0;
       try{
-        await assert.rejects(c.startNode(),/source verification failed/);
-        assert.equal(spawned,0,'tampered protected helper never launches');
-        assert.equal(c.snapshot().node,'stopped');
-      }finally{await c.dispose()}
-    }finally{clean(dir)}
+        for(const name of Object.keys(OWNER_PINS)){
+          const target=path.join(source,...name.split('/'));
+          fs.mkdirSync(path.dirname(target),{recursive:true});
+          fs.copyFileSync(path.join(ownerRoot,...name.split('/')),target);
+        }
+        const tampered=path.join(source,...mutation.split('/'));
+        fs.appendFileSync(tampered,'\\n// changed protected source\\n');
+        const c=new ProcessController({repoRoot:source,dataDir:path.join(dir,'state'),
+          port:43187,portProbe:async()=>{},
+          spawnFn:()=>{spawned++;throw Error('UNAUTHORIZED_SPAWN')},
+          nativeIpcCandidate:true,nativeNodeSourcePins:OWNER_PINS});
+        try{
+          await assert.rejects(c.startNode(),/source verification failed/);
+          assert.equal(spawned,0,'tampered protected file must never launch: '+mutation);
+          assert.equal(c.snapshot().node,'stopped');
+        }finally{await c.dispose()}
+      }finally{clean(dir)}
+    }
 });
 
 test('native IPC is never silently enabled on an unmodified original node',async()=>{
