@@ -67,6 +67,12 @@ async function planWithOriginalWallet({walletScript,review,candidates}={}){
   const amount=decimalAtoms(review.amount_fae);
   const fee=decimalAtoms(review.fee_fae,{zero:true});
   if(amount+fee>MAX_ATOMS)throw Error('Original Wallet payment total too large');
+  // The amount/fee authorization preview must refer to the SAME total as
+  // the public review, including fee; never plan against a substituted total.
+  const total=amount+fee;
+  const [whole,fraction]=[total/100000000n,(total%100000000n).toString().padStart(8,'0').replace(/0+$/,'')];
+  if(review.total_fae!==whole.toString()+(fraction?'.'+fraction:''))
+    throw Error('Original Wallet public review total differs from plan');
   const base=Object.freeze({
     network:NETWORK,origin:'ORIGINAL_WALLET_342_SOURCE_PINNED',
     authority:'PUBLIC_UNTRUSTED_NODE_CANDIDATES_ONLY',
@@ -112,4 +118,44 @@ async function planWithOriginalWallet({walletScript,review,candidates}={}){
       notice:'Original Wallet #342 used for public hypothetical input selection. Coinbase maturity, key ownership and process identity have NOT been proven. THIS PLAN CANNOT BE SIGNED OR SUBMITTED.'});
   }finally{await stage.release()}
 }
-module.exports={planWithOriginalWallet};
+// The existing ProcessController already has stable-tip read endpoints.
+// Bind the original Wallet's hypothetical plan to the SAME actual owned node
+// object AND chain tip after source attestation + coin selection has finished.
+// This is a read-only result; it grants no spend/sign/submit authority.
+const unavailable=(state)=>Object.freeze({
+  state,signing:'NOT_ADMITTED',submission:'NOT_SUBMITTED',
+  input_authorization:'DENIED_UNVERIFIED'
+});
+async function planWithOwnedNodeFinalityCheck({
+  controller,walletScript,review,observed
+}={}){
+  if(!controller||typeof controller.readFundingCandidates!=='function'||
+     typeof controller.readStatus!=='function'||!controller.node||
+     !observed||typeof observed!=='object'||Array.isArray(observed)||
+     !Number.isSafeInteger(observed.observed_tip_height)||
+     observed.observed_tip_height<0||
+     typeof observed.observed_tip_hash!=='string'||!HEX.test(observed.observed_tip_hash))
+    throw Error('Real managed-node observation required for original Wallet plan');
+  const owned=controller.node;
+  const funding=await controller.readFundingCandidates(review.from);
+  if(controller.node!==owned)
+    return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
+  if(funding.observed_tip_height!==observed.observed_tip_height||
+     funding.observed_tip_hash!==observed.observed_tip_hash)
+    return unavailable('NODE_TIP_CHANGED_NO_PLAN');
+  const planned=await planWithOriginalWallet({
+    walletScript,review,candidates:funding
+  });
+  if(controller.node!==owned)
+    return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
+  // Critical race fixed: the original Wallet source snapshot and selection
+  // can take significant time; validate fresh node state AFTER planning.
+  const final=await controller.readStatus();
+  if(controller.node!==owned)
+    return unavailable('NODE_PROCESS_REPLACED_NO_PLAN');
+  if(final.height!==observed.observed_tip_height||
+     final.tip_hash!==observed.observed_tip_hash)
+    return unavailable('NODE_TIP_CHANGED_AFTER_PLAN');
+  return planned;
+}
+module.exports={planWithOriginalWallet,planWithOwnedNodeFinalityCheck};
