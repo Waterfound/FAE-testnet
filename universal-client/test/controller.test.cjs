@@ -693,3 +693,28 @@ test('recoverable node data correction clears stale recovery alert on the same r
       'Desktop did not reset the externally restored snapshot');
   }finally{await c.dispose().catch(()=>{});fs.rmSync(dir,{recursive:true,force:true})}
 });
+
+test('default managed-node port is OS-assigned, actually bindable and pinned across a real cold restart',
+  {timeout:25000},async t=>{
+    const original=path.join(root,'sovereign-forge','node','fae-node.mjs');
+    if(!fs.existsSync(original))return t.skip('Original independent FAE node absent');
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ts-os-port-node-'));
+    const controller=new ProcessController({repoRoot:root,dataDir:dir,nodeExecutable:process.execPath});
+    try{
+      assert.equal(controller.osAssignedPortPending,true);
+      assert.equal((await controller.startNode()).node,'running');
+      assert.equal(controller.osAssignedPortPending,false);
+      const admittedPort=controller.port;
+      assert.ok(Number.isInteger(admittedPort)&&admittedPort>=1024&&admittedPort<=65535);
+      assert.equal(new URL(controller.endpoint).port,String(admittedPort));
+      assert.equal((await controller.readStatus()).network,NETWORK);
+      await controller.stopNode();
+      assert.equal(controller.port,admittedPort);
+      assert.equal((await controller.startNode()).node,'running');
+      assert.equal(controller.port,admittedPort,'Cold restart must preserve the original pinned endpoint');
+      assert.equal((await controller.readStatus()).network,NETWORK);
+    }finally{
+      await controller.dispose().catch(()=>{});
+      fs.rmSync(dir,{recursive:true,force:true});
+    }
+  });
