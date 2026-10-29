@@ -104,7 +104,11 @@ async function runDeniedOriginalMiner({repoRoot,node,address,timeoutMs=35000}={}
         if(finish||!['FAIL_CLOSED','STOPPED'].includes(m.status)||
            state==='INIT'||(proposal&&m.status!=='FAIL_CLOSED'))
           return fault(Error('Invalid miner completion acknowledgement'));
-        finish=m.status;state='FINISHED';return;
+        finish=m.status;state='FINISHED';
+        // Close the inherited channel only after the worker's final packet;
+        // guarantees the bounded disposable OS child can exit cleanly.
+        if(child.connected)child.disconnect();
+        return;
       }
       return fault(Error('Unrecognized miner owned-process operation'));
     });
