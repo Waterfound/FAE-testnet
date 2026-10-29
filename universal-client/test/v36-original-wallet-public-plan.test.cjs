@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {mkdtemp,mkdir,writeFile,rm}=require('node:fs/promises');
+const {mkdtemp,mkdir,writeFile,realpath,rm}=require('node:fs/promises');
 const {execFileSync}=require('node:child_process');
 const {tmpdir}=require('node:os');
 const {join,dirname}=require('node:path');
@@ -54,7 +54,7 @@ const SOURCE=[
   'sovereign-forge/node/authoritative/canonical.mjs','bip39-en.js'
 ];
 async function stageOriginalOwner(){
-  const folder=await mkdtemp(join(tmpdir(),'ts-v36-real-original-wallet-'));
+  const folder=await realpath(await mkdtemp(join(tmpdir(),'ts-v36-real-original-wallet-')));
   for(const file of SOURCE){
     const bytes=execFileSync('git',['show',WALLET_OWNER_HEAD+':'+file],{maxBuffer:100000});
     const target=join(folder,...file.split('/'));
