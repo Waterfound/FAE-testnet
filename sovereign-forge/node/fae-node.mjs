@@ -6,6 +6,7 @@ import { createHash, createPublicKey, verify as verifySignature } from 'node:cry
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { createExplorerReader } from './explorer-read.mjs';
+import { installFAENodeParentPort } from './node-parent-port.mjs';
 
 const NETWORK='fairyelf-public-testnet-v4';
 const COIN=100000000n;
@@ -142,6 +143,30 @@ async function handler(req,res){try{const url=new URL(req.url,'http://localhost'
 
 await loadState();
 if(ENABLE_SYNC)await syncOnce().catch(()=>{});
+// Explicit opt-in for OS child processes; ordinary node deployment unchanged.
+// Source-owner admission and original-node SHA/package update are still gated.
+if(process.env.FAE_TRIUM_IPC==='1'){
+  installFAENodeParentPort({
+    network:NETWORK,
+    readStatus:()=>statusPayload(),
+    readBalance:address=>{
+      if(!validAddress(address))throw Error('invalid_address');
+      const utxos=Object.entries(state.utxos)
+        .filter(([,u])=>u.address===address&&!u.spent)
+        .map(([outpoint,u])=>({outpoint,amount_atoms:String(u.amount_atoms),created_height:u.created_height}));
+      const total=balanceAtoms(state,address);
+      return {ok:true,network:NETWORK,address,balance_atoms:total.toString(),
+        balance_fae:formatAtoms(total),utxo_count:utxos.length,utxos};
+    },
+    readSpendable:address=>{
+      if(!validAddress(address))throw Error('invalid_address');
+      const utxos=spendableOutputs(state,address);
+      const total=utxos.reduce((sum,u)=>sum+BigInt(u.amount_atoms),0n);
+      return {ok:true,network:NETWORK,address,spendable_atoms:total.toString(),
+        spendable_fae:formatAtoms(total),utxos};
+    }
+  });
+}
 const server=http.createServer((req,res)=>handler(req,res));
 server.listen(PORT,HOST,()=>console.log(`[FAE] independent node ${NODE_VERSION} listening on http://${HOST}:${PORT} height=${state.chain.length}`));
 if(ENABLE_SYNC)setInterval(()=>syncOnce().catch(()=>{}),SYNC_MS).unref();
