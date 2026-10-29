@@ -405,6 +405,11 @@ class ProcessController extends EventEmitter{
     return observed;
   }
   async readExplorer(route,params){
+    // Original node owner #354 presently exposes native status/balance/spendable
+    // only. HTTP Explorer cannot inherit the native channel's provenance.
+    // Refuse to upgrade an unauthenticated listener observation to IPC trust.
+    if(this.nativeIpcCandidate)
+      throw Error('Authenticated Explorer IPC unavailable; HTTP fallback forbidden');
     const url=explorerUrl(route,params,this.endpoint);
     const observed=await this.observedReadAtStableTip(()=>
       fetchRead(url,'explorer'));
