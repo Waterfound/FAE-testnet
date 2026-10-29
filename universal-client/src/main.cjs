@@ -276,7 +276,16 @@ function bindIpc(){
       }
       // Existing unadmitted GUI continues to show the historical, explicitly
       // untrusted Explorer observation; this is not a signer or a native claim.
-      const result=await controller.readExplorer('/explorer/transaction',{txid});
+      let result;
+      try{
+        result=await controller.readExplorer('/explorer/transaction',{txid});
+      }catch(error){
+        // Legacy original-node Explorer uses HTTP 404 for an absent TXID.
+        // This is an UNTRUSTED no-observation claim, never proof of rejection.
+        // In native mode errors propagate above; no fallback can reach here.
+        if(String(error?.message)!=='FAE local read HTTP 404')throw error;
+        result=null;
+      }
       return {origin:'LOCAL_HTTP_EXPLORER_CLAIM',result};
     },
     'ts:explorer':async(route,query)=>{
