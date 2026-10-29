@@ -317,9 +317,11 @@ async function observePaymentFunds(){
       ' outputs; signing and spendability DENIED.'
     :original?.state==='INSUFFICIENT_UNVERIFIED_CONFIRMED_CANDIDATES'
       ?'Original Wallet #342: insufficient node-reported confirmed candidate outputs; NO spend authorization.'
-      :original?.state==='NODE_TIP_CHANGED_NO_PLAN'
-        ?'Original Wallet public plan unavailable: managed node tip changed during observations.'
-        :'Original Wallet source-owned planner unavailable or unadmitted; no public input selection.';
+      :original?.state==='NODE_TIP_CHANGED_NO_PLAN'||original?.state==='NODE_TIP_CHANGED_AFTER_PLAN'
+        ?'Original Wallet plan revoked: managed node chain tip changed before or after source-owned selection. Review again; no signing or submission.'
+        :original?.state==='NODE_PROCESS_REPLACED_NO_PLAN'
+          ?'Original Wallet plan revoked: owned node process changed while inspecting funds. Review again; no signing or submission.'
+          :'Original Wallet source-owned planner unavailable or unadmitted; no public input selection.';
   output.textContent=[
     'FAE PUBLIC TESTNET · UNSIGNED REVIEW · NODE-REPORTED BALANCE',
     'From: '+observed.from,
