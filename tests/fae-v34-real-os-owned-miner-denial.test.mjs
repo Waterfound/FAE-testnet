@@ -8,7 +8,7 @@ import {join,resolve,dirname} from 'node:path';
 import {createRequire} from 'node:module';
 import {hashHeaderNonce,workMeetsTarget,buildSubmission} from '../standalone/mining-core.mjs';
 const require=createRequire(import.meta.url);
-const {runDeniedOriginalMiner,verifyOriginalMinerSource,assertOriginalMinerProposal,SOURCE_BLOBS}=
+const {runDeniedOriginalMiner,verifyOriginalMinerSource,assertOriginalMinerProposal,cleanOriginalMinerExit,SOURCE_BLOBS}=
   require('../universal-client/src/v34-original-miner-owner.cjs');
 const ROOT=resolve('.');
 const NODE=resolve('sovereign-forge/node/fae-node.mjs');
@@ -97,6 +97,13 @@ test('V34 genuine ORIGINAL miner child finds valid PoW but OS parent denies muta
       assert.equal(observed.height,0,'cold restart sees no unauthorized mining mutation');
     });
   }finally{await rm(scratch,{force:true,recursive:true})}
+});
+test('V40 killed, signaled or nonzero miner exit can never masquerade as clean denial evidence',()=>{
+  assert.equal(cleanOriginalMinerExit(0,null),true);
+  for(const [code,signal] of [[null,'SIGKILL'],[null,'SIGTERM'],
+    [1,null],[2,null],[null,null],[0,'SIGTERM']])
+    assert.equal(cleanOriginalMinerExit(code,signal),false,
+      'signal/abnormal exit must not satisfy the OS-child denial acceptance');
 });
 test('V34 original worker and original miner source are exact-owner pinned',async()=>{
   const script=await verifyOriginalMinerSource(ROOT);
