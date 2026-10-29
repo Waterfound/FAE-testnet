@@ -7,6 +7,7 @@ const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {OwnedNodeIpc,IPC_ENV_FLAG}=require('./owned-node-ipc.cjs');
+const {validateNativeNodeSourcePins,assertPinnedOriginalNodeSources}=require('./pinned-node-source.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
@@ -136,7 +137,7 @@ async function fetchRead(url,kind='status',address,validator=validateRead){
 class ProcessController extends EventEmitter{
   constructor({repoRoot,dataDir,port,nodeExecutable=process.execPath,
     spawnFn=spawn,portProbe=probeLoopbackPort,readinessProbe,listenEvidence=waitForManagedListenEvidence,
-    nativeIpcCandidate=false}={}){
+    nativeIpcCandidate=false,nativeNodeSourcePins=null}={}){
     super();
     this.repoRoot=path.resolve(repoRoot);
     this.dataDir=path.resolve(dataDir);
@@ -156,6 +157,8 @@ class ProcessController extends EventEmitter{
     // Never downgrade an attempted IPC read to localhost HTTP.
     if(typeof nativeIpcCandidate!=='boolean')throw Error('Invalid native IPC candidate mode');
     this.nativeIpcCandidate=nativeIpcCandidate;
+    this.nativeNodeSourcePins=nativeIpcCandidate?
+      validateNativeNodeSourcePins(nativeNodeSourcePins):null;
     this.nodeIpc=null;
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
@@ -280,6 +283,10 @@ class ProcessController extends EventEmitter{
         // No raw filesystem details are returned to the renderer.
         throw error;
       }
+      // Refuse a substituted original node or missing IPC module before spawn.
+      // The protected owner must admit the pinned bytes separately.
+      if(this.nativeIpcCandidate)
+        await assertPinnedOriginalNodeSources(this.repoRoot,this.nativeNodeSourcePins);
       // The shutdown may have completed while asynchronous preflight ran.
       // A stale startup can never launch a new process after Stop Node.
       assertNotCanceled();
@@ -295,6 +302,11 @@ class ProcessController extends EventEmitter{
       if(this.nativeIpcCandidate)this.nodeIpc=new OwnedNodeIpc(this.node,{timeoutMs:3500});
       await verifyManagedReadiness({child:this.node,
         readStatus:this.nativeIpcCandidate?()=>this.nodeIpc.read('status'):this.readinessProbe});
+      assertNotCanceled();
+      // Catch commonplace post-preflight file replacement before admitting
+      // the child as RUNNING. This does not eliminate kernel-level TOCTOU.
+      if(this.nativeIpcCandidate)
+        await assertPinnedOriginalNodeSources(this.repoRoot,this.nativeNodeSourcePins);
       assertNotCanceled();
       this.nodeStarting=false;this.emit('state',this.snapshot());
       return this.snapshot();
