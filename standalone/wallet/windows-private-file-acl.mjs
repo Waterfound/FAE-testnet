@@ -18,11 +18,26 @@ if(($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
    ($item.Attributes -band [System.IO.FileAttributes]::Directory) -ne 0){
   throw 'not_plain_file'
 }
-$phase='OWNER_SID'
-$user=[System.Security.Principal.WindowsIdentity]::GetCurrent().User
+$phase='OWNER_IDENTITY'
+$identity=[System.Security.Principal.WindowsIdentity]::GetCurrent()
+$user=$identity.User
+$phase='ACL_READ'
 $acl=Get-Acl -LiteralPath $p
-if($acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $user.Value){
-  throw 'file_owner_not_current_user'
+$phase='OWNER_MATCH'
+$currentOwner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value
+if($currentOwner -ne $user.Value){
+  # Elevated Windows process tokens can create a new file with the
+  # BUILTIN\\Administrators owner. Only freshly created files entering the
+  # explicit hardening path may be reassigned; existing vault READS never do.
+  $principal=[System.Security.Principal.WindowsPrincipal]::new($identity)
+  $authorizedAdministrator=$principal.IsInRole(
+    [System.Security.Principal.WindowsBuiltInRole]::Administrator)
+  if([string]$req.action -ne 'harden' -or
+     $currentOwner -ne 'S-1-5-32-544' -or -not $authorizedAdministrator){
+    throw 'file_owner_not_current_user'
+  }
+  $phase='SET_OWNER'
+  $acl.SetOwner($user)
 }
 if([string]$req.action -eq 'harden'){
   $phase='SET_ACL'
@@ -105,7 +120,7 @@ async function check(target,action){
   }catch(error){
     // Only a known hardcoded phase name can cross diagnostics; no raw
     // exceptions, SIDs, paths, ACL rules, vaults or other child text.
-    const match=/PRIVATE_ACL_PHASE:(INPUT|RESOLVE_FILE|OWNER_SID|SET_ACL|COMMIT_ACL|VERIFY_ACL)/.
+    const match=/PRIVATE_ACL_PHASE:(INPUT|RESOLVE_FILE|OWNER_IDENTITY|ACL_READ|OWNER_MATCH|SET_OWNER|SET_ACL|COMMIT_ACL|VERIFY_ACL)/.
       exec(String(error?.stderr||''));
     throw Error('Windows original Wallet private ACL refused at '+
       (match?match[1]:'UNCLASSIFIED'));
