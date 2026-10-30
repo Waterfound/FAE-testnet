@@ -328,6 +328,10 @@ test('V51 actual native parent bridge drives ORIGINAL OS miner into candidate or
       });
       assert.equal(controller.nativeMinerBridge,null);
       assert.equal(controller.snapshot().miner,'stopped');
+      assert.equal(controller.snapshot().telemetry.accepted,1,
+        'only a genuine durable original-node block increments accepted count');
+      assert.equal(controller.snapshot().telemetry.hashrate_hs,null,
+        'original worker does not supply measured rate; do not fabricate one');
       assert.equal(done.block_count,1);
       assert.equal(done.status,'STOPPED');
       assert.equal(done.receipt.durable,true);
