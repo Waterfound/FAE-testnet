@@ -96,6 +96,14 @@ export async function writeIntent(path,record,password){
         await assertSameOriginalOutbox();
         await verifyWindowsPrivateFile(path);
         await assertSameOriginalOutbox();
+        // V57 fail-closed owner-admission fence. A successful native Win32
+        // FlushFileBuffers(directory) is an observed OS call, NOT independent
+        // proof that the new NTFS namespace entry survives sudden power loss.
+        // writeIntent() is the CLI's write-before-submit boundary: returning
+        // here would permit a signed HTTP POST on this unadmitted candidate.
+        // Retain the encrypted, exclusive outbox for explicit recovery and
+        // never grant the caller a durable-write acknowledgement on Windows.
+        throw Error('win32_original_outbox_durability_owner_admission_required');
       }else await parent.sync();
     }finally{await parent.close()}
   }catch(error){
