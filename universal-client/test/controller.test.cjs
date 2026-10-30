@@ -70,6 +70,35 @@ test('V44 balance contract forbids noncanonical or precision-losing untrusted at
   }
 });
 
+test('V48 native original transaction lookup refuses malformed and ambiguous acknowledgement',async()=>{
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.nativeIpcCandidate=true;
+  const txid='a'.repeat(64),tip_hash='b'.repeat(64);
+  const base={ok:true,network:NETWORK,txid,found:true,status:'confirmed',
+    confirmed_height:8,tip_height:10,tip_hash};
+  c.nativeRead=async()=>base;
+  assert.equal((await c.readTransactionByTxid(txid)).status,'confirmed');
+  const pending={...base,status:'pending',confirmed_height:null};
+  c.nativeRead=async()=>pending;
+  assert.equal((await c.readTransactionByTxid(txid)).status,'pending');
+  const missing={...base,found:false,status:null,confirmed_height:null};
+  c.nativeRead=async()=>missing;
+  assert.equal((await c.readTransactionByTxid(txid)).result_known,false);
+  for(const bad of [
+    {...base,network:'mainnet'}, {...base,txid:'c'.repeat(64)},
+    {...base,found:true,status:'unknown'}, {...base,status:'pending',confirmed_height:8},
+    {...base,confirmed_height:11}, {...base,confirmed_height:0},
+    {...base,found:false,status:'confirmed'}, {...base,found:false,confirmed_height:8},
+    {...base,tip_hash:'invalid'}, {...base,tip_height:-1}
+  ]){
+    c.nativeRead=async()=>bad;
+    await assert.rejects(c.readTransactionByTxid(txid),/Invalid native original-node transaction evidence/);
+  }
+  await assert.rejects(c.readTransactionByTxid('not-a-txid'),/Canonical transaction ID required/);
+  c.nativeIpcCandidate=false;
+  await assert.rejects(c.readTransactionByTxid(txid),/Authenticated original-node transaction lookup unavailable/);
+});
+
 test('node/miner subprocess environment strips credential-bearing variables',()=>{
   process.env.TS_CANARY_SECRET='should-not-pass-through';
   const actual=makeEnv({FAE_SYNC:'0'});
