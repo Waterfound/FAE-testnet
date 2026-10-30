@@ -623,7 +623,10 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
 test('V55 true original encrypted Wallet vault + outbox in owned OS child -> original consensus native A-to-B', {
   skip:process.env.TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE!=='1',timeout:160000
 },async()=>{
-  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v55-vault-'));
+  // The original Wallet #342 owner checks exact realpath identity. On
+  // Windows the default temp alias can be a junction; canonicalize FIRST.
+  const tempParent=await fs.realpath(os.tmpdir());
+  const dir=await fs.mkdtemp(path.join(tempParent,'trium-v55-vault-'));
   const stateFile=path.join(dir,'state.json');
   let node=null,ipc=null;
   try{
