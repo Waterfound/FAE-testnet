@@ -28,8 +28,7 @@ jobs:
         run: cd universal-client && npm run check
       - name: Bounded unit and real isolated local-node tests
         run: cd universal-client && npm test
-      - name: V50 exact original Miner #362 PoW through OS-owned IPC candidate
-        if: runner.os == 'Linux'
+      - name: V52 original Miner, node and disposable Wallet OS signer candidate (3 OS)
         shell: bash
         env:
           TS_V50_REAL_ORIGINAL_MINER_BRIDGE: '1'
