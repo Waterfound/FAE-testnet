@@ -7,7 +7,7 @@ const PASSWORD='V58-disposable-test-only-password-never-reuse';
 const isHex64=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
 let dispatched=false;
 process.on('message',async msg=>{
-  if(dispatched||!msg||!['write','recover'].includes(msg.mode)||
+  if(dispatched||!msg||!['write','recover','recover-corrupt'].includes(msg.mode)||
      typeof msg.outbox!=='string'||!msg.outbox.includes('v58-original-wallet-')||
      !isHex64(msg.intent?.txid)){
     process.send?.({result:'REJECTED_TEST_JOB'});
@@ -24,6 +24,21 @@ process.on('message',async msg=>{
          String(error?.message).includes('win32_original_outbox_durability_owner_admission_required'))
         process.send?.({result:'WIN32_OWNER_GATE_FAIL_CLOSED'});
       else process.send?.({result:'UNEXPECTED_WRITE_FAILURE'});
+    }
+  }else if(msg.mode==='recover-corrupt'){
+    try{
+      let corruptedDenied=false;
+      try{await readIntent(outbox,PASSWORD)}
+      catch(error){corruptedDenied=String(error?.message).includes('outbox_wrong_password_or_corrupt')}
+      if(!corruptedDenied)throw Error('corrupt_original_record_accepted');
+      let duplicateDenied=false;
+      try{await writeIntent(outbox,intent,PASSWORD)}
+      catch(error){duplicateDenied=error?.code==='EEXIST'}
+      if(!duplicateDenied)throw Error('corrupt_outbox_retry_allowed');
+      process.send?.({result:'CORRUPT_ORIGINAL_OUTBOX_FAIL_CLOSED',
+        corrupted_denied:true,single_flight:true});
+    }catch{
+      process.send?.({result:'UNEXPECTED_CORRUPT_RECOVERY_FAILURE'});
     }
   }else{
     try{
