@@ -7,6 +7,7 @@ const {randomInt}=require('node:crypto');
 const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {OwnedNodeIpc,IPC_ENV_FLAG}=require('./owned-node-ipc.cjs');
+const {OwnedOriginalMinerBridge}=require('./owned-original-miner-bridge.cjs');
 const {validateNativeNodeSourcePins,assertPinnedOriginalNodeSources}=require('./pinned-node-source.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
@@ -166,6 +167,7 @@ class ProcessController extends EventEmitter{
     this.readinessProbe=readinessProbe||(()=>fetchRead(new URL('/status',this.endpoint)));
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;this.nodeStartGeneration=0;
+    this.nativeMinerBridge=null;
     this.minerStarting=false;this.minerStopPending=false;
     this.minerStopPromise=null;this.minerGeneration=0;
     this.recoveryIssue=null;
@@ -334,6 +336,7 @@ class ProcessController extends EventEmitter{
     // Revoke pending launch authority before the first asynchronous boundary.
     // Otherwise Stop Mining can return before an in-flight /status check starts a miner.
     this.minerGeneration++;
+    this.nativeMinerBridge?.stop();
     this.minerStopPending=true;
     this.minerStopPromise=(async()=>{
       try{
@@ -500,6 +503,45 @@ class ProcessController extends EventEmitter{
     for(const k of ['hashrate_hs','total_hashes','accepted','rejected'])
       if(event[k]!==undefined&&Number.isSafeInteger(event[k])&&event[k]>=0)t[k]=event[k];
     this.telemetry=t;this.emit('state',this.snapshot());
+  }
+  // V51 owner-compatible original Miner OS-worker lifecycle integrated into
+  // the actual ProcessController. No renderer IPC handler calls this method.
+  // Current product always constructs nodeIpc with allowBlockMutation=false;
+  // until original-source admission, this operation is strictly unavailable.
+  // The trusted caller must source-pin the original Miner worker before forking
+  // it, as the V50/V51 exact-owner OS-child integration test does.
+  async runAdmittedOriginalMinerWorkerOnce({minerChild,address,onTelemetry}={}){
+    addressValid(address);
+    this.assertNode();
+    const node=this.node,ipc=this.nodeIpc;
+    if(!this.nativeIpcCandidate||!ipc||ipc.child!==node||
+       !ipc.allowBlockMutation||ipc.revoked)
+      throw Error('Original-node native block mutation not owner-admitted');
+    if(this.minerStarting||this.minerStopPending||alive(this.miner))
+      throw Error('Original Miner already running or lifecycle pending');
+    const expected=path.join(this.repoRoot,'universal-client','src',
+      'v34-original-miner-owned-worker.mjs');
+    if(!minerChild||!Array.isArray(minerChild.spawnargs)||
+       !minerChild.spawnargs.includes(expected))
+      throw Error('Original Miner owner worker source identity required');
+    const generation=this.minerGeneration;
+    const bridge=new OwnedOriginalMinerBridge({minerChild,nodeIpc:ipc,
+      nodeEndpoint:this.endpoint,address,onTelemetry});
+    this.miner=minerChild;this.nativeMinerBridge=bridge;
+    this.minerStarting=false;this.emit('state',this.snapshot());
+    try{
+      const result=await bridge.run();
+      this.assertNode();
+      if(this.node!==node||this.nodeIpc!==ipc||
+         this.minerGeneration!==generation||this.miner!==minerChild)
+        throw Error('Original Miner owner process changed before completion');
+      return result;
+    }finally{
+      if(this.nativeMinerBridge===bridge)this.nativeMinerBridge=null;
+      if(this.miner===minerChild)this.miner=null;
+      this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
+      this.emit('state',this.snapshot());
+    }
   }
   async startMiner(address){
     addressValid(address);this.assertNode();
