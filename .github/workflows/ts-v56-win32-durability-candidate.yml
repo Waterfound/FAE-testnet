@@ -4,6 +4,9 @@ on:
     paths:
       - 'standalone/wallet/windows-durability-capability-candidate.mjs'
       - 'standalone/wallet/windows-durability-capability-candidate.test.mjs'
+      - 'standalone/wallet/windows-outbox-directory-fence-candidate.mjs'
+      - 'standalone/wallet/windows-outbox-directory-fence-candidate.test.mjs'
+      - 'standalone/wallet/outbox.mjs'
       - '.github/workflows/ts-v56-win32-durability-candidate.yml'
   workflow_dispatch:
 permissions:
@@ -28,3 +31,5 @@ jobs:
         run: node --test standalone/wallet/windows-durability-capability-candidate.test.mjs
       - name: Original encrypted vault plus outbox on actual OS
         run: node --test standalone/wallet/windows-private-file-acl.test.mjs
+      - name: Negative native fence identity and trusted-executable regression
+        run: node --test standalone/wallet/windows-outbox-directory-fence-candidate.test.mjs
