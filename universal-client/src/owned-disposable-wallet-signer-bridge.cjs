@@ -56,7 +56,9 @@ class OwnedDisposableWalletSignerBridge{
         try{size=Buffer.byteLength(JSON.stringify(packet),'utf8')}
         catch{return fail()}
         if(!packet||typeof packet!=='object'||Array.isArray(packet)||
-           size>65536||packet.mode!==MODE||packet.network!==NETWORK||
+           size>65536||Object.keys(packet).sort().join(',')!==
+             'from,mode,network,request_id,session,status,to,tx,txid'||
+           packet.mode!==MODE||packet.network!==NETWORK||
            packet.session!==session||packet.request_id!==1||
            packet.status!=='SIGNED_DISPOSABLE_ONLY'||
            packet.from!==this.from||packet.to!==this.to||
