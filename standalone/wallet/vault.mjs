@@ -33,7 +33,8 @@ export async function writeVault(path,mnemonic,bip39Passphrase,password){
   }finally{key.fill(0);payload.fill(0);}
 }
 export async function readVault(path){
-  const s=await lstat(path);
+  // Preserve full 64-bit NTFS identity when validating the opened file.
+  const s=await lstat(path,{bigint:process.platform==='win32'});
   if(!s.isFile()||s.isSymbolicLink()||
      (process.platform!=='win32'&&(s.mode&0o077)!==0))
     throw Error('vault_requires_regular_private_0600_file');
@@ -41,7 +42,7 @@ export async function readVault(path){
   if(typeof process.getuid==='function'&&s.uid!==process.getuid())throw Error('vault_owner_mismatch');
   const handle=await open(path,constants.O_RDONLY|NOFOLLOW);
   try{
-    const stat=await handle.stat();
+    const stat=await handle.stat({bigint:process.platform==='win32'});
     if(stat.size>16384||stat.size<100||stat.dev!==s.dev||stat.ino!==s.ino)
       throw Error('vault_size_or_identity_invalid');
     const data=JSON.parse(await handle.readFile('utf8'));
