@@ -171,16 +171,17 @@ test('V50 native signed TX candidate binds expected original Wallet TXID to same
     assert.equal(observed.observed_tip_height,1);
     assert.equal(observed.confirmation_finality,'NOT_PROVEN');
     assert.equal(observed.submission_source,'ORIGINAL_NODE_INHERITED_IPC_CANDIDATE');
-    assert.equal(ipc.counter,2,'one submission + one read-only same OS-child reconciliation');
+    assert.equal(ipc.counter,3,'one submission + same-child lookup + independent chain tip check');
     ipc.revoke();
   });
 });
-for(const variant of ['signed-wrong-txid','signed-not-found']){
+for(const variant of ['signed-wrong-txid','signed-not-found',
+  'signed-confirmed-without-height','signed-status-wrong-tip']){
   test('V50 signed TX IPC source contradictions revoke '+variant,async()=>{
     await withChild(variant,async child=>{
       const ipc=new OwnedNodeIpc(child,{allowSignedTxMutation:true});
       await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'a'.repeat(64)),
-        /native acknowledgement mismatch|outcome unverified/);
+        /native acknowledgement mismatch|outcome unverified|tip changed during observation/);
       assert.equal(ipc.revoked,true);
       await assert.rejects(ipc.read('status'),/unavailable/);
     });
