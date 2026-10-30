@@ -14,7 +14,8 @@ const os=require('node:os');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {OwnedNodeIpc}=require('../src/owned-node-ipc.cjs');
-const {OwnedOriginalMinerBridge}=require('../src/owned-original-miner-bridge.cjs');
+const {ProcessController}=require('../src/controller.cjs');
+const {FILES:ORIGINAL_NODE_FILES}=require('../src/pinned-node-source.cjs');
 const ROOT=path.resolve(__dirname,'..','..');
 const NODE_HEAD='dd331bb57e8718caa45e030633a4ff4bc64f47c6';
 const MINER_HEAD='f85b483f88a5fb2b797a224596c23a7b505094d7';
@@ -297,12 +298,25 @@ test('V51 actual native parent bridge drives ORIGINAL OS miner into candidate or
       minerChild=fork(workerScript,[],{cwd:dir,execArgv:[],env:envFor(nodePort,stateFile),
         stdio:['ignore','pipe','pipe','ipc'],windowsHide:true});
       let progress=0;
-      const bridge=new OwnedOriginalMinerBridge({
-        minerChild,nodeIpc:ipc,nodeEndpoint:endpoint,address:ADDRESS,
-        timeoutMs:80000,
-        onTelemetry:()=>{progress++}
+      // Drive the actual ProcessController owner-gated native worker method.
+      // This original-node copy lives only in a disposable test root; its
+      // checksums grant no admission outside this local test process.
+      const nodePins={};
+      for(const file of ORIGINAL_NODE_FILES){
+        nodePins[file]=createHash('sha256').update(
+          await fs.readFile(path.join(dir,...file.split('/')))).digest('hex');
+      }
+      const controller=new ProcessController({
+        repoRoot:dir,dataDir:dir,port:nodePort,nativeIpcCandidate:true,
+        nativeNodeSourcePins:nodePins
       });
-      const done=await bridge.run();
+      controller.node=node;
+      controller.nodeIpc=ipc;
+      const done=await controller.runAdmittedOriginalMinerWorkerOnce({
+        minerChild,address:ADDRESS,onTelemetry:()=>{progress++}
+      });
+      assert.equal(controller.nativeMinerBridge,null);
+      assert.equal(controller.snapshot().miner,'stopped');
       assert.equal(done.block_count,1);
       assert.equal(done.status,'STOPPED');
       assert.equal(done.receipt.durable,true);
@@ -329,7 +343,7 @@ test('V51 actual native parent bridge drives ORIGINAL OS miner into candidate or
       assert.equal(denied.status,403);
       console.log('TS_V51_REAL_CLIENT_PARENT_MINER_BRIDGE_PASS '+JSON.stringify({
         original_miner_owner:MINER_HEAD,original_node_owner:NODE_HEAD,
-        actual_client_parent_bridge:true,genuine_os_miner_child:true,
+        actual_client_process_controller:true,genuine_os_miner_child:true,
         genuine_os_node_child:true,original_consensus:true,durable_block:true,
         cold_restart:true,no_managed_http_mutation:true,
         protected_owner_branch_unchanged:true,owner_admission:'NOT_GRANTED',
