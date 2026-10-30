@@ -709,7 +709,7 @@ class ProcessController extends EventEmitter{
       if(init.status==='ISOLATED_PROOF_FAILED'&&
          Object.keys(init).sort().join(',')==='mode,network,phase,reason,request_id,session,status'&&
          /^[A-Z_]{3,40}$/.test(String(init.phase))&&
-         /^[A-Z_]{3,64}$/.test(String(init.reason)))
+         /^[A-Z0-9_]{3,64}$/.test(String(init.reason)))
         throw Error('Isolated original Wallet owner source failure phase '+
           init.phase+' reason '+init.reason);
       if(Object.keys(init).sort().join(',')!=='from,mode,network,request_id,session,status'||
@@ -748,7 +748,7 @@ class ProcessController extends EventEmitter{
       if(signed.status==='ISOLATED_PROOF_FAILED'&&
          Object.keys(signed).sort().join(',')==='mode,network,phase,reason,request_id,session,status'&&
          /^[A-Z_]{3,40}$/.test(String(signed.phase))&&
-         /^[A-Z_]{3,64}$/.test(String(signed.reason)))
+         /^[A-Z0-9_]{3,64}$/.test(String(signed.reason)))
         throw Error('Isolated original Wallet owner source failure phase '+
           signed.phase+' reason '+signed.reason);
       if(Object.keys(signed).sort().join(',')!==
