@@ -23,7 +23,9 @@ const PINNED=Object.freeze({
   'sovereign-forge/node/explorer-read.mjs':['1f872c5cc1fadedcc05230276f5b0c3ed109c75d',NODE_HEAD],
   'sovereign-forge/node/managed-http-guard.mjs':['2efcf24d0b91ce7796e7a46822076ed017e72a03',NODE_HEAD],
   'standalone/fae-miner.mjs':['0ab1643c1ff1bf2991a2e56512a3b1746c62122b',MINER_HEAD],
-  'standalone/mining-core.mjs':['42c392ad54a3e3c2f446ab79f67948d30b82a73e',MINER_HEAD]
+  'standalone/mining-core.mjs':['42c392ad54a3e3c2f446ab79f67948d30b82a73e',MINER_HEAD],
+  'universal-client/src/v34-original-miner-owned-worker.mjs':
+    ['102ccc04ad1feb51b20196bab0ad23f63bca6755',MINER_HEAD]
 });
 const ADDRESS='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
 function replaceExact(source,oldValue,newValue,label){
