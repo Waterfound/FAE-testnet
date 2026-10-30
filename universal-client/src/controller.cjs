@@ -173,7 +173,12 @@ class ProcessController extends EventEmitter{
   }
   snapshot(){return {network:NETWORK,node:this.nodeStopping||(this.nodeStarting&&this.nodeStartGeneration!==this.nodeGeneration)||this.node&&this.node.killed&&!this.node._tsExited&&this.node.exitCode===null?'stopping':this.nodeStarting?'starting':alive(this.node)?'running':'stopped',
     miner:this.minerStopPending||this.miner&&this.miner.killed&&!this.miner._tsExited&&this.miner.exitCode===null?'stopping':this.minerStarting?'starting':alive(this.miner)?'running':'stopped',
-    node_recovery:this.recoveryIssue,telemetry:{...this.telemetry}}}
+    node_recovery:this.recoveryIssue,
+    // Legacy HTTP mining is explicitly not authenticated original-node
+    // mutation. Native IPC mining remains disabled pending source-owner
+    // admission of submit-mined-block; never show either as trusted.
+    mining_submission:this.nativeIpcCandidate?'NATIVE_BLOCK_SUBMISSION_NOT_ADMITTED':'LEGACY_HTTP_UNAUTHENTICATED',
+    telemetry:{...this.telemetry}}}
   spawnScript(script,args,extra={}){
     const env=makeEnv(extra);
     const child=this.spawnFn(this.nodeExecutable,[script,...args],{
