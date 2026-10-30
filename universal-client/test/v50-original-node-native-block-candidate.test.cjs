@@ -138,18 +138,19 @@ async function port(){
     });
   });
 }
-function envFor(port,state){
+function envFor(port,state,{signedTx=false}={}){
   const env={};
   for(const k of ['PATH','SystemRoot','WINDIR','HOME','USERPROFILE','TMP','TEMP','TMPDIR'])
     if(process.env[k])env[k]=process.env[k];
   return {...env,FAE_HOST:'127.0.0.1',FAE_PORT:String(port),
     FAE_SYNC:'0',FAE_UPSTREAM_API:'',FAE_PEERS:'',FAE_BOOTSTRAP_FEEDS:'',
-    FAE_DATA_FILE:state,FAE_TRIUM_IPC:'1',FAE_TRIUM_BLOCK_IPC_CANDIDATE:'1'};
+    FAE_DATA_FILE:state,FAE_TRIUM_IPC:'1',FAE_TRIUM_BLOCK_IPC_CANDIDATE:'1',
+    FAE_TRIUM_SIGNED_TX_IPC_CANDIDATE:signedTx?'1':'0'};
 }
-async function startOwnerCandidate(dir,state,portNum){
+async function startOwnerCandidate(dir,state,portNum,{signedTx=false}={}){
   const script=path.join(dir,'sovereign-forge','node','fae-node.mjs');
   const child=fork(script,[],{cwd:dir,execArgv:[],
-    env:envFor(portNum,state),stdio:['ignore','pipe','pipe','ipc'],windowsHide:true});
+    env:envFor(portNum,state,{signedTx}),stdio:['ignore','pipe','pipe','ipc'],windowsHide:true});
   try{
     const target=' listening on http://127.0.0.1:'+portNum+' height=';
     await new Promise((resolve,reject)=>{
