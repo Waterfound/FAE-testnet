@@ -8,6 +8,8 @@ on:
       - 'standalone/wallet/outbox.mjs'
       - '.github/workflows/fae-wallet-win32-private-acl-owner-candidate.yml'
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   original-wallet-acl-review-only:
     name: source-owner proposal (${{ matrix.os }})
