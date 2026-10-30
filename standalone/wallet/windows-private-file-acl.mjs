@@ -7,20 +7,25 @@ import {join,win32} from 'node:path';
 
 const POWERSHELL=String.raw`
 $ErrorActionPreference='Stop'
+$phase='INPUT'
+try {
 $req=ConvertFrom-Json -InputObject ([Console]::In.ReadToEnd())
 $p=[string]$req.path
 if(-not [System.IO.Path]::IsPathRooted($p)){throw 'path_must_be_absolute'}
+$phase='RESOLVE_FILE'
 $item=Get-Item -LiteralPath $p -Force
 if(($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0 -or
    ($item.Attributes -band [System.IO.FileAttributes]::Directory) -ne 0){
   throw 'not_plain_file'
 }
+$phase='OWNER_SID'
 $user=[System.Security.Principal.WindowsIdentity]::GetCurrent().User
 $acl=Get-Acl -LiteralPath $p
 if($acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $user.Value){
   throw 'file_owner_not_current_user'
 }
 if([string]$req.action -eq 'harden'){
+  $phase='SET_ACL'
   $acl.SetAccessRuleProtection($true,$false)
   foreach($rule in @($acl.GetAccessRules($true,$true,
     [System.Security.Principal.SecurityIdentifier]))){
@@ -33,8 +38,10 @@ if([string]$req.action -eq 'harden'){
       [System.Security.AccessControl.AccessControlType]::Allow)
     $acl.AddAccessRule($grant)
   }
+  $phase='COMMIT_ACL'
   Set-Acl -LiteralPath $p -AclObject $acl
 }
+$phase='VERIFY_ACL'
 $final=Get-Acl -LiteralPath $p
 if($final.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $user.Value){
   throw 'file_owner_changed'
@@ -59,6 +66,10 @@ foreach($rule in @($final.GetAccessRules($true,$true,
 }
 if(-not ($ownerAllow -and $systemAllow)){throw 'expected_aces_missing'}
 [Console]::Out.Write('PRIVATE_FILE_ACL_OK')
+} catch {
+  [Console]::Error.Write('PRIVATE_ACL_PHASE:'+$phase)
+  exit 21
+}
 `;
 const SCRIPT=Buffer.from(POWERSHELL,'utf16le').toString('base64');
 function powerShellExecutable(){
@@ -91,9 +102,13 @@ async function check(target,action){
     ],{input:JSON.stringify({path:before.real,action}),
       windowsHide:true,timeout:20000,maxBuffer:4096,encoding:'utf8',
       stdio:['pipe','pipe','pipe']});
-  }catch{
-    // Never expose paths, ACLs, stdout/stderr or untrusted error text.
-    throw Error('Windows original Wallet private ACL refused');
+  }catch(error){
+    // Only a known hardcoded phase name can cross diagnostics; no raw
+    // exceptions, SIDs, paths, ACL rules, vaults or other child text.
+    const match=/PRIVATE_ACL_PHASE:(INPUT|RESOLVE_FILE|OWNER_SID|SET_ACL|COMMIT_ACL|VERIFY_ACL)/.
+      exec(String(error?.stderr||''));
+    throw Error('Windows original Wallet private ACL refused at '+
+      (match?match[1]:'UNCLASSIFIED'));
   }
   if(proof!=='PRIVATE_FILE_ACL_OK')
     throw Error('Windows original Wallet private ACL receipt invalid');
