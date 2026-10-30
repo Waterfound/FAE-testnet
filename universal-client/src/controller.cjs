@@ -1,5 +1,5 @@
 'use strict';
-const {spawn}=require('node:child_process');
+const {spawn,fork}=require('node:child_process');
 const {mkdir}=require('node:fs/promises');
 const path=require('node:path');
 const {EventEmitter}=require('node:events');
@@ -579,7 +579,7 @@ class ProcessController extends EventEmitter{
   // The bridge is NOT packaged, no real encrypted vault may be unlocked, and
   // the normal app constructs nativeIpcCandidate=false.
   async runIsolatedOriginalWalletSignerCandidateOnce({
-    signerChild,signerSourceSha256,from,to,outpoint
+    signerSourceSha256,from,to,outpoint
   }={}){
     if(process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF!=='1')
       throw Error('Original Wallet signer product admission not granted');
@@ -590,42 +590,43 @@ class ProcessController extends EventEmitter{
     if(!this.nativeIpcCandidate||!channel||channel.child!==node||
        !channel.allowSignedTxMutation||channel.revoked||this.nodeStopping)
       throw Error('Original Wallet signed mutation not source-owner admitted');
-    if(!signerChild||!Array.isArray(signerChild.spawnargs)||
-       signerChild.exitCode!==null||signerChild.killed||
-       !signerChild.connected)
-      throw Error('Disposable signer OS process not owned');
-    // Synchronous acquisition before the first await forbids duplicate calls.
+    if(typeof from!=='string'||typeof to!=='string'||from===to||
+       !ADDRESS.test(from)||!ADDRESS.test(to)||!OUTPOINT.test(outpoint))
+      throw Error('Disposable Wallet signing intent rejected');
+    // Acquire synchronously before source attestation; Stop Node invalidates
+    // this generation even when it interrupts the asynchronous preflight.
     this.signerStarting=true;
+    let signerChild=null;
     try{
       await assertPinnedDisposableWalletSignerSource(this.repoRoot,signerSourceSha256);
       if(this.node!==node||this.nodeIpc!==channel||
          channel.revoked||this.signerGeneration!==generation||
-         this.signerStopPending||this.nodeStopping||!alive(node)||
-         signerChild.exitCode!==null||!signerChild.connected)
-        throw Error('Disposable Wallet signer source owner changed before signing');
+         this.signerStopPending||this.nodeStopping||!alive(node))
+        throw Error('Disposable Wallet signer source owner changed before launch');
       const signerScript=path.join(this.repoRoot,'universal-client','src',
         'v52-disposable-original-wallet-signer.mjs');
-      if(!signerChild.spawnargs.includes(signerScript))
-        throw Error('Original Wallet signer worker executable mismatch');
+      // Real ProcessController owns actual creation, termination and recovery.
+      // Only controlled disposable identities: no vault, passwords or mnemonic.
+      signerChild=fork(signerScript,[],{cwd:this.repoRoot,execArgv:[],
+        env:makeEnv({TS_V52_DISPOSABLE_SIGNER_PROOF:'isolated-owner-fixture'}),
+        windowsHide:true,stdio:['ignore','ignore','ignore','ipc']});
       const {OwnedDisposableWalletSignerBridge}=require(
         './owned-disposable-wallet-signer-bridge.cjs');
       const bridge=new OwnedDisposableWalletSignerBridge({
         signerChild,signerScript,nodeIpc:channel,from,to});
-      this.signer=signerChild;this.signerStarting=false;
-      try{
-        const receipt=await bridge.signAndSubmitOnce(outpoint);
-        if(this.node!==node||this.nodeIpc!==channel||
-           channel.revoked||this.signerGeneration!==generation||
-           this.signerStopPending||this.signer!==signerChild)
-          throw Error('Signer or original node changed during transaction; outcome unknown');
-        return receipt;
-      }finally{
-        if(this.signer===signerChild)this.signer=null;
-      }
+      this.signer=signerChild;
+      this.signerStarting=false;
+      const receipt=await bridge.signAndSubmitOnce(outpoint);
+      if(this.node!==node||this.nodeIpc!==channel||
+         channel.revoked||this.signerGeneration!==generation||
+         this.signerStopPending||this.signer!==signerChild)
+        throw Error('Signer or original node changed during transaction; outcome unknown');
+      return receipt;
     }finally{
       this.signerStarting=false;
-      // No abandoned privileged OS child, even on integrity mismatch or crash.
+      // No abandoned OS child, even on mismatch, shutdown or unknown ACK.
       await this.stop(signerChild);
+      if(this.signer===signerChild)this.signer=null;
     }
   }
   stopIsolatedSigner(){
