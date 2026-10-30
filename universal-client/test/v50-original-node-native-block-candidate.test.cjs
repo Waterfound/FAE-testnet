@@ -477,3 +477,106 @@ test('V50 isolated original Wallet owner A-to-B through actual signed original-n
       await fs.rm(dir,{recursive:true,force:true});
     }
   });
+
+
+const {OwnedDisposableWalletSignerBridge}=require('../src/owned-disposable-wallet-signer-bridge.cjs');
+
+test('V52 genuine OS-disposable original Wallet signer -> original node signed A-to-B, confirmation and recovery', {
+  skip:process.env.TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE!=='1',timeout:120000
+},async()=>{
+  // This proof has no user vault, no renderer, no wallet password and no
+  // production signing admission. The protected crypto files are original
+  // exact PR #342 bytes; only test keys and source-only temp node copies exist.
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v52-owned-signer-'));
+  const stateFile=path.join(dir,'state.json');
+  let node=null,ipc=null,signer=null;
+  try{
+    const {miner,core}=await stageSource(dir);
+    const wallet=await stageExactOriginalWalletCrypto(dir);
+    const a=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0x11)))[0];
+    const b=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0xab)))[0];
+    const originalScript=path.join(ROOT,'universal-client','src',
+      'v52-disposable-original-wallet-signer.mjs');
+    const signerScript=path.join(dir,'universal-client','src',
+      'v52-disposable-original-wallet-signer.mjs');
+    await fs.copyFile(originalScript,signerScript);
+    const p=await port();
+    let endpoint='http://127.0.0.1:'+p;
+    node=await startOwnerCandidate(dir,stateFile,p,{signedTx:true});
+    ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+      allowSignedTxMutation:true,timeoutMs:5000});
+    const mine=async()=>{
+      const options=miner.resolveOptions({node:endpoint,address:a.address,
+        once:true,json:true,'chunk-size':'4096','yield-ms':'0'},{});
+      let genuine=null;
+      const result=await miner.runMiner(options,{emit:()=>{},
+        submitMinedBlock:async submission=>{
+          assert.deepEqual(core.buildSubmission({
+            header:submission.header,txids:submission.txids
+          },submission.nonce,submission.hash),submission);
+          genuine=await ipc.submitMinedBlock(submission);
+          return genuine;
+        }
+      });
+      assert.equal(result.accepted,1);
+      assert.equal(genuine.durable,true);
+      return genuine;
+    };
+    const funded=await mine();
+    assert.equal(funded.height,1);
+    assert.equal((await ipc.read('balance',{address:a.address})).balance_atoms,'1000000000');
+    signer=fork(signerScript,[],{cwd:dir,execArgv:[],
+      env:{...envFor(p,stateFile,{signedTx:true}),
+        TS_V52_DISPOSABLE_SIGNER_PROOF:'isolated-owner-fixture'},
+      stdio:['ignore','ignore','ignore','ipc'],windowsHide:true});
+    const owner=new OwnedDisposableWalletSignerBridge({
+      signerChild:signer,signerScript,nodeIpc:ipc,from:a.address,to:b.address
+    });
+    const receipt=await owner.signAndSubmitOnce(funded.hash+':0');
+    assert.equal(receipt.status,'pending');
+    assert.equal(receipt.fee_atoms,'1');
+    assert.equal(receipt.confirmation_finality,'NOT_PROVEN');
+    assert.match(receipt.txid,/^[0-9a-f]{64}$/);
+    await assert.rejects(owner.signAndSubmitOnce(funded.hash+':0'),/already consumed/);
+    let observed=await ipc.read('transaction-lookup',{txid:receipt.txid});
+    assert.equal(observed.status,'pending');
+    assert.equal(observed.confirmed_height,null);
+    const second=await mine();
+    assert.equal(second.height,2);
+    observed=await ipc.read('transaction-lookup',{txid:receipt.txid});
+    assert.equal(observed.status,'confirmed');
+    assert.equal(observed.confirmed_height,2);
+    assert.equal((await ipc.read('balance',{address:b.address})).balance_atoms,'100000000');
+    const saved=JSON.parse(await fs.readFile(stateFile,'utf8'));
+    assert.equal(saved.transactions[receipt.txid].fee_atoms,'1');
+    assert.equal(saved.transactions[receipt.txid].status,'confirmed');
+    ipc.revoke();ipc=null;
+    await stop(signer);signer=null;
+    await stop(node);node=null;
+    const cold=await port();
+    endpoint='http://127.0.0.1:'+cold;
+    node=await startOwnerCandidate(dir,stateFile,cold,{signedTx:true});
+    ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+      allowSignedTxMutation:true,timeoutMs:5000});
+    observed=await ipc.read('transaction-lookup',{txid:receipt.txid});
+    assert.equal(observed.status,'confirmed');
+    assert.equal(observed.confirmed_height,2);
+    assert.equal((await ipc.read('balance',{address:b.address})).balance_atoms,'100000000');
+    console.log('TS_V52_ORIGINAL_WALLET_OS_DISPOSABLE_SIGNER_AB_PASS '+JSON.stringify({
+      original_wallet_owner:WALLET_HEAD,original_node_owner:NODE_HEAD,
+      original_miner_owner:MINER_HEAD,actual_os_signer_child:true,
+      deterministic_disposable_keys_only:true,no_vault_or_password:true,
+      original_cryptography:true,original_consensus:true,
+      one_shot_native_signed_tx:true,pending_then_mined:true,
+      fee_atoms:'1',recipient_atoms:'100000000',cold_restart:true,
+      protected_owner_branch_unchanged:true,
+      real_wallet_signer_admitted:false,installed_gui_signed_send:false,
+      gate_b:'CANDIDATE_ONLY',gate_c:'CANDIDATE_ONLY',gate_d:'OPEN'
+    }));
+  }finally{
+    ipc?.revoke();
+    await stop(signer);
+    await stop(node);
+    await fs.rm(dir,{recursive:true,force:true});
+  }
+});
