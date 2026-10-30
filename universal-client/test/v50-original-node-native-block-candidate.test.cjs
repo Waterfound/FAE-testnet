@@ -556,7 +556,7 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
         actualController.runIsolatedOriginalWalletSignerCandidateOnce({
           signerSourceSha256:'0'.repeat(64),from:a.address,to:b.address,
           outpoint:funded.hash+':0'
-        }),/Native disposable-wallet-signer source verification failed/);
+        }),/Independently pinned disposable Wallet signer source mismatch/);
       assert.equal(actualController.signer,null,'tampered source denied before OS spawn');
       receipt=await actualController.runIsolatedOriginalWalletSignerCandidateOnce({
         
