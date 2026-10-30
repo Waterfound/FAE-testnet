@@ -499,7 +499,12 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
       'v52-disposable-original-wallet-signer.mjs');
     const signerScript=path.join(dir,'universal-client','src',
       'v52-disposable-original-wallet-signer.mjs');
-    await fs.copyFile(originalScript,signerScript);
+    const signerBytes=await fs.readFile(originalScript);
+    // Fix the candidate worker identity independently of the fork command
+    // line. Original Wallet imports above are also owner-blob pinned.
+    assert.equal(blobHash(signerBytes),'e3a194618e13cdb95766e6cc8faa309d57b78f96',
+      'Reviewed disposable signer OS worker source changed');
+    await fs.writeFile(signerScript,signerBytes,{flag:'wx',mode:0o400});
     const p=await port();
     let endpoint='http://127.0.0.1:'+p;
     node=await startOwnerCandidate(dir,stateFile,p,{signedTx:true});
