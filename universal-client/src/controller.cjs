@@ -490,6 +490,7 @@ class ProcessController extends EventEmitter{
   }
   async startMiner(address){
     addressValid(address);this.assertNode();
+    if(this.nativeIpcCandidate)throw Error('Native original-node block submission not admitted');
     // The pending bit is acquired synchronously, before status I/O. Two
     // renderer requests must never create a second, untracked miner process.
     if(this.minerStarting)throw Error('Miner startup pending');
