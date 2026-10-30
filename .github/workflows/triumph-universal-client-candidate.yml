@@ -42,6 +42,9 @@ jobs:
           NODE_OWNER_SHA=dd331bb57e8718caa45e030633a4ff4bc64f47c6
           git fetch --no-tags --depth=1 origin "$NODE_OWNER_SHA"
           test "$(git rev-parse FETCH_HEAD)" = "$NODE_OWNER_SHA"
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$WALLET_OWNER_SHA"
           TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE=1 node --test universal-client/test/v50-original-node-native-block-candidate.test.cjs
       - name: Native owner Wallet vault interoperability — Windows and macOS
         if: runner.os != 'Linux'
