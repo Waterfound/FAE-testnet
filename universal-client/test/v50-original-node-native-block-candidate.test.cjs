@@ -675,6 +675,7 @@ test('V55 true original encrypted Wallet vault + outbox in owned OS child -> ori
     let result;
     try{
       process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF='1';
+      await fs.chmod(workerFile,0o600);
       await fs.appendFile(workerFile,'\n// injected source mutation\n');
       await assert.rejects(controller.runIsolatedOriginalVaultCandidateOnce({
         to:b.address,prepareFunding:()=>{throw Error('SHOULD_NOT_MINE')}
