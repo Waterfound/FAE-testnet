@@ -11,7 +11,18 @@ process.on('message',message=>{
     network:process.env.IPC_FIXTURE_MODE==='wrong-network'?'wrong-network':NETWORK,
     request_id:process.env.IPC_FIXTURE_MODE==='replay'?message.request_id+1:message.request_id,
     ok:true,
-    result:{network:NETWORK,height:1,source:'REAL_CHILD_OS_IPC_FIXTURE_ONLY'}
+    result:message.op==='submit-mined-block'?
+      {
+        // Simulated receipt from a disposable OS IPC fixture. This DOES NOT
+        // represent an admitted original node, original PoW or durable disk.
+        ok:true,network:NETWORK,durable:process.env.IPC_FIXTURE_MODE!=='block-not-durable',
+        height:message.params?.submission?.header?.height,
+        hash:process.env.IPC_FIXTURE_MODE==='block-hash-mismatch'?'f'.repeat(64):
+          message.params?.submission?.hash,
+        tx_count:message.params?.submission?.txids?.length,
+        source:'SYNTHETIC_IPC_FIXTURE_ONLY'
+      }:
+      {network:NETWORK,height:1,source:'REAL_CHILD_OS_IPC_FIXTURE_ONLY'}
   };
   process.send(response);
 });
