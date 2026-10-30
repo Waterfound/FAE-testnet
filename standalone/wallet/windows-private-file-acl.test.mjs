@@ -22,6 +22,18 @@ test('original encrypted vault: Unix owner-only or NTFS ACL proof; unresolved Wi
       /incorrect_password_or_corrupt_vault/);
     if(process.platform==='win32'){
       await verifyWindowsPrivateFile(vault);
+      // Adversarial: the requested pathname is not the open file handle.
+      // Before the fix this incorrectly hardened the path and returned PASS,
+      // while the caller retained an unrelated (potentially exposed) handle.
+      const wrongPath=join(dir,'different-owned-handle.tmp');
+      const wrongHandle=await open(wrongPath,'wx',0o600);
+      try{
+        await assert.rejects(
+          hardenWindowsPrivateFile(vault,wrongHandle),
+          /Windows private-file handle\/path identity mismatch/
+        );
+      }finally{await wrongHandle.close()}
+      await verifyWindowsPrivateFile(vault);
       const systemRoot=process.env.SystemRoot;
       if(typeof systemRoot!=='string'||!/^[A-Z]:\\Windows$/i.test(systemRoot))
         throw Error('trusted Windows test executable unavailable');
@@ -50,6 +62,11 @@ test('original encrypted vault: Unix owner-only or NTFS ACL proof; unresolved Wi
            String(error?.message)))throw error;
       await verifyWindowsPrivateFile(journal);
       assert.equal((await readFile(journal,'utf8')).includes(txid),false);
+      // The incomplete persistence fence MUST leave an inspectable encrypted
+      // intent and a single-flight guard; inspection is NOT durability proof.
+      assert.equal((await readIntent(journal,password)).txid,txid);
+      await assert.rejects(readIntent(journal,'wrong-password'),
+        /outbox_wrong_password_or_corrupt/);
       await assert.rejects(writeIntent(journal,intent,password),/EEXIST/);
       console.log('FAE_WALLET_NTFS_VAULT_ACL_PASS_OUTBOX_DIRECTORY_FSYNC_FAIL_CLOSED');
       return;
