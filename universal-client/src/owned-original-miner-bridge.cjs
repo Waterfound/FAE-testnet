@@ -63,7 +63,7 @@ class OwnedOriginalMinerBridge{
       };
       const fail=reason=>end(Error(reason));
       const onError=()=>fail('Original Miner OS worker process error');
-      const onDisconnect=()=>fail('Original Miner OS worker disconnected before finish');
+      const onDisconnect=()=>{if(!finished)fail('Original Miner OS worker disconnected before finish')};
       const onExit=(code)=>{
         if(!finished||code!==0||submitting||!this.receipt)
           return fail('Original Miner worker exited without authenticated block receipt');
