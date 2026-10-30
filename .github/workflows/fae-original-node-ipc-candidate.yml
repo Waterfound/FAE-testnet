@@ -7,6 +7,7 @@ on:
       - 'tests/fae-node-parent-port.test.mjs'
       - 'tests/fae-v29-managed-http-origin.test.mjs'
       - 'tests/fae-v30-real-native-signed-tx.test.mjs'
+      - 'tests/fae-v53-original-node-owned-block-ipc.test.mjs'
       - 'sovereign-forge/node/managed-http-guard.mjs'
       - '.github/workflows/fae-original-node-ipc-candidate.yml'
   workflow_dispatch:
@@ -40,6 +41,8 @@ jobs:
         run: node --test tests/fae-v29-managed-http-origin.test.mjs
       - name: V30 actual original node inherited signed TX admission and no-replay controls
         run: node --test tests/fae-v30-real-native-signed-tx.test.mjs
+      - name: V53 real original Miner and original Node owned-block submission (source-owner proposal)
+        run: node --test tests/fae-v53-original-node-owned-block-ipc.test.mjs
       - name: Committed Git source manifest integrity
         run: node tests/verify-fae-manifest-git-blob.mjs
       - name: Original consensus and protected wallet still unchanged
