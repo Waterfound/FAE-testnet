@@ -63,7 +63,11 @@ function view(s){
   state=s;
   if(nodeWasRunning&&s.node!=='running')clearWalletObservations('Local node stopped; no current balance observation');
   get('node-state').textContent=s.node==='running'?'Running (process)':s.node==='starting'?'Starting':s.node==='stopping'?'Stopping':'Stopped';
-  get('miner-state').textContent=s.miner==='running'?(s.telemetry?.state||'Running'):s.miner==='starting'?'Starting':s.miner==='stopping'?'Stopping':'Stopped';
+  const nativeMiningDenied=s.mining_submission==='NATIVE_BLOCK_SUBMISSION_NOT_ADMITTED';
+  get('miner-state').textContent=nativeMiningDenied&&s.miner==='stopped'?
+    'Native mining unavailable · original-node block submission not admitted':
+    s.miner==='running'?(s.telemetry?.state||'Running'):s.miner==='starting'?'Starting':
+    s.miner==='stopping'?'Stopping':'Stopped';
   get('home-node').textContent=s.node==='running'?'Process running':s.node==='starting'?'Starting':s.node==='stopping'?'Stopping':'Stopped';
   get('home-miner').textContent=s.miner==='running'?'Process running':s.miner==='starting'?'Starting':s.miner==='stopping'?'Stopping':'Stopped';
   get('network-tag').textContent=s.node==='running'?'LOCAL NODE PROCESS':'LOCAL NODE OFFLINE';
@@ -79,7 +83,7 @@ function view(s){
       :s.node_recovery?'Recovery required: node state needs independent verification.':'';
   get('node-start').disabled=s.node!=='stopped';
   get('node-stop').disabled=s.node==='stopped';
-  get('miner-start').disabled=s.miner!=='stopped';
+  get('miner-start').disabled=s.miner!=='stopped'||nativeMiningDenied;
   get('miner-stop').disabled=s.miner==='stopped';
 }
 let toastTimer;
