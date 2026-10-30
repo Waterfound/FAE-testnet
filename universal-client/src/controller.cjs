@@ -8,7 +8,8 @@ const {assertRecoverableLocalNodeState}=require('./node-storage-preflight.cjs');
 const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {OwnedNodeIpc,IPC_ENV_FLAG}=require('./owned-node-ipc.cjs');
 const {OwnedOriginalMinerBridge}=require('./owned-original-miner-bridge.cjs');
-const {validateNativeNodeSourcePins,assertPinnedOriginalNodeSources}=require('./pinned-node-source.cjs');
+const {validateNativeNodeSourcePins,assertPinnedOriginalNodeSources,
+  assertPinnedOriginalMinerSources}=require('./pinned-node-source.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
@@ -510,7 +511,7 @@ class ProcessController extends EventEmitter{
   // until original-source admission, this operation is strictly unavailable.
   // The trusted caller must source-pin the original Miner worker before forking
   // it, as the V50/V51 exact-owner OS-child integration test does.
-  async runAdmittedOriginalMinerWorkerOnce({minerChild,address,onTelemetry}={}){
+  async runAdmittedOriginalMinerWorkerOnce({minerChild,address,onTelemetry,minerSourcePins}={}){
     addressValid(address);
     this.assertNode();
     const node=this.node,ipc=this.nodeIpc;
@@ -519,6 +520,16 @@ class ProcessController extends EventEmitter{
       throw Error('Original-node native block mutation not owner-admitted');
     if(this.minerStarting||this.minerStopPending||alive(this.miner))
       throw Error('Original Miner already running or lifecycle pending');
+    const ownerNode=node,ownerIpc=ipc,previousGeneration=this.minerGeneration;
+    // Source-owner supplied SHA-256 pins, not hashes copied from the running
+    // worker. This is a candidate integrity check, not owner admission.
+    await assertPinnedOriginalMinerSources(this.repoRoot,minerSourcePins);
+    this.assertNode();
+    if(this.node!==ownerNode||this.nodeIpc!==ownerIpc||
+       ipc.revoked||!ipc.allowBlockMutation||
+       this.minerGeneration!==previousGeneration||this.minerStopPending||
+       this.minerStarting||alive(this.miner))
+      throw Error('Original Miner owner changed during source preflight');
     const expected=path.join(this.repoRoot,'universal-client','src',
       'v34-original-miner-owned-worker.mjs');
     if(!minerChild||!Array.isArray(minerChild.spawnargs)||
