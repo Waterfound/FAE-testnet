@@ -14,6 +14,11 @@ const FILES=Object.freeze([
   'sovereign-forge/node/managed-http-guard.mjs',
   'sovereign-forge/node/explorer-read.mjs'
 ]);
+const MINER_FILES=Object.freeze([
+  'standalone/fae-miner.mjs',
+  'standalone/mining-core.mjs',
+  'universal-client/src/v34-original-miner-owned-worker.mjs'
+]);
 const SHA256=/^[0-9a-f]{64}$/;
 function validateNativeNodeSourcePins(pins){
   if(!pins||typeof pins!=='object'||Array.isArray(pins)||
@@ -25,11 +30,21 @@ function validateNativeNodeSourcePins(pins){
       throw Error('Missing or invalid original-node source pin');
   return Object.freeze(Object.fromEntries(FILES.map(file=>[file,pins[file]])));
 }
-async function assertPinnedOriginalNodeSources(root,pins){
-  const expected=validateNativeNodeSourcePins(pins);
+function validateOriginalMinerSourcePins(pins){
+  if(!pins||typeof pins!=='object'||Array.isArray(pins)||
+    Object.getPrototypeOf(pins)!==Object.prototype||
+    Object.keys(pins).length!==MINER_FILES.length)
+    throw Error('Original Miner worker source pins required before launch');
+  for(const file of MINER_FILES)
+    if(!Object.hasOwn(pins,file)||typeof pins[file]!=='string'||!SHA256.test(pins[file]))
+      throw Error('Missing or invalid original Miner source pin');
+  return Object.freeze(Object.fromEntries(MINER_FILES.map(file=>[file,pins[file]])));
+}
+async function assertPinnedFileSet(root,expected,files,label){
+
   if(typeof root!=='string'||!path.isAbsolute(root))
     throw Error('Invalid original-node source root');
-  for(const name of FILES){
+  for(const name of files){
     const abs=path.join(root,...name.split('/'));
     let handle;
     try{
@@ -53,13 +68,21 @@ async function assertPinnedOriginalNodeSources(root,pins){
         throw Error('Original-node source SHA-256 pin mismatch');
     }catch(error){
       // No absolute filesystem paths or file contents in renderer-visible errors.
-      throw Error('Native original-node source verification failed: '+name+
+      throw Error('Native '+label+' source verification failed: '+name+
         ' ('+(error?.code==='ENOENT'?'missing file':'integrity mismatch')+')');
     }finally{
       await handle?.close().catch(()=>{});
     }
   }
-  return Object.freeze({files_checked:FILES.length,source_pinned:true,
+  return Object.freeze({files_checked:files.length,source_pinned:true,
     authority:'EXACT_CANDIDATE_BYTES_ONLY'});
 }
-module.exports={FILES,validateNativeNodeSourcePins,assertPinnedOriginalNodeSources};
+async function assertPinnedOriginalNodeSources(root,pins){
+  return assertPinnedFileSet(root,validateNativeNodeSourcePins(pins),FILES,'original-node');
+}
+async function assertPinnedOriginalMinerSources(root,pins){
+  return assertPinnedFileSet(root,validateOriginalMinerSourcePins(pins),MINER_FILES,'original-miner');
+}
+module.exports={FILES,MINER_FILES,validateNativeNodeSourcePins,
+  validateOriginalMinerSourcePins,assertPinnedOriginalNodeSources,
+  assertPinnedOriginalMinerSources};
