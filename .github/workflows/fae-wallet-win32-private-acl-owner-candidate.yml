@@ -1,0 +1,28 @@
+name: FAE original Wallet NTFS private ACL owner candidate
+on:
+  pull_request:
+    paths:
+      - 'standalone/wallet/windows-private-file-acl.mjs'
+      - 'standalone/wallet/windows-private-file-acl.test.mjs'
+      - 'standalone/wallet/vault.mjs'
+      - 'standalone/wallet/outbox.mjs'
+      - '.github/workflows/fae-wallet-win32-private-acl-owner-candidate.yml'
+  workflow_dispatch:
+jobs:
+  original-wallet-acl-review-only:
+    name: source-owner proposal (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    permissions:
+      contents: read
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Owner-only original Wallet vault and encrypted outbox
+        run: node --test standalone/wallet/windows-private-file-acl.test.mjs
