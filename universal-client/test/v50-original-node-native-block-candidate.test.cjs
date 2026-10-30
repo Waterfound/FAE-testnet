@@ -536,15 +536,41 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
       env:{...envFor(p,stateFile,{signedTx:true}),
         TS_V52_DISPOSABLE_SIGNER_PROOF:'isolated-owner-fixture'},
       stdio:['ignore','ignore','ignore','ipc'],windowsHide:true});
-    const owner=new OwnedDisposableWalletSignerBridge({
-      signerChild:signer,signerScript,nodeIpc:ipc,from:a.address,to:b.address
+    const nodePins={};
+    for(const item of ORIGINAL_NODE_FILES)
+      nodePins[item]=createHash('sha256').update(
+        await fs.readFile(path.join(dir,...item.split('/')))).digest('hex');
+    const actualController=new ProcessController({
+      repoRoot:dir,dataDir:dir,port:p,nativeIpcCandidate:true,
+      nativeNodeSourcePins:nodePins
     });
-    const receipt=await owner.signAndSubmitOnce(funded.hash+':0');
+    actualController.node=node;actualController.nodeIpc=ipc;
+    // No ambient test/CLI/renderer flag: default must deny the candidate.
+    await assert.rejects(actualController.runIsolatedOriginalWalletSignerCandidateOnce({
+      signerChild:signer,
+      signerSourceSha256:createHash('sha256').update(signerBytes).digest('hex'),
+      from:a.address,to:b.address,outpoint:funded.hash+':0'
+    }),/product admission not granted/);
+    const before=process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF;
+    let receipt;
+    try{
+      process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF='1';
+      receipt=await actualController.runIsolatedOriginalWalletSignerCandidateOnce({
+        signerChild:signer,
+        signerSourceSha256:createHash('sha256').update(signerBytes).digest('hex'),
+        from:a.address,to:b.address,outpoint:funded.hash+':0'
+      });
+    }finally{
+      if(before===undefined)delete process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF;
+      else process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF=before;
+    }
+    assert.equal(actualController.signer,null,'controller must never retain finished signer');
     assert.equal(receipt.status,'pending');
     assert.equal(receipt.fee_atoms,'1');
     assert.equal(receipt.confirmation_finality,'NOT_PROVEN');
     assert.match(receipt.txid,/^[0-9a-f]{64}$/);
-    await assert.rejects(owner.signAndSubmitOnce(funded.hash+':0'),/already consumed/);
+    assert.equal(signer.exitCode!==null||signer.signalCode!==null,true,
+      'controller must terminate the disposable OS signer after one attempt');
     let observed=await ipc.read('transaction-lookup',{txid:receipt.txid});
     assert.equal(observed.status,'pending');
     assert.equal(observed.confirmed_height,null);
@@ -574,6 +600,8 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
       original_miner_owner:MINER_HEAD,actual_os_signer_child:true,
       deterministic_disposable_keys_only:true,no_vault_or_password:true,
       original_cryptography:true,original_consensus:true,
+      v54_actual_process_controller_wallet_lifecycle:true,
+      no_renderer_wallet_signing:true,
       one_shot_native_signed_tx:true,pending_then_mined:true,
       fee_atoms:'1',recipient_atoms:'100000000',cold_restart:true,
       protected_owner_branch_unchanged:true,
