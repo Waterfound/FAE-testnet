@@ -19,7 +19,7 @@ const MINER_BLOBS=Object.freeze({
   'standalone/fae-miner.mjs':'0ab1643c1ff1bf2991a2e56512a3b1746c62122b',
   'standalone/mining-core.mjs':'42c392ad54a3e3c2f446ab79f67948d30b82a73e'
 });
-function gitBlob(bytes){return createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex')}
+function gitBlob(bytes){return createHash('sha1').update('blob '+bytes.length+String.fromCharCode(0)).update(bytes).digest('hex')}
 async function originalMiner(){
   const dir=await mkdtemp(join(tmpdir(),'trium-v53-miner-owner-'));
   try{
