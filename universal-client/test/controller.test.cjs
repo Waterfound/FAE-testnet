@@ -519,6 +519,38 @@ test('simultaneous Start Mining requests cannot spawn an unowned second miner',a
   assert.equal(c.snapshot().miner,'stopped');
 });
 
+test('V46 native IPC mode forbids legacy HTTP miner spawn before status I/O',async()=>{
+  const {EventEmitter}=require('node:events');
+  const node=new EventEmitter();
+  node.exitCode=null;node.killed=false;node._tsFailed=false;
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=node;
+  let spawnCount=0,statusReads=0;
+  c.readStatus=async()=>{statusReads++;return {ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)}};
+  c.spawnScript=()=>{spawnCount++;throw Error('Legacy HTTP miner must not launch')};
+  c.nativeIpcCandidate=true;
+  await assert.rejects(c.startMiner(ADDRESS),/Native original-node block submission not admitted/);
+  assert.equal(spawnCount,0);
+  assert.equal(statusReads,0);
+  assert.equal(c.miner,null);
+  assert.equal(c.minerStarting,false);
+  assert.equal(c.snapshot().miner,'stopped');
+  // Returning to the separate legacy runtime must not inherit a denial state.
+  c.nativeIpcCandidate=false;
+  const launched=new EventEmitter();
+  launched.exitCode=null;launched.killed=false;launched._tsFailed=false;
+  launched.stdout=new EventEmitter();launched.stdout.setEncoding=()=>{};
+  c.spawnScript=()=>{spawnCount++;return launched};
+  try{
+    assert.equal((await c.startMiner(ADDRESS)).miner,'running');
+    assert.equal(spawnCount,1);
+    assert.equal(statusReads,1);
+  }finally{
+    launched.exitCode=0;launched.emit('exit',0,null);
+    c.node=null;
+    await c.dispose();
+  }
+});
 test('Stop Mining cancels a pending launch before any subprocess is spawned',async()=>{
   const {EventEmitter}=require('node:events');
   const node=new EventEmitter();node.exitCode=null;node.killed=false;node._tsFailed=false;
