@@ -495,11 +495,13 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     const wallet=await stageExactOriginalWalletCrypto(dir);
     const a=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0x11)))[0];
     const b=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0xab)))[0];
-    const originalScript=path.join(ROOT,'universal-client','src',
-      'v52-disposable-original-wallet-signer.mjs');
     const signerScript=path.join(dir,'universal-client','src',
       'v52-disposable-original-wallet-signer.mjs');
-    const signerBytes=await fs.readFile(originalScript);
+    // Windows checkout may normalize CRLF in the worktree. Read the exact
+    // committed Git blob instead of potentially transformed worktree bytes.
+    const signerBytes=execFileSync('git',[
+      'show','HEAD:universal-client/src/v52-disposable-original-wallet-signer.mjs'
+    ],{cwd:ROOT,maxBuffer:100000});
     // Fix the candidate worker identity independently of the fork command
     // line. Original Wallet imports above are also owner-blob pinned.
     assert.equal(blobHash(signerBytes),'e3a194618e13cdb95766e6cc8faa309d57b78f96',
