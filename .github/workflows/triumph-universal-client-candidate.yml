@@ -220,7 +220,7 @@ jobs:
           "$BIN" --ts-miner-smoke
 
   desktop-installer-candidate-inspection:
-    # Candidate-only: no GitHub release or public artifacts; private 1-day T0 owner-only upload,
+    # Candidate-only: no GitHub release, no upload to public Actions artifacts,
     # no signing, notarization, installation to persistent host, or production activation.
     strategy:
       fail-fast: false
@@ -332,23 +332,6 @@ jobs:
           } else {
             throw "Candidate installer missing uninstall executable"
           }
-
-
-      - name: Retain verified public-source unsigned T0 installer for private owner testing only
-        # Owner-requested V46 T0 delivery. Artifacts stay access-controlled by
-        # this PRIVATE repository; they expire after one day. Canonical private
-        # image/video originals cannot enter the standard public-source build.
-        if: ${{ github.event_name == 'pull_request' && github.event.repository.private == true && github.event.pull_request.head.repo.full_name == github.repository }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: TS-UC-T0-${{ runner.os }}-${{ github.event.pull_request.head.sha }}
-          path: |
-            universal-client/dist/*.exe
-            universal-client/dist/*.dmg
-            universal-client/dist/*.AppImage
-          if-no-files-found: error
-          retention-days: 1
-          compression-level: 0
 
 
   v27-original-node-owned-controller-ipc:
