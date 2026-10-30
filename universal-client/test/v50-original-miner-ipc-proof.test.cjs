@@ -31,7 +31,7 @@ async function freePort(){
   });
 }
 function blobHash(bytes){
-  return createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  return createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 }
 async function stageExactOriginalMiner(dir){
   for(const [relative,blob] of Object.entries(SOURCE_BLOBS)){
