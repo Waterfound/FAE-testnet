@@ -11,7 +11,19 @@ process.on('message',message=>{
     network:process.env.IPC_FIXTURE_MODE==='wrong-network'?'wrong-network':NETWORK,
     request_id:process.env.IPC_FIXTURE_MODE==='replay'?message.request_id+1:message.request_id,
     ok:true,
-    result:message.op==='submit-mined-block'?
+    result:message.op==='submit-signed-tx'?
+      {ok:true,network:NETWORK,
+        txid:process.env.IPC_FIXTURE_MODE==='signed-wrong-txid'?
+          'f'.repeat(64):'a'.repeat(64),
+        fee_atoms:'1',status:'accepted_unconfirmed',
+        source:'SYNTHETIC_SIGNED_TX_FIXTURE_ONLY'}:
+      message.op==='transaction-lookup'?
+      {ok:true,network:NETWORK,txid:message.params?.txid,
+        found:process.env.IPC_FIXTURE_MODE!=='signed-not-found',
+        status:process.env.IPC_FIXTURE_MODE==='signed-not-found'?null:'pending',
+        confirmed_height:null,tip_height:1,tip_hash:'b'.repeat(64),
+        source:'SYNTHETIC_LOOKUP_FIXTURE_ONLY'}:
+    message.op==='submit-mined-block'?
       {
         // Simulated receipt from a disposable OS IPC fixture. This DOES NOT
         // represent an admitted original node, original PoW or durable disk.
