@@ -28,6 +28,23 @@ jobs:
         run: cd universal-client && npm run check
       - name: Bounded unit and real isolated local-node tests
         run: cd universal-client && npm test
+      - name: V52 original Miner, node and disposable Wallet OS signer candidate (3 OS)
+        shell: bash
+        env:
+          TS_V50_REAL_ORIGINAL_MINER_BRIDGE: '1'
+        run: |
+          set -euo pipefail
+          MINER_OWNER_SHA=f85b483f88a5fb2b797a224596c23a7b505094d7
+          git fetch --no-tags --depth=1 origin "$MINER_OWNER_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$MINER_OWNER_SHA"
+          node --test universal-client/test/v50-original-miner-ipc-proof.test.cjs
+          NODE_OWNER_SHA=dd331bb57e8718caa45e030633a4ff4bc64f47c6
+          git fetch --no-tags --depth=1 origin "$NODE_OWNER_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$NODE_OWNER_SHA"
+          WALLET_OWNER_SHA=17c90ffc313fd11de17396437436e4429472f616
+          git fetch --no-tags --depth=1 origin "$WALLET_OWNER_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$WALLET_OWNER_SHA"
+          TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE=1 node --test universal-client/test/v50-original-node-native-block-candidate.test.cjs
       - name: Native owner Wallet vault interoperability — Windows and macOS
         if: runner.os != 'Linux'
         shell: bash

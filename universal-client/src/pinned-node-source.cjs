@@ -14,6 +14,11 @@ const FILES=Object.freeze([
   'sovereign-forge/node/managed-http-guard.mjs',
   'sovereign-forge/node/explorer-read.mjs'
 ]);
+const MINER_FILES=Object.freeze([
+  'standalone/fae-miner.mjs',
+  'standalone/mining-core.mjs',
+  'universal-client/src/v34-original-miner-owned-worker.mjs'
+]);
 const SHA256=/^[0-9a-f]{64}$/;
 function validateNativeNodeSourcePins(pins){
   if(!pins||typeof pins!=='object'||Array.isArray(pins)||
@@ -25,11 +30,21 @@ function validateNativeNodeSourcePins(pins){
       throw Error('Missing or invalid original-node source pin');
   return Object.freeze(Object.fromEntries(FILES.map(file=>[file,pins[file]])));
 }
-async function assertPinnedOriginalNodeSources(root,pins){
-  const expected=validateNativeNodeSourcePins(pins);
+function validateOriginalMinerSourcePins(pins){
+  if(!pins||typeof pins!=='object'||Array.isArray(pins)||
+    Object.getPrototypeOf(pins)!==Object.prototype||
+    Object.keys(pins).length!==MINER_FILES.length)
+    throw Error('Original Miner worker source pins required before launch');
+  for(const file of MINER_FILES)
+    if(!Object.hasOwn(pins,file)||typeof pins[file]!=='string'||!SHA256.test(pins[file]))
+      throw Error('Missing or invalid original Miner source pin');
+  return Object.freeze(Object.fromEntries(MINER_FILES.map(file=>[file,pins[file]])));
+}
+async function assertPinnedFileSet(root,expected,files,label){
+
   if(typeof root!=='string'||!path.isAbsolute(root))
     throw Error('Invalid original-node source root');
-  for(const name of FILES){
+  for(const name of files){
     const abs=path.join(root,...name.split('/'));
     let handle;
     try{
@@ -53,13 +68,44 @@ async function assertPinnedOriginalNodeSources(root,pins){
         throw Error('Original-node source SHA-256 pin mismatch');
     }catch(error){
       // No absolute filesystem paths or file contents in renderer-visible errors.
-      throw Error('Native original-node source verification failed: '+name+
+      throw Error('Native '+label+' source verification failed: '+name+
         ' ('+(error?.code==='ENOENT'?'missing file':'integrity mismatch')+')');
     }finally{
       await handle?.close().catch(()=>{});
     }
   }
-  return Object.freeze({files_checked:FILES.length,source_pinned:true,
+  return Object.freeze({files_checked:files.length,source_pinned:true,
     authority:'EXACT_CANDIDATE_BYTES_ONLY'});
 }
-module.exports={FILES,validateNativeNodeSourcePins,assertPinnedOriginalNodeSources};
+async function assertPinnedOriginalNodeSources(root,pins){
+  return assertPinnedFileSet(root,validateNativeNodeSourcePins(pins),FILES,'original-node');
+}
+async function assertPinnedOriginalMinerSources(root,pins){
+  return assertPinnedFileSet(root,validateOriginalMinerSourcePins(pins),MINER_FILES,'original-miner');
+}
+// Disposable Wallet proof only: NOT an admitted production signing source.
+// Its parent-owned bridge is deliberately excluded from all installed builds.
+const DISPOSABLE_SIGNER_FILE='universal-client/src/v52-disposable-original-wallet-signer.mjs';
+// Pinned independently against reviewed V52 Git blob e3a194618e13...;
+// never accept a caller-selected digest as authority for arbitrary code.
+const DISPOSABLE_SIGNER_SHA256='039e35b2fa4bce80af8850f5c84902e67a0cf448b4a0e7ed55a260093ff921d6';
+async function assertPinnedDisposableWalletSignerSource(root,expectedSha256){
+  if(expectedSha256!==DISPOSABLE_SIGNER_SHA256)
+    throw Error('Independently pinned disposable Wallet signer source mismatch');
+  return assertPinnedFileSet(root,{[DISPOSABLE_SIGNER_FILE]:DISPOSABLE_SIGNER_SHA256},
+    [DISPOSABLE_SIGNER_FILE],'disposable-wallet-signer');
+}
+const ISOLATED_VAULT_SIGNER_FILE='universal-client/src/v55-isolated-original-vault-signer.mjs';
+// Reviewed exact V55 worker bytes, not caller-supplied digest. The worker remains
+// TEST-ONLY and excluded from packaged applications.
+const ISOLATED_VAULT_SIGNER_SHA256='e8deafa88f4342f10db46e255e120d61bee7caad773181182a1382b2a1b3776b';
+async function assertPinnedIsolatedVaultSigner(root){
+  return assertPinnedFileSet(root,
+    {[ISOLATED_VAULT_SIGNER_FILE]:ISOLATED_VAULT_SIGNER_SHA256},
+    [ISOLATED_VAULT_SIGNER_FILE],'isolated-vault-worker');
+}
+module.exports={ISOLATED_VAULT_SIGNER_FILE,ISOLATED_VAULT_SIGNER_SHA256,
+  assertPinnedIsolatedVaultSigner,DISPOSABLE_SIGNER_FILE,assertPinnedDisposableWalletSignerSource,
+  FILES,MINER_FILES,validateNativeNodeSourcePins,
+  validateOriginalMinerSourcePins,assertPinnedOriginalNodeSources,
+  assertPinnedOriginalMinerSources};

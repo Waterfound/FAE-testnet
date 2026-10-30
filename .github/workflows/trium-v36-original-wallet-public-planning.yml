@@ -6,6 +6,8 @@ on:
       - 'universal-client/src/main.cjs'
       - 'universal-client/src/renderer.js'
       - 'universal-client/test/v36-original-wallet-public-plan.test.cjs'
+      - 'universal-client/test/v38-original-wallet-signature-diagnostic.test.cjs'
+      - 'universal-client/test/v41-fatima-public-address-vectors.test.cjs'
       - '.github/workflows/trium-v36-original-wallet-public-planning.yml'
   workflow_dispatch:
 permissions:
@@ -20,6 +22,7 @@ jobs:
     timeout-minutes: 12
     env:
       TS_V36_REAL_ORIGINAL_WALLET: '1'
+      TS_V38_ORIGINAL_SIGNATURE_DIAGNOSTIC: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,5 +40,13 @@ jobs:
           node --check universal-client/src/v36-original-wallet-public-plan.cjs
           node --check universal-client/test/v36-original-wallet-public-plan.test.cjs
           node --test universal-client/test/v36-original-wallet-public-plan.test.cjs
+      - name: V38 read-only original-owner signature mutation and node cryptographic rejection diagnostic
+        run: |
+          node --check universal-client/test/v38-original-wallet-signature-diagnostic.test.cjs
+          node --test universal-client/test/v38-original-wallet-signature-diagnostic.test.cjs
+      - name: V41 original-source Bech32m FATIMA and legacy network separation (read-only)
+        run: |
+          node --check universal-client/test/v41-fatima-public-address-vectors.test.cjs
+          node --test universal-client/test/v41-fatima-public-address-vectors.test.cjs
       - name: Protected Wallet and original node files unchanged from original V35 base
         run: git diff --exit-code 721c17ebce469ca83fe2c2c309558c26120d4dbf HEAD -- standalone/wallet/crypto.mjs standalone/wallet/vault.mjs standalone/wallet/outbox.mjs standalone/wallet/fae-wallet.mjs sovereign-forge/node/fae-node.mjs

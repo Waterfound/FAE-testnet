@@ -30,6 +30,115 @@ test('cannot dispatch privileged API routes or arbitrary address strings',()=>{
   assert.throws(()=>addressValid('--node /etc/shadow'),/Invalid public/);
   assert.equal(addressValid(ADDRESS),ADDRESS);
 });
+test('original pending UTXO parent attribution must match its canonical outpoint (public, no signer)',()=>{
+  const {validateFundingCandidatePayload}=require('../src/controller.cjs');
+  const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const txid='a'.repeat(64),wrongParent='b'.repeat(64);
+  const pending={outpoint:txid+':1',amount_atoms:'120',source:'pending',parent_txid:txid};
+  const confirmed={outpoint:'c'.repeat(64)+':0',amount_atoms:'90',source:'confirmed',created_height:1};
+  const payload={ok:true,address,network:NETWORK,spendable_atoms:'210',utxos:[confirmed,pending]};
+  const valid=validateFundingCandidatePayload(payload,{address});
+  assert.equal(valid.candidate_atoms,'210');
+  assert.equal(valid.pending_candidate_atoms,'120');
+  assert.equal(valid.outputs[1].parent_txid,txid);
+  assert.equal(valid.outputs[1].spend_eligibility,'UNVERIFIED');
+  assert.equal(valid.funding_authorization,'DENIED_UNVERIFIED');
+  assert.equal(valid.signer,'UNAVAILABLE');
+  for(const invalid of [
+    {...pending,parent_txid:wrongParent},
+    {...pending,parent_txid:wrongParent,outpoint:txid+':0'},
+    {...pending,parent_txid:txid.toUpperCase()},
+    {...pending,parent_txid:txid,created_height:1}
+  ])assert.throws(()=>validateFundingCandidatePayload({...payload,utxos:[confirmed,invalid]},{address}),
+    /Invalid pending candidate provenance/);
+  assert.throws(()=>validateFundingCandidatePayload({...payload,utxos:[confirmed,pending,pending],spendable_atoms:'330'},{address}),
+    /Invalid selected-node funding candidate entry/);
+  assert.throws(()=>validateFundingCandidatePayload({...payload,spendable_atoms:'209'},{address}),
+    /candidate total mismatch/);
+});
+
+test('V44 balance contract forbids noncanonical or precision-losing untrusted atomic values',()=>{
+  const {validateRead}=require('../src/bridge-contract.cjs');
+  const address='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
+  const valid={ok:true,address,balance_atoms:'120000000',balance_fae:'1.2'};
+  assert.equal(validateRead(valid,{kind:'balance',address}).balance_atoms,'120000000');
+  assert.equal(validateRead({...valid,balance_atoms:'0'},{kind:'balance',address}).balance_atoms,'0');
+  for(const bad of [0,10,Number.MAX_SAFE_INTEGER+1,0n,null,undefined,false,{},[],
+    '', '00','01','-1','+1','1e4',' 1','1.0','9'.repeat(81)]){
+    assert.throws(()=>validateRead({...valid,balance_atoms:bad},{kind:'balance',address}),
+      /Invalid node balance payload/, 'untrusted balance requires a bounded canonical decimal string');
+  }
+});
+
+test('V49 native original transaction lookup requires a stable authenticated node tip',async()=>{
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.nativeIpcCandidate=true;
+  const owned={exitCode:null,killed:false,_tsFailed:false};
+  c.node=owned;
+  const txid='a'.repeat(64),tip_hash='b'.repeat(64),next_hash='c'.repeat(64);
+  const status={ok:true,network:NETWORK,height:10,tip_hash};
+  const base={ok:true,network:NETWORK,txid,found:true,status:'confirmed',
+    confirmed_height:8,tip_height:10,tip_hash};
+  let reply=base,statusReads=0;
+  c.nativeRead=async op=>op==='status'?(statusReads++,status):reply;
+  const confirmed=await c.readTransactionByTxid(txid);
+  assert.equal(confirmed.status,'confirmed');
+  assert.equal(confirmed.confirmation_finality,'NOT_PROVEN');
+  assert.equal(statusReads,2,'two authenticated status reads bracket original lookup');
+  const pending={...base,status:'pending',confirmed_height:null};
+  reply=pending;
+  assert.equal((await c.readTransactionByTxid(txid)).status,'pending');
+  const missing={...base,found:false,status:null,confirmed_height:null};
+  reply=missing;
+  assert.equal((await c.readTransactionByTxid(txid)).result_known,false);
+  for(const bad of [
+    {...base,network:'mainnet'}, {...base,txid:'c'.repeat(64)},
+    {...base,found:true,status:'unknown'}, {...base,status:'pending',confirmed_height:8},
+    {...base,confirmed_height:11}, {...base,confirmed_height:0},
+    {...base,found:false,status:'confirmed'}, {...base,found:false,confirmed_height:8},
+    {...base,tip_hash:'invalid'}, {...base,tip_height:-1}
+  ]){
+    reply=bad;
+    await assert.rejects(c.readTransactionByTxid(txid),/Invalid native original-node transaction evidence/);
+  }
+  reply={...base,tip_hash:next_hash};
+  await assert.rejects(c.readTransactionByTxid(txid),/Native transaction lookup chain tip mismatch/);
+  reply={...base,tip_height:9};
+  await assert.rejects(c.readTransactionByTxid(txid),/Native transaction lookup chain tip mismatch/);
+  // An actual chain-tip change after the lookup revokes the observation.
+  let read=0;
+  c.nativeRead=async op=>{
+    if(op!=='status')return base;
+    read++;
+    return read===1?status:{...status,height:11,tip_hash:next_hash};
+  };
+  await assert.rejects(c.readTransactionByTxid(txid),/chain tip changed during observation/);
+  // A post-response owned-process loss cannot yield a confirmed transaction.
+  c.nativeRead=async op=>{
+    if(op==='status')return status;
+    c.node=null;
+    return base;
+  };
+  await assert.rejects(c.readTransactionByTxid(txid),/not ready or not owned/);
+  c.node=owned;
+  await assert.rejects(c.readTransactionByTxid('not-a-txid'),/Canonical transaction ID required/);
+  c.nativeIpcCandidate=false;
+  await assert.rejects(c.readTransactionByTxid(txid),/Authenticated original-node transaction lookup unavailable/);
+});
+
+test('V49 miner submission trust state disables native before block-owner admission',()=>{
+  const native=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  native.nativeIpcCandidate=true;
+  const denied=native.snapshot();
+  assert.equal(denied.mining_submission,'NATIVE_BLOCK_SUBMISSION_NOT_ADMITTED');
+  assert.equal(denied.miner,'stopped');
+  const legacy=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  const untrusted=legacy.snapshot();
+  assert.equal(untrusted.mining_submission,'LEGACY_HTTP_UNAUTHENTICATED');
+  assert.equal(untrusted.miner,'stopped');
+  assert.notEqual(untrusted.mining_submission,'PROCESS_AUTHENTICATED');
+});
+
 test('node/miner subprocess environment strips credential-bearing variables',()=>{
   process.env.TS_CANARY_SECRET='should-not-pass-through';
   const actual=makeEnv({FAE_SYNC:'0'});
@@ -125,6 +234,36 @@ test('desktop controller starts real standalone miner, reports real hashrate and
   }
 });
 
+
+test('V44 exited owned miner cannot resurrect stale hashrate from late stdout',async()=>{
+  const {EventEmitter}=require('node:events');
+  const child=new EventEmitter();
+  child.exitCode=null;child.killed=false;child._tsFailed=false;
+  child.stdout=new EventEmitter();
+  child.stdout.setEncoding=()=>{};
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir(),spawnFn:()=>child});
+  const node=new EventEmitter();node.exitCode=null;node.killed=false;node._tsFailed=false;
+  c.node=node;
+  c.readStatus=async()=>({ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)});
+  try{
+    const state=await c.startMiner('faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn');
+    assert.equal(state.miner,'running');
+    child.stdout.emit('data',JSON.stringify({state:'MINING',hashrate_hs:347,total_hashes:800})+'\n');
+    assert.equal(c.snapshot().telemetry.hashrate_hs,347);
+    child.exitCode=1;child.emit('exit',1,null);
+    assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+    assert.equal(c.snapshot().telemetry.state,'STOPPED');
+    // OS pipe delivery can race the child exit event: stale bytes are never
+    // allowed to advertise live work after original miner is terminated.
+    child.stdout.emit('data',JSON.stringify({state:'MINING',hashrate_hs:99999,total_hashes:10000})+'\n');
+    assert.equal(c.snapshot().miner,'stopped');
+    assert.equal(c.snapshot().telemetry.state,'STOPPED');
+    assert.equal(c.snapshot().telemetry.hashrate_hs,null);
+  }finally{
+    c.node=null;
+    await c.dispose();
+  }
+});
 
 test('spontaneous miner exit invalidates stale operational hashrate immediately',()=>{
   const {EventEmitter}=require('node:events');
@@ -449,6 +588,38 @@ test('simultaneous Start Mining requests cannot spawn an unowned second miner',a
   assert.equal(c.snapshot().miner,'stopped');
 });
 
+test('V46 native IPC mode forbids legacy HTTP miner spawn before status I/O',async()=>{
+  const {EventEmitter}=require('node:events');
+  const node=new EventEmitter();
+  node.exitCode=null;node.killed=false;node._tsFailed=false;
+  const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  c.node=node;
+  let spawnCount=0,statusReads=0;
+  c.readStatus=async()=>{statusReads++;return {ok:true,network:NETWORK,height:0,tip_hash:'0'.repeat(64)}};
+  c.spawnScript=()=>{spawnCount++;throw Error('Legacy HTTP miner must not launch')};
+  c.nativeIpcCandidate=true;
+  await assert.rejects(c.startMiner(ADDRESS),/Native original-node block submission not admitted/);
+  assert.equal(spawnCount,0);
+  assert.equal(statusReads,0);
+  assert.equal(c.miner,null);
+  assert.equal(c.minerStarting,false);
+  assert.equal(c.snapshot().miner,'stopped');
+  // Returning to the separate legacy runtime must not inherit a denial state.
+  c.nativeIpcCandidate=false;
+  const launched=new EventEmitter();
+  launched.exitCode=null;launched.killed=false;launched._tsFailed=false;
+  launched.stdout=new EventEmitter();launched.stdout.setEncoding=()=>{};
+  c.spawnScript=()=>{spawnCount++;return launched};
+  try{
+    assert.equal((await c.startMiner(ADDRESS)).miner,'running');
+    assert.equal(spawnCount,1);
+    assert.equal(statusReads,1);
+  }finally{
+    launched.exitCode=0;launched.emit('exit',0,null);
+    c.node=null;
+    await c.dispose();
+  }
+});
 test('Stop Mining cancels a pending launch before any subprocess is spawned',async()=>{
   const {EventEmitter}=require('node:events');
   const node=new EventEmitter();node.exitCode=null;node.killed=false;node._tsFailed=false;

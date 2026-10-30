@@ -5,14 +5,14 @@ const {mkdtemp,mkdir,writeFile,realpath,rm}=require('node:fs/promises');
 const {execFileSync}=require('node:child_process');
 const {tmpdir}=require('node:os');
 const {join,dirname}=require('node:path');
-const {planWithOriginalWallet}=require('../src/v36-original-wallet-public-plan.cjs');
+const {planWithOriginalWallet,planWithOwnedNodeFinalityCheck}=require('../src/v36-original-wallet-public-plan.cjs');
 const {WALLET_OWNER_HEAD}=require('../src/native-wallet-terminal-handoff.cjs');
 const NETWORK='fairyelf-public-testnet-v4';
 const A='faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn';
 const H=x=>x.repeat(64);
 const excluded=['PROCESS_IDENTITY_UNAUTHENTICATED','KEY_OWNERSHIP_UNVERIFIED','SOURCE_PROVENANCE_UNVERIFIED','MATURITY_POLICY_UNVERIFIED'];
 const review=Object.freeze({network:NETWORK,from:A,to:A,
-  amount_fae:'1',fee_fae:'0.00000001',state:'UNSIGNED_PUBLIC_REVIEW_ONLY',
+  amount_fae:'1',fee_fae:'0.00000001',total_fae:'1.00000001',state:'UNSIGNED_PUBLIC_REVIEW_ONLY',
   signing:'UNAVAILABLE',submission:'NOT_SUBMITTED'});
 function candidates(){
   return {ok:true,network:NETWORK,address:A,authority:'SELECTED_NODE_UNTRUSTED_UTXO_CLAIM',
@@ -93,6 +93,103 @@ test('V36 ACTUAL source-owner Wallet #342 planSpend selects original confirmed i
       walletScript:stage.script,review,candidates:noFunds});
     assert.equal(insufficient.state,'INSUFFICIENT_UNVERIFIED_CONFIRMED_CANDIDATES');
     assert.ok(!Object.hasOwn(insufficient,'selected_inputs'));
+    // V37: exact-source owner selection can complete after the chain tip moves.
+    // The plan must be discarded after original code has actually run.
+    const tip={height:250,tip_hash:H('c')};
+    const firstNode={pid:901};
+    const controller={
+      node:firstNode,
+      readFundingCandidates:async()=>candidates(),
+      readStatus:async()=>({...tip})
+    };
+    const args={controller,expectedNode:firstNode,walletScript:stage.script,review,
+      observed:{observed_tip_height:250,observed_tip_hash:H('c')}};
+    const verified=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(verified.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
+    assert.equal(verified.input_authorization,'DENIED_UNVERIFIED');
+    // V44 RED: a pending spend can reserve the selected confirmed UTXO
+    // while height/hash remain identical. A stable tip does NOT prove that
+    // the original public input selection is still available.
+    let fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      fundingReads++;
+      if(fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs=changed.outputs.filter(row=>row.source==='pending');
+      changed.confirmed_candidate_atoms='0';
+      changed.candidate_atoms='1000000000';
+      return changed;
+    };
+    const sameTipSpent=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(sameTipSpent.state,'NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(sameTipSpent,'selected_inputs'));
+    assert.ok(fundingReads>=2,'must obtain a fresh original node UTXO observation AFTER planning');
+    // Same-tip forged changes to a SELECTED amount must also revoke.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs[0].amount_atoms='150000001';
+      changed.confirmed_candidate_atoms='150000001';
+      changed.candidate_atoms='1150000001';
+      return changed;
+    };
+    const changedValue=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(changedValue.state,'NODE_SELECTED_INPUTS_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(changedValue,'selected_inputs'));
+    // Unrelated newly pending funds MUST NOT invalidate an unchanged selected
+    // confirmed input: a stable public preview remains possible.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      const changed=candidates();
+      changed.outputs[1].amount_atoms='1000000001';
+      changed.candidate_atoms='1150000001';
+      return changed;
+    };
+    const independentMempoolChange=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(independentMempoolChange.state,'ORIGINAL_WALLET_UNVERIFIED_PUBLIC_PLAN');
+    assert.equal(independentMempoolChange.input_authorization,'DENIED_UNVERIFIED');
+    assert.equal(independentMempoolChange.signing,'NOT_ADMITTED');
+    // The selected original node can die during the final funding refresh.
+    fundingReads=0;
+    controller.readFundingCandidates=async()=>{
+      if(++fundingReads===1)return candidates();
+      controller.node={pid:905};
+      return candidates();
+    };
+    const replacedAtFinalRead=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedAtFinalRead.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedAtFinalRead,'selected_inputs'));
+    controller.node=firstNode;
+    // Preserve node source and pending proof isolation in subsequent cases.
+    controller.readFundingCandidates=async()=>candidates();
+    // The original original code selected valid public inputs, but chain
+    // progression immediately revokes the result.
+    controller.readStatus=async()=>({height:251,tip_hash:H('d')});
+    const stale=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(stale.state,'NODE_TIP_CHANGED_AFTER_PLAN');
+    assert.ok(!Object.hasOwn(stale,'selected_inputs'));
+    // Even the same tip hash must not carry across an owned OS child restart.
+    controller.readStatus=async()=>{controller.node={pid:902};return {...tip}};
+    const restarted=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(restarted.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(restarted,'selected_inputs'));
+    controller.node={pid:904};
+    const replacedBetweenBalanceAndPlanner=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedBetweenBalanceAndPlanner.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedBetweenBalanceAndPlanner,'selected_inputs'));
+    controller.node=firstNode;
+    controller.readStatus=async()=>({...tip});
+    controller.readFundingCandidates=async()=>{controller.node={pid:903};return candidates()};
+    const replacedMidRead=await planWithOwnedNodeFinalityCheck(args);
+    assert.equal(replacedMidRead.state,'NODE_PROCESS_REPLACED_NO_PLAN');
+    assert.ok(!Object.hasOwn(replacedMidRead,'selected_inputs'));
+    // Even in the original head, mismatched payment total is not an
+    // authorization-equivalent public quote.
+    await assert.rejects(planWithOriginalWallet({
+      walletScript:stage.script,review:{...review,total_fae:'2'},
+      candidates:candidates()}),/total differs from plan/);
     await writeFile(stage.script,'\n// tampered wallet original', {flag:'a'});
     await assert.rejects(planWithOriginalWallet({
       walletScript:stage.script,review,candidates:candidates()}),/digest mismatch|unsafe|mismatch/);

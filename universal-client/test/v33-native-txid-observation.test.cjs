@@ -9,9 +9,17 @@ const TXID='b'.repeat(64),ZERO='0'.repeat(64);
 function native(result){
   const c=Object.create(ProcessController.prototype);
   c.nativeIpcCandidate=true;
+  // V49: original native transaction reads require an actual owned-process
+  // lifecycle and two source-bound status observations around the lookup.
+  c.node={exitCode:null,killed:false,_tsFailed:false};
+  c.nodeStarting=false;c.nodeStopping=false;
   let requests=0;
   c.nativeRead=async(op,p)=>{
     requests++;
+    if(op==='status')return {ok:true,network:NETWORK,
+      height:Number.isSafeInteger(result.tip_height)&&result.tip_height>=0?
+        result.tip_height:0,
+      tip_hash:/^[0-9a-f]{64}$/.test(String(result.tip_hash))?result.tip_hash:ZERO};
     assert.equal(op,'transaction-lookup');
     assert.deepEqual(p,{txid:TXID});
     return result;
@@ -28,7 +36,7 @@ test('read-only native transaction lookup preserves no-record as unknown, never 
     txid:TXID,result_known:false,status:null,confirmed_height:null,
     observed_tip_height:0,observed_tip_hash:ZERO,confirmation_finality:'NOT_PROVEN'
   });
-  assert.equal(calls(),1);
+  assert.equal(calls(),3,'native lookup is bracketed by two owned-node status reads');
 });
 test('original-node pending observation requires NULL confirmed height',async()=>{
   const {c}=native(result({found:true,status:'pending',tip_height:5}));
