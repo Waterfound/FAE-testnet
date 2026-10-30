@@ -258,3 +258,125 @@ test('V50 disposable original-node owner patch accepts REAL mined block on inher
       await fs.rm(dir,{recursive:true,force:true});
     }
   });
+
+test('V50 real original OS miner child -> trusted parent -> original node IPC -> durable block',
+  {skip:process.env.TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE!=='1',timeout:120000},
+  async()=>{
+    const {randomBytes}=require('node:crypto');
+    const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v50-original-worker-'));
+    const stateFile=path.join(dir,'state.json');
+    let node=null,minerChild=null,ipc=null;
+    try{
+      const {core}=await stageSource(dir);
+      const nodePort=await port(),endpoint='http://127.0.0.1:'+nodePort;
+      node=await startOwnerCandidate(dir,stateFile,nodePort);
+      ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,timeoutMs:5000});
+      assert.equal((await ipc.read('status')).height,0);
+      const session=randomBytes(32).toString('hex'),network='fairyelf-public-testnet-v4';
+      const workerScript=path.join(dir,'universal-client','src','v34-original-miner-owned-worker.mjs');
+      minerChild=fork(workerScript,[],{cwd:dir,execArgv:[],env:envFor(nodePort,stateFile),
+        stdio:['ignore','pipe','pipe','ipc'],windowsHide:true});
+      let phase='WAIT_READY',requests=0,proof=null,receipt=null;
+      const done=await new Promise((resolve,reject)=>{
+        let settled=false;
+        const timeout=setTimeout(()=>fail(Error('Actual original miner child IPC timed out')),80000);
+        const finish=(error,value)=>{
+          if(settled)return;
+          settled=true;clearTimeout(timeout);
+          error?reject(error):resolve(value);
+        };
+        const fail=error=>{
+          if(minerChild?.connected)minerChild.disconnect();
+          finish(error);
+        };
+        minerChild.on('error',()=>fail(Error('Actual original miner OS worker failed')));
+        minerChild.on('message',message=>{
+          if(settled)return;
+          try{
+            if(!message||typeof message!=='object'||Array.isArray(message)||
+              Buffer.byteLength(JSON.stringify(message),'utf8')>65536||
+              message.session!==session||message.network!==network)
+              throw Error('Forged original OS miner message');
+            if(message.type==='fae-v34-ready'){
+              if(phase!=='WAIT_READY')throw Error('Replayed miner ready');
+              phase='READY';return;
+            }
+            if(message.type==='fae-v34-telemetry'){
+              if(phase==='WAIT_READY'||phase==='FINISHED')throw Error('Invalid miner telemetry sequence');
+              return;
+            }
+            if(message.type==='fae-v34-proposal'){
+              if(phase!=='READY'||message.request_id!==1||requests!==0)
+                throw Error('Repeated or unauthorized mined-block proposal');
+              const submission=message.submission;
+              const canonical=core.buildSubmission({
+                header:submission?.header,txids:submission?.txids
+              },submission?.nonce,submission?.hash);
+              assert.deepEqual(canonical,submission,
+                'Original miner child must submit exact genuine original PoW proof');
+              assert.equal(core.workMeetsTarget(submission.hash,submission.header.difficulty_bits),true);
+              phase='SUBMITTING';requests=1;proof=submission;
+              void ipc.submitMinedBlock(submission).then(result=>{
+                if(settled)return;
+                receipt=result;
+                phase='ACKED';
+                minerChild.send({type:'fae-v34-submit-result',session,network,
+                  request_id:message.request_id,ok:true,receipt:result},
+                error=>{if(error)fail(Error('Miner child result transport failed'))});
+              }).catch(()=>fail(Error('Original node private block submission failed')));
+              return;
+            }
+            if(message.type==='fae-v34-finish'){
+              if(phase!=='ACKED'||message.status!=='STOPPED')
+                throw Error('Original miner OS child completion not authenticated');
+              phase='FINISHED';
+              if(minerChild.connected)minerChild.disconnect();
+              return;
+            }
+            throw Error('Unexpected original miner OS child opcode');
+          }catch(error){fail(error)}
+        });
+        minerChild.once('exit',(code,signal)=>{
+          if(settled)return;
+          if(phase!=='FINISHED'||code!==0||signal!==null||requests!==1||
+            !proof||!receipt||receipt.durable!==true)
+            return finish(Error('Original OS miner child did not complete a valid authenticated block'));
+          finish(null,{proof,receipt});
+        });
+        minerChild.send({type:'fae-v34-start',session,network,
+          node:endpoint,address:ADDRESS},error=>{
+          if(error)fail(Error('Original miner OS child startup failed'));
+        });
+      });
+      assert.equal(done.receipt.hash,done.proof.hash);
+      assert.equal(done.receipt.height,1);
+      assert.equal((await ipc.read('status')).tip_hash,done.proof.hash);
+      const written=JSON.parse(await fs.readFile(stateFile,'utf8'));
+      assert.equal(written.chain.length,1);
+      assert.equal(written.chain[0].hash,done.proof.hash);
+      ipc.revoke();ipc=null;
+      await stop(minerChild);minerChild=null;
+      await stop(node);node=null;
+      const restartPort=await port();
+      node=await startOwnerCandidate(dir,stateFile,restartPort);
+      ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,timeoutMs:5000});
+      const recovered=await ipc.read('status');
+      assert.equal(recovered.height,1);
+      assert.equal(recovered.tip_hash,done.proof.hash);
+      const denied=await fetch('http://127.0.0.1:'+restartPort+'/submit-block',{
+        method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+      assert.equal(denied.status,403);
+      console.log('TS_V50_REAL_OS_MINER_TO_ORIGINAL_NODE_IPC_PASS '+JSON.stringify({
+        original_miner_owner:MINER_HEAD,original_node_owner:NODE_HEAD,
+        genuine_os_miner_child:true,trusted_parent:true,genuine_os_node_child:true,
+        original_consensus:true,durable_block:true,cold_restart:true,
+        no_managed_http_mutation:true,protected_owner_branch_unchanged:true,
+        owner_admission:'NOT_GRANTED',gate_a:'CANDIDATE_ONLY'
+      }));
+    }finally{
+      ipc?.revoke();
+      await stop(minerChild);
+      await stop(node);
+      await fs.rm(dir,{recursive:true,force:true});
+    }
+  });
