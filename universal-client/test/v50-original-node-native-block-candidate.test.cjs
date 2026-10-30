@@ -489,7 +489,7 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
   // exact PR #342 bytes; only test keys and source-only temp node copies exist.
   const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v52-owned-signer-'));
   const stateFile=path.join(dir,'state.json');
-  let node=null,ipc=null,signer=null;
+  let node=null,ipc=null;
   try{
     const {miner,core}=await stageSource(dir);
     const wallet=await stageExactOriginalWalletCrypto(dir);
@@ -532,10 +532,7 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     const funded=await mine();
     assert.equal(funded.height,1);
     assert.equal((await ipc.read('balance',{address:a.address})).balance_atoms,'1000000000');
-    signer=fork(signerScript,[],{cwd:dir,execArgv:[],
-      env:{...envFor(p,stateFile,{signedTx:true}),
-        TS_V52_DISPOSABLE_SIGNER_PROOF:'isolated-owner-fixture'},
-      stdio:['ignore','ignore','ignore','ipc'],windowsHide:true});
+    // The V54 ProcessController performs the source-pinned OS fork itself.
     const nodePins={};
     for(const item of ORIGINAL_NODE_FILES)
       nodePins[item]=createHash('sha256').update(
@@ -547,7 +544,7 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     actualController.node=node;actualController.nodeIpc=ipc;
     // No ambient test/CLI/renderer flag: default must deny the candidate.
     await assert.rejects(actualController.runIsolatedOriginalWalletSignerCandidateOnce({
-      signerChild:signer,
+      
       signerSourceSha256:createHash('sha256').update(signerBytes).digest('hex'),
       from:a.address,to:b.address,outpoint:funded.hash+':0'
     }),/product admission not granted/);
@@ -555,8 +552,14 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     let receipt;
     try{
       process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF='1';
+      await assert.rejects(
+        actualController.runIsolatedOriginalWalletSignerCandidateOnce({
+          signerSourceSha256:'0'.repeat(64),from:a.address,to:b.address,
+          outpoint:funded.hash+':0'
+        }),/Native disposable-wallet-signer source verification failed/);
+      assert.equal(actualController.signer,null,'tampered source denied before OS spawn');
       receipt=await actualController.runIsolatedOriginalWalletSignerCandidateOnce({
-        signerChild:signer,
+        
         signerSourceSha256:createHash('sha256').update(signerBytes).digest('hex'),
         from:a.address,to:b.address,outpoint:funded.hash+':0'
       });
@@ -569,8 +572,8 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     assert.equal(receipt.fee_atoms,'1');
     assert.equal(receipt.confirmation_finality,'NOT_PROVEN');
     assert.match(receipt.txid,/^[0-9a-f]{64}$/);
-    assert.equal(signer.exitCode!==null||signer.signalCode!==null,true,
-      'controller must terminate the disposable OS signer after one attempt');
+    assert.equal(actualController.signer,null,
+      'controller must release the finished signer OS child');
     let observed=await ipc.read('transaction-lookup',{txid:receipt.txid});
     assert.equal(observed.status,'pending');
     assert.equal(observed.confirmed_height,null);
@@ -584,7 +587,7 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     assert.equal(saved.transactions[receipt.txid].fee_atoms,'1');
     assert.equal(saved.transactions[receipt.txid].status,'confirmed');
     ipc.revoke();ipc=null;
-    await stop(signer);signer=null;
+
     await stop(node);node=null;
     const cold=await port();
     endpoint='http://127.0.0.1:'+cold;
@@ -601,6 +604,8 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
       deterministic_disposable_keys_only:true,no_vault_or_password:true,
       original_cryptography:true,original_consensus:true,
       v54_actual_process_controller_wallet_lifecycle:true,
+      v54_actual_source_pinned_os_fork:true,
+      v54_invalid_signer_hash_denied_before_spawn:true,
       no_renderer_wallet_signing:true,
       one_shot_native_signed_tx:true,pending_then_mined:true,
       fee_atoms:'1',recipient_atoms:'100000000',cold_restart:true,
@@ -610,7 +615,6 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     }));
   }finally{
     ipc?.revoke();
-    await stop(signer);
     await stop(node);
     await fs.rm(dir,{recursive:true,force:true});
   }
