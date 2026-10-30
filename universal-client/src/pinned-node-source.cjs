@@ -83,6 +83,16 @@ async function assertPinnedOriginalNodeSources(root,pins){
 async function assertPinnedOriginalMinerSources(root,pins){
   return assertPinnedFileSet(root,validateOriginalMinerSourcePins(pins),MINER_FILES,'original-miner');
 }
-module.exports={FILES,MINER_FILES,validateNativeNodeSourcePins,
+// Disposable Wallet proof only: NOT an admitted production signing source.
+// Its parent-owned bridge is deliberately excluded from all installed builds.
+const DISPOSABLE_SIGNER_FILE='universal-client/src/v52-disposable-original-wallet-signer.mjs';
+async function assertPinnedDisposableWalletSignerSource(root,expectedSha256){
+  if(typeof expectedSha256!=='string'||!SHA256.test(expectedSha256))
+    throw Error('Independently pinned disposable Wallet signer source required');
+  return assertPinnedFileSet(root,{[DISPOSABLE_SIGNER_FILE]:expectedSha256},
+    [DISPOSABLE_SIGNER_FILE],'disposable-wallet-signer');
+}
+module.exports={DISPOSABLE_SIGNER_FILE,assertPinnedDisposableWalletSignerSource,
+  FILES,MINER_FILES,validateNativeNodeSourcePins,
   validateOriginalMinerSourcePins,assertPinnedOriginalNodeSources,
   assertPinnedOriginalMinerSources};
