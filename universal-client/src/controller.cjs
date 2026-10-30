@@ -537,11 +537,20 @@ class ProcessController extends EventEmitter{
       throw Error('Original Miner owner worker source identity required');
     const generation=this.minerGeneration;
     const bridge=new OwnedOriginalMinerBridge({minerChild,nodeIpc:ipc,
-      nodeEndpoint:this.endpoint,address,onTelemetry});
+      nodeEndpoint:this.endpoint,address,onTelemetry:event=>{
+        // Original worker reports public progress only. Reuse the existing
+        // controller's state telemetry rather than adding an unrelated UI path.
+        if(this.miner===minerChild)this.ingestMiner(JSON.stringify(event));
+        if(onTelemetry)onTelemetry(event);
+      }});
     this.miner=minerChild;this.nativeMinerBridge=bridge;
     this.minerStarting=false;this.emit('state',this.snapshot());
     try{
       const result=await bridge.run();
+      // Accepted count is based on the actual original-node durable receipt,
+      // never an untrusted worker-side 'WORK_ACCEPTED' string.
+      this.telemetry={...this.telemetry,accepted:result.block_count};
+      this.emit('state',this.snapshot());
       this.assertNode();
       if(this.node!==node||this.nodeIpc!==ipc||
          this.minerGeneration!==generation||this.miner!==minerChild)
