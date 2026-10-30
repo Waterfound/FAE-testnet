@@ -15,7 +15,7 @@ const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {OwnedNodeIpc}=require('../src/owned-node-ipc.cjs');
 const {ProcessController}=require('../src/controller.cjs');
-const {FILES:ORIGINAL_NODE_FILES}=require('../src/pinned-node-source.cjs');
+const {FILES:ORIGINAL_NODE_FILES,MINER_FILES:ORIGINAL_MINER_FILES}=require('../src/pinned-node-source.cjs');
 const ROOT=path.resolve(__dirname,'..','..');
 const NODE_HEAD='dd331bb57e8718caa45e030633a4ff4bc64f47c6';
 const MINER_HEAD='f85b483f88a5fb2b797a224596c23a7b505094d7';
@@ -312,8 +312,19 @@ test('V51 actual native parent bridge drives ORIGINAL OS miner into candidate or
       });
       controller.node=node;
       controller.nodeIpc=ipc;
+      const minerPins={};
+      for(const file of ORIGINAL_MINER_FILES){
+        minerPins[file]=createHash('sha256').update(
+          await fs.readFile(path.join(dir,...file.split('/')))).digest('hex');
+      }
+      await assert.rejects(controller.runAdmittedOriginalMinerWorkerOnce({
+        minerChild,address:ADDRESS,
+        minerSourcePins:{...minerPins,[ORIGINAL_MINER_FILES[0]]:'0'.repeat(64)}
+      }),/Native original-miner source verification failed/);
+      assert.equal(controller.miner,null,'mismatched source pin never admits original worker');
       const done=await controller.runAdmittedOriginalMinerWorkerOnce({
-        minerChild,address:ADDRESS,onTelemetry:()=>{progress++}
+        minerChild,address:ADDRESS,minerSourcePins:minerPins,
+        onTelemetry:()=>{progress++}
       });
       assert.equal(controller.nativeMinerBridge,null);
       assert.equal(controller.snapshot().miner,'stopped');
