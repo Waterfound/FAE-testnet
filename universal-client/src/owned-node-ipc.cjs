@@ -9,6 +9,7 @@ const REQUEST='TRIUM_FAE_NODE_IPC_REQUEST_V1';
 const REPLY='TRIUM_FAE_NODE_IPC_REPLY_V1';
 const ALLOWED_READS=new Set(['status','balance','spendable','transaction-lookup']);
 const BLOCK_MUTATION='submit-mined-block';
+const SIGNED_TX_MUTATION='submit-signed-tx';
 const DIGEST=/^[0-9a-f]{64}$/;
 const MAX_BLOCK_PACKET_BYTES=65536;
 // Parent-side boundary only. No source-owner node currently admits this opcode.
@@ -35,24 +36,55 @@ function boundedOriginalBlockEnvelope(submission){
     throw Error('Original mined-block proposal exceeds IPC limit');
   return submission;
 }
+// This is a transport shape check only: the ORIGINAL Wallet and original
+// validating node remain the sole cryptographic/consensus authorities.
+function boundedOriginalSignedTx(tx,expectedTxid){
+  if(typeof expectedTxid!=='string'||!DIGEST.test(expectedTxid)||
+     !tx||typeof tx!=='object'||Array.isArray(tx)||
+     Object.keys(tx).sort().join(',')!==
+       'inputs,network,outputs,public_key_spki,signature,version'||
+     tx.network!==NETWORK||tx.version!==2||
+     !Array.isArray(tx.inputs)||tx.inputs.length<1||tx.inputs.length>64||
+     tx.inputs.some(p=>typeof p!=='string'||!(/^[0-9a-f]{64}:(?:0|[1-9][0-9]*)$/.test(p)))||
+     new Set(tx.inputs).size!==tx.inputs.length||
+     !Array.isArray(tx.outputs)||tx.outputs.length<1||tx.outputs.length>16||
+     tx.outputs.some(o=>!o||typeof o!=='object'||Array.isArray(o)||
+       Object.keys(o).sort().join(',')!=='address,amount_atoms'||
+       typeof o.address!=='string'||o.address.length>90||
+       typeof o.amount_atoms!=='string'||
+       !/^[1-9][0-9]*$/.test(o.amount_atoms)||
+       o.amount_atoms.length>80)||
+     typeof tx.public_key_spki!=='string'||tx.public_key_spki.length>512||
+     typeof tx.signature!=='string'||tx.signature.length>256)
+    throw Error('Original signed transaction native submission shape rejected');
+  let size;
+  try{size=Buffer.byteLength(JSON.stringify({type:REQUEST,network:NETWORK,
+    session:'0'.repeat(64),request_id:1,op:SIGNED_TX_MUTATION,params:{tx}}),'utf8')}
+  catch{throw Error('Original signed transaction encoding rejected')}
+  if(size>MAX_BLOCK_PACKET_BYTES)throw Error('Original signed transaction exceeds IPC limit');
+  return tx;
+}
 function alive(child){
   return child&&child.connected===true&&Number.isSafeInteger(child.pid)&&child.pid>0&&
     child.exitCode===null&&!child.killed&&!child._tsFailed;
 }
 class OwnedNodeIpc {
-  constructor(child,{timeoutMs=2500,maxResponseBytes=1048576,allowBlockMutation=false}={}){
+  constructor(child,{timeoutMs=2500,maxResponseBytes=1048576,
+    allowBlockMutation=false,allowSignedTxMutation=false}={}){
     if(!alive(child)||typeof child.send!=='function'||
        typeof child.on!=='function'||typeof child.off!=='function')
       throw Error('OS-owned connected child IPC channel required');
     if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>30000||
        !Number.isSafeInteger(maxResponseBytes)||maxResponseBytes<128||
-       maxResponseBytes>2097152||typeof allowBlockMutation!=='boolean')
+       maxResponseBytes>2097152||typeof allowBlockMutation!=='boolean'||
+       typeof allowSignedTxMutation!=='boolean')
       throw Error('Invalid IPC security limits');
     this.child=child;this.timeoutMs=timeoutMs;
     this.maxResponseBytes=maxResponseBytes;
     // Always false in the ordinary product; setting true additionally requires
     // an original-node source owner to admit the matching opcode separately.
     this.allowBlockMutation=allowBlockMutation;
+    this.allowSignedTxMutation=allowSignedTxMutation;
     this.session=randomBytes(32).toString('hex');
     this.counter=0;this.pending=null;this.revoked=false;
     this.onMessage=this.onMessage.bind(this);
@@ -124,6 +156,43 @@ class OwnedNodeIpc {
     }
     return Object.freeze({ok:true,network:NETWORK,durable:true,
       height:result.height,hash:result.hash,tx_count:result.tx_count});
+  }
+  // Only a source-owner-admitted original Wallet signer can supply this tx
+  // in the future. The ordinary desktop NEVER enables this mutation.
+  // A native ACK must match the independently calculated original Wallet TXID.
+  // Any unknown outcome is never retried; status reconciliation is read-only.
+  async submitSignedTx(tx,expectedTxid){
+    if(!this.allowSignedTxMutation)
+      throw Error('Original signed transaction submission not owner-admitted');
+    if(this.revoked||!alive(this.child))
+      throw Error('Managed node IPC channel unavailable');
+    const signed=boundedOriginalSignedTx(tx,expectedTxid);
+    const ack=await this.#dispatch(SIGNED_TX_MUTATION,{tx:signed});
+    if(!ack||typeof ack!=='object'||Array.isArray(ack)||
+       ack.ok!==true||ack.network!==NETWORK||ack.txid!==expectedTxid||
+       ack.status!=='accepted_unconfirmed'||
+       typeof ack.fee_atoms!=='string'||!/^(?:0|[1-9][0-9]*)$/.test(ack.fee_atoms)){
+      this.revoke('Original signed transaction native acknowledgement mismatch');
+      throw Error('Original signed transaction native acknowledgement mismatch');
+    }
+    // An accepted IPC receipt is not finality. Bind to the SAME child session
+    // with an authenticated lookup, not a renderer or HTTP fallback.
+    const observed=await this.read('transaction-lookup',{txid:expectedTxid});
+    if(!observed||observed.ok!==true||observed.network!==NETWORK||
+       observed.txid!==expectedTxid||observed.found!==true||
+       !['pending','confirmed'].includes(observed.status)||
+       !Number.isSafeInteger(observed.tip_height)||observed.tip_height<0||
+       !DIGEST.test(String(observed.tip_hash))){
+      this.revoke('Original signed transaction outcome unverified after IPC ACK');
+      throw Error('Original signed transaction outcome unverified after IPC ACK');
+    }
+    return Object.freeze({
+      ok:true,network:NETWORK,txid:expectedTxid,fee_atoms:ack.fee_atoms,
+      status:observed.status,observed_tip_height:observed.tip_height,
+      observed_tip_hash:observed.tip_hash,
+      confirmation_finality:'NOT_PROVEN',
+      submission_source:'ORIGINAL_NODE_INHERITED_IPC_CANDIDATE'
+    });
   }
   #dispatch(op,params){
     if(this.revoked||!alive(this.child))
