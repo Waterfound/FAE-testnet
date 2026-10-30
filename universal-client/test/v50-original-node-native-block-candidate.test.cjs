@@ -128,6 +128,25 @@ async function stageSource(dir){
     core:await import(pathToFileURL(path.join(dir,'standalone','mining-core.mjs')).href)
   };
 }
+const WALLET_HEAD='17c90ffc313fd11de17396437436e4429472f616';
+const WALLET_SOURCE_PINS=Object.freeze({
+  'standalone/wallet/crypto.mjs':'1297bf2c268d865634a6f57da5f6b95557c633ac',
+  'sovereign-forge/node/authoritative/address.mjs':'67143968791d85a51c09f0f9d0c0bfe8cb460e32',
+  'sovereign-forge/node/authoritative/crypto.mjs':'beaa9a9ae5c65c0e97e9f3c5755a8e6b9ce8090c',
+  'sovereign-forge/node/authoritative/canonical.mjs':'607a44f08865dc441556bad81d29984fda726c96',
+  'bip39-en.js':'b6d65f9a3a662823516d033e6ecb2a6fbf2aadad'
+});
+async function stageExactOriginalWalletCrypto(dir){
+  for(const [relative,blob] of Object.entries(WALLET_SOURCE_PINS)){
+    const bytes=execFileSync('git',['show',WALLET_HEAD+':'+relative],
+      {cwd:ROOT,maxBuffer:2000000});
+    assert.equal(blobHash(bytes),blob,'exact protected Wallet source changed: '+relative);
+    const dest=path.join(dir,...relative.split('/'));
+    await fs.mkdir(path.dirname(dest),{recursive:true,mode:0o700});
+    await fs.writeFile(dest,bytes,{flag:'wx',mode:0o400});
+  }
+  return import(pathToFileURL(path.join(dir,'standalone','wallet','crypto.mjs')).href);
+}
 async function port(){
   return await new Promise((resolve,reject)=>{
     const s=createServer();
