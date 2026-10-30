@@ -87,8 +87,19 @@ test('V50 candidate accepted-format receipt uses true OS child IPC, no HTTP fall
     const receipt=await ipc.submitMinedBlock(syntheticBlock());
     assert.deepEqual(receipt,{ok:true,network:'fairyelf-public-testnet-v4',
       durable:true,height:2,hash:'a'.repeat(64),tx_count:0});
-    assert.equal((await ipc.read('status')).source,'REAL_CHILD_OS_IPC_FIXTURE_ONLY');
+    assert.equal(ipc.counter,2,'one mutation plus a separate native status verification');
+    assert.equal((await ipc.read('status')).source,'SYNTHETIC_POST_ACK_TIP_ONLY');
     ipc.revoke();
+  });
+});
+test('V50 successor: a positive durable ACK is rejected if original-node tip contradicts it',async()=>{
+  await withChild('block-status-wrong-tip',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowBlockMutation:true});
+    await assert.rejects(ipc.submitMinedBlock(syntheticBlock()),
+      /receipt contradicted by authenticated chain tip/);
+    assert.equal(ipc.counter,2,'one mutation and one independent status, never retry');
+    assert.equal(ipc.revoked,true);
+    await assert.rejects(ipc.read('status'),/unavailable/);
   });
 });
 for(const mode of ['block-not-durable','block-hash-mismatch']){
