@@ -17,6 +17,7 @@ if(process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF!=='isolated-only'||
    typeof process.send!=='function')
   throw Error('Original protected Wallet signer not admitted');
 let state='NEW',session=null,password=null,identity=null,vault=null;
+let phase='PREPARE';
 const revoke=()=>{state='REVOKED';password=null;identity=null;};
 const emit=packet=>{
   if(state==='REVOKED'||!process.connected)return;
@@ -43,18 +44,22 @@ process.on('message',async packet=>{
       // It intentionally cannot be recovered after the worker dies.
       password=randomBytes(32).toString('hex');
       vault=join(process.cwd(),'v55-isolated-original.vault.json');
+      phase='VAULT_WRITE';
       await writeVault(vault,newMnemonic(),'',password);
+      phase='VAULT_READ';
       const publicVault=await readVault(vault);
+      phase='VAULT_UNLOCK';
       const records=await unlockVault(vault,password);
       if(records.length!==5||
          records[0].address!==publicVault.public_addresses[0].address)
         throw Error('original_vault_public_identity_mismatch');
+      phase='WRONG_PASSWORD_NEGATIVE';
       try{await unlockVault(vault,'incorrect_disposable_password')}
       catch(error){
         if(!/incorrect_password_or_corrupt_vault/.test(error.message))throw error;
       }
       identity=records[0].address;
-      state='READY';
+      phase='READY';state='READY';
       return emit({mode:MODE,network:NETWORK,session,request_id:1,
         status:'ORIGINAL_ENCRYPTED_VAULT_READY',from:identity});
     }
@@ -78,6 +83,7 @@ process.on('message',async packet=>{
     const records=await unlockVault(vault,password);
     const record=records[0];
     if(record.address!==identity)throw Error('original_wallet_vault_identity_changed');
+    phase='ORIGINAL_PLAN';
     const plan=planSpend([{outpoint:intent.outpoint,
       address:identity,amount_atoms:intent.source_atoms,source:'confirmed',
       created_height:1}],identity,intent.to,100000000n,1n);
@@ -91,23 +97,34 @@ process.on('message',async packet=>{
     // The original encrypted single-flight outbox is fsynced before any
     // signed transaction becomes available to the trusted parent.
     const journal=intentPath(vault);
+    phase='OUTBOX_WRITE';
     await writeIntent(journal,{network:NETWORK,txid,node:intent.node,
       address:identity,recipient:intent.to,
       amount_atoms:intent.amount_atoms,fee_atoms:intent.fee_atoms,
       tip_height:intent.tip_height,tip_hash:intent.tip_hash},password);
+    phase='OUTBOX_READ';
     const recovered=await readIntent(journal,password);
     if(recovered.txid!==txid||recovered.address!==identity||
        recovered.recipient!==intent.to||recovered.tip_hash!==intent.tip_hash)
       throw Error('original_encrypted_outbox_recovery_failed');
     password=null;
-    state='SIGNED';
+    phase='SIGNED';state='SIGNED';
     emit({mode:MODE,network:NETWORK,session,request_id:2,
       status:'ORIGINAL_VAULT_SIGNED_OUTBOX_DURABLE',from:identity,to:intent.to,
       authorization_id:intent.authorization_id,tx,txid});
     // The worker never sends a second transaction and never submits itself.
   }catch{
-    revoke();
-    // No errors, password, mnemonic, key objects or filesystem contents over IPC.
-    if(process.connected)process.disconnect();
+    // Diagnostic uses ONLY a hardcoded process phase; never stringify the
+    // exception, vault content, password, key, path or original intent.
+    const failed=phase;
+    if(session&&process.connected){
+      process.send({mode:MODE,network:NETWORK,session,
+        request_id:state==='PREPARING'?1:2,
+        status:'ISOLATED_PROOF_FAILED',phase:failed},()=>{
+          revoke();if(process.connected)process.disconnect();
+        });
+    }else{
+      revoke();if(process.connected)process.disconnect();
+    }
   }
 });
