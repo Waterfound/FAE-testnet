@@ -134,7 +134,7 @@ test('V50 real original Miner #362 proof crosses inherited OS IPC; original node
       assert.equal(mined.accepted,1,'the original miner accepted the fixture ACK');
       assert.ok(mined.totalHashes>0,'the original miner computed actual PoW');
       assert.ok(actualOriginalProposal);
-      assert.equal(ipc.counter,1,'one original proof => one OS IPC submission');
+      assert.equal(ipc.counter,2,'one original proof IPC mutation plus one independent node status read');
       const after=await status();
       assert.equal(after.height,0,'original consensus was NOT mutated by fake receipt');
       assert.equal(after.tip_hash,before.tip_hash);
