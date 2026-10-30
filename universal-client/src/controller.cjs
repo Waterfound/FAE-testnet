@@ -707,9 +707,11 @@ class ProcessController extends EventEmitter{
       const init=await exchange({mode:MODE,network:NETWORK,session:SESSION,
         request_id:1},1,30000);
       if(init.status==='ISOLATED_PROOF_FAILED'&&
-         Object.keys(init).sort().join(',')==='mode,network,phase,request_id,session,status'&&
-         /^[A-Z_]{3,40}$/.test(String(init.phase)))
-        throw Error('Isolated original Wallet owner source failure phase '+init.phase);
+         Object.keys(init).sort().join(',')==='mode,network,phase,reason,request_id,session,status'&&
+         /^[A-Z_]{3,40}$/.test(String(init.phase))&&
+         /^[A-Z_]{3,64}$/.test(String(init.reason)))
+        throw Error('Isolated original Wallet owner source failure phase '+
+          init.phase+' reason '+init.reason);
       if(Object.keys(init).sort().join(',')!=='from,mode,network,request_id,session,status'||
          init.status!=='ORIGINAL_ENCRYPTED_VAULT_READY'||
          typeof init.from!=='string'||!ADDRESS.test(init.from)||init.from===to)
@@ -744,9 +746,11 @@ class ProcessController extends EventEmitter{
       if(!validOwner()||this.signer!==child)
         throw Error('Original Wallet/node owner changed after durable outbox; outcome unknown');
       if(signed.status==='ISOLATED_PROOF_FAILED'&&
-         Object.keys(signed).sort().join(',')==='mode,network,phase,request_id,session,status'&&
-         /^[A-Z_]{3,40}$/.test(String(signed.phase)))
-        throw Error('Isolated original Wallet owner source failure phase '+signed.phase);
+         Object.keys(signed).sort().join(',')==='mode,network,phase,reason,request_id,session,status'&&
+         /^[A-Z_]{3,40}$/.test(String(signed.phase))&&
+         /^[A-Z_]{3,64}$/.test(String(signed.reason)))
+        throw Error('Isolated original Wallet owner source failure phase '+
+          signed.phase+' reason '+signed.reason);
       if(Object.keys(signed).sort().join(',')!==
           'authorization_id,from,mode,network,request_id,session,status,to,tx,txid'||
          signed.status!=='ORIGINAL_VAULT_SIGNED_OUTBOX_DURABLE'||
