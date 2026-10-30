@@ -22,7 +22,7 @@ $phase='OWNER_IDENTITY'
 $identity=[System.Security.Principal.WindowsIdentity]::GetCurrent()
 $user=$identity.User
 $phase='ACL_READ'
-$acl=Get-Acl -LiteralPath $p
+$acl=[System.IO.File]::GetAccessControl($p)
 $phase='OWNER_MATCH'
 $currentOwner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value
 if($currentOwner -ne $user.Value){
@@ -54,10 +54,10 @@ if([string]$req.action -eq 'harden'){
     $acl.AddAccessRule($grant)
   }
   $phase='COMMIT_ACL'
-  Set-Acl -LiteralPath $p -AclObject $acl
+  [System.IO.File]::SetAccessControl($p,$acl)
 }
 $phase='VERIFY_ACL'
-$final=Get-Acl -LiteralPath $p
+$final=[System.IO.File]::GetAccessControl($p)
 if($final.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $user.Value){
   throw 'file_owner_changed'
 }
