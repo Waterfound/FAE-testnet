@@ -104,7 +104,7 @@ async function canonicalPrivatePath(target){
   const real=await realpath(target);
   if(win32.normalize(target).toLowerCase()!==win32.normalize(real).toLowerCase())
     throw Error('Windows private-file path redirected');
-  const st=await lstat(target);
+  const st=await lstat(target,{bigint:true});
   if(!st.isFile()||st.isSymbolicLink())
     throw Error('Windows private-file target not regular');
   return {real,st};
@@ -139,12 +139,22 @@ export async function hardenWindowsPrivateFile(path,handle){
   if(process.platform!=='win32')return;
   if(!handle||typeof handle.stat!=='function')
     throw Error('Original Wallet owned private file handle required');
-  const st=await handle.stat();
+  // The path checked by PowerShell MUST be the file held open by the caller.
+  // Otherwise an attacker could swap the pathname before ACL hardening, so
+  // the verified replacement gets a private ACL while the caller writes
+  // sensitive bytes through an unrelated, insufficiently protected handle.
+  // bigint avoids rounding 64-bit Windows file identities into JS Numbers.
+  const st=await handle.stat({bigint:true});
   if(!st.isFile())throw Error('Windows private-file original handle invalid');
+  const before=await canonicalPrivatePath(path);
+  if(st.dev!==before.st.dev||st.ino!==before.st.ino)
+    throw Error('Windows private-file handle/path identity mismatch');
   await check(path,'harden');
-  const after=await handle.stat();
-  if(st.dev!==after.dev||st.ino!==after.ino)
-    throw Error('Windows private-file handle changed during ACL hardening');
+  const after=await handle.stat({bigint:true});
+  const finalPath=await canonicalPrivatePath(path);
+  if(st.dev!==after.dev||st.ino!==after.ino||
+     st.dev!==finalPath.st.dev||st.ino!==finalPath.st.ino)
+    throw Error('Windows private-file handle/path identity changed during ACL hardening');
 }
 export async function verifyWindowsPrivateFile(path){
   if(process.platform!=='win32')return;
