@@ -5,6 +5,7 @@ import {constants} from 'node:fs';
 import {open,lstat,unlink} from 'node:fs/promises';
 import {NETWORK} from './crypto.mjs';
 import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
+import {hardenWindowsPrivateFile,verifyWindowsPrivateFile} from './windows-private-file-acl.mjs';
 
 const NOFOLLOW=constants.O_NOFOLLOW??0;
 const KDF={N:32768,r:8,p:1,maxmem:128*1024*1024};
@@ -61,6 +62,8 @@ export async function writeIntent(path,record,password){
     // EXCL locks out concurrent sends and any unresolved old intent.
     handle=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|NOFOLLOW,0o600);
     created=true;
+    // NTFS ACL must be private BEFORE recording encrypted intent bytes.
+    await hardenWindowsPrivateFile(path,handle);
     await handle.writeFile(data,{encoding:'utf8'});
     await handle.sync();
     await handle.close();handle=null;
@@ -77,13 +80,19 @@ export async function writeIntent(path,record,password){
   }finally{key.fill(0);plain.fill(0);}
 }
 export async function readIntent(path,password){
-  const st=await lstat(path);
-  if(!st.isFile()||st.isSymbolicLink()||(st.mode&0o077)!==0)throw Error('outbox_requires_private_0600_file');
+  // Preserve full 64-bit NTFS identity when validating the opened file.
+  const st=await lstat(path,{bigint:process.platform==='win32'});
+  if(!st.isFile()||st.isSymbolicLink()||
+     (process.platform!=='win32'&&(st.mode&0o077)!==0))
+    throw Error('outbox_requires_private_0600_file');
+  await verifyWindowsPrivateFile(path);
   if(typeof process.getuid==='function'&&st.uid!==process.getuid())throw Error('outbox_owner_mismatch');
   const handle=await open(path,constants.O_RDONLY|NOFOLLOW);
   try{
-    const v=await handle.stat();
-    if(v.size<100||v.size>8192||v.ino!==st.ino||v.dev!==st.dev||(v.mode&0o077)!==0)throw Error('outbox_file_invalid');
+    const v=await handle.stat({bigint:process.platform==='win32'});
+    if(v.size<100||v.size>8192||v.ino!==st.ino||v.dev!==st.dev||
+       (process.platform!=='win32'&&(v.mode&0o077)!==0))
+      throw Error('outbox_file_invalid');
     const blob=JSON.parse(await handle.readFile('utf8'));
     try{return decryptRecord(blob,password)}catch{throw Error('outbox_wrong_password_or_corrupt')}
   }finally{await handle.close()}

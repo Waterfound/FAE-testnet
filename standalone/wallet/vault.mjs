@@ -2,6 +2,7 @@ import {createCipheriv,createDecipheriv,randomBytes,scryptSync} from 'node:crypt
 import {constants} from 'node:fs';
 import {open,lstat,unlink} from 'node:fs/promises';
 import {deriveRecords,NETWORK} from './crypto.mjs';
+import {hardenWindowsPrivateFile,verifyWindowsPrivateFile} from './windows-private-file-acl.mjs';
 
 const KDF={N:32768,r:8,p:1,maxmem:128*1024*1024};
 const NOFOLLOW=constants.O_NOFOLLOW??0;
@@ -21,20 +22,29 @@ export async function writeVault(path,mnemonic,bip39Passphrase,password){
         tag:cipher.getAuthTag().toString('base64'),payload:encrypted.toString('base64')}
     })+'\n';
     const handle=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|NOFOLLOW,0o600);
-    try{await handle.writeFile(data,{encoding:'utf8'});await handle.sync();}
+    try{
+      // Before encrypted material hits disk, replace inherited NTFS ACEs.
+      await hardenWindowsPrivateFile(path,handle);
+      await handle.writeFile(data,{encoding:'utf8'});await handle.sync();
+    }
     catch(e){await handle.close();await unlink(path).catch(()=>{});throw e}
     await handle.close();
     return records.map(r=>({index:r.index,address:r.address,public_key_spki:r.public_key_spki}));
   }finally{key.fill(0);payload.fill(0);}
 }
 export async function readVault(path){
-  const s=await lstat(path);
-  if(!s.isFile()||s.isSymbolicLink()||(s.mode&0o077)!==0)throw Error('vault_requires_regular_private_0600_file');
+  // Preserve full 64-bit NTFS identity when validating the opened file.
+  const s=await lstat(path,{bigint:process.platform==='win32'});
+  if(!s.isFile()||s.isSymbolicLink()||
+     (process.platform!=='win32'&&(s.mode&0o077)!==0))
+    throw Error('vault_requires_regular_private_0600_file');
+  await verifyWindowsPrivateFile(path);
   if(typeof process.getuid==='function'&&s.uid!==process.getuid())throw Error('vault_owner_mismatch');
   const handle=await open(path,constants.O_RDONLY|NOFOLLOW);
   try{
-    const stat=await handle.stat();
-    if(stat.size>16384||stat.size<100)throw Error('vault_size_invalid');
+    const stat=await handle.stat({bigint:process.platform==='win32'});
+    if(stat.size>16384||stat.size<100||stat.dev!==s.dev||stat.ino!==s.ino)
+      throw Error('vault_size_or_identity_invalid');
     const data=JSON.parse(await handle.readFile('utf8'));
     if(data.format!=='FAE_STANDALONE_VAULT_V1'||data.network!==NETWORK ||
       !Array.isArray(data.public_addresses)||data.public_addresses.length!==5)throw Error('invalid_vault_format');
