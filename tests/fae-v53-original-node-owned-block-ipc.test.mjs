@@ -3,13 +3,37 @@
 // Only disposable files, no public network or Wallet/user secrets.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fork} from 'node:child_process';
+import {fork,execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {createServer} from 'node:net';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,writeFile,mkdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {runMiner,resolveOptions} from '../standalone/fae-miner.mjs';
-import {buildSubmission} from '../standalone/mining-core.mjs';
+import {pathToFileURL} from 'node:url';
+
+// NEVER silently use the old main-branch HTTP-only miner. The callback-enabled
+// original Miner belongs to protected #362; stage its immutable bytes ONLY in
+// this disposable test environment and keep that owner branch unchanged.
+const MINER_OWNER='f85b483f88a5fb2b797a224596c23a7b505094d7';
+const MINER_BLOBS=Object.freeze({
+  'standalone/fae-miner.mjs':'0ab1643c1ff1bf2991a2e56512a3b1746c62122b',
+  'standalone/mining-core.mjs':'42c392ad54a3e3c2f446ab79f67948d30b82a73e'
+});
+function gitBlob(bytes){return createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex')}
+async function originalMiner(){
+  const dir=await mkdtemp(join(tmpdir(),'trium-v53-miner-owner-'));
+  try{
+    await mkdir(join(dir,'standalone'),{recursive:true});
+    for(const [path,pin] of Object.entries(MINER_BLOBS)){
+      const bytes=execFileSync('git',['show',MINER_OWNER+':'+path],{maxBuffer:2000000});
+      assert.equal(gitBlob(bytes),pin,'Original Miner source-owner identity drift: '+path);
+      await writeFile(join(dir,path),bytes,{flag:'wx',mode:0o400});
+    }
+    const miner=await import(pathToFileURL(join(dir,'standalone','fae-miner.mjs')).href);
+    const core=await import(pathToFileURL(join(dir,'standalone','mining-core.mjs')).href);
+    return {dir,miner,core};
+  }catch(error){await rm(dir,{recursive:true,force:true});throw error}
+}
 
 const NODE=resolve('sovereign-forge/node/fae-node.mjs');
 const NETWORK='fairyelf-public-testnet-v4';
@@ -90,12 +114,12 @@ async function ask(child,op,params={},ms=5000){
       request_id:id,op,params},e=>{if(e)finish(e)});
   });
 }
-async function originalMine(url,submit){
-  const opts=resolveOptions({node:url,address:ADDRESS,once:true,json:true,
+async function originalMine(source,url,submit){
+  const opts=source.miner.resolveOptions({node:url,address:ADDRESS,once:true,json:true,
     'chunk-size':'4096','yield-ms':'0'},{});
-  return runMiner(opts,{emit:()=>{},
+  return source.miner.runMiner(opts,{emit:()=>{},
     submitMinedBlock:async proof=>{
-      assert.deepEqual(buildSubmission({header:proof.header,txids:proof.txids},
+      assert.deepEqual(source.core.buildSubmission({header:proof.header,txids:proof.txids},
         proof.nonce,proof.hash),proof,'must be original Miner work');
       return submit(proof);
     }
@@ -119,8 +143,9 @@ test('V53 disabled original-node block opcode fails closed without an admission 
 test('V53 original Miner -> ORIGINAL source-owner node IPC block -> original consensus persistence, HTTP denied, restart',
   {timeout:120000},async()=>{
     const dir=await mkdtemp(join(tmpdir(),'trium-v53-real-node-'));
-    let child=null;
+    let child=null,source=null;
     try{
+      source=await originalMiner();
       const p=await port(),url='http://127.0.0.1:'+p;
       child=await start(dir,p,{block:true});
       seq=0;
@@ -129,7 +154,7 @@ test('V53 original Miner -> ORIGINAL source-owner node IPC block -> original con
         method:'POST',headers:{'content-type':'application/json'},body:'{}'});
       assert.equal(denied.status,403,'no managed HTTP block mutation with IPC enabled');
       let proof=null,ack=null;
-      const mined=await originalMine(url,async submission=>{
+      const mined=await originalMine(source,url,async submission=>{
         proof=submission;
         ack=await ask(child,'submit-mined-block',{submission},8000);
         assert.equal(ack.durable,true);
@@ -170,7 +195,7 @@ test('V53 original Miner -> ORIGINAL source-owner node IPC block -> original con
         signed_wallet:false,protected_owner_admission:false,
         installed_native_mining:false
       }));
-    }finally{await stop(child);await rm(dir,{recursive:true,force:true})}
+    }finally{await stop(child);if(source)await rm(source.dir,{recursive:true,force:true});await rm(dir,{recursive:true,force:true})}
   });
 test('V53 block-only flag outside managed source mode rejects startup',
   {timeout:15000},async()=>{
