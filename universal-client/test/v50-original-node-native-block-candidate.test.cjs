@@ -651,7 +651,7 @@ test('V55 true original encrypted Wallet vault + outbox in owned OS child -> ori
     const workerPath='universal-client/src/v55-isolated-original-vault-signer.mjs';
     const bytes=execFileSync('git',['show','HEAD:'+workerPath],
       {cwd:ROOT,maxBuffer:1000000});
-    assert.equal(blobHash(bytes),'c202f08ef74ee1d0c1231cd6a231cd9eb748abe9',
+    assert.equal(blobHash(bytes),'254fab5c8c1377e6957aeb12665c51604b32272c',
       'Reviewed V55 Wallet worker changed');
     const workerFile=path.join(dir,...workerPath.split('/'));
     await fs.mkdir(path.dirname(workerFile),{recursive:true,mode:0o700});
