@@ -28,6 +28,17 @@ jobs:
         run: cd universal-client && npm run check
       - name: Bounded unit and real isolated local-node tests
         run: cd universal-client && npm test
+      - name: V50 exact original Miner #362 PoW through OS-owned IPC candidate
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          TS_V50_REAL_ORIGINAL_MINER_BRIDGE: '1'
+        run: |
+          set -euo pipefail
+          MINER_OWNER_SHA=f85b483f88a5fb2b797a224596c23a7b505094d7
+          git fetch --no-tags --depth=1 origin "$MINER_OWNER_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$MINER_OWNER_SHA"
+          node --test universal-client/test/v50-original-miner-ipc-proof.test.cjs
       - name: Native owner Wallet vault interoperability — Windows and macOS
         if: runner.os != 'Linux'
         shell: bash
