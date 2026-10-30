@@ -98,7 +98,7 @@ async function assertPinnedDisposableWalletSignerSource(root,expectedSha256){
 const ISOLATED_VAULT_SIGNER_FILE='universal-client/src/v55-isolated-original-vault-signer.mjs';
 // Reviewed exact V55 worker bytes, not caller-supplied digest. The worker remains
 // TEST-ONLY and excluded from packaged applications.
-const ISOLATED_VAULT_SIGNER_SHA256='e748974cdff7a35b6370f0653bebeab0759818128712b36fafead3de1b4e5ad3';
+const ISOLATED_VAULT_SIGNER_SHA256='92475ca8f31b0c6e4602cdf413e758cb5e8de27f2f886fde5bded45e4fc0f857';
 async function assertPinnedIsolatedVaultSigner(root){
   return assertPinnedFileSet(root,
     {[ISOLATED_VAULT_SIGNER_FILE]:ISOLATED_VAULT_SIGNER_SHA256},
