@@ -70,19 +70,26 @@ test('V44 balance contract forbids noncanonical or precision-losing untrusted at
   }
 });
 
-test('V48 native original transaction lookup refuses malformed and ambiguous acknowledgement',async()=>{
+test('V49 native original transaction lookup requires a stable authenticated node tip',async()=>{
   const c=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
   c.nativeIpcCandidate=true;
-  const txid='a'.repeat(64),tip_hash='b'.repeat(64);
+  const owned={exitCode:null,killed:false,_tsFailed:false};
+  c.node=owned;
+  const txid='a'.repeat(64),tip_hash='b'.repeat(64),next_hash='c'.repeat(64);
+  const status={ok:true,network:NETWORK,height:10,tip_hash};
   const base={ok:true,network:NETWORK,txid,found:true,status:'confirmed',
     confirmed_height:8,tip_height:10,tip_hash};
-  c.nativeRead=async()=>base;
-  assert.equal((await c.readTransactionByTxid(txid)).status,'confirmed');
+  let reply=base,statusReads=0;
+  c.nativeRead=async op=>op==='status'?(statusReads++,status):reply;
+  const confirmed=await c.readTransactionByTxid(txid);
+  assert.equal(confirmed.status,'confirmed');
+  assert.equal(confirmed.confirmation_finality,'NOT_PROVEN');
+  assert.equal(statusReads,2,'two authenticated status reads bracket original lookup');
   const pending={...base,status:'pending',confirmed_height:null};
-  c.nativeRead=async()=>pending;
+  reply=pending;
   assert.equal((await c.readTransactionByTxid(txid)).status,'pending');
   const missing={...base,found:false,status:null,confirmed_height:null};
-  c.nativeRead=async()=>missing;
+  reply=missing;
   assert.equal((await c.readTransactionByTxid(txid)).result_known,false);
   for(const bad of [
     {...base,network:'mainnet'}, {...base,txid:'c'.repeat(64)},
@@ -91,9 +98,29 @@ test('V48 native original transaction lookup refuses malformed and ambiguous ack
     {...base,found:false,status:'confirmed'}, {...base,found:false,confirmed_height:8},
     {...base,tip_hash:'invalid'}, {...base,tip_height:-1}
   ]){
-    c.nativeRead=async()=>bad;
+    reply=bad;
     await assert.rejects(c.readTransactionByTxid(txid),/Invalid native original-node transaction evidence/);
   }
+  reply={...base,tip_hash:next_hash};
+  await assert.rejects(c.readTransactionByTxid(txid),/Native transaction lookup chain tip mismatch/);
+  reply={...base,tip_height:9};
+  await assert.rejects(c.readTransactionByTxid(txid),/Native transaction lookup chain tip mismatch/);
+  // An actual chain-tip change after the lookup revokes the observation.
+  let read=0;
+  c.nativeRead=async op=>{
+    if(op!=='status')return base;
+    read++;
+    return read===1?status:{...status,height:11,tip_hash:next_hash};
+  };
+  await assert.rejects(c.readTransactionByTxid(txid),/chain tip changed during observation/);
+  // A post-response owned-process loss cannot yield a confirmed transaction.
+  c.nativeRead=async op=>{
+    if(op==='status')return status;
+    c.node=null;
+    return base;
+  };
+  await assert.rejects(c.readTransactionByTxid(txid),/not ready or not owned/);
+  c.node=owned;
   await assert.rejects(c.readTransactionByTxid('not-a-txid'),/Canonical transaction ID required/);
   c.nativeIpcCandidate=false;
   await assert.rejects(c.readTransactionByTxid(txid),/Authenticated original-node transaction lookup unavailable/);
