@@ -54,11 +54,13 @@ test('original encrypted vault: Unix owner-only or NTFS ACL proof; unresolved Wi
       amount_atoms:'100000000',fee_atoms:'1',tip_height:1,tip_hash:tip};
     try{await writeIntent(journal,intent,password)}
     catch(error){
-      // Original #342 intentionally requires fsync(directory) after the
-      // encrypted single-flight intent is written. NTFS Node fsync(directory)
-      // returns EPERM on this runner: never claim durable ACK or permit a send.
+      // V57: even when native Win32 directory FlushFileBuffers returns TRUE,
+      // no independently proven NTFS namespace power-loss guarantee exists.
+      // Never acknowledge a durable outbox or permit a signed send on Windows.
+      // The older Node fsync(directory) EPERM is also an acceptable fail-closed
+      // result if native support is unavailable on the test host.
       if(process.platform!=='win32'||
-         !/^outbox_write_incomplete_fail_closed:EPERM: operation not permitted, fsync$/.test(
+         !/^outbox_write_incomplete_fail_closed:(?:win32_original_outbox_durability_owner_admission_required|EPERM: operation not permitted, fsync)$/.test(
            String(error?.message)))throw error;
       await verifyWindowsPrivateFile(journal);
       assert.equal((await readFile(journal,'utf8')).includes(txid),false);
@@ -68,7 +70,7 @@ test('original encrypted vault: Unix owner-only or NTFS ACL proof; unresolved Wi
       await assert.rejects(readIntent(journal,'wrong-password'),
         /outbox_wrong_password_or_corrupt/);
       await assert.rejects(writeIntent(journal,intent,password),/EEXIST/);
-      console.log('FAE_WALLET_NTFS_VAULT_ACL_PASS_OUTBOX_DIRECTORY_FSYNC_FAIL_CLOSED');
+      console.log('FAE_WALLET_NTFS_VAULT_ACL_PASS_OUTBOX_OWNER_ADMISSION_FAIL_CLOSED');
       return;
     }
     assert.equal((await readIntent(journal,password)).txid,txid);
