@@ -196,9 +196,28 @@ class OwnedNodeIpc {
        observed.txid!==expectedTxid||observed.found!==true||
        !['pending','confirmed'].includes(observed.status)||
        !Number.isSafeInteger(observed.tip_height)||observed.tip_height<0||
-       !DIGEST.test(String(observed.tip_hash))){
+       !DIGEST.test(String(observed.tip_hash))||
+       (observed.status==='pending'&&observed.confirmed_height!==null)||
+       (observed.status==='confirmed'&&
+         (!Number.isSafeInteger(observed.confirmed_height)||
+          observed.confirmed_height<1||
+          observed.confirmed_height>observed.tip_height))){
       this.revoke('Original signed transaction outcome unverified after IPC ACK');
       throw Error('Original signed transaction outcome unverified after IPC ACK');
+    }
+    // An IPC lookup is only a snapshot; the SAME owned node must attest that
+    // no chain reorganization happened while we observed the transaction.
+    let finalTip;
+    try{finalTip=await this.read('status')}
+    catch{
+      this.revoke('Native post-submit chain tip outcome unknown');
+      throw Error('Native post-submit chain tip outcome unknown; no replay');
+    }
+    if(!finalTip||finalTip.ok!==true||finalTip.network!==NETWORK||
+       finalTip.height!==observed.tip_height||
+       finalTip.tip_hash!==observed.tip_hash){
+      this.revoke('Native signed transaction tip changed during observation');
+      throw Error('Native signed transaction tip changed during observation');
     }
     return Object.freeze({
       ok:true,network:NETWORK,txid:expectedTxid,fee_atoms:ack.fee_atoms,
