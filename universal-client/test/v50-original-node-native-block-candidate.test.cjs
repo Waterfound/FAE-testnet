@@ -685,6 +685,23 @@ test('V55 true original encrypted Wallet vault + outbox in owned OS child -> ori
       }),/isolated-vault-worker source verification failed/);
       await fs.writeFile(workerFile,bytes,{mode:0o400});
       assert.equal(controller.signer,null,'untrusted worker may not spawn');
+      // Original Wallet #342 enforces POSIX 0600 mode for its vault. On
+      // Windows, this source-owner guarantee cannot be inferred from the
+      // default NTFS mode representation. Do not skip/patch/relax the original
+      // Wallet security check merely to claim three-OS A-to-B.
+      if(process.platform==='win32'){
+        await assert.rejects(controller.runIsolatedOriginalVaultCandidateOnce({
+          to:b.address,
+          prepareFunding:()=>{throw Error('WINDOWS_BLOCKED_SHOULD_NOT_MINE')}
+        }),/failure phase VAULT_READ reason ORIGINAL_OWNER_UNIX_MODE_0600_REQUIRED/);
+        assert.equal(controller.signer,null);
+        console.log('TS_V55_WINDOWS_ORIGINAL_VAULT_OWNER_PERMISSION_GATE_FAIL_CLOSED '+
+          JSON.stringify({original_owner_unchanged:true,windows_mode_gate:true,
+            executable_wallet_transaction:false,
+            source_owner_review_required:true,
+            signer_released:true,unauthorized_bypass:false}));
+        return;
+      }
       const mine=async(address)=>{
         const opts=miner.resolveOptions({node:endpoint,address,once:true,json:true,
           'chunk-size':'4096','yield-ms':'0'},{});
