@@ -62,3 +62,72 @@ test('IPC timeout is fail-closed and never retries state-changing commands',asyn
     await assert.rejects(ipc.read('status'),/unavailable/);
   });
 });
+
+// V50 original miner -> parent -> original node transport candidate:
+// this proves OS-owned framing and unknown-outcome safety against a disposable
+// fixture, NOT acceptance by any original protected node or original consensus.
+const syntheticBlock=()=>({
+  header:{network:'fairyelf-public-testnet-v4',height:2,
+    previous_hash:'0'.repeat(64),tx_count:0},
+  nonce:7,hash:'a'.repeat(64),txids:[]
+});
+test('V50 no original-node owner admission means zero native block mutations',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child);
+    await assert.rejects(ipc.submitMinedBlock(syntheticBlock()),/not owner-admitted/);
+    await assert.rejects(ipc.read('submit-mined-block',{submission:syntheticBlock()}),
+      /Unsupported native IPC read/);
+    assert.equal((await ipc.read('status')).source,'REAL_CHILD_OS_IPC_FIXTURE_ONLY');
+    ipc.revoke();
+  });
+});
+test('V50 candidate accepted-format receipt uses true OS child IPC, no HTTP fallback',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowBlockMutation:true});
+    const receipt=await ipc.submitMinedBlock(syntheticBlock());
+    assert.deepEqual(receipt,{ok:true,network:'fairyelf-public-testnet-v4',
+      durable:true,height:2,hash:'a'.repeat(64),tx_count:0});
+    assert.equal((await ipc.read('status')).source,'REAL_CHILD_OS_IPC_FIXTURE_ONLY');
+    ipc.revoke();
+  });
+});
+for(const mode of ['block-not-durable','block-hash-mismatch']){
+  test('V50 forged simulated native block receipt '+mode+' revokes entire session',async()=>{
+    await withChild(mode,async child=>{
+      const ipc=new OwnedNodeIpc(child,{allowBlockMutation:true});
+      await assert.rejects(ipc.submitMinedBlock(syntheticBlock()),
+        /not durable or mismatched/);
+      assert.equal(ipc.revoked,true);
+      await assert.rejects(ipc.read('status'),/unavailable/);
+    });
+  });
+}
+test('V50 original mined-block request refuses malformed/oversized envelopes before IPC send',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowBlockMutation:true});
+    for(const invalid of [
+      {...syntheticBlock(),nonce:-1},
+      {...syntheticBlock(),hash:'z'.repeat(64)},
+      {...syntheticBlock(),header:{...syntheticBlock().header,network:'mainnet'}},
+      {...syntheticBlock(),txids:['invalid']},
+      {...syntheticBlock(),extra_auth:true},
+      {...syntheticBlock(),header:{...syntheticBlock().header,
+        untrusted_padding:'x'.repeat(66000)}}
+    ])await assert.rejects(ipc.submitMinedBlock(invalid),
+      /Invalid original mined-block proposal|exceeds IPC limit/);
+    // None of the rejected requests consumed the authenticated sequence.
+    assert.equal(ipc.counter,0);
+    assert.equal((await ipc.read('status')).height,1);
+    ipc.revoke();
+  });
+});
+test('V50 unknown result never retries an original-node block mutation',async()=>{
+  await withChild('hang',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowBlockMutation:true,timeoutMs:80});
+    await assert.rejects(ipc.submitMinedBlock(syntheticBlock()),/outcome unknown/);
+    assert.equal(ipc.counter,1);
+    assert.equal(ipc.revoked,true);
+    await assert.rejects(ipc.submitMinedBlock(syntheticBlock()),/unavailable/);
+    assert.equal(ipc.counter,1,'timeout cannot trigger a second native mutation');
+  });
+});
