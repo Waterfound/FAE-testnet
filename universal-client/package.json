@@ -30,6 +30,7 @@
     "files": [
       "src/**/*",
       "!src/v52-disposable-original-wallet-signer.mjs",
+      "!src/v55-isolated-original-vault-signer.mjs",
       "!src/owned-disposable-wallet-signer-bridge.cjs",
       "package.json"
     ],
