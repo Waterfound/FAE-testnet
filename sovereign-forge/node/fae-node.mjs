@@ -51,6 +51,11 @@ const MANAGED_MODE=process.env.FAE_TRIUM_IPC==='1';
 // Two explicit opt-ins are required; neither is set by the installed client.
 const SIGNED_TX_IPC_CANDIDATE=MANAGED_MODE&&
   process.env.FAE_TRIUM_SIGNED_TX_IPC_CANDIDATE==='1';
+// V53 original node source-owner proposal; NEVER product-enabled by default.
+const BLOCK_IPC_CANDIDATE=MANAGED_MODE&&
+  process.env.FAE_TRIUM_BLOCK_IPC_CANDIDATE==='1';
+if(!MANAGED_MODE&&process.env.FAE_TRIUM_BLOCK_IPC_CANDIDATE==='1')
+  throw Error('Block original-node IPC candidate requires managed mode');
 if(!MANAGED_MODE&&process.env.FAE_TRIUM_SIGNED_TX_IPC_CANDIDATE==='1')
   throw Error('Signed original-node IPC candidate requires managed mode');
 // Fail closed before network startup: managed native child must bind only to
@@ -150,6 +155,10 @@ async function handler(req,res){try{if(MANAGED_MODE&&!managedHttpRequestAllowed(
   // unauthenticated local HTTP process. Future owner-approved signing and
   // transmission must use a private OS-bound channel; miner /submit-block
   // remains available to the existing native miner.
+  // When the explicit inherited OS block channel is selected, no HTTP
+  // process can bypass its ownership boundary via the old local mutation.
+  if(BLOCK_IPC_CANDIDATE&&url.pathname==='/submit-block'&&req.method==='POST')
+    return send(res,403,{ok:false,error:'managed_block_ingress_requires_native_owner'});
   if(MANAGED_MODE&&url.pathname==='/submit-tx'&&req.method==='POST')return send(res,403,{ok:false,error:'managed_tx_ingress_requires_native_owner'});
   if(url.pathname==='/submit-tx'&&req.method==='POST'){const body=await readBody(req);let accepted;try{await serial(async()=>{accepted=acceptTxInto(state,body?.tx||body);await persist()})}catch(error){return send(res,409,{ok:false,error:error.code||error.message})}relay('/submit-tx',{tx:normalizeTx(body?.tx||body)}).catch(()=>{});return send(res,200,{ok:true,txid:accepted.txid,fee_atoms:accepted.fee_atoms})}
   if(url.pathname==='/submit-block'&&req.method==='POST'){const body=await readBody(req);let accepted;try{await serial(async()=>{const next=appendBlockFromSubmission(state,{header:body.header,nonce:Number(body.nonce),hash:String(body.hash||''),txids:(body.txids||[]).map(String)});state=next;accepted=tip(state);await persist()})}catch(error){const code=String(error.message).split(':')[0];return send(res,code==='stale_tip'?409:400,{ok:false,error:code,reason:code,height:tip(state)?.height||0,tip_hash:tip(state)?.hash||ZERO_HASH})}relay('/submit-block',{header:body.header,nonce:Number(body.nonce),hash:String(body.hash),txids:(body.txids||[]).map(String)}).catch(()=>{});return send(res,200,{ok:true,height:accepted.height,hash:accepted.hash,tx_count:accepted.txids.length})}
@@ -189,6 +198,25 @@ if(MANAGED_MODE){
         status:record?.status||null,
         confirmed_height:record?.confirmed_height??null,
         tip_height:current?.height||0,tip_hash:current?.hash||ZERO_HASH};
+    },
+    allowBlockMutation:BLOCK_IPC_CANDIDATE,
+    submitMinedBlock:async submission=>{
+      if(!BLOCK_IPC_CANDIDATE)throw Error('native_block_admission_not_granted');
+      let accepted;
+      await serial(async()=>{
+        // This is the original node's existing consensus path. No cloned PoW.
+        const next=appendBlockFromSubmission(state,{
+          header:submission.header,nonce:submission.nonce,
+          hash:submission.hash,txids:submission.txids
+        });
+        const previous=state;state=next;
+        try{await persist()}catch(error){state=previous;throw error}
+        accepted=tip(state);
+      });
+      if(ENABLE_SYNC)relay('/submit-block',submission).catch(()=>{});
+      return {ok:true,network:NETWORK,durable:true,
+        height:accepted.height,hash:accepted.hash,
+        tx_count:accepted.txids.length};
     },
     allowSignedMutation:SIGNED_TX_IPC_CANDIDATE,
     submitSignedTx:async raw=>{
