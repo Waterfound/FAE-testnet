@@ -29,6 +29,8 @@
     "asar": true,
     "files": [
       "src/**/*",
+      "!src/v52-disposable-original-wallet-signer.mjs",
+      "!src/owned-disposable-wallet-signer-bridge.cjs",
       "package.json"
     ],
     "extraResources": [
