@@ -113,14 +113,17 @@ process.on('message',async packet=>{
       status:'ORIGINAL_VAULT_SIGNED_OUTBOX_DURABLE',from:identity,to:intent.to,
       authorization_id:intent.authorization_id,tx,txid});
     // The worker never sends a second transaction and never submits itself.
-  }catch{
-    // Diagnostic uses ONLY a hardcoded process phase; never stringify the
-    // exception, vault content, password, key, path or original intent.
+  }catch(error){
+    // The ONLY exposed reason is a literal allowlisted original Wallet
+    // ownership/permission invariant, never arbitrary exception or secrets.
     const failed=phase;
+    const reason=phase==='VAULT_READ'&&
+      error?.message==='vault_requires_regular_private_0600_file'?
+      'ORIGINAL_OWNER_UNIX_MODE_0600_REQUIRED':'UNCLASSIFIED_FAIL_CLOSED';
     if(session&&process.connected){
       process.send({mode:MODE,network:NETWORK,session,
         request_id:state==='PREPARING'?1:2,
-        status:'ISOLATED_PROOF_FAILED',phase:failed},()=>{
+        status:'ISOLATED_PROOF_FAILED',phase:failed,reason},()=>{
           revoke();if(process.connected)process.disconnect();
         });
     }else{
