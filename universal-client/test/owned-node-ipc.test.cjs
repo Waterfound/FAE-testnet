@@ -131,3 +131,77 @@ test('V50 unknown result never retries an original-node block mutation',async()=
     assert.equal(ipc.counter,1,'timeout cannot trigger a second native mutation');
   });
 });
+
+const disposableSignedTx=()=>({
+  version:2,network:'fairyelf-public-testnet-v4',
+  inputs:['c'.repeat(64)+':0'],
+  outputs:[{address:'faet1z5g4r8qgv29jcy350mvxgr3hpk35vjhdk3s6fn',
+    amount_atoms:'99999999'}],
+  public_key_spki:'A'.repeat(44),signature:'A'.repeat(88)
+});
+test('V50 original Wallet native transmission is disabled absent signer/source-owner admission',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child);
+    await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'a'.repeat(64)),
+      /not owner-admitted/);
+    await assert.rejects(ipc.read('submit-signed-tx',{tx:disposableSignedTx()}),
+      /Unsupported native IPC read/);
+    assert.equal(ipc.counter,0,'no mutation or response accepted from default client');
+    ipc.revoke();
+  });
+});
+test('V50 native signed TX candidate binds expected original Wallet TXID to same-child lookup',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowSignedTxMutation:true});
+    const txid='a'.repeat(64);
+    const observed=await ipc.submitSignedTx(disposableSignedTx(),txid);
+    assert.equal(observed.txid,txid);
+    assert.equal(observed.status,'pending');
+    assert.equal(observed.observed_tip_height,1);
+    assert.equal(observed.confirmation_finality,'NOT_PROVEN');
+    assert.equal(observed.submission_source,'ORIGINAL_NODE_INHERITED_IPC_CANDIDATE');
+    assert.equal(ipc.counter,2,'one submission + one read-only same OS-child reconciliation');
+    ipc.revoke();
+  });
+});
+for(const variant of ['signed-wrong-txid','signed-not-found']){
+  test('V50 signed TX IPC source contradictions revoke '+variant,async()=>{
+    await withChild(variant,async child=>{
+      const ipc=new OwnedNodeIpc(child,{allowSignedTxMutation:true});
+      await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'a'.repeat(64)),
+        /native acknowledgement mismatch|outcome unverified/);
+      assert.equal(ipc.revoked,true);
+      await assert.rejects(ipc.read('status'),/unavailable/);
+    });
+  });
+}
+test('V50 malformed signed original TX is rejected BEFORE OS IPC',async()=>{
+  await withChild('good',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowSignedTxMutation:true});
+    const txid='a'.repeat(64);
+    for(const bad of [
+      {...disposableSignedTx(),network:'mainnet'},
+      {...disposableSignedTx(),signature:undefined},
+      {...disposableSignedTx(),inputs:[]},
+      {...disposableSignedTx(),inputs:['invalid']},
+      {...disposableSignedTx(),outputs:[]},
+      {...disposableSignedTx(),outputs:[{address:'somewhere',amount_atoms:'0'}]},
+      {...disposableSignedTx(),owner_override:true}
+    ])await assert.rejects(ipc.submitSignedTx(bad,txid),/shape rejected/);
+    await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'not-a-txid'),/shape rejected/);
+    assert.equal(ipc.counter,0);
+    ipc.revoke();
+  });
+});
+test('V50 native signed TX timeout is UNKNOWN, never an automatic resubmission',async()=>{
+  await withChild('hang',async child=>{
+    const ipc=new OwnedNodeIpc(child,{allowSignedTxMutation:true,timeoutMs:80});
+    await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'a'.repeat(64)),
+      /outcome unknown/);
+    assert.equal(ipc.revoked,true);
+    assert.equal(ipc.counter,1);
+    await assert.rejects(ipc.submitSignedTx(disposableSignedTx(),'a'.repeat(64)),
+      /unavailable/);
+    assert.equal(ipc.counter,1,'no retry after unknown signed-tx outcome');
+  });
+});
