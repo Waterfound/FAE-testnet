@@ -154,6 +154,20 @@ class OwnedNodeIpc {
       this.revoke('Original-node mined-block receipt not durable or mismatched');
       throw Error('Original-node mined-block receipt not durable or mismatched');
     }
+    // The same OS-owned original node must independently report the accepted
+    // chain tip. A bare durable:true string is not enough to grant a success
+    // receipt to the miner. A failed/missing read is UNKNOWN, never a retry.
+    let observed;
+    try{observed=await this.read('status')}
+    catch{
+      this.revoke('Original mined-block post-ACK observation unavailable');
+      throw Error('Original mined-block post-ACK outcome unknown; no replay');
+    }
+    if(!observed||observed.ok!==true||observed.network!==NETWORK||
+       observed.height!==result.height||observed.tip_hash!==result.hash){
+      this.revoke('Original mined-block receipt contradicted by authenticated chain tip');
+      throw Error('Original mined-block receipt contradicted by authenticated chain tip');
+    }
     return Object.freeze({ok:true,network:NETWORK,durable:true,
       height:result.height,hash:result.hash,tx_count:result.tx_count});
   }
