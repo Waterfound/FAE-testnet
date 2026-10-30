@@ -1,0 +1,28 @@
+name: TS V56 original Wallet Win32 durability capability review
+on:
+  pull_request:
+    paths:
+      - 'standalone/wallet/windows-durability-capability-candidate.mjs'
+      - 'standalone/wallet/windows-durability-capability-candidate.test.mjs'
+      - '.github/workflows/ts-v56-win32-durability-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  win32-durability-capabilities:
+    name: isolated OS probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Original Wallet protected outbox remains unadmitted
+        run: node --test standalone/wallet/windows-durability-capability-candidate.test.mjs
