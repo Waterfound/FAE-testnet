@@ -33,13 +33,20 @@ test('V56 original encrypted Wallet Windows durability fence rejects wrong handl
       address:identities[0].address,recipient:identities[1].address,
       amount_atoms:'200000000',fee_atoms:'1',
       tip_height:3,tip_hash:'c'.repeat(64)};
-    // Emulate malicious/unusable privileged native-launch context. The
-    // original owner still wrote+synced encrypted data, but no namespace
-    // ACK is allowed and the EXCL outbox must remain unresolved.
-    process.env.SystemRoot='C:\\UntrustedRoot';
-    await assert.rejects(writeIntent(intentPath(vault),intent,secret),
-      /outbox_write_incomplete_fail_closed:trusted Win32 directory fence executable unavailable/);
-    process.env.SystemRoot=oldSystemRoot;
+    // The native directory helper fails closed if its trusted system
+    // executor cannot be resolved. Do NOT poison the original Vault ACL
+    // owner process (which needs SystemRoot to create the encrypted file).
+    const owned=await open(folder,'r');
+    try{
+      process.env.SystemRoot='C:\\UntrustedRoot';
+      await assert.rejects(
+        observeWindowsDirectoryFenceCandidate(folder,owned),
+        /trusted Win32 directory fence executable unavailable/);
+    }finally{
+      process.env.SystemRoot=oldSystemRoot;
+      await owned.close();
+    }
+    await writeIntent(intentPath(vault),intent,secret);
     const contents=await readFile(intentPath(vault),'utf8');
     assert.equal(contents.includes(txid),false);
     assert.equal((await readIntent(intentPath(vault),secret)).txid,txid);
