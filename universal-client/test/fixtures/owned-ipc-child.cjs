@@ -1,17 +1,24 @@
 'use strict';
 // Disposable child process fixture, NOT the original FAE node.
 const NETWORK='fairyelf-public-testnet-v4';
+let lastSimulatedBlock=null;
 process.on('message',message=>{
   if(message?.type!=='TRIUM_FAE_NODE_IPC_REQUEST_V1')return;
   if(process.env.IPC_FIXTURE_MODE==='hang')return;
   if(process.env.IPC_FIXTURE_MODE==='die'){process.exit(3)}
+  if(message.op==='submit-mined-block')lastSimulatedBlock=message.params?.submission||null;
   const response={
     type:'TRIUM_FAE_NODE_IPC_REPLY_V1',
     session:process.env.IPC_FIXTURE_MODE==='wrong-session'?'0'.repeat(64):message.session,
     network:process.env.IPC_FIXTURE_MODE==='wrong-network'?'wrong-network':NETWORK,
     request_id:process.env.IPC_FIXTURE_MODE==='replay'?message.request_id+1:message.request_id,
     ok:true,
-    result:message.op==='submit-signed-tx'?
+    result:message.op==='status'&&lastSimulatedBlock?
+      {ok:true,network:NETWORK,height:lastSimulatedBlock.header.height,
+        tip_hash:process.env.IPC_FIXTURE_MODE==='block-status-wrong-tip'?'e'.repeat(64):
+          lastSimulatedBlock.hash,
+        source:'SYNTHETIC_POST_ACK_TIP_ONLY'}:
+    message.op==='submit-signed-tx'?
       {ok:true,network:NETWORK,
         txid:process.env.IPC_FIXTURE_MODE==='signed-wrong-txid'?
           'f'.repeat(64):'a'.repeat(64),
