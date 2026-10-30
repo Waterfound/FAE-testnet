@@ -8,20 +8,51 @@ const IPC_ENV_FLAG='FAE_TRIUM_IPC';
 const REQUEST='TRIUM_FAE_NODE_IPC_REQUEST_V1';
 const REPLY='TRIUM_FAE_NODE_IPC_REPLY_V1';
 const ALLOWED_READS=new Set(['status','balance','spendable','transaction-lookup']);
+const BLOCK_MUTATION='submit-mined-block';
+const DIGEST=/^[0-9a-f]{64}$/;
+const MAX_BLOCK_PACKET_BYTES=65536;
+// Parent-side boundary only. No source-owner node currently admits this opcode.
+function boundedOriginalBlockEnvelope(submission){
+  if(!submission||typeof submission!=='object'||Array.isArray(submission)||
+     Object.keys(submission).sort().join(',')!=='hash,header,nonce,txids')
+    throw Error('Invalid original mined-block proposal envelope');
+  const {header,nonce,hash,txids}=submission;
+  if(!header||typeof header!=='object'||Array.isArray(header)||
+     header.network!==NETWORK||!Number.isSafeInteger(header.height)||header.height<1||
+     !DIGEST.test(String(header.previous_hash))||
+     !Number.isSafeInteger(nonce)||nonce<0||!DIGEST.test(String(hash))||
+     !Array.isArray(txids)||txids.length>20||new Set(txids).size!==txids.length||
+     txids.some(txid=>typeof txid!=='string'||!DIGEST.test(txid))||
+     header.tx_count!==txids.length)
+    throw Error('Invalid original mined-block proposal envelope');
+  let size;
+  try{size=Buffer.byteLength(JSON.stringify({type:REQUEST,network:NETWORK,
+    session:'0'.repeat(64),request_id:1,op:BLOCK_MUTATION,
+    params:{submission}}),'utf8')}catch{
+    throw Error('Invalid original mined-block proposal encoding');
+  }
+  if(size>MAX_BLOCK_PACKET_BYTES)
+    throw Error('Original mined-block proposal exceeds IPC limit');
+  return submission;
+}
 function alive(child){
   return child&&child.connected===true&&Number.isSafeInteger(child.pid)&&child.pid>0&&
     child.exitCode===null&&!child.killed&&!child._tsFailed;
 }
 class OwnedNodeIpc {
-  constructor(child,{timeoutMs=2500,maxResponseBytes=1048576}={}){
+  constructor(child,{timeoutMs=2500,maxResponseBytes=1048576,allowBlockMutation=false}={}){
     if(!alive(child)||typeof child.send!=='function'||
        typeof child.on!=='function'||typeof child.off!=='function')
       throw Error('OS-owned connected child IPC channel required');
     if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>30000||
        !Number.isSafeInteger(maxResponseBytes)||maxResponseBytes<128||
-       maxResponseBytes>2097152)throw Error('Invalid IPC security limits');
+       maxResponseBytes>2097152||typeof allowBlockMutation!=='boolean')
+      throw Error('Invalid IPC security limits');
     this.child=child;this.timeoutMs=timeoutMs;
     this.maxResponseBytes=maxResponseBytes;
+    // Always false in the ordinary product; setting true additionally requires
+    // an original-node source owner to admit the matching opcode separately.
+    this.allowBlockMutation=allowBlockMutation;
     this.session=randomBytes(32).toString('hex');
     this.counter=0;this.pending=null;this.revoked=false;
     this.onMessage=this.onMessage.bind(this);
@@ -71,6 +102,32 @@ class OwnedNodeIpc {
            Object.keys(params).length===1&&
            typeof params.address==='string'&&params.address.length<=90))
       return Promise.reject(Error('Unsupported native IPC read'));
+    return this.#dispatch(op,params);
+  }
+  // Original-miner callback transport candidate. NOT a renderer API. This is
+  // disabled in all existing Product/ProcessController construction paths.
+  // The ORIGINAL source-owner node must implement/authorize the opcode; no
+  // fallback to legacy HTTP or implicit retry exists here.
+  async submitMinedBlock(submission){
+    if(!this.allowBlockMutation)
+      throw Error('Original-node authenticated block mutation not owner-admitted');
+    if(this.revoked||!alive(this.child))
+      throw Error('Managed node IPC channel unavailable');
+    const proposal=boundedOriginalBlockEnvelope(submission);
+    const result=await this.#dispatch(BLOCK_MUTATION,{submission:proposal});
+    if(!result||typeof result!=='object'||Array.isArray(result)||
+       result.ok!==true||result.network!==NETWORK||
+       result.durable!==true||result.height!==proposal.header.height||
+       result.hash!==proposal.hash||result.tx_count!==proposal.txids.length){
+      this.revoke('Original-node mined-block receipt not durable or mismatched');
+      throw Error('Original-node mined-block receipt not durable or mismatched');
+    }
+    return Object.freeze({ok:true,network:NETWORK,durable:true,
+      height:result.height,hash:result.hash,tx_count:result.tx_count});
+  }
+  #dispatch(op,params){
+    if(this.revoked||!alive(this.child))
+      return Promise.reject(Error('Managed node IPC channel unavailable'));
     if(this.pending)return Promise.reject(Error('Native node IPC request already pending'));
     const id=++this.counter;
     return new Promise((resolve,reject)=>{
