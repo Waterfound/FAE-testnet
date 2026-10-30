@@ -80,7 +80,8 @@ export async function writeIntent(path,record,password){
   }finally{key.fill(0);plain.fill(0);}
 }
 export async function readIntent(path,password){
-  const st=await lstat(path);
+  // Preserve full 64-bit NTFS identity when validating the opened file.
+  const st=await lstat(path,{bigint:process.platform==='win32'});
   if(!st.isFile()||st.isSymbolicLink()||
      (process.platform!=='win32'&&(st.mode&0o077)!==0))
     throw Error('outbox_requires_private_0600_file');
@@ -88,7 +89,7 @@ export async function readIntent(path,password){
   if(typeof process.getuid==='function'&&st.uid!==process.getuid())throw Error('outbox_owner_mismatch');
   const handle=await open(path,constants.O_RDONLY|NOFOLLOW);
   try{
-    const v=await handle.stat();
+    const v=await handle.stat({bigint:process.platform==='win32'});
     if(v.size<100||v.size>8192||v.ino!==st.ino||v.dev!==st.dev||
        (process.platform!=='win32'&&(v.mode&0o077)!==0))
       throw Error('outbox_file_invalid');
