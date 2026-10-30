@@ -9,7 +9,7 @@ const {NETWORK,validateRead}=require('./bridge-contract.cjs');
 const {OwnedNodeIpc,IPC_ENV_FLAG}=require('./owned-node-ipc.cjs');
 const {OwnedOriginalMinerBridge}=require('./owned-original-miner-bridge.cjs');
 const {validateNativeNodeSourcePins,assertPinnedOriginalNodeSources,
-  assertPinnedOriginalMinerSources}=require('./pinned-node-source.cjs');
+  assertPinnedOriginalMinerSources,assertPinnedDisposableWalletSignerSource}=require('./pinned-node-source.cjs');
 const {isManagedChildAlive:alive,assertManagedNodeReady,probeLoopbackPort,allocateOsAssignedLoopbackPort,verifyManagedReadiness,waitForManagedListenEvidence}=require('./managed-node-gate.cjs');
 
 const HOST='http://127.0.0.1:8787';
@@ -169,6 +169,10 @@ class ProcessController extends EventEmitter{
     this.node=null;this.miner=null;this.nodeStarting=false;
     this.nodeStopping=false;this.nodeStopPromise=null;this.nodeGeneration=0;this.nodeStartGeneration=0;
     this.nativeMinerBridge=null;
+    // V54: isolated disposable Wallet OS-child candidate. No GUI or production
+    // signer admission; the bridge is intentionally absent from installers.
+    this.signer=null;this.signerStarting=false;this.signerStopPending=false;
+    this.signerStopPromise=null;this.signerGeneration=0;
     this.minerStarting=false;this.minerStopPending=false;
     this.minerStopPromise=null;this.minerGeneration=0;
     this.recoveryIssue=null;
@@ -194,6 +198,10 @@ class ProcessController extends EventEmitter{
         this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
       }
     };
+    const invalidateDependentSigner=()=>{
+      if(child===this.node&&(alive(this.signer)||this.signerStarting))
+        void this.stopIsolatedSigner().catch(()=>this.emit('state',this.snapshot()));
+    };
     const invalidateDependentMiner=()=>{
       // A managed node crash revokes the miner's permission to continue against its old port.
       // In particular, a newly bound (unowned) local process must never inherit mining.
@@ -203,13 +211,13 @@ class ProcessController extends EventEmitter{
     };
     child.on('error',()=>{
       if(child===this.node)this.revokeNodeIpc();
-      child._tsFailed=true;invalidateMiner();invalidateDependentMiner();
+      child._tsFailed=true;invalidateMiner();invalidateDependentMiner();invalidateDependentSigner();
       this.emit('state',this.snapshot());
     });
     child.on('exit',()=>{
       if(child===this.node)this.revokeNodeIpc();
       child._tsExited=true;
-      invalidateMiner();invalidateDependentMiner();
+      invalidateMiner();invalidateDependentMiner();invalidateDependentSigner();
       this.emit('state',this.snapshot());
     });
     return child;
@@ -360,11 +368,13 @@ class ProcessController extends EventEmitter{
     // The generation is not reset when shutdown finishes.
     this.nodeGeneration++;
     this.revokeNodeIpc();
+    this.signerGeneration++;
     this.nodeStopping=true;
     this.emit('state',this.snapshot());
     this.nodeStopPromise=(async()=>{
       try{
         await this.stopMiner();
+        await this.stopIsolatedSigner();
         await this.stop(this.node);
         this.node=null;
       }finally{
@@ -562,6 +572,77 @@ class ProcessController extends EventEmitter{
       this.telemetry={...this.telemetry,state:'STOPPED',hashrate_hs:null};
       this.emit('state',this.snapshot());
     }
+  }
+
+  // V54 CANDIDATE-ONLY: runs the existing V52 disposable original Wallet
+  // signer under actual ProcessController lifecycle, never from renderer IPC.
+  // The bridge is NOT packaged, no real encrypted vault may be unlocked, and
+  // the normal app constructs nativeIpcCandidate=false.
+  async runIsolatedOriginalWalletSignerCandidateOnce({
+    signerChild,signerSourceSha256,from,to,outpoint
+  }={}){
+    if(process.env.TS_V54_ISOLATED_SIGNER_OWNER_PROOF!=='1')
+      throw Error('Original Wallet signer product admission not granted');
+    if(this.signerStarting||this.signerStopPending||alive(this.signer))
+      throw Error('Disposable Wallet signer session already active');
+    this.assertNode();
+    const node=this.node,channel=this.nodeIpc,generation=this.signerGeneration;
+    if(!this.nativeIpcCandidate||!channel||channel.child!==node||
+       !channel.allowSignedTxMutation||channel.revoked||this.nodeStopping)
+      throw Error('Original Wallet signed mutation not source-owner admitted');
+    if(!signerChild||!Array.isArray(signerChild.spawnargs)||
+       signerChild.exitCode!==null||signerChild.killed||
+       !signerChild.connected)
+      throw Error('Disposable signer OS process not owned');
+    // Synchronous acquisition before the first await forbids duplicate calls.
+    this.signerStarting=true;
+    try{
+      await assertPinnedDisposableWalletSignerSource(this.repoRoot,signerSourceSha256);
+      if(this.node!==node||this.nodeIpc!==channel||
+         channel.revoked||this.signerGeneration!==generation||
+         this.signerStopPending||this.nodeStopping||!alive(node)||
+         signerChild.exitCode!==null||!signerChild.connected)
+        throw Error('Disposable Wallet signer source owner changed before signing');
+      const signerScript=path.join(this.repoRoot,'universal-client','src',
+        'v52-disposable-original-wallet-signer.mjs');
+      if(!signerChild.spawnargs.includes(signerScript))
+        throw Error('Original Wallet signer worker executable mismatch');
+      const {OwnedDisposableWalletSignerBridge}=require(
+        './owned-disposable-wallet-signer-bridge.cjs');
+      const bridge=new OwnedDisposableWalletSignerBridge({
+        signerChild,signerScript,nodeIpc:channel,from,to});
+      this.signer=signerChild;this.signerStarting=false;
+      try{
+        const receipt=await bridge.signAndSubmitOnce(outpoint);
+        if(this.node!==node||this.nodeIpc!==channel||
+           channel.revoked||this.signerGeneration!==generation||
+           this.signerStopPending||this.signer!==signerChild)
+          throw Error('Signer or original node changed during transaction; outcome unknown');
+        return receipt;
+      }finally{
+        if(this.signer===signerChild)this.signer=null;
+      }
+    }finally{
+      this.signerStarting=false;
+      // No abandoned privileged OS child, even on integrity mismatch or crash.
+      await this.stop(signerChild);
+    }
+  }
+  stopIsolatedSigner(){
+    this.signerGeneration++;
+    const signer=this.signer;
+    if(this.signerStopPromise)return this.signerStopPromise;
+    this.signerStopPending=true;
+    const promise=(async()=>{
+      try{await this.stop(signer)}
+      finally{
+        if(this.signer===signer)this.signer=null;
+        this.signerStopPending=false;
+        this.signerStopPromise=null;
+      }
+    })();
+    this.signerStopPromise=promise;
+    return promise;
   }
   async startMiner(address){
     addressValid(address);this.assertNode();
