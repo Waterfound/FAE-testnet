@@ -1,0 +1,30 @@
+name: TS V58 original Wallet independent process recovery
+on:
+  pull_request:
+    paths:
+      - 'standalone/wallet/v58-outbox-fresh-process-worker.mjs'
+      - 'standalone/wallet/v58-outbox-fresh-process-recovery.test.mjs'
+      - '.github/workflows/ts-v58-wallet-outbox-recovery-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-wallet-process-recovery:
+    name: real original outbox fresh process recovery (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Real child termination and original encrypted outbox cold-process recovery
+        run: node --test standalone/wallet/v58-outbox-fresh-process-recovery.test.mjs
+      - name: Preserve V57 Windows owner-gate and Unix security regression
+        run: node --test standalone/wallet/windows-private-file-acl.test.mjs
