@@ -400,3 +400,109 @@ test('V50 real original OS miner child -> trusted parent -> original node IPC ->
       await fs.rm(dir,{recursive:true,force:true});
     }
   });
+
+test('V50 isolated original Wallet owner A-to-B through actual signed original-node IPC, mined confirmation and cold restart',
+  {skip:process.env.TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE!=='1',timeout:120000},
+  async()=>{
+    // This disposable integration uses original Wallet #342 cryptography from
+    // exact owner bytes. It does NOT use a user vault, renderer, or admitted
+    // original Wallet signing process: Gate B/C/D remain OPEN.
+    const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v50-wallet-ab-'));
+    const stateFile=path.join(dir,'state.json');
+    let node=null,ipc=null;
+    try{
+      const {miner,core}=await stageSource(dir);
+      const wallet=await stageExactOriginalWalletCrypto(dir);
+      const a=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0x11)))[0];
+      const b=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0xab)))[0];
+      assert.notEqual(a.address,b.address);
+      const initialPort=await port();
+      let endpoint='http://127.0.0.1:'+initialPort;
+      node=await startOwnerCandidate(dir,stateFile,initialPort,{signedTx:true});
+      ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+        allowSignedTxMutation:true,timeoutMs:5000});
+      assert.equal((await ipc.read('status')).height,0);
+      async function mineOne(address){
+        const options=miner.resolveOptions({node:endpoint,address,once:true,json:true,
+          'chunk-size':'4096','yield-ms':'0'},{});
+        let nativeReceipt=null;
+        const mined=await miner.runMiner(options,{emit:()=>{},
+          submitMinedBlock:async submission=>{
+            const checked=core.buildSubmission({
+              header:submission.header,txids:submission.txids
+            },submission.nonce,submission.hash);
+            assert.deepEqual(submission,checked,'original mining-core must validate each proof');
+            nativeReceipt=await ipc.submitMinedBlock(submission);
+            return nativeReceipt;
+          }
+        });
+        assert.equal(mined.accepted,1);
+        assert.ok(mined.totalHashes>0);
+        assert.equal(nativeReceipt.durable,true);
+        return nativeReceipt;
+      }
+      const funded=await mineOne(a.address);
+      assert.equal(funded.height,1);
+      const fundedBalance=await ipc.read('balance',{address:a.address});
+      assert.equal(fundedBalance.balance_atoms,'1000000000');
+      const originalSpend=wallet.buildSignedTransaction(a,[funded.hash+':0'],[
+        {address:b.address,amount_atoms:'100000000'},
+        {address:a.address,amount_atoms:'899999999'}
+      ]);
+      assert.equal(originalSpend.tx.network,'fairyelf-public-testnet-v4');
+      const accepted=await ipc.submitSignedTx(originalSpend.tx,originalSpend.txid);
+      assert.equal(accepted.txid,originalSpend.txid);
+      assert.equal(accepted.fee_atoms,'1');
+      assert.equal(accepted.status,'pending');
+      assert.equal(accepted.confirmation_finality,'NOT_PROVEN');
+      const pending=await ipc.read('transaction-lookup',{txid:originalSpend.txid});
+      assert.equal(pending.found,true);
+      assert.equal(pending.status,'pending');
+      assert.equal(pending.confirmed_height,null);
+      const confirmedBlock=await mineOne(a.address);
+      assert.equal(confirmedBlock.height,2);
+      const confirmed=await ipc.read('transaction-lookup',{txid:originalSpend.txid});
+      assert.equal(confirmed.found,true);
+      assert.equal(confirmed.status,'confirmed');
+      assert.equal(confirmed.confirmed_height,2);
+      const bBalance=await ipc.read('balance',{address:b.address});
+      assert.equal(bBalance.balance_atoms,'100000000');
+      const persisted=JSON.parse(await fs.readFile(stateFile,'utf8'));
+      assert.equal(persisted.chain.length,2);
+      assert.equal(persisted.transactions[originalSpend.txid].status,'confirmed');
+      assert.equal(persisted.transactions[originalSpend.txid].fee_atoms,'1');
+      assert.equal(persisted.utxos[funded.hash+':0'].spent,true);
+      ipc.revoke();ipc=null;
+      await stop(node);node=null;
+      const coldPort=await port();
+      endpoint='http://127.0.0.1:'+coldPort;
+      node=await startOwnerCandidate(dir,stateFile,coldPort,{signedTx:true});
+      ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+        allowSignedTxMutation:true,timeoutMs:5000});
+      const recovered=await ipc.read('transaction-lookup',{txid:originalSpend.txid});
+      assert.equal(recovered.status,'confirmed');
+      assert.equal(recovered.confirmed_height,2);
+      assert.equal((await ipc.read('status')).tip_hash,confirmedBlock.hash);
+      assert.equal((await ipc.read('balance',{address:b.address})).balance_atoms,'100000000');
+      const denied=await fetch(endpoint+'/submit-tx',{
+        method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({tx:originalSpend.tx})});
+      assert.equal(denied.status,403,'managed original-node HTTP signing path must remain denied');
+      console.log('TS_V50_REAL_ORIGINAL_WALLET_NATIVE_AB_CANDIDATE_PASS '+JSON.stringify({
+        original_wallet_owner:WALLET_HEAD,original_node_owner:NODE_HEAD,
+        original_miner_owner:MINER_HEAD,disposable_keys_only:true,
+        original_crypto:true,original_consensus:true,original_fee_atoms:'1',
+        real_signed_tx:true,authenticated_node_ipc:true,
+        mempool_accepted:true,mined_confirmation:true,b_received:true,
+        cold_restart_recovered:true,no_managed_http_tx_mutation:true,
+        protected_owner_branches_unchanged:true,
+        original_wallet_signer_process_admitted:false,
+        source_owner_admission:'NOT_GRANTED',native_GUI_A_to_B:false,
+        gate_b:'OPEN',gate_c:'CANDIDATE_ONLY',gate_d:'OPEN'
+      }));
+    }finally{
+      ipc?.revoke();
+      await stop(node);
+      await fs.rm(dir,{recursive:true,force:true});
+    }
+  });
