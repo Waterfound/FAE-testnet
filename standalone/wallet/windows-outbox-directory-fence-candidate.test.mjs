@@ -46,7 +46,12 @@ test('V56 original encrypted Wallet Windows durability fence rejects wrong handl
       process.env.SystemRoot=oldSystemRoot;
       await owned.close();
     }
-    await writeIntent(intentPath(vault),intent,secret);
+    // The V56 native directory flush may succeed, but that observation is
+    // not an owner-approved crash/power-loss durability acknowledgement.
+    // The actual original CLI calls writeIntent() before any signed POST:
+    // therefore it must reject even on a successful native Win32 flush.
+    await assert.rejects(writeIntent(intentPath(vault),intent,secret),
+      /outbox_write_incomplete_fail_closed:win32_original_outbox_durability_owner_admission_required/);
     const contents=await readFile(intentPath(vault),'utf8');
     assert.equal(contents.includes(txid),false);
     assert.equal((await readIntent(intentPath(vault),secret)).txid,txid);
@@ -55,6 +60,7 @@ test('V56 original encrypted Wallet Windows durability fence rejects wrong handl
       JSON.stringify({wrong_directory_handle_denied:true,
         invalid_native_executable_denied:true,encrypted_outbox_remains:true,
         duplicate_write_denied:true,authorization_never_granted:true,
+        owner_admission_required_after_native_flush:true,
         simulated_crash_power_loss:false}));
   }finally{
     if(oldSystemRoot===undefined)delete process.env.SystemRoot;
