@@ -41,7 +41,7 @@ test('V56 original encrypted Wallet Windows durability fence rejects wrong handl
       process.env.SystemRoot='C:\\UntrustedRoot';
       await assert.rejects(
         observeWindowsDirectoryFenceCandidate(folder,owned),
-        /trusted Win32 directory fence executable unavailable/);
+        /Win32 directory flush refused: outbox remains unresolved/);
     }finally{
       process.env.SystemRoot=oldSystemRoot;
       await owned.close();
