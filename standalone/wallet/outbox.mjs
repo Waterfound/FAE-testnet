@@ -6,6 +6,8 @@ import {open,lstat,unlink} from 'node:fs/promises';
 import {NETWORK} from './crypto.mjs';
 import {isValidAddress} from '../../sovereign-forge/node/authoritative/address.mjs';
 import {hardenWindowsPrivateFile,verifyWindowsPrivateFile} from './windows-private-file-acl.mjs';
+// V56 independent original-source SECURITY-OWNER CANDIDATE ONLY.
+import {observeWindowsDirectoryFenceCandidate} from './windows-outbox-directory-fence-candidate.mjs';
 
 const NOFOLLOW=constants.O_NOFOLLOW??0;
 const KDF={N:32768,r:8,p:1,maxmem:128*1024*1024};
@@ -66,11 +68,36 @@ export async function writeIntent(path,record,password){
     await hardenWindowsPrivateFile(path,handle);
     await handle.writeFile(data,{encoding:'utf8'});
     await handle.sync();
+    // Bind the just-synced original file handle to the pathname which
+    // the native Windows directory flush will subsequently acknowledge.
+    // This is not a power-loss test; it detects straightforward replacement.
+    const pinnedWrite=process.platform==='win32'?
+      await handle.stat({bigint:true}):null;
     await handle.close();handle=null;
-    // Commit directory entry, not just file data, before any HTTP POST.
+    const assertSameOriginalOutbox=async()=>{
+      const current=await lstat(path,{bigint:true});
+      if(!current.isFile()||current.isSymbolicLink()||
+         current.dev!==pinnedWrite.dev||current.ino!==pinnedWrite.ino||
+         current.size!==BigInt(Buffer.byteLength(data,'utf8')))
+        throw Error('Original Wallet Win32 outbox changed before durable fence');
+    };
+    if(process.platform==='win32')await assertSameOriginalOutbox();
+    // A file fsync is insufficient for the new outbox directory entry.
+    // Original #342 uses parent.sync(). Windows Node currently returns EPERM.
+    // V56 SECURITY-OWNER CANDIDATE: an independently identity-bound native
+    // Win32 directory FlushFileBuffers call has been observed to succeed.
+    // This branch must NOT ship or submit real funds before owner admission
+    // and independent crash/power-loss durability review. No suppress-EPERM.
     const dirname=(await import('node:path')).dirname(path);
     const parent=await open(dirname,constants.O_RDONLY|NOFOLLOW);
-    try{await parent.sync()}finally{await parent.close()}
+    try{
+      if(process.platform==='win32'){
+        await observeWindowsDirectoryFenceCandidate(dirname,parent);
+        await assertSameOriginalOutbox();
+        await verifyWindowsPrivateFile(path);
+        await assertSameOriginalOutbox();
+      }else await parent.sync();
+    }finally{await parent.close()}
   }catch(error){
     if(handle){await handle.close().catch(()=>{});}
     // Never delete a potentially committed intent. If fsync failed, leave
