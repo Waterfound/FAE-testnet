@@ -126,6 +126,19 @@ test('V49 native original transaction lookup requires a stable authenticated nod
   await assert.rejects(c.readTransactionByTxid(txid),/Authenticated original-node transaction lookup unavailable/);
 });
 
+test('V49 miner submission trust state disables native before block-owner admission',()=>{
+  const native=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  native.nativeIpcCandidate=true;
+  const denied=native.snapshot();
+  assert.equal(denied.mining_submission,'NATIVE_BLOCK_SUBMISSION_NOT_ADMITTED');
+  assert.equal(denied.miner,'stopped');
+  const legacy=new ProcessController({repoRoot:root,dataDir:os.tmpdir()});
+  const untrusted=legacy.snapshot();
+  assert.equal(untrusted.mining_submission,'LEGACY_HTTP_UNAUTHENTICATED');
+  assert.equal(untrusted.miner,'stopped');
+  assert.notEqual(untrusted.mining_submission,'PROCESS_AUTHENTICATED');
+});
+
 test('node/miner subprocess environment strips credential-bearing variables',()=>{
   process.env.TS_CANARY_SECRET='should-not-pass-through';
   const actual=makeEnv({FAE_SYNC:'0'});
