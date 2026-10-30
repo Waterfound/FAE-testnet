@@ -619,3 +619,160 @@ test('V52 genuine OS-disposable original Wallet signer -> original node signed A
     await fs.rm(dir,{recursive:true,force:true});
   }
 });
+
+test('V55 true original encrypted Wallet vault + outbox in owned OS child -> original consensus native A-to-B', {
+  skip:process.env.TS_V50_NATIVE_BLOCK_OWNER_CANDIDATE!=='1',timeout:160000
+},async()=>{
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'trium-v55-vault-'));
+  const stateFile=path.join(dir,'state.json');
+  let node=null,ipc=null;
+  try{
+    const {miner,core}=await stageSource(dir);
+    const wallet=await stageExactOriginalWalletCrypto(dir);
+    const b=wallet.deriveRecords(wallet.entropyToMnemonic(Buffer.alloc(32,0xab)))[0];
+    // Stage the exact original Wallet #342 protected source closure; never
+    // copy tests' own vault/signing implementation in its place.
+    const originals={
+      'standalone/wallet/fae-wallet.mjs':'cc31ca36621c6f08054e93f38ef1d7b9fc06a8f6',
+      'standalone/wallet/vault.mjs':'04f138b90d9b6883ba78efe05e96e2fe63e14091',
+      'standalone/wallet/outbox.mjs':'5d4708f64237af428bbba52aea2ee741b06f06ff'
+    };
+    for(const [relative,expected] of Object.entries(originals)){
+      const bytes=execFileSync('git',['show',WALLET_HEAD+':'+relative],
+        {cwd:ROOT,maxBuffer:1000000});
+      assert.equal(blobHash(bytes),expected,'Original Wallet owner source mismatch: '+relative);
+      const full=path.join(dir,...relative.split('/'));
+      await fs.mkdir(path.dirname(full),{recursive:true,mode:0o700});
+      await fs.writeFile(full,bytes,{flag:'wx',mode:0o400});
+    }
+    const workerPath='universal-client/src/v55-isolated-original-vault-signer.mjs';
+    const bytes=execFileSync('git',['show','HEAD:'+workerPath],
+      {cwd:ROOT,maxBuffer:1000000});
+    assert.equal(blobHash(bytes),'662de47aa567b222debac9eed8b6cb4db84ca157',
+      'Reviewed V55 Wallet worker changed');
+    const workerFile=path.join(dir,...workerPath.split('/'));
+    await fs.mkdir(path.dirname(workerFile),{recursive:true,mode:0o700});
+    await fs.writeFile(workerFile,bytes,{flag:'wx',mode:0o400});
+    const p=await port();
+    let endpoint='http://127.0.0.1:'+p;
+    node=await startOwnerCandidate(dir,stateFile,p,{signedTx:true});
+    ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+      allowSignedTxMutation:true,timeoutMs:5000});
+    const nodePins={};
+    for(const name of ORIGINAL_NODE_FILES)
+      nodePins[name]=createHash('sha256').update(
+        await fs.readFile(path.join(dir,...name.split('/')))).digest('hex');
+    const controller=new ProcessController({
+      repoRoot:dir,dataDir:dir,port:p,nativeIpcCandidate:true,
+      nativeNodeSourcePins:nodePins
+    });
+    controller.node=node;controller.nodeIpc=ipc;
+    await assert.rejects(controller.runIsolatedOriginalVaultCandidateOnce({
+      to:b.address,prepareFunding:()=>{throw Error('SHOULD_NOT_MINE')}
+    }),/user-signing admission not granted/);
+    // An invalid source must be rejected before any process, vault or TX.
+    const prior=process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF;
+    let result;
+    try{
+      process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF='1';
+      await fs.appendFile(workerFile,'\n// injected source mutation\n');
+      await assert.rejects(controller.runIsolatedOriginalVaultCandidateOnce({
+        to:b.address,prepareFunding:()=>{throw Error('SHOULD_NOT_MINE')}
+      }),/isolated-vault-worker source verification failed/);
+      await fs.writeFile(workerFile,bytes,{mode:0o400});
+      assert.equal(controller.signer,null,'untrusted worker may not spawn');
+      const mine=async(address)=>{
+        const opts=miner.resolveOptions({node:endpoint,address,once:true,json:true,
+          'chunk-size':'4096','yield-ms':'0'},{});
+        let ack=null;
+        const proof=await miner.runMiner(opts,{emit:()=>{},
+          submitMinedBlock:async submission=>{
+            assert.deepEqual(core.buildSubmission({
+              header:submission.header,txids:submission.txids
+            },submission.nonce,submission.hash),submission);
+            ack=await ipc.submitMinedBlock(submission);
+            return ack;
+          }
+        });
+        assert.equal(proof.accepted,1);
+        assert.equal(ack.durable,true);
+        return ack;
+      };
+      result=await controller.runIsolatedOriginalVaultCandidateOnce({
+        to:b.address,
+        prepareFunding:async from=>{
+          const first=await mine(from);
+          assert.equal(first.height,1);
+          const balance=await ipc.read('balance',{address:from});
+          assert.equal(balance.balance_atoms,'1000000000');
+          const tip=await ipc.read('status');
+          return {outpoint:first.hash+':0',source_atoms:'1000000000',
+            tip_height:tip.height,tip_hash:tip.tip_hash};
+        }
+      });
+      assert.equal(result.authority,'ISOLATED_DISPOSABLE_ORIGINAL_VAULT_ONLY');
+      assert.equal(result.user_authorization,'TEST_FIXTURE_NOT_REAL_USER');
+      assert.equal(result.receipt.status,'pending');
+      assert.equal(result.receipt.fee_atoms,'1');
+      assert.equal(controller.signer,null,'owned signer OS child must terminate');
+      const vault=JSON.parse(await fs.readFile(result.vault_path,'utf8'));
+      const outbox=JSON.parse(await fs.readFile(result.outbox_path,'utf8'));
+      assert.equal(vault.format,'FAE_STANDALONE_VAULT_V1');
+      assert.equal(outbox.format,'FAE_STANDALONE_OUTBOX_V1');
+      assert.equal(vault.encryption.cipher,'aes-256-gcm');
+      assert.equal(outbox.encryption.cipher,'aes-256-gcm');
+      assert.equal(outbox.encryption.kdf,'scrypt');
+      assert.equal(vault.public_addresses[0].address,result.from);
+      const rawOutbox=await fs.readFile(result.outbox_path,'utf8');
+      assert.ok(!rawOutbox.includes(result.txid),
+        'TXID is encrypted in original owner outbox');
+      assert.ok(!rawOutbox.includes(result.from),
+        'no plaintext address in original owner outbox');
+      const pending=await ipc.read('transaction-lookup',{txid:result.txid});
+      assert.equal(pending.status,'pending');
+      // A new signer process cannot overwrite an unresolved outbox/vault.
+      await assert.rejects(controller.runIsolatedOriginalVaultCandidateOnce({
+        to:b.address,prepareFunding:()=>{throw Error('NO_SECOND_MINING')}
+      }),/outcome unknown|original wallet|wallet signer|vault/i);
+      assert.equal(controller.signer,null);
+      const confirmed=await mine(result.from);
+      assert.equal(confirmed.height,2);
+      assert.equal((await ipc.read('transaction-lookup',{
+        txid:result.txid})).status,'confirmed');
+      assert.equal((await ipc.read('balance',{address:b.address})).balance_atoms,
+        '100000000');
+      ipc.revoke();ipc=null;
+      await stop(node);node=null;
+      const cold=await port();
+      endpoint='http://127.0.0.1:'+cold;
+      node=await startOwnerCandidate(dir,stateFile,cold,{signedTx:true});
+      ipc=new OwnedNodeIpc(node,{allowBlockMutation:true,
+        allowSignedTxMutation:true,timeoutMs:5000});
+      const recovered=await ipc.read('transaction-lookup',{txid:result.txid});
+      assert.equal(recovered.status,'confirmed');
+      assert.equal(recovered.confirmed_height,2);
+      assert.equal((await ipc.read('balance',{address:b.address})).balance_atoms,
+        '100000000');
+      assert.equal((await fs.readFile(result.outbox_path,'utf8')),rawOutbox,
+        'encrypted outbox remains unchanged and blocks automatic retry');
+      console.log('TS_V55_ORIGINAL_ENCRYPTED_VAULT_NATIVE_AB_PASS '+JSON.stringify({
+        original_wallet_owner:WALLET_HEAD,original_node_owner:NODE_HEAD,
+        original_miner_owner:MINER_HEAD,original_encrypted_vault:true,
+        random_disposable_secrets_only_inside_child:true,
+        original_source_pinned_snapshot:true,original_coin_selection:true,
+        real_os_child_under_controller:true,outbox_fsynced_before_submission:true,
+        encrypted_unresolved_outbox_persisted:true,
+        original_native_signed_tx:true,pending_then_mined:true,
+        cold_node_restart:true,double_request_denied:true,
+        no_user_credential_ipc:true,real_user_approval:false,
+        production_signer_admitted:false,installed_gui_payment:false
+      }));
+    }finally{
+      if(prior===undefined)delete process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF;
+      else process.env.TS_V55_ISOLATED_VAULT_OWNER_PROOF=prior;
+    }
+  }finally{
+    ipc?.revoke();await stop(node);
+    await fs.rm(dir,{recursive:true,force:true});
+  }
+});
