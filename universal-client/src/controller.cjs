@@ -426,7 +426,12 @@ class ProcessController extends EventEmitter{
       throw Error('Canonical transaction ID required for native lookup');
     if(!this.nativeIpcCandidate)
       throw Error('Authenticated original-node transaction lookup unavailable');
-    const result=await this.nativeRead('transaction-lookup',{txid});
+    // An IPC transaction reply reflects one original-node chain snapshot.
+    // Bracket it with authenticated node status reads, just as with public
+    // balance/funding reads, so a reorg cannot silently promote a stale
+    // pending/confirmed answer into an apparently current observation.
+    const result=await this.observedReadAtStableTip(()=>
+      this.nativeRead('transaction-lookup',{txid}),{includeTip:true});
     if(!result||typeof result!=='object'||Array.isArray(result)||
       result.ok!==true||result.network!==NETWORK||result.txid!==txid||
       typeof result.found!=='boolean'||
@@ -440,6 +445,9 @@ class ProcessController extends EventEmitter{
         true:
         result.status!==null||result.confirmed_height!==null))
       throw Error('Invalid native original-node transaction evidence');
+    if(result.tip_height!==result.observed_tip_height||
+       result.tip_hash!==result.observed_tip_hash)
+      throw Error('Native transaction lookup chain tip mismatch');
     return Object.freeze({
       txid,result_known:result.found,status:result.status,
       confirmed_height:result.confirmed_height,
