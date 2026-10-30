@@ -82,9 +82,12 @@ foreach($rule in @($final.GetAccessRules($true,$true,
 if(-not ($ownerAllow -and $systemAllow)){throw 'expected_aces_missing'}
 [Console]::Out.Write('PRIVATE_FILE_ACL_OK')
 } catch {
-  # Expose ONLY the finite exception class; never a path, SID or message.
+  # Only a fixed error CLASS is shared with public CI, never SID/path/secret.
   $class=$_.Exception.GetType().Name
-  if($class -notmatch '^[A-Za-z]{3,48}
+  if($class -notmatch '^[A-Za-z]{3,48}$'){$class='Unknown'}
+  [Console]::Error.Write('PRIVATE_ACL_PHASE:'+$phase+':'+$class)
+  exit 21
+}
 `;
 const SCRIPT=Buffer.from(POWERSHELL,'utf16le').toString('base64');
 function powerShellExecutable(){
@@ -124,72 +127,6 @@ async function check(target,action){
       exec(String(error?.stderr||''));
     throw Error('Windows original Wallet private ACL refused at '+
       (match?match[1]+':'+match[2]:'UNCLASSIFIED'));
-  }
-  if(proof!=='PRIVATE_FILE_ACL_OK')
-    throw Error('Windows original Wallet private ACL receipt invalid');
-  const after=await canonicalPrivatePath(target);
-  if(before.st.dev!==after.st.dev||before.st.ino!==after.st.ino)
-    throw Error('Windows private-file identity changed during ACL operation');
-  return true;
-}
-export async function hardenWindowsPrivateFile(path,handle){
-  if(process.platform!=='win32')return;
-  if(!handle||typeof handle.stat!=='function')
-    throw Error('Original Wallet owned private file handle required');
-  const st=await handle.stat();
-  if(!st.isFile())throw Error('Windows private-file original handle invalid');
-  await check(path,'harden');
-  const after=await handle.stat();
-  if(st.dev!==after.dev||st.ino!==after.ino)
-    throw Error('Windows private-file handle changed during ACL hardening');
-}
-export async function verifyWindowsPrivateFile(path){
-  if(process.platform!=='win32')return;
-  await check(path,'verify');
-}
-){$class='Unknown'}
-  [Console]::Error.Write('PRIVATE_ACL_PHASE:'+$phase+':'+$class)
-  exit 21
-}
-`;
-const SCRIPT=Buffer.from(POWERSHELL,'utf16le').toString('base64');
-function powerShellExecutable(){
-  const root=process.env.SystemRoot;
-  // Do not execute a lookalike binary chosen by PATH or renderer environment.
-  if(typeof root!=='string'||!/^[A-Z]:\\Windows$/i.test(root))
-    throw Error('trusted Windows PowerShell location unavailable');
-  return join(root,'System32','WindowsPowerShell','v1.0','powershell.exe');
-}
-async function canonicalPrivatePath(target){
-  if(typeof target!=='string'||!win32.isAbsolute(target)||
-     target.includes('\u0000')||target.includes('\n')||target.includes('\r'))
-    throw Error('absolute Windows private-file path required');
-  const real=await realpath(target);
-  if(win32.normalize(target).toLowerCase()!==win32.normalize(real).toLowerCase())
-    throw Error('Windows private-file path redirected');
-  const st=await lstat(target);
-  if(!st.isFile()||st.isSymbolicLink())
-    throw Error('Windows private-file target not regular');
-  return {real,st};
-}
-async function check(target,action){
-  if(process.platform!=='win32')
-    throw Error('NTFS checks may only run on Windows');
-  const before=await canonicalPrivatePath(target);
-  let proof;
-  try{
-    proof=execFileSync(powerShellExecutable(),[
-      '-NoProfile','-NonInteractive','-EncodedCommand',SCRIPT
-    ],{input:JSON.stringify({path:before.real,action}),
-      windowsHide:true,timeout:20000,maxBuffer:4096,encoding:'utf8',
-      stdio:['pipe','pipe','pipe']});
-  }catch(error){
-    // Only a known hardcoded phase name can cross diagnostics; no raw
-    // exceptions, SIDs, paths, ACL rules, vaults or other child text.
-    const match=/PRIVATE_ACL_PHASE:(INPUT|RESOLVE_FILE|OWNER_IDENTITY|ACL_READ|OWNER_MATCH|SET_OWNER|SET_ACL|COMMIT_ACL|VERIFY_ACL)/.
-      exec(String(error?.stderr||''));
-    throw Error('Windows original Wallet private ACL refused at '+
-      (match?match[1]:'UNCLASSIFIED'));
   }
   if(proof!=='PRIVATE_FILE_ACL_OK')
     throw Error('Windows original Wallet private ACL receipt invalid');
